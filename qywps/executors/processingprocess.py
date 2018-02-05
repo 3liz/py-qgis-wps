@@ -335,7 +335,7 @@ def input_to_processing( identifier, inp, alg, context ):
 
     if isinstance(param, DESTINATION_LAYER_TYPES):
         # Do not supports memory: layer since we are storing destination project to file
-        param.setSupportsNonFileBasedOutputs(False)
+        param.setSupportsNonFileBasedOutput(False)
         # Enforce pushing created layers to layersToLoadOnCompletion list
         if param.defaultFileExtension():
             sink = "./%s.%s" % (param.name(), param.defaultFileExtension())
