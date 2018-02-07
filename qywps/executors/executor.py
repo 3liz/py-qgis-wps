@@ -402,8 +402,12 @@ class PoolExecutor(Executor):
         now_ts   = datetime.now().timestamp()
 
         for _, rec in list(logstore.records):
-            if STATUS[rec['status']] < STATUS.DONE_STATUS:
-                continue
+            try:
+                if STATUS[rec['status']] < STATUS.DONE_STATUS:
+                    continue
+            except KeyError:
+                # Handle legacy status
+                pass
             
             expiration = rec.get('expiration', expire_default)
             timestamp  = rec.get('timestamp')
