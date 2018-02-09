@@ -180,6 +180,12 @@ def parse_file_input( param, kwargs):
         return LiteralInput(**kwargs)
 
 
+def parse_metadata( param, kwargs ):
+    """ Parse freeform metadata
+    """
+    kwargs['metadata'].extend(Metadata('processing:meta:%s' % k, str(v)) for k,v in param.metadata().items())
+
+
 def parse_layer_input(param, kwargs):
     """ Layers input are passe as layer name
 
@@ -243,13 +249,14 @@ def parse_input_definition( param, alg=None ):
     if _is_optional:
         kwargs['min_occurs'] = 0
 
-
     inp = parse_literal_input(param,kwargs)      \
             or parse_layer_input(param,kwargs)   \
             or parse_extent_input(param, kwargs) \
             or parse_file_input(param, kwargs)
     if inp is None:
         raise ProcessingInputTypeNotSupported("%s:'%s'" %(type(param),param.type()))
+
+    parse_metadata(param, kwargs)
 
     return inp
     

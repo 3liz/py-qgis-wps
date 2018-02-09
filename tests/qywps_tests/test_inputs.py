@@ -128,6 +128,18 @@ def test_source_types_metadata():
     assert get_metadata(inp,'processing:dataTypes')[0].href == 'TypeVectorLine,TypeVectorPoint'
  
 
+def test_freeform_metadata():
+    param = QgsProcessingParameterNumber("TEST", "LiteralInteger",
+                  type=QgsProcessingParameterNumber.Integer,
+                  minValue=1, defaultValue=10)
+
+    param.setMetadata({'meta1':'value1', 'meta2':'value2' })
+
+    inp = parse_input_definition(param)
+    assert get_metadata(inp,'processing:meta:meta1')[0].href == 'value1'
+    assert get_metadata(inp,'processing:meta:meta2')[0].href == 'value2'
+    
+
 
 def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     if maxOccurence is None:
@@ -137,6 +149,4 @@ def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     assert len(m) >= minOccurence
     assert len(m) <= maxOccurence
     return m
-
-
 
