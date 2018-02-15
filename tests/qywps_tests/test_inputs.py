@@ -29,10 +29,12 @@ from qywps.executors.processingprocess import(
             handle_layer_outputs,
             write_outputs,
             _find_algorithm,
+            _is_optional,
         ) 
 
 from qgis.core import QgsApplication
 from qgis.core import (QgsProcessing,
+                       QgsProcessingParameterDefinition,
                        QgsProcessingParameterNumber,
                        QgsProcessingParameterEnum,
                        QgsProcessingOutputLayerDefinition,
@@ -139,6 +141,27 @@ def test_freeform_metadata():
     assert get_metadata(inp,'processing:meta:meta1')[0].href == 'value1'
     assert get_metadata(inp,'processing:meta:meta2')[0].href == 'value2'
     
+
+def test_optional_inputs():
+        not_optional_param = QgsProcessingParameterNumber("TEST1", "LiteralInteger",
+                  type=QgsProcessingParameterNumber.Integer,
+                  minValue=1, defaultValue=10)
+
+        assert not _is_optional(not_optional_param)
+
+        optional_param = QgsProcessingParameterNumber("TEST2", "LiteralInteger",
+                  type=QgsProcessingParameterNumber.Integer,
+                  optional = True,
+                  minValue=1, defaultValue=10)
+
+        assert _is_optional(optional_param)
+
+        optional_input     = parse_input_definition(optional_param) 
+        not_optional_input = parse_input_definition(not_optional_param) 
+
+        assert optional_input.min_occurs == 0
+        assert not_optional_input.min_occurs > 0
+
 
 
 def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):

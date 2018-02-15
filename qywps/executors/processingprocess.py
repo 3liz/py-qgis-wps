@@ -98,7 +98,7 @@ class ProcessingAlgorithmError(Exception):
 
 
 def _is_optional( param ):
-    return (param.flags() & QgsProcessingParameterDefinition.FlagOptional) !=0
+    return (int(param.flags()) & QgsProcessingParameterDefinition.FlagOptional) !=0
 
 
 def _find_algorithm( algid ):
@@ -246,7 +246,7 @@ def parse_input_definition( param, alg=None ):
     }
 
     # Check for optional flags
-    if _is_optional:
+    if _is_optional(param):
         kwargs['min_occurs'] = 0
 
     inp = parse_literal_input(param,kwargs)      \
