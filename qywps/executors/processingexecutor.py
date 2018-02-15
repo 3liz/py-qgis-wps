@@ -8,6 +8,7 @@
 import os
 import sys
 import logging
+import json
 
 from qywps.executors import PoolExecutor, ExecutorError
 from qywps.utils.qgis import start_qgis_application, setup_qgis_paths
@@ -36,7 +37,43 @@ class ProcessingExecutor(PoolExecutor):
             self._providers = providers.split(',')
             self.importproviders()
 
+        self.loadstyles()
+
         super(ProcessingExecutor, self).initialize(processes)
+
+
+    def loadstyles(self):
+        """ Load styles definitions
+
+            The json structure should be the following:
+
+            {
+                'algid': {
+                    'outputname': file.qml
+                    ...
+                }
+                ...
+            {
+        """
+        providers_path = self._config.get('providers_module_path')
+        if providers_path:
+            filepath = os.path.join(providers_path,'styles.json')
+            if not os.path.exists(filepath):
+                return
+
+        LOGGER.info("Loading styles")
+        from processing.core.Processing import RenderingStyles
+        with open(filepath,'r') as fp:
+            data = json.load(fp)
+            # Replace style name with full path
+            for alg in data:
+                for key in data[alg]:
+                    qml = os.path.join(providers_path,'qml',data[alg][key])
+                    if not os.path.exists(qml):
+                        LOGGER.warning("Style '%s' not found" % qml)
+                    data[alg][key] = qml
+            # update processing rendering styles
+            RenderingStyles.styles.update(data)
 
     def importproviders(self):
         """ Import algorithm providers

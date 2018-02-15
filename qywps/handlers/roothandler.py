@@ -8,9 +8,12 @@ class RootHandler(BaseHandler):
     def get(self):
         try:
             from qgis.core import Qgis
-            QGIS_VERSION="{} ({})".format(Qgis.QGIS_VERSION_INT,Qgis.QGIS_RELEASE_NAME) 
+            from processing.core.Processing import RenderingStyles
+            QGIS_VERSION="{} ({})".format(Qgis.QGIS_VERSION_INT,Qgis.QGIS_RELEASE_NAME)
+            styles = RenderingStyles.styles
         except ImportError:
             QGIS_VERSION="n/a"
+            styles = {}
             pass
 
         response = dict(tornado_ver=tornado.version,
@@ -18,6 +21,7 @@ class RootHandler(BaseHandler):
                         author="3Liz",
                         author_url="http://3liz.com",
                         qgis_version=QGIS_VERSION,
+                        styles=styles,
                         config=config_to_dict())
 
         self.write_json(response)
