@@ -108,13 +108,13 @@ def init_processing():
 def install_logger_hook( logger, logprefix, verbose=False ):
     """ Install message log hook
     """
-    from qgis.core import QgsApplication, QgsMessageLog
+    from qgis.core import Qgis, QgsApplication, QgsMessageLog
     # Add a hook to qgis  message log 
     def writelogmessage(message, tag, level):
         arg = '{} {}: {}'.format( logprefix, tag, message )
-        if level == QgsMessageLog.WARNING:
+        if level == Qgis.Warning:
             logger.warning(arg)
-        elif level == QgsMessageLog.CRITICAL:
+        elif level == Qgis.Critical:
             logger.error(arg)
         elif verbose:
             # Qgis is somehow very noisy
