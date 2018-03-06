@@ -430,6 +430,7 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
             return False
         try:
             # Take as layer
+            LOGGER.debug("%s: MapLayerFromString: %s", alg.id(), l)
             layer = QgsProcessingUtils.mapLayerFromString(l, context)
             if layer is not None:
                 if not ProcessingConfig.getSetting(ProcessingConfig.USE_FILENAME_AS_LAYER_NAME):
@@ -451,6 +452,7 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
                 if style:
                     layer.loadNamedStyle(style)
                 # Add layer to destination project
+                LOGGER.debug("%s: Adding Map layer to Qgs Project", alg.id())
                 details.project.addMapLayer(context.temporaryLayerStore().takeMapLayer(layer))
             else:
                 LOGGER.warn("No layer found found for %s" % l)
@@ -478,7 +480,6 @@ class Feedback(QgsProcessingFeedback):
         self._response  = response
         self.name       = name
         self.uuid       = uuid_str
-        self.has_error  = False
 
     def setProgress( self, progress ):
         """ We update the wps status 
@@ -498,8 +499,6 @@ class Feedback(QgsProcessingFeedback):
 
     def reportError(self, txt ):
         LOGGER.error("Processing:%s:%s %s", self.name, self.uuid, txt)
-        self.error_msg = txt
-        self.has_error = True
 
     def pushInfo(self, txt):
         LOGGER.info("Processing:%s:%s %s",self.name, self.uuid, txt)
@@ -590,10 +589,7 @@ class QgsProcess(WPSProcess):
             traceback.print_exc()
             raise ProcessingAlgorithmError("%s" % e)
 
-        # Handle error 
-        if feedback.has_error:
-            LOGGER.error(feedback.error_msg)
-            raise ProcessingAlgorithmError(feedback.error_msg)
+        LOGGER.debug("Task finished %s", request.identifier)
 
         handle_layer_outputs(alg, results, context)
 

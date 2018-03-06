@@ -72,5 +72,6 @@ class Context(QgsProcessingContext):
     def write_result(self, workdir, name):
         """ Save results to disk
         """
+        LOGGER.debug("Writing Results to %s", workdir)
         return self.destination_project.write(os.path.join(workdir,name+'.qgs'))
 
