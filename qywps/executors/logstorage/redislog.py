@@ -41,7 +41,9 @@ class RedisStore(LOGStore):
           'expiration': wps_request.expiration,
           'time_start': datetime.now().isoformat(),
           'time_end': None,
-          'status_url': self.status_url(request_uuid, wps_request), 
+          'status_url': self.status_url(request_uuid, wps_request),
+          'pinned': False,
+          'timeout': wps_request.timeout
         }
 
         # Record status
@@ -83,13 +85,37 @@ class RedisStore(LOGStore):
         # Note that hset return 0 if the key already exists but change the value anyway
         self._db.hset(self._hstatus, uuid_str, json.dumps(record))
 
+    def pin_response( self, request_uuid, pin=True ):
+        """ Pin response so that it never expires
+
+            Note that it is not allowed to pin a unfinished/failed task
+        """
+        uuid_str = str(request_uuid)
+        LOGGER.debug("LOGSTORE: pinning record %s", uuid_str)
+        data = self._db.hget(self._hstatus, str(uuid))
+        if data is not None:  
+            data   = json.loads(data.decode('utf-8'))
+            if STATUS[data['status']] != STATUS.DONE_STATUS:
+                return False
+            if pin:
+                data['pinned']    = True
+                data['expire_at'] = None
+            else:
+                data['pinned']    = False
+                data['expire_at'] = datetime.fromtimestamp(now.timestamp()+record['expiration']).isoformat()
+            # update the record
+            self._db.hset(self._hstatus, uuid_str, json.dumps(record))
+        else:
+            raise FileNotFoundError("No status for %s" % uuid_str)
+
+
     def write_response( self,  request_uuid, doc ):
         """ Write response doc
         """
         uuid_str = str(request_uuid)
         LOGGER.debug("LOGSTORE: writing response doc %s", uuid_str)
         content = etree.tostring(doc, pretty_print=True, encoding='utf-8')
-        rv = self._db.set("{}:response:{}".format(self._prefix, uuid_str), content, ex=self._respexp)
+        rv = self._db.set("{}:response:{}".format(self._prefix, uuid_str), content)
         if not rv:
             LOGGER.error("LOGSTORE: Failed to log response %s", uuid_str)
 
@@ -151,8 +177,7 @@ class RedisStore(LOGStore):
         self._prefix  = cfg.get('hashprefix','qywps')
         self._hstatus = "%s:status"  % self._prefix
         self._trace   = cfg.getboolean('trace_request'  , fallback=False)
-        self._tracexp = cfg.getint('trace_expiration'   , fallback=3600)
-        self._respexp = cfg.getint('response_expiration', fallback=86400)
+        self._tracexp = cfg.getint('trace_expiration'   , fallback=86400)
         self._urlpath = cfg['status_url']
         self._host    = configuration.get_config('server')['host_proxy'] 
 

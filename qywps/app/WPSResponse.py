@@ -49,7 +49,7 @@ class WPSResponse():
         self.outputs = {o.identifier: o for o in process.outputs}
         self.message = ''
         self.status = STATUS.NO_STATUS
-        self.status_percentage = 0
+        self.status_percentage = -1
         self.status_url = status_url
         self.uuid = uuid
         self.document = None
@@ -109,7 +109,7 @@ class WPSResponse():
         return WPS.Status(
             WPS.ProcessStarted(
                 self.message,
-                percentCompleted=str(self.status_percentage)
+                percentCompleted=str(max(self.status_percentage,0))
             ),
             creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
         )
@@ -177,12 +177,11 @@ class WPSResponse():
         # Status XML
         # return the correct response depending on the progress of the process
         if self.status == STATUS.STORE_AND_UPDATE_STATUS:
-            if self.status_percentage == 0:
-                self.message = 'WPS Process %s accepted' % self.process.identifier
+            if self.status_percentage == -1:
                 status_doc = self._process_accepted()
                 doc.append(status_doc)
                 return doc
-            elif self.status_percentage > 0:
+            elif self.status_percentage >= 0:
                 status_doc = self._process_started()
                 doc.append(status_doc)
                 return doc

@@ -324,7 +324,7 @@ class PoolExecutor(Executor):
                 LOGGER.error('Process Exception { "exception": "%s", "uuid": "%s" }' % (exc, process.uuid))
                 wps_response.update_status("%s" % exc, None, STATUS.ERROR_STATUS)
 
-            wps_response.update_status('Task accepted', 0)
+            wps_response.update_status('Task accepted')
             self._pool.apply_async(self._run_process, args=(process.handler, wps_request, wps_response), 
                     kwds={'is_async':True, 'timeout': timeout },
                     error_callback = _on_error)
@@ -402,16 +402,22 @@ class PoolExecutor(Executor):
         now_ts   = datetime.now().timestamp()
 
         for _, rec in list(logstore.records):
+            timestamp = rec.get('timestamp')
+            dangling  = timestamp is None
             try:
-                if STATUS[rec['status']] < STATUS.DONE_STATUS:
-                    continue
+                if not dangling and STATUS[rec['status']] < STATUS.DONE_STATUS:
+                    # Check that the task is not in dangling state
+                    timeout  = rec.get('timeout')
+                    dangling = timeout is None or (now_ts - int(timestamp)) >= timeout
+                    if not dangling:
+                        continue
             except KeyError:
                 # Handle legacy status
                 pass
             
             expiration = rec.get('expiration', expire_default)
-            timestamp  = rec.get('timestamp')
-            if timestamp is None or (now_ts - int(timestamp)) >= expiration:
+            notpinned  = not rec.get('pinned',False)
+            if dangling or notpinned or (now_ts - int(timestamp)) >= expiration:
                 # Delete the working directory
                 uuid_str = rec['uuid']
                 workdir = os.path.join(rootdir, uuid_str)
