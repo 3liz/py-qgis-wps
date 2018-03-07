@@ -105,6 +105,7 @@ class RedisStore(LOGStore):
                 data['expire_at'] = datetime.fromtimestamp(now.timestamp()+record['expiration']).isoformat()
             # update the record
             self._db.hset(self._hstatus, uuid_str, json.dumps(record))
+            return True
         else:
             raise FileNotFoundError("No status for %s" % uuid_str)
 

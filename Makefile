@@ -98,6 +98,7 @@ WORKERS:=2
 # docker run -it --rm -p 6379:6379 --name redis --net mynet redis:4
 
 docker-run:
+	@echo "Do not forget to run 'docker run -it --rm -p 6379:6379 --name redis --net mynet redis:4'"
 	mkdir -p $(HOME)/.local
 	mkdir -p $(shell pwd)/run-tests/__workdir__
 	docker run -it --rm -p $(LOCAL_PORT):8080 --name qgis3-wps-run-$(COMMITID) $(DOCKER_OPTIONS) -w /src \
@@ -120,4 +121,8 @@ docker-run:
     -e QYWPS_CACHE_ROOTDIR=/projects \
     -e QYWPS_SERVER_WORKDIR=/srv/data \
     $(QGIS_IMAGE) /src/run-tests/setup.sh
+
+client-test:
+	py.test -v run-tests/tests/client/
+
 

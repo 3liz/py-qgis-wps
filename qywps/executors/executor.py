@@ -89,6 +89,17 @@ class Executor(metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def delete_results( self, uuid):
+        """ Delete process results and status 
+ 
+            :param uuid: the uuid of the required process. 
+             If set to None, return all the stored status.
+
+            :return: True if the status has been deleted.
+        """
+        raise NotImplementedError
+
 
     @abstractmethod
     def start_request( self, request_uuid, wps_request ):
@@ -219,7 +230,36 @@ class PoolExecutor(Executor):
         """ Implementation of Execute.get_status
         """
         return self._logstore.get_status(uuid)
- 
+
+    def delete_results( self, uuid):
+        """ implementation of Execute.delete_results
+        """
+        rec = self._logstore.get_status(uuid)
+        if rec is None:
+            raise FileNotFoundError(uuid)
+        try:
+            if STATUS[rec['status']] < STATUS.DONE_STATUS:
+                return False
+        except KeyError:
+            # Handle legacy status
+            pass
+
+        cfg = config.get_config('server')
+        rootdir = os.path.abspath(cfg['workdir'])
+
+        # Delete the working directory
+        uuid_str = rec['uuid']
+        workdir = os.path.join(rootdir, uuid_str)
+        LOGGER.info("Cleaning response status: %s", uuid_str)
+        try:
+            if os.path.isdir(workdir):
+                shutil.rmtree(workdir)
+        except Exception as err:
+            LOGGER.error('Unable to remove directory: %s: %s', workdir, err)
+        # Delete the record/response
+        self._logstore.delete_response(uuid_str)
+        return True
+
     def get_results(self, uuid):
         """ Return results status
         """

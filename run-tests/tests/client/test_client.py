@@ -3,6 +3,7 @@
 import sys
 import os
 import requests
+from urllib.parse import urlparse, parse_qs
 
 from client_utils import * 
 
@@ -108,4 +109,37 @@ def test_executetimeout( host, data ):
                                "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"))
     assert rv.status_code == 424
     
+
+def test_executedelete( host, data ):
+    """ Test delete process
+    """
+    # Execute a process
+    rv = requests.post(host+"?SERVICE=WPS&MAP=france_parts",
+            data=POST_DATA.format(storeExecuteResponse="false"),
+            headers={ "Content-Type": "text/xml" })
+
+    resp = Response(rv)
+    assert resp.status_code == 200 
+
+    # Get the status url
+    status_url = resp.xpath_attr('/wps:ExecuteResponse','statusLocation')
+    # Get the uuid
+    q = parse_qs(urlparse(status_url).query)
+    assert 'uuid' in q 
+
+    uuid = q['uuid'][0]
+
+    # Get the status and make sure is 200
+    rv = requests.get(host+"status/{}?SERVICE=WPS".format(uuid))
+    assert rv.status_code == 200
+    assert rv.json()['status'].get('uuid') == uuid
+
+    # Delete the response
+    rv = requests.delete(host+"status/{}?SERVICE=WPS".format(uuid))
+    assert rv.status_code == 200 
+
+    # Get the status and make sure is 404
+    rv = requests.get(host+"status/{}?SERVICE=WPS".format(uuid))
+    assert rv.status_code == 404 
+
 

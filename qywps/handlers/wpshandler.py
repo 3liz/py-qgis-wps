@@ -154,6 +154,20 @@ class StatusHandler(BaseHandler):
 
         self.write_json(data) 
 
+    def delete( self, uuid=None ):
+        """ Delete results
+        """
+        data = None
+        if uuid is None:
+            self.set_status(400)
+            self.write_json({ 'error': 'Missing uuid' })
+            return
+        try:
+            success = self.application.wpsservice.delete_results(uuid)
+            if not success:
+                self.set_status(409) # 409 == Conflict
+        except FileNotFoundError:
+             self.set_status(404)
 
         
 

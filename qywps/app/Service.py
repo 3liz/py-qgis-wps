@@ -73,6 +73,11 @@ class Service():
         """
         return self.executor.get_status(uuid)
 
+    def delete_results(self, uuid ):
+        """ Delete process results and status 
+        """
+        return self.executor.delete_results(uuid)
+
 
     def get_capabilities(self, wps_request):
         process_elements = [p.capabilities_xml()
