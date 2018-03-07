@@ -417,7 +417,7 @@ class PoolExecutor(Executor):
             
             expiration = rec.get('expiration', expire_default)
             notpinned  = not rec.get('pinned',False)
-            if dangling or notpinned or (now_ts - int(timestamp)) >= expiration:
+            if notpinned and (dangling or (now_ts - int(timestamp)) >= expiration):
                 # Delete the working directory
                 uuid_str = rec['uuid']
                 workdir = os.path.join(rootdir, uuid_str)
