@@ -83,63 +83,6 @@ class WPSHandler(BaseHandler):
         self.write_xml(document)
 
 
-
-class StoreHandler(BaseHandler):
-    """ Handle WPS requests
-    """
-    def initialize(self, workdir, chunk_size=65536):
-        super().initialize()
-        self._chunk_size = chunk_size
-        self._workdir    = workdir
-
-    def get_full_path(uuid, filename):
-        return os.path.join
-
-    def prepare(self):
-        service = self.get_query_argument('service')
-        if service.lower() != 'wps':
-            raise InvalidParameterValue('parameter SERVICE [%s] not supported' % service, 'service')
-
-    async def get(self, uuid, filename):
-        """ Return output file from process working dir
-        """
-        full_path  = os.path.join(self._workdir, uuid, filename)
-        if not os.path.isfile(full_path):
-            LOGGER.error("File '%s' not found", full_path)
-            raise NoApplicableCode("The resource does not exists", code=404)
-
-        # The resource is asked again, just tell that it is
-        # not modified
-        if self.request.headers.get("If-Modified-Since"):
-            self.set_status(304)
-            return
-
-        if self.request.headers.get('If-None-Match') == uuid:
-            self.set_header('Etag', uuid)
-            self.set_status(304)
-            return
-
-        # Set headers
-        content_type = mimetypes.types_map.get(os.path.splitext(full_path)[1]) or "application/octet-stream"
-        self.set_header("Content-Type", content_type)       
-        self.set_header("Etag", uuid)
-
-        # Set aggresive browser caching since the resource
-        # is not going to change
-        self.set_header("Cache-Control", "max-age=" + str(86400*365*10))
-
-        # Push data
-        chunk_size = self._chunk_size
-        with open(full_path,'rb') as fp:
-            while True:
-                chunk = fp.read(chunk_size)
-                if chunk:
-                    self.write(chunk)
-                    await self.flush()
-                else:
-                    break
-
-
 class StatusHandler(BaseHandler):
 
     def get( self, uuid=None):
@@ -152,13 +95,13 @@ class StatusHandler(BaseHandler):
             return
 
         # Replace the status url with the proxy_url if any
-        req = self.request
-        proxy_url = req.headers.get('X-Proxy-Location')
-        if not proxy_url:
-            proxy_url = "{0.protocol}://{0.host}/ows/".format(req)
+        proxy_url = self.proxy_url()
 
+        # Add additional informations
+        cfg = self.application.config
         def repl( s ):
-            s['status_url'] = s['status_url'].format(host_url=proxy_url)
+            s['status_url'] = cfg['status_url'].format(host_url=proxy_url, uuid=s['uuid'])
+            s['store_url']  = cfg['store_url'].format(host_url=proxy_url, uuid=s['uuid'], file="")
             return s
 
         if uuid is not None:
@@ -167,7 +110,6 @@ class StatusHandler(BaseHandler):
             wps_status = list(map(repl, wps_status))
         
         self.write_json({ 'status': wps_status })
-
 
     def delete( self, uuid=None ):
         """ Delete results

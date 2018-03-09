@@ -41,7 +41,6 @@ class RedisStore(LOGStore):
           'expiration': wps_request.expiration,
           'time_start': datetime.now().isoformat(),
           'time_end': None,
-          'status_url': self.status_url(request_uuid, None),
           'pinned': False,
           'timeout': wps_request.timeout
         }
@@ -180,8 +179,10 @@ class RedisStore(LOGStore):
         self._hstatus = "%s:status"  % self._prefix
         self._trace   = cfg.getboolean('trace_request'  , fallback=False)
         self._tracexp = cfg.getint('trace_expiration'   , fallback=86400)
-        self._urlpath = cfg['status_url']
-        self._proxy_host = configuration.get_config('server')['host_proxy'] 
+
+        srvcfg =  configuration.get_config('server')
+        self._urlpath    = srvcfg['status_url']
+        self._proxy_host = srvcfg['host_proxy'] 
 
         self._db  = redis.StrictRedis(
             host = cfg.get('host','localhost'),

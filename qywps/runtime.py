@@ -34,7 +34,7 @@ def configure_handlers( processes ):
     handlers = [
         (r"/"     , RootHandler),
         (r"/ows/" , WPSHandler ),
-        (r"/ows/store/([^/]+)/([^/]+)", StoreHandler, { 'workdir': workdir }),
+        (r"/ows/store/([^/]+)/(.*)?", StoreHandler, { 'workdir': workdir }),
         (r"/ows/status/([^/]+)?", StatusHandler),
     ]
 
@@ -46,6 +46,7 @@ class Application(tornado.web.Application):
     def __init__(self, processes=[], executor=None):
         from qywps.app.Service import Service
         self.wpsservice = Service(processes=processes, executor=executor)
+        self.config     = get_config('server')
         super().__init__(configure_handlers( processes ))
 
     def log_request(self, handler):

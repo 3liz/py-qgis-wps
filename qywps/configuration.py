@@ -59,7 +59,8 @@ def load_configuration():
     CONFIG.set('server', 'temp_path', tempfile.gettempdir())
     outputpath = tempfile.gettempdir()
     CONFIG.set('server', 'outputpath'           , getenv('QYPWS_OUTPUTPATH',outputpath))
-    CONFIG.set('server', 'outputurl'            , '{host_url}store/{uuid}/{file}?service=WPS')
+    CONFIG.set('server', 'store_url'            , '{host_url}store/{uuid}/{file}?service=WPS')
+    CONFIG.set('server', 'status_url'           , '{host_url}?service=WPS&request=GetResults&uuid={uuid}') 
     CONFIG.set('server', 'workdir'              , getenv('QYWPS_SERVER_WORKDIR',tempfile.gettempdir()))
     CONFIG.set('server', 'host_proxy'           , getenv('QYWPS_SERVER_HOST_PROXY',''))
     CONFIG.set('server', 'parallelprocesses'    , getenv('QYWPS_SERVER_PARALLELPROCESSES','1'))
@@ -69,6 +70,8 @@ def load_configuration():
     CONFIG.set('server', 'wps_result_map_uri'   , getenv('QYWPS_SERVER_RESULTS_MAP_URI','wps-results:'))
     CONFIG.set('server', 'wms_response_uri'     , '%(wms_service_url)s?MAP=%(wps_result_map_uri)s{uuid}/{name}.qgs&service=WMS&request=GetCapabilities')
     CONFIG.set('server', 'cleanup_interval'     ,'600')
+
+    CONFIG.set('server', 'outputurl'            , '%(store_url)s')
 
     CONFIG.add_section('logging')
     CONFIG.set('logging', 'level', getenv('QYWPS_LOGLEVEL','INFO'))

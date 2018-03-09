@@ -95,3 +95,15 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write_xml(exception.get_body())
         self.finish()
 
+    def proxy_url(self):
+        """ Return the proxy_url
+        """
+        # Replace the status url with the proxy_url if any
+        req = self.request
+        proxy_url = self.application.config['host_proxy'] or \
+                    req.headers.get('X-Proxy-Location') or  \
+                    "{0.protocol}://{0.host}/ows/".format(req)
+        return proxy_url
+
+
+

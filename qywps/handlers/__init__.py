@@ -1,4 +1,5 @@
 
 from .roothandler import RootHandler
-from .wpshandler import WPSHandler, StoreHandler, StatusHandler
+from .wpshandler import WPSHandler, StatusHandler
+from .storehandler import StoreHandler
 
