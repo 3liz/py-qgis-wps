@@ -117,12 +117,6 @@ class Executor(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def status_url( self, uuid, request ):
-        """ Return the status url
-        """
-        raise NotImplementedError
-
-    @abstractmethod
     def get_results(self, uuid):
         """ Return results status
         """
@@ -155,12 +149,6 @@ class LOGStore(metaclass=ABCMeta):
     @abstractmethod
     def log_request( self, request_uuid, wps_request):
         """
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def status_url( self, uuid, request ):
-        """ Return the status url
         """
         raise NotImplementedError
 
@@ -220,11 +208,6 @@ class PoolExecutor(Executor):
 
         # Launch the cleanup task
         self.schedule_cleanup()
-
-    def status_url(self, uuid, request):
-        """
-        """
-        return self._logstore.status_url(uuid, request)
 
     def get_status( self, uuid=None ):
         """ Implementation of Execute.get_status

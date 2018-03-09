@@ -79,13 +79,11 @@ def load_configuration():
     CONFIG.add_section('logstorage:db')
     CONFIG.set('logstorage:db', 'database', 'sqlite:///:memory:')
     CONFIG.set('logstorage:db', 'prefix', 'qywps_')
-    CONFIG.set('logstorage:db', 'status_url', 'file:///%s/{uuid}.xml' % outputpath)
 
     CONFIG.add_section('logstorage:redis')
     CONFIG.set('logstorage:redis', 'host' , getenv('QYWPS_REDIS_HOST','localhost'))
     CONFIG.set('logstorage:redis', 'port' , getenv('QYWPS_REDIS_PORT','6379'))
     CONFIG.set('logstorage:redis', 'dbnum', getenv('QYWPS_REDIS_DBNUM','0')) 
-    CONFIG.set('logstorage:redis', 'status_url' , '{host_url}?service=WPS&request=GetResults&uuid={uuid}') 
  
     CONFIG.add_section('cache')
     CONFIG.set('cache', 'size' , '10' )

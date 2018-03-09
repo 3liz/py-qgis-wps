@@ -129,16 +129,6 @@ class RedisStore(LOGStore):
         p.hdel(self._hstatus, uuid_str)
         p.execute()
 
-    def status_url( self, request_uuid, request ):
-        """ Return the url to access status
-        """
-        host = self._proxy_host
-        if not host:
-            # Need to return the 'real' host
-            host = request.host_url if request else '{host_url}'
-
-        return self._urlpath.format(host_url=host,uuid=request_uuid)
-    
     def get_results( self, uuid ):
         """ Return results status
         """
@@ -179,10 +169,6 @@ class RedisStore(LOGStore):
         self._hstatus = "%s:status"  % self._prefix
         self._trace   = cfg.getboolean('trace_request'  , fallback=False)
         self._tracexp = cfg.getint('trace_expiration'   , fallback=86400)
-
-        srvcfg =  configuration.get_config('server')
-        self._urlpath    = srvcfg['status_url']
-        self._proxy_host = srvcfg['host_proxy'] 
 
         self._db  = redis.StrictRedis(
             host = cfg.get('host','localhost'),

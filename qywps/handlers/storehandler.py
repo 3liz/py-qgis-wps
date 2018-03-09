@@ -10,6 +10,7 @@ import asyncio
 import mimetypes
 import logging
 
+from tornado.web import HTTPError
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -49,7 +50,7 @@ class StoreHandler(BaseHandler):
         """
         path = os.path.join(self._workdir, uuid)
         if not os.path.isdir(path):
-            raise NoApplicableCode("The resource does not exists", code=404)
+            raise HTTPError(404, reason="The resource does not exists")
 
         proxy_url = self.proxy_url()
         store_url = self.application.config['store_url']
@@ -75,7 +76,7 @@ class StoreHandler(BaseHandler):
         full_path  = os.path.join(self._workdir, uuid, filename)
         if not os.path.isfile(full_path):
             LOGGER.error("File '%s' not found", full_path)
-            raise NoApplicableCode("The resource does not exists", code=404)
+            raise HTTPError(404,reason="Resource not found")
 
         # The resource is asked again, just tell that it is
         # not modified
@@ -108,6 +109,12 @@ class StoreHandler(BaseHandler):
                 else:
                     break
 
+    async def archive(self, uuid):
+        """ Archive the result storage
+        """
+        # Note implemented
+        raise HTTPError(501, reason="Sorry, the method is not implemented yet")  
+
     async def get(self, uuid, filename=None):
         """ Handle GET request
         """
@@ -116,12 +123,22 @@ class StoreHandler(BaseHandler):
         else:
             await self.ls( uuid )
 
-
     async def post(self, uuid ):
         """ Handle POST actions
         """
-        pass
+        if not uuid:
+            raise HTTPError(403)
 
+        # Get the status for uuid
+        wps_status = self.application.wpsservice.get_status(uuid)
+        if wps_status is None:
+            raise HTTPError(404, reason="The resource does not exists") 
 
+        action = self.get_query_argument('action') 
+        
+        if action.lower() == 'archive':
+            await self.archive(uuid)
+        else:
+            raise HTTPError(400, reason="Invalid action parameter '%s'" % action)
 
 

@@ -300,6 +300,18 @@ class Service():
         doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
         return doc
 
+    def _status_url(self, uuid, request):
+        """ Return the status_url for the process <uuid>
+        """
+        cfg = config.get_config('server') 
+        status_url = cfg['status_url']
+        proxy_host = cfg['host_proxy'] 
+        if not proxy_host:
+            # Need to return the 'real' host
+            proxy_host = request.host_url if request else '{host_url}'
+
+        return status_url.format(host_url=proxy_host,uuid=uuid)
+
     async def execute(self, identifier, wps_request, uuid):
         """Parse and perform Execute WPS request call
         
@@ -324,7 +336,7 @@ class Service():
         process.set_workdir(workdir)
    
         # Get status url
-        status_url = self.executor.status_url(uuid, wps_request)
+        status_url = self._status_url(uuid, wps_request)
 
         # Create response object
         wps_response = WPSResponse( process, wps_request, uuid, status_url=status_url)

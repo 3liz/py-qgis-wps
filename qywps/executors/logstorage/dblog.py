@@ -214,7 +214,6 @@ class DBStore(LOGStoreBase):
     def __init__(self):
         super(DBStore, self).__init__()
         self._file_path  = configuration.get_config('server').get('outputpath')
-        self._status_url = config.get('status_url')
 
     def log_request( self, request_uuid, wps_request):
         """
@@ -238,9 +237,6 @@ class DBStore(LOGStoreBase):
             f.write(etree.tostring(doc, pretty_print=True, encoding='utf-8').decode('utf-8'))
             f.flush()
             os.fsync(f.fileno())
-
-    def status_url(self, uuid, request):
-        return self._status_url.format(uuid=uuid)
 
     def get_results( self, uuid ):
         """ Return results status
