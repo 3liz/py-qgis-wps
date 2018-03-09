@@ -41,7 +41,7 @@ class RedisStore(LOGStore):
           'expiration': wps_request.expiration,
           'time_start': datetime.now().isoformat(),
           'time_end': None,
-          'status_url': self.status_url(request_uuid, wps_request),
+          'status_url': self.status_url(request_uuid, None),
           'pinned': False,
           'timeout': wps_request.timeout
         }
@@ -133,11 +133,12 @@ class RedisStore(LOGStore):
     def status_url( self, request_uuid, request ):
         """ Return the url to access status
         """
-        if not self._host:
-            # Need to return the real host
-            self._host = request.host_url
+        host = self._proxy_host
+        if not host:
+            # Need to return the 'real' host
+            host = request.host_url if request else '{host_url}'
 
-        return self._urlpath.format(host_url=self._host,uuid=request_uuid)
+        return self._urlpath.format(host_url=host,uuid=request_uuid)
     
     def get_results( self, uuid ):
         """ Return results status
@@ -180,7 +181,7 @@ class RedisStore(LOGStore):
         self._trace   = cfg.getboolean('trace_request'  , fallback=False)
         self._tracexp = cfg.getint('trace_expiration'   , fallback=86400)
         self._urlpath = cfg['status_url']
-        self._host    = configuration.get_config('server')['host_proxy'] 
+        self._proxy_host = configuration.get_config('server')['host_proxy'] 
 
         self._db  = redis.StrictRedis(
             host = cfg.get('host','localhost'),

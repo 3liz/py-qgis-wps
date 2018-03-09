@@ -76,6 +76,26 @@ POST_DATA="""
 </wps:Execute>
 """
 
+def _execute_process( host, storeExecuteResponse="false" ):
+    """ Execute a process and return its status json
+    """
+    # Execute a process
+    rv = requests.post(host+"?SERVICE=WPS&MAP=france_parts",
+            data=POST_DATA.format(storeExecuteResponse=storeExecuteResponse),
+            headers={ "Content-Type": "text/xml" })
+
+    resp = Response(rv)
+    assert resp.status_code == 200 
+
+    # Get the status url
+    status_url = resp.xpath_attr('/wps:ExecuteResponse','statusLocation')
+    # Get the uuid
+    q = parse_qs(urlparse(status_url).query)
+    assert 'uuid' in q 
+
+    return q['uuid'][0]
+
+
 
 def test_executeprocess_post( host, data):
     """ Test execute async process POST """
@@ -114,21 +134,7 @@ def test_executedelete( host, data ):
     """ Test delete process
     """
     # Execute a process
-    rv = requests.post(host+"?SERVICE=WPS&MAP=france_parts",
-            data=POST_DATA.format(storeExecuteResponse="false"),
-            headers={ "Content-Type": "text/xml" })
-
-    resp = Response(rv)
-    assert resp.status_code == 200 
-
-    # Get the status url
-    status_url = resp.xpath_attr('/wps:ExecuteResponse','statusLocation')
-    # Get the uuid
-    q = parse_qs(urlparse(status_url).query)
-    assert 'uuid' in q 
-
-    uuid = q['uuid'][0]
-
+    uuid = _execute_process( host )
     # Get the status and make sure is 200
     rv = requests.get(host+"status/{}?SERVICE=WPS".format(uuid))
     assert rv.status_code == 200
@@ -141,5 +147,24 @@ def test_executedelete( host, data ):
     # Get the status and make sure is 404
     rv = requests.get(host+"status/{}?SERVICE=WPS".format(uuid))
     assert rv.status_code == 404 
+
+def test_proxy_status_url( host ):
+    """ Test that status url has correct host
+    """
+    # Execute a process
+    uuid = _execute_process( host )
+
+    proxy_loc = 'http://test.proxy.loc:8080/'
+
+    # Get the status and make sure is 200
+    rv = requests.get(host+"status/{}?SERVICE=WPS".format(uuid),  
+            headers={ 'X-Proxy-Location': proxy_loc })
+    assert rv.status_code == 200
+
+    st = rv.json()['status']
+
+    # Parse the host url 
+    status_url = urlparse(st['status_url'])
+    assert "{0.scheme}://{0.netloc}/".format(status_url) == proxy_loc
 
 

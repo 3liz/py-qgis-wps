@@ -123,6 +123,7 @@ docker-run:
     $(QGIS_IMAGE) /src/run-tests/setup.sh
 
 client-test:
+	rm -rf run-test/__workdir__/*
 	py.test -v run-tests/tests/client/
 
 

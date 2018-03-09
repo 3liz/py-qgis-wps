@@ -144,15 +144,30 @@ class StatusHandler(BaseHandler):
 
     def get( self, uuid=None):
         """ Return the status of the processes
-        """
+        """ 
         wps_status = self.application.wpsservice.get_status(uuid)
         if uuid is not None and wps_status is None:
             self.set_status(404)
-            data = { 'error': 'process %s not found' % uuid } 
-        else:
-            data = { 'status': wps_status }
+            self.write_json({ 'error': 'process %s not found' % uuid })
+            return
 
-        self.write_json(data) 
+        # Replace the status url with the proxy_url if any
+        req = self.request
+        proxy_url = req.headers.get('X-Proxy-Location')
+        if not proxy_url:
+            proxy_url = "{0.protocol}://{0.host}/ows/".format(req)
+
+        def repl( s ):
+            s['status_url'] = s['status_url'].format(host_url=proxy_url)
+            return s
+
+        if uuid is not None:
+            wps_status = repl(wps_status)
+        else:
+            wps_status = list(map(repl, wps_status))
+        
+        self.write_json({ 'status': wps_status })
+
 
     def delete( self, uuid=None ):
         """ Delete results
