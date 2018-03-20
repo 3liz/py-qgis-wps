@@ -21,7 +21,9 @@ def application(request):
     from algorithms.TestAlgorithmProvider import  TestAlgorithmProvider
     qappl = start_qgis_application(enable_processing=True, cleanup=False)
     try:
-        qappl.processingRegistry().addProvider(TestAlgorithmProvider())
+        qappl.__PROVIDER = TestAlgorithmProvider()
+        qappl.processingRegistry().addProvider(qappl.__PROVIDER)
+        
     except Exception as e:
         qappl.exitQgis()
         pytest.exit("Failed to initialize provider %s:" %e)
