@@ -96,15 +96,13 @@ def start_qgis_application(enable_gui=False, enable_processing=False, verbose=Fa
 
     return qgis_application
 
-
 def init_processing():
     from processing.core.Processing import Processing
     from qgis.analysis import QgsNativeAlgorithms
     from qgis.core import QgsApplication
     QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
     Processing.initialize()
-
-
+ 
 def install_logger_hook( logger, logprefix, verbose=False ):
     """ Install message log hook
     """

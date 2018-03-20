@@ -27,16 +27,14 @@ class ProcessingExecutor(PoolExecutor):
     def __init__( self ):
         super(ProcessingExecutor, self).__init__()
         self._providers = []
+        self.PROVIDERS  = []
+        self._loaded_providers = []
 
     def initialize( self, processes ):
         """ Initialize executor
         """
         self._config = config.get_config('processing')
-        providers = self._config.get('providers')
-        if providers:
-            self._providers = providers.split(',')
-            self.importproviders()
-
+        self.importproviders()
         self.loadstyles()
 
         super(ProcessingExecutor, self).initialize(processes)
@@ -96,7 +94,7 @@ class ProcessingExecutor(PoolExecutor):
             setup_qgis_paths()            
             sys.path.append(providers_path)
             # Load providers
-            load_source('wps_imported_algorithms',filepath)
+            self._providers = load_source('wps_imported_algorithms',filepath).providers
 
     def worker_initializer(self):
         """ Worker initializer
@@ -109,8 +107,20 @@ class ProcessingExecutor(PoolExecutor):
         """ Set up qgis
         """
         # Init qgis application
-        self.qgisapp = start_qgis_application( enable_processing=True, verbose=config.get_config('logging').get('level')=='DEBUG', 
+        self.qgisapp = start_qgis_application( enable_processing=True, 
+                                verbose=config.get_config('logging').get('level')=='DEBUG', 
                                 logger=LOGGER, logprefix="[qgis:%s]" % os.getpid())
+
+        # Load providers explicitely
+        from qgis.core import QgsApplication
+        reg = QgsApplication.processingRegistry()
+        for p in self._providers:
+            c = p()
+            # XXX Hold provider instance, processingRegistry does not gain ownership and
+            # we must prevent garbage collection
+            self.PROVIDERS.append(c)
+            reg.addProvider(c)
+
         return self.qgisapp
 
     def install_processes(self, processes ):
@@ -122,10 +132,12 @@ class ProcessingExecutor(PoolExecutor):
 
         # XXX We do not want to start a qgis application in the main process
         # So let's initialize the processes list in a child process
-        if self._providers:
-            qgs_processes = self._pool.apply(self._qgis_processes, args=(self._providers,))
+        providers = self._config.get('providers')
+        if providers:
+            providers = providers.split(',')
+            qgs_processes = self._pool.apply(self._qgis_processes, args=(providers,))
             self.processes.update(qgs_processes)
-        
+
     @staticmethod
     def _qgis_processes(providers):
 
@@ -144,5 +156,6 @@ class ProcessingExecutor(PoolExecutor):
                 raise ProcessingProviderNotFound(provider_id)
             processes.update({ alg.id():QgsProcess( alg ) for alg in provider.algorithms()})
 
+        LOGGER.debug("Published processes: %s", processes)
         return processes
 

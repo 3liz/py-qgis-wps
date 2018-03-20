@@ -4,3 +4,4 @@
 
 from algorithms.TestAlgorithmProvider import  TestAlgorithmProvider
 
+providers = ( TestAlgorithmProvider, )

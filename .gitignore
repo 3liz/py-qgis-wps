@@ -28,4 +28,6 @@ __output__
 *.orig
 .coverage
 
+.pytest_cache
+
 factory.manifest
