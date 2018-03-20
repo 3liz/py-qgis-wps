@@ -36,6 +36,9 @@ def configure_handlers( processes ):
         (r"/ows/" , WPSHandler ),
         (r"/ows/store/([^/]+)/(.*)?", StoreHandler, { 'workdir': workdir }),
         (r"/ows/status/([^/]+)?", StatusHandler),
+        # Add theses as shortcuts
+        (r"/store/([^/]+)/(.*)?", StoreHandler, { 'workdir': workdir }),
+        (r"/status/([^/]+)?", StatusHandler),
     ]
 
     return handlers

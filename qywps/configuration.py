@@ -60,7 +60,7 @@ def load_configuration():
     outputpath = tempfile.gettempdir()
     CONFIG.set('server', 'outputpath'           , getenv('QYPWS_OUTPUTPATH',outputpath))
     CONFIG.set('server', 'store_url'            , '{host_url}store/{uuid}/{file}?service=WPS')
-    CONFIG.set('server', 'status_url'           , '{host_url}?service=WPS&request=GetResults&uuid={uuid}') 
+    CONFIG.set('server', 'status_url'           , '{host_url}ows/?service=WPS&request=GetResults&uuid={uuid}') 
     CONFIG.set('server', 'workdir'              , getenv('QYWPS_SERVER_WORKDIR',tempfile.gettempdir()))
     CONFIG.set('server', 'host_proxy'           , getenv('QYWPS_SERVER_HOST_PROXY',''))
     CONFIG.set('server', 'parallelprocesses'    , getenv('QYWPS_SERVER_PARALLELPROCESSES','1'))
