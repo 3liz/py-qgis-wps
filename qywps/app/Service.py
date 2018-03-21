@@ -55,6 +55,10 @@ class Service():
         self.executor.terminate()
 
     @property
+    def logstore(self):
+        return self.executor._logstore
+
+    @property
     def processes(self):
         return self.executor.list_processes()
 

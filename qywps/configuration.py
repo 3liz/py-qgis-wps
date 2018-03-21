@@ -72,7 +72,8 @@ def load_configuration():
     CONFIG.set('server', 'cleanup_interval'     ,'600')
 
     CONFIG.set('server', 'outputurl'            , '%(store_url)s')
-
+    CONFIG.set('server', 'download_ttl'         , getenv('QYWPS_DOWNLOAD_TTL','30'))
+ 
     CONFIG.add_section('logging')
     CONFIG.set('logging', 'level', getenv('QYWPS_LOGLEVEL','INFO'))
 

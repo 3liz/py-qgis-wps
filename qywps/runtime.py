@@ -20,7 +20,8 @@ from .configuration import (get_config,
                             read_config_file, 
                             read_config_dict)
 
-from .handlers import RootHandler, WPSHandler, StoreHandler, StatusHandler
+from .handlers import (RootHandler, WPSHandler, StoreHandler, StatusHandler, 
+                       DownloadHandler)
 
 LOGGER = logging.getLogger("QYWPS")
 
@@ -30,6 +31,7 @@ def configure_handlers( processes ):
     """
 
     workdir = get_config('server')['workdir']
+    dnl_ttl = get_config('server').getint('download_ttl')
 
     handlers = [
         (r"/"     , RootHandler),
@@ -39,6 +41,9 @@ def configure_handlers( processes ):
         # Add theses as shortcuts
         (r"/store/([^/]+)/(.*)?", StoreHandler, { 'workdir': workdir }),
         (r"/status/([^/]+)?", StatusHandler),
+        # Temporary download url api
+        (r"/dnl/(_)/([^/]+)", DownloadHandler, { 'workdir': workdir }),
+        (r"/dnl/([^/]+)/(.*)", DownloadHandler, { 'workdir': workdir, 'query': True, 'ttl': dnl_ttl }),
     ]
 
     return handlers

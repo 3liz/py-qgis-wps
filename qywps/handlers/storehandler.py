@@ -13,6 +13,7 @@ import logging
 from tornado.web import HTTPError
 from pathlib import Path
 from urllib.parse import urljoin
+from datetime import datetime
 
 from .basehandler import BaseHandler
 from ..exceptions import NoApplicableCode, InvalidParameterValue, OperationNotSupported
@@ -31,20 +32,9 @@ def _format_size( size ):
     return '%.fT' % size
 
 
-
-class StoreHandler(BaseHandler):
-    """ Handle WPS requests
+class StoreShellMixIn():
+    """ Store api implementation
     """
-    def initialize(self, workdir, chunk_size=65536):
-        super().initialize()
-        self._chunk_size = chunk_size
-        self._workdir    = workdir
-
-    def prepare(self):
-        service = self.get_query_argument('service')
-        if service.lower() != 'wps':
-            raise InvalidParameterValue('parameter SERVICE [%s] not supported' % service, 'service')
-
     async def ls( self, uuid ):
         """ List all files in workdir
         """
@@ -115,6 +105,17 @@ class StoreHandler(BaseHandler):
         # Note implemented
         raise HTTPError(501, reason="Sorry, the method is not implemented yet")  
 
+
+
+
+class StoreHandler(BaseHandler, StoreShellMixIn):
+    """ Handle store requests
+    """
+    def initialize(self, workdir, chunk_size=65536):
+        super().initialize()
+        self._chunk_size = chunk_size
+        self._workdir    = workdir
+
     async def get(self, uuid, filename=None):
         """ Handle GET request
         """
@@ -140,5 +141,58 @@ class StoreHandler(BaseHandler):
             await self.archive(uuid)
         else:
             raise HTTPError(400, reason="Invalid action parameter '%s'" % action)
+
+
+class DownloadHandler(BaseHandler, StoreShellMixIn):
+    """ The safe store handler work in two time
+
+        1. Return a tokenized set of  url with a limited ttl
+        2. Handle the url by returning the appropriate ressource
+    """
+    def initialize(self, workdir, query=False,  chunk_size=65536, ttl=30):
+        super().initialize()
+        self._chunk_size = chunk_size
+        self._workdir    = workdir
+        self._query      = query
+        self._ttl        = ttl
+
+    def create_dnl_url(self, uuid, filename):
+        """ Store the request and create a download url
+        """
+        logstore = self.application.wpsservice.logstore
+        token = logstore.set_json({
+            'uuid': uuid,
+            'filename': filename,
+        }, self._ttl)
+
+        proxy_url = self.proxy_url()
+        now       = datetime.now().timestamp()
+        self.write_json({
+              'url': "{}dnl/_/{}".format(proxy_url,token),
+              'expire_at': datetime.fromtimestamp(now+self._ttl).isoformat(),
+            })
+
+    def get_dnl_params(self, token):
+        """ Retrieve the download parameters
+        """
+        logstore = self.application.wpsservice.logstore
+        params   = logstore.get_json(token)
+        if params is None:
+            raise HTTPError(403)
+        return params['uuid'],params['filename']
+
+    async def get(self, uuid, resource):
+       """ Handle GET request
+       """
+       if self._query:
+           # Store the request and return 
+           # the temporary url
+           self.create_dnl_url(uuid, resource)    
+       else:
+           # Download
+           uuid,filename = self.get_dnl_params(resource)
+           await self.dnl( uuid, filename)
+
+  
 
 

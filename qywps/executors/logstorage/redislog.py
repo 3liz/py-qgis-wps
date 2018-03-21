@@ -7,6 +7,8 @@ import os
 import json
 import logging
 
+import uuid
+
 from datetime import datetime
 from lxml import etree
 from collections import namedtuple
@@ -52,9 +54,25 @@ class RedisStore(LOGStore):
 
         # Trace the request if requested
         if self._trace:
-            self._db.setex("{}:request:{}".format(self._prefix, uuid_str),  wps_request.json, 
-                           self._tracexp)
+            self._db.setex("{}:request:{}".format(self._prefix, uuid_str),  self._tracexp, 
+                           wps_request.json)
         return record
+
+    def set_json( self, value, expire):
+        """ Set a value at key 'name', expire is mandatory
+        """
+        # Create token
+        token = str(uuid.uuid4()).replace('-','')
+        self._db.setex('token:'+token, expire, json.dumps(value))
+        return token
+
+    def get_json( self, token ):
+        """ Return the value at key 'name'
+        """
+        value = self._db.get('token:'+token)
+        if value is not None:
+            value = json.loads(value.decode('utf-8'))
+        return value
 
     def update_response( self, request_uuid, wps_response ):
         """ Update the request status
@@ -156,6 +174,11 @@ class RedisStore(LOGStore):
  
         return data
 
+    @property
+    def connection(self):
+        """ return the current connection
+        """
+        return self._db
 
     def init_session(self):
         """ Initialize store session
