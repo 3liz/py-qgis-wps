@@ -167,8 +167,10 @@ class DownloadHandler(BaseHandler, StoreShellMixIn):
 
         proxy_url = self.proxy_url()
         now       = datetime.now().timestamp()
+        path      = "dnl/_/{}".format(token)
         self.write_json({
-              'url': "{}dnl/_/{}".format(proxy_url,token),
+              'path': "/{}".format(path),
+              'link': "{}{}".format(proxy_url,path),
               'expire_at': datetime.fromtimestamp(now+self._ttl).isoformat(),
             })
 
