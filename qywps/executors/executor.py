@@ -422,7 +422,7 @@ class PoolExecutor(Executor):
         expire_default = cfg.getint('response_expiration')
 
         logstore = WPSResponse.get_logstore()
-        now_ts   = datetime.now().timestamp()
+        now_ts   = datetime.utcnow().timestamp()
 
         for _, rec in list(logstore.records):
             timestamp = rec.get('timestamp')

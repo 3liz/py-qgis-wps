@@ -21,6 +21,10 @@ import redis
 LOGGER = logging.getLogger('QYWPS')
 
 
+def utcnow():
+    return datetime.utcnow().replace(microsecond=0)
+
+
 class RedisStore(LOGStore):
 
     def log_request( self, request_uuid, wps_request):
@@ -41,7 +45,7 @@ class RedisStore(LOGStore):
           'percent_done': 0,
           'message': '',
           'expiration': wps_request.expiration,
-          'time_start': datetime.now().isoformat(),
+          'time_start': utcnow().isoformat()+'Z',
           'time_end': None,
           'pinned': False,
           'timeout': wps_request.timeout
@@ -92,12 +96,12 @@ class RedisStore(LOGStore):
         record['message']      = wps_response.message
         record['percent_done'] = wps_response.status_percentage
         record['status']       = wps_response.status.name
-        record['timestamp']    = datetime.now().timestamp()
+        record['timestamp']    = utcnow().timestamp()
 
         if wps_response.status >= STATUS.DONE_STATUS:
-            now   = datetime.now()
-            record['time_end']  = now.isoformat()
-            record['expire_at'] = datetime.fromtimestamp(now.timestamp()+record['expiration']).isoformat()
+            now = utcnow()
+            record['time_end']  = now.isoformat()+'Z'
+            record['expire_at'] = datetime.fromtimestamp(now.timestamp()+record['expiration']).isoformat()+'Z'
 
         # Note that hset return 0 if the key already exists but change the value anyway
         self._db.hset(self._hstatus, uuid_str, json.dumps(record))
@@ -119,7 +123,7 @@ class RedisStore(LOGStore):
                 data['expire_at'] = None
             else:
                 data['pinned']    = False
-                data['expire_at'] = datetime.fromtimestamp(now.timestamp()+record['expiration']).isoformat()
+                data['expire_at'] = datetime.fromtimestamp(now.timestamp()+record['expiration']).isoformat()+'Z'
             # update the record
             self._db.hset(self._hstatus, uuid_str, json.dumps(record))
             return True

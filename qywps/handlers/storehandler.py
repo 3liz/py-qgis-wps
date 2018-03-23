@@ -166,12 +166,12 @@ class DownloadHandler(BaseHandler, StoreShellMixIn):
         }, self._ttl)
 
         proxy_url = self.proxy_url()
-        now       = datetime.now().timestamp()
+        now       = datetime.utcnow().timestamp()
         path      = "dnl/_/{}".format(token)
         self.write_json({
               'root': "/{}".format(path),
               'link': "{}{}".format(proxy_url,path),
-              'expire_at': datetime.fromtimestamp(now+self._ttl).isoformat(),
+              'expire_at': datetime.fromtimestamp(now+self._ttl).isoformat()+'Z',
             })
 
     def get_dnl_params(self, token):
