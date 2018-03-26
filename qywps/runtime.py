@@ -11,6 +11,9 @@ import logging
 import tornado.web
 import tornado.process
 import signal
+import pkg_resources
+
+from tornado.web import StaticFileHandler
 
 from contextlib import contextmanager
 from .logger import log_request, log_rrequest
@@ -29,6 +32,7 @@ LOGGER = logging.getLogger("QYWPS")
 def configure_handlers( processes ):
     """ Set up request handlers
     """
+    staticpath = docpath = pkg_resources.resource_filename("qywps", "webui")
 
     workdir = get_config('server')['workdir']
     dnl_ttl = get_config('server').getint('download_ttl')
@@ -44,6 +48,11 @@ def configure_handlers( processes ):
         # Temporary download url api
         (r"/dnl/(_)/([^/]+)", DownloadHandler, { 'workdir': workdir }),
         (r"/dnl/([^/]+)/(.*)", DownloadHandler, { 'workdir': workdir, 'query': True, 'ttl': dnl_ttl }),
+        # Web ui anagement
+        (r"/ui/(.*)", StaticFileHandler, {
+            'path': staticpath, 
+            'default_filename':"dashboard.html"
+        }),
     ]
 
     return handlers
