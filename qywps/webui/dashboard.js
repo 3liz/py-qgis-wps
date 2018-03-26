@@ -119,9 +119,8 @@ function show_details( pr_data ) {
 
 async function get_status() {
     console.log("Refreshing status")
-    let response = await fetch('/status/')
+    let response = await fetch('../status/', { credentials: 'same-origin' })
     if (! response.ok) {
-        alert("Status response error")
         return
     }
 
