@@ -49,6 +49,7 @@ setup(
     ],
     install_requires=INSTALL_REQUIRES,
     packages=find_packages(include=['qywps','qywps.*']),
+    include_package_data = True,
     entry_points={
         'qywps.logstorage':[
             'DBLOG=qywps.executors.logstorage.dblog:DBStore',
