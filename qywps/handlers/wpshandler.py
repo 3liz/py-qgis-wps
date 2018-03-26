@@ -30,12 +30,8 @@ class WPSHandler(BaseHandler):
         http_request = self.request
         wpsrequest   = method_parser(self)
 
-        wpsrequest.map_uri = self.get_query_argument('map', default=None)
-        host_url = http_request.headers.get('X-Proxy-Location')
-        if not host_url:
-            host_url = urljoin(http_request.protocol + "://" + http_request.host,  http_request.path)
-        
-        wpsrequest.host_url = host_url
+        wpsrequest.map_uri  = self.get_query_argument('map', default=None)
+        wpsrequest.host_url = self.proxy_url()
 
         service = self.application.wpsservice
         LOGGER.debug('Request: %s', wpsrequest.operation)

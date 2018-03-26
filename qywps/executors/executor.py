@@ -26,6 +26,7 @@ from qywps import WPS, OWS
 from qywps.app.WPSResponse import WPSResponse
 from qywps.app.WPSResponse import STATUS
 from qywps.app.WPSRequest import WPSRequest
+from qywps.logger import logfile_context
 
 from lxml import etree
 from qywps.exceptions import (StorageNotSupported, OperationNotSupported,
@@ -384,12 +385,15 @@ class PoolExecutor(Executor):
         timer = Timer(timeout, _timeout_kill, args=(wps_response,is_async))
         timer.start()
         try:
+            workdir = wps_response.process.workdir
             # Change current dir to workdir
-            os.chdir(wps_response.process.workdir)
+            os.chdir(workdir)
 
             wps_response.update_status('Task started', 0)
 
-            response = handler(wps_request, wps_response)
+            with logfile_context(workdir, 'processing'):
+                response = handler(wps_request, wps_response)
+
             if not response:
                 raise NoApplicableCode("Handler returned invalid response object",code=500)
             response.update_status('Task finished'.format(wps_response.process.title),

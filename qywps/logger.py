@@ -1,7 +1,10 @@
 """ Logger 
 """
+import os
 import sys
 import logging
+import traceback
+from contextlib import contextmanager
 
 from .configuration import get_config
 
@@ -15,15 +18,16 @@ RREQ_FORMAT = REQ_LOG_TEMPLATE
 REQ  = 21
 RREQ = 22
 
+FORMATSTR = '%(asctime)s\t[%(process)d]\t%(levelname)s\t%(message)s'
+
 def setup_log_handler(log_level=None):
     """ Initialize log handler with the given log level
     """
     logging.addLevelName(REQ, "REQ")
     logging.addLevelName(RREQ, "RREQ")
 
-    logger = LOGGER
-
-    formatstr = '%(asctime)s\t[%(process)d]\t%(levelname)s\t%(message)s'
+    logger    = LOGGER
+    formatstr = FORMATSTR
 #   formatstr = '%(asctime)s] [%(levelname)s] file=%(pathname)s line=%(lineno)s module=%(module)s function=%(funcName)s %(message)s'
 
     log_level = log_level or get_config('logging').get('level','debug')
@@ -32,6 +36,26 @@ def setup_log_handler(log_level=None):
     formatter = logging.Formatter(formatstr)
     channel.setFormatter(formatter)
     logger.addHandler(channel)
+
+
+@contextmanager
+def logfile_context( workdir, basename ):
+    """ Add a temporary file handler
+    """
+    logfile    = os.path.join(workdir, "%s.log" % basename)
+    logger    = LOGGER
+    formatstr = FORMATSTR
+    channel   = logging.FileHandler(logfile)
+    formatter = logging.Formatter(formatstr)
+    logger.addHandler(channel)
+    try:
+        yield
+    except:
+        # Output traceback
+        logger.error("Exception raised:\n" + traceback.format_exc())
+    finally:
+        logger.removeHandler(channel)
+        channel.close()
 
 
 def format_log_request(handler):
