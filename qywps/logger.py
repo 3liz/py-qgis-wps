@@ -43,18 +43,14 @@ def logfile_context( workdir, basename ):
     """ Add a temporary file handler
     """
     logfile    = os.path.join(workdir, "%s.log" % basename)
-    logger    = LOGGER
-    formatstr = FORMATSTR
     channel   = logging.FileHandler(logfile)
-    formatter = logging.Formatter(formatstr)
-    logger.addHandler(channel)
+    formatter = logging.Formatter(FORMATSTR)
+    channel.setFormatter(formatter)
+    LOGGER.addHandler(channel)
     try:
         yield
-    except:
-        # Output traceback
-        logger.error("Exception raised:\n" + traceback.format_exc())
     finally:
-        logger.removeHandler(channel)
+        LOGGER.removeHandler(channel)
         channel.close()
 
 

@@ -118,3 +118,8 @@ class StorageNotSupported(NoApplicableCode):
     code = 400
 
 
+class ProcessException(Exception):
+    """ Exception occured in handler
+    """
+    pass
+

@@ -9,7 +9,7 @@ from urllib.parse import urlparse, urlencode
 
 from functools import partial
 from qywps.app.Common import Metadata
-from qywps.exceptions import MissingParameterValue
+from qywps.exceptions import MissingParameterValue, ProcessException
 from qywps.inout.formats import Format
 from qywps.app.Process import Process as WPSProcess
 from qywps.inout import (LiteralInput, 
@@ -91,9 +91,6 @@ class ProcessingInputTypeNotSupported(ProcessingTypeParseError):
     pass
 
 class ProcessingOutputTypeNotSupported(ProcessingTypeParseError):
-    pass
-
-class ProcessingAlgorithmError(Exception):
     pass
 
 
@@ -497,14 +494,14 @@ class Feedback(QgsProcessingFeedback):
         # TODO Call update status  when 
         # https://projects.3liz.org/infra-v3/py-qgis-wps/issues/1 is fixed
 
-    def reportError(self, txt ):
-        LOGGER.error("Processing:%s:%s %s", self.name, self.uuid, txt)
+    def reportError(self, error, fatalError=False ):
+        (LOGGER.critical if fatalError else LOGGER.error)("Processing:%s:%s %s", self.name, self.uuid, error)
 
-    def pushInfo(self, txt):
-        LOGGER.info("Processing:%s:%s %s",self.name, self.uuid, txt)
+    def pushInfo(self, info):
+        LOGGER.info("Processing:%s:%s %s",self.name, self.uuid, info)
 
-    def pushDebugInfo(self, txt):
-        LOGGER.debug("Processing:%s:%s %s",self.name, self.uuid, txt)
+    def pushDebugInfo(self, info):
+        LOGGER.debug("Processing:%s:%s %s",self.name, self.uuid, info)
 
 
 
@@ -587,7 +584,7 @@ class QgsProcess(WPSProcess):
                                               feedback=feedback, context=context)
         except QgsProcessingException as e:
             traceback.print_exc()
-            raise ProcessingAlgorithmError("%s" % e)
+            raise ProcessException("%s" % e)
 
         LOGGER.debug("Task finished %s", request.identifier)
 

@@ -167,4 +167,9 @@ def test_proxy_status_url( host ):
     status_url = urlparse(st['status_url'])
     assert "{0.scheme}://{0.netloc}/".format(status_url) == proxy_loc
 
-
+def test_handleprocesserror( host, data ):
+    """  Test execute timeout """
+    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testraiseerror&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"))
+    assert rv.status_code == 424
+ 

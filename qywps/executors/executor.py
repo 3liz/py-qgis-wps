@@ -30,7 +30,7 @@ from qywps.logger import logfile_context
 
 from lxml import etree
 from qywps.exceptions import (StorageNotSupported, OperationNotSupported,
-                              NoApplicableCode)
+                              NoApplicableCode, ProcessException)
 
 import qywps.configuration as config
 
@@ -345,8 +345,8 @@ class PoolExecutor(Executor):
         if (wps_response.status == STATUS.STORE_AND_UPDATE_STATUS) and self._pool is not None:
 
             def _on_error( exc ):
-                LOGGER.error('Process Exception { "exception": "%s", "uuid": "%s" }' % (exc, process.uuid))
-                wps_response.update_status("%s" % exc, None, STATUS.ERROR_STATUS)
+                LOGGER.error('Uncaught Process Exception { "exception": "%s", "uuid": "%s" }' % (exc, process.uuid))
+                wps_response.update_status("Internal error", None, STATUS.ERROR_STATUS)
 
             wps_response.update_status('Task accepted')
             self._pool.apply_async(self._run_process, args=(process.handler, wps_request, wps_response), 
@@ -363,9 +363,10 @@ class PoolExecutor(Executor):
                 loop.call_soon_threadsafe(future.set_result, response)
     
             def _on_error( exc ):
-                LOGGER.error('Process Exception { "exception": "%s", "uuid": "%s" }' % (exc, process.uuid))
-                wps_response.update_status("%s" % exc, None, STATUS.ERROR_STATUS)
-                loop.call_soon_threadsafe(future.set_result, wps_response)
+                if not isinstance(exc, ProcessException):
+                    LOGGER.error('Uncaught Process Exception { "exception": "%s", "uuid": "%s" }' % (exc, process.uuid))
+                    wps_response.update_status("Internal error", None, STATUS.ERROR_STATUS)
+                loop.call_soon_threadsafe(future.set_exception, exc)
 
             self._pool.apply_async(self._run_process, args=(process.handler, wps_request, wps_response),
                     callback=success_cbk, error_callback=_on_error, kwds={'is_async':False, 'timeout': timeout})
@@ -374,6 +375,8 @@ class PoolExecutor(Executor):
                 wps_response = await asyncio.wait_for(future, timeout)
             except asyncio.TimeoutError:
                 raise NoApplicableCode("Execute Timeout", code=424)
+            except ProcessException:
+                raise NoApplicableCode("Process error", code=424)
 
         return wps_response
 
@@ -381,26 +384,27 @@ class PoolExecutor(Executor):
     def _run_process(handler, wps_request, wps_response, is_async, timeout):
         """ Run WPS  process
         """
+        workdir = wps_response.process.workdir
+        # Change current dir to workdir
+        os.chdir(workdir)
+
+        wps_response.update_status('Task started', 0)
+ 
         # Set up timeout handler
         timer = Timer(timeout, _timeout_kill, args=(wps_response,is_async))
         timer.start()
         try:
-            workdir = wps_response.process.workdir
-            # Change current dir to workdir
-            os.chdir(workdir)
-
-            wps_response.update_status('Task started', 0)
-
-            with logfile_context(workdir, 'processing'):
-                response = handler(wps_request, wps_response)
-
-            if not response:
-                raise NoApplicableCode("Handler returned invalid response object",code=500)
-            response.update_status('Task finished'.format(wps_response.process.title),
+           with logfile_context(workdir, 'processing'):
+                handler(wps_request, wps_response)
+                wps_response.update_status('Task finished'.format(wps_response.process.title),
                                     100, STATUS.DONE_STATUS)
-        except Exception as e:
-            traceback.print_exc()
-            raise
+        except ProcessException as e:
+            # Set error status
+            wps_response.update_status("%s" % e, None, STATUS.ERROR_STATUS)
+            if not is_async:
+                # Raise exception again so that we can catch it in
+                # parent process
+                raise
         finally:
             timer.cancel()
 

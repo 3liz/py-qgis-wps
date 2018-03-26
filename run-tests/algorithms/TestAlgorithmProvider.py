@@ -7,6 +7,7 @@ from qgis.core import (QgsApplication,
 from .TestSimpleValue import TestSimpleValue
 from .TestCopyLayer import TestCopyLayer
 from .TestLongProcess import TestLongProcess
+from .TestRaiseError import TestRaiseError
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -18,6 +19,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
             TestSimpleValue(),
             TestCopyLayer(),
             TestLongProcess(),
+            TestRaiseError(),
        ]
        return algs
     

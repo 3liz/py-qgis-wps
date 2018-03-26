@@ -43,6 +43,7 @@ function add_process( pr_data ) {
     pr = fragment.firstElementChild
     pr.setAttribute("id"    , pr_data.uuid)
     pr.setAttribute("status", get_pr_status(pr_data))
+    pr.setAttribute("title" , pr_data.message)
     // Alg identifier 
     set_label( pr, 'alg-name'   , pr_data.identifier) 
     // Get the start-date label
@@ -64,6 +65,7 @@ function update_process( pr_data ) {
         // status changed
         if (pr.getAttribute("status") != st) {
             pr.setAttribute("status", st)
+            pr.setAttribute("title" , pr_data.message)
             set_label( pr, 'finish-date', format_iso_date(pr_data.time_end))
             set_label( pr, 'start-date' , format_iso_date(pr_data.time_start))
         }
@@ -72,6 +74,7 @@ function update_process( pr_data ) {
     } else {
         add_process( pr_data )
     }
+    $('[data-toggle="tooltip"]').tooltip();
 }
 
 function delete_process( uuid, dontask ) {
@@ -147,4 +150,10 @@ async function run_dashboard()
     setInterval( get_status, 5000 )
 }
 
+/*
+ * Bootstrap Init stuff
+ */
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+});
 
