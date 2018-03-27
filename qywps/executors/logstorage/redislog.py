@@ -84,7 +84,6 @@ class RedisStore(LOGStore):
         # Retrieve the record
         uuid_str = str(request_uuid)
 
-        LOGGER.debug("LOGSTORE: Updating response %s", uuid_str)
         data = self._db.hget(self._hstatus, uuid_str)
         if data is None:
             # The request has not been recorded for any reason
@@ -135,7 +134,6 @@ class RedisStore(LOGStore):
         """ Write response doc
         """
         uuid_str = str(request_uuid)
-        LOGGER.debug("LOGSTORE: writing response doc %s", uuid_str)
         content = etree.tostring(doc, pretty_print=True, encoding='utf-8')
         rv = self._db.set("{}:response:{}".format(self._prefix, uuid_str), content)
         if not rv:
