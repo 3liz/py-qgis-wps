@@ -363,7 +363,7 @@ def input_to_processing( identifier, inp, alg, context ):
         # Coerce with the the default value (see above) as we do not let client set
         # output file name
         if inp[0].data != inp[0].default:
-            LOGGER.warning("Dropping modified value for fileDestination")
+            LOGGER.warning("Dropping modified value for fileDestination: %s", inp[0].data)
         value = inp[0].default
     elif len(inp):
         # Return raw value
