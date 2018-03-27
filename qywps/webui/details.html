@@ -14,6 +14,13 @@
 
   </head>
   <body>
+      <template id="tr-file-template">
+          <tr>
+              <th><a class="data-label file-link" data-value="" name="f-name" scope="row"</a></th>
+              <td class="data-label" data-value="" name="f-type"></td> 
+              <td class="data-label" data-value="" name="f-size"></td>
+          </tr>
+      </template>
 
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
       <a class="navbar-brand" href="#">WPS Status</a>
@@ -22,6 +29,7 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav mr-auto">
+          <!--
           <li class="nav-item active">
             <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
           </li>
@@ -31,57 +39,96 @@
           <li class="nav-item">
             <a class="nav-link disabled" href="#">Disabled</a>
           </li>
+          -->
         </ul>
       </div>
     </nav>
 
     <div class="container" status="done">
 
-       <h2 class="sub-header data-label" id="lbl-identifier"></h2>
-       <h5 class="sub-header data-label" id="lbl-uuid"></h5>  
-       <div class="row row-details">
-           <div class="col-2 text-right">Status:</div>
-           <div class="col-4 data-label" id="lbl-status" data-value=""></div>
+       <div class="d-flex justify-content-between">
+            <h2 class="sub-header data-label" id="lbl-identifier"></h2>
+            <button type="button" class="btn btn-primary btn-small" id="refresh-btn" 
+                onclick="refresh_details()">Refresh</button>
        </div>
-       <div class="row row-details">
-           <div class="col-2 text-right">Time start:</div>
-           <div class="col-4 data-label" id="lbl-time_start" dtype="date" data-value=""></div>
-       </div>
-       <div class="row row-details">
-           <div class="col-2 text-right">Time end:</div>
-           <div class="col-4"> 
-               <div class="data-label finish-label" id="lbl-time_end" dtype="date" data-value=""></div>
-               <div class="progress pr-progress" name="pr-progress">
-                  <div class="progress-bar" role="progressbar" 
-                      aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:40%"></div>
-               </div>
-           </div>
-       </div>
-       <div class="row row-details">
-           <div class="col-2 text-right">Expire at:</div>
-           <div class="col-4 data-label" id="lbl-expire_at" dtype="date" data-value=""></div> 
-       </div>
-       <div class="row row-details">
-           <div class="col-2 text-right">Message:</div>
-           <div class="col-4 data-label" id="lbl-message" data-value=""></div> 
-       </div>
-       <div class="row row-details">
-           <div class="col-2 text-right">Pinned:</div>
-           <div class="col-4 data-label" id="lbl-pinned" data-value=""></div> 
-       </div>
-    </p>
-    <h4>Resources:</h4>
+       <span class="sub-header data-label" id="lbl-uuid"></span>
+       <a id="pr-raw-link">(raw)</a>
 
+       <ul class="nav nav-tabs">
+           <li class="nav-item">
+               <a class="nav-link active" href="#pane-status" role="tab" data-toggle="tab">Status</a>
+           </li>
+           <li class="nav-item">
+               <a class="nav-link" href="#pane-store" role="tab" data-toggle="tab">Resources</a>
+           </li>
+           <li class="nav-item">
+               <a class="nav-link" href="#pane-log" role="tab" data-toggle="tab">Log</a>
+           </li>
+       </ul>
+
+       <!-- tab panes -->
+       <div class="tab-content">
+           <div class="tab-pane container active pr-details-pane" id="pane-status">
+    
+              <div class="row row-details">
+                  <div class="col-2 text-right">Status:</div>
+                  <div class="col-4 data-label" id="lbl-status" data-value=""></div>
+              </div>
+              <div class="row row-details">
+                  <div class="col-2 text-right">Time start:</div>
+                  <div class="col-4 data-label" id="lbl-time_start" dtype="date" data-value=""></div>
+              </div>
+              <div class="row row-details">
+                  <div class="col-2 text-right">Time end:</div>
+                  <div class="col-4"> 
+                      <div class="data-label finish-label" id="lbl-time_end" dtype="date" data-value=""></div>
+                      <div class="progress pr-progress" name="pr-progress">
+                         <div class="progress-bar" role="progressbar" 
+                             aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:40%"></div>
+                      </div>
+                  </div>
+              </div>
+              <div class="row row-details">
+                  <div class="col-2 text-right">Expire at:</div>
+                  <div class="col-4 data-label" id="lbl-expire_at" dtype="date" data-value=""></div> 
+              </div>
+              <div class="row row-details">
+                  <div class="col-2 text-right">Message:</div>
+                  <div class="col-4 data-label" id="lbl-message" data-value=""></div> 
+              </div>
+              <div class="row row-details">
+                  <div class="col-2 text-right">Pinned:</div>
+                  <div class="col-4 data-label" id="lbl-pinned" data-value=""></div> 
+              </div>
+
+           </div>
+           <div class="tab-pane container pr-details-pane" id="pane-store">
+               <table class="table" id="store-table">
+                   <thead>
+                       <tr>
+                          <th>Name</th>
+                          <th>Type</th>
+                          <th>Size</th>
+                        </tr>
+                   </thead>
+                   <tbody id="store-table-body">
+                   </tbody>
+               </table>
+           </div>
+           <div class="tab-pane container pr-details-pane" id="pane-log">
+                <pre class="data-label" data-value=""  name="log-content"><pre>
+           </div>
+       </div><!-- tab-content -->
     </div><!-- container -->
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="jquery.js"></script>
+    <script src="jquery.slim.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="assets/popper.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="dashboard.js"></script>
-    <script src="sandbox.js"></script>
     <script type="text/javascript">
-       show_details( sample_pr_data ) 
+       refresh_details()
     </script>
 
   </body>

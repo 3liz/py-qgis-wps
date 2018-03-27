@@ -27,6 +27,7 @@ function set_label( el, name, value ) {
     // Set the value of a label from the parent
     let lbl = el.querySelector('[name='+name+']')
     lbl.dataset.value = value
+    return lbl
 }
 
 function update_progressbar( el, value ) {
@@ -38,17 +39,19 @@ function update_progressbar( el, value ) {
 function add_process( pr_data ) {
     // Get our template
     let t  = document.getElementById("pr-template")
-    fragment = t.content.cloneNode(true)
+    let fragment = t.content.cloneNode(true)
     // Update attributes
-    pr = fragment.firstElementChild
+    let pr = fragment.firstElementChild
     pr.setAttribute("id"    , pr_data.uuid)
     pr.setAttribute("status", get_pr_status(pr_data))
     pr.setAttribute("title" , pr_data.message)
     // Alg identifier 
-    set_label( pr, 'alg-name'   , pr_data.identifier) 
+    let link = set_label( pr, 'alg-name', pr_data.identifier)
+    link.setAttribute('href', 'details.html?uuid='+ pr_data.uuid)
     // Get the start-date label
     set_label( pr, 'start-date' , format_iso_date(pr_data.time_start))
     set_label( pr, 'finish-date', format_iso_date(pr_data.time_end))
+
     // Progress
     update_progressbar( pr, pr_data.percent_done )
     // Insert it
@@ -92,17 +95,18 @@ function update_summary() {
       'run': 0,
       'done' : 0
    }
-   for( key of PROCESSES.keys()) {
+   for(let key of PROCESSES.keys()) {
         e = document.getElementById(key)
         states[e.getAttribute('status')] += 1
    }
    el = document.getElementById('pr-summary')
-   for( k of ['wait','error','run','done']) {
+   for(let k of ['wait','error','run','done']) {
         set_label(el, 'pr-'+k+'-count', states[k])
    }
 }
 
 function show_details( pr_data ) {
+    document.getElementById('pr-raw-link').setAttribute('href','../status/' + pr_data.uuid)
     for(let key in pr_data) {
         el = document.querySelector('#lbl-'+key)
         if (el) {
@@ -117,6 +121,76 @@ function show_details( pr_data ) {
 }
 
 
+/*
+ * Details
+ */
+
+async function get_details_status(uuid) {
+    console.log("Refreshing status: " + uuid)
+    let response = await fetch('../status/' + uuid, { credentials: 'same-origin' })
+    if (! response.ok) {
+        return
+    }    
+    let pr_data = (await response.json())['status'];
+    show_details(pr_data)
+    refresh_store(pr_data.uuid)
+    refresh_log(pr_data.uuid)
+}
+
+
+async function refresh_store( uuid ) {
+    /* Update file list */
+    $("#store-table tbody").empty()
+    console.log("Refreshing store: " + uuid)
+    let response = await fetch('../store/' + uuid + '/', { credentials: 'same-origin' })
+    if (! response.ok) {
+        return
+    }
+    data = await response.json()
+    for (let res of data['files']) {
+         insert_resource_details(res)
+    }
+}
+
+
+function insert_resource_details( res ) {
+    let t  = document.getElementById("tr-file-template")
+    let fragment = t.content.cloneNode(true)
+    // Update attributes
+    let tr = fragment.firstElementChild
+    set_label( tr, 'f-name', res.name).setAttribute('href', res.store_url)
+    // Get the start-date label
+    set_label( tr, 'f-type' , 'file')
+    set_label( tr, 'f-size' , res.display_size)
+    // Insert it
+    document.getElementById("store-table-body").appendChild(fragment)
+}
+
+
+async function refresh_log( uuid ) {
+    console.log("Refreshing log: " + uuid)
+    let response = await fetch('../store/' + uuid + '/processing.log', { credentials: 'same-origin' })
+    if (! response.ok) {
+        return
+    }
+    let data = await response.text()
+    el = document.getElementById('pane-log')
+    set_label( el, 'log-content' , data )
+}
+
+
+async function refresh_details() {
+    let params = (new URL(document.location)).searchParams;
+    let uuid   = params.get('uuid')
+    await get_details_status(uuid)
+}
+
+
+
+/*
+ * Dashboard
+ */
+
 async function get_status() {
     console.log("Refreshing status")
     let response = await fetch('../status/', { credentials: 'same-origin' })
@@ -126,12 +200,12 @@ async function get_status() {
 
     let data = await response.json();
     let newMap = new Map()
-    for (pr_data of data['status']) {
+    for (let pr_data of data['status']) {
          update_process(pr_data)
          newMap.set(pr_data.uuid,pr_data)
     } 
     // Clean up unreferenced data
-    for (key of PROCESSES.keys()) {
+    for (let key of PROCESSES.keys()) {
         if (newMap.get(key) === undefined) {
             let pr = document.getElementById(key)
             if (pr)

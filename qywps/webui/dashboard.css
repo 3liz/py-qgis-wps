@@ -58,11 +58,6 @@ body {
   padding-top: 4px;
 }
 
-[name="alg-name"]:hover {
-  color: rgb(0,200,200);
-  cursor: pointer;
-}
-
 /*
  * Status
  */
@@ -184,4 +179,8 @@ body {
 .row-details {
     background-color: white;
 
+}
+
+.pr-details-pane {
+    background-color: white;
 }
