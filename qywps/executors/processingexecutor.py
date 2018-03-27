@@ -156,6 +156,6 @@ class ProcessingExecutor(PoolExecutor):
                 raise ProcessingProviderNotFound(provider_id)
             processes.update({ alg.id():QgsProcess( alg ) for alg in provider.algorithms()})
 
-        LOGGER.debug("Published processes: %s", processes)
+        LOGGER.info("Published processes:\n * %s", "\n * ".join(sorted(processes.keys())))
         return processes
 
