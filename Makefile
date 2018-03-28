@@ -101,12 +101,14 @@ docker-run:
 	@echo "Do not forget to run 'docker run -it --rm -p 6379:6379 --name redis --net mynet redis:4'"
 	mkdir -p $(HOME)/.local
 	mkdir -p $(shell pwd)/run-tests/__workdir__
+	mkdir -p $(shell pwd)/run-tests/__ccache__
 	docker run -it --rm -p $(LOCAL_PORT):8080 --name qgis3-wps-run-$(COMMITID) $(DOCKER_OPTIONS) -w /src \
     -u $(BECOME_USER) \
     -v $(shell pwd):/src \
     -v $(HOME)/.local:/.local \
     -v $(HOME)/.config/pip:/.pipconf  \
     -v $(HOME)/.cache/pip:/.pipcache \
+    -v $(shell pwd)/run-tests/__ccache__:/.ccache \
     -e PIP_CONFIG_FILE=/.pipconf/$(PIP_CONFIG_FILE) \
     -e PIP_CACHE_DIR=/.pipcache \
     -v $(PROCESSING):/processing \

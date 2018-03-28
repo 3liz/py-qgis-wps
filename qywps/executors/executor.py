@@ -16,6 +16,9 @@ import logging
 import lxml
 import signal
 
+import psutil
+
+from contextlib import contextmanager
 from multiprocessing import Pool
 from threading import Timer
 from datetime import datetime
@@ -389,12 +392,12 @@ class PoolExecutor(Executor):
         os.chdir(workdir)
 
         wps_response.update_status('Task started', 0)
- 
+
         # Set up timeout handler
         timer = Timer(timeout, _timeout_kill, args=(wps_response,is_async))
         timer.start()
         try:
-           with logfile_context(workdir, 'processing'):
+            with logfile_context(workdir, 'processing'), memory_logger(wps_response):
                 handler(wps_request, wps_response)
                 wps_response.update_status('Task finished'.format(wps_response.process.title),
                                     100, STATUS.DONE_STATUS)
@@ -420,6 +423,10 @@ class PoolExecutor(Executor):
     def _clean_processes():
         """ Clean up all processes
             Remove status and delete processes workdir
+
+            Dangling tasks will be removed: these are tasks no marked finished but 
+            for which the timeout has expired. Usually this is task for wich the process
+            as died (memory exhaustion, segfault....)
         """
         LOGGER.info("Running cleanup task")
         # Iterate over done processes
@@ -476,4 +483,21 @@ def _timeout_kill( response, is_async ):
     response.update_status("Timeout Error", None, STATUS.ERROR_STATUS)
     os.kill(os.getpid(), signal.SIGABRT)
 
-   
+
+@contextmanager
+def memory_logger(response):
+    """ Log memory consumption
+    """
+    # Get the current process info
+    process = psutil.Process(os.getpid())
+    start_mem = process.memory_info().rss
+    mb = 1024*1024.0
+    try:
+        yield
+    finally:
+        # Log memory infos
+        end_mem = process.memory_info().rss
+        LOGGER.info("{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb delta={3:.3f}Mb".format(
+                str(response.uuid)[:8], start_mem/mb, end_mem/mb, (end_mem - start_mem)/mb,
+                response.process.identifier))
+

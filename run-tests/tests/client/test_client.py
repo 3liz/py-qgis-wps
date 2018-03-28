@@ -180,10 +180,10 @@ def test_handleprocesserror( host, data ):
     assert rv.status_code == 424
 
 
-def test_slowprogress( host, data ):
-    """  Test execute timeout """
-    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testlongprocess&Version=1.0.0"
-                               "&MAP=france_parts&DATAINPUTS=PARAM1=2"))
-    assert rv.status_code == 200
+#def test_slowprogress( host, data ):
+#    """  Test execute timeout """
+#    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testlongprocess&Version=1.0.0"
+#                               "&MAP=france_parts&DATAINPUTS=PARAM1=2"))
+#    assert rv.status_code == 200
  
 

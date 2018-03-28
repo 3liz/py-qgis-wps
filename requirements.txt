@@ -4,4 +4,5 @@ lxml
 python-dateutil
 redis
 GDAL <= 2.1.2
+psutil
 

@@ -427,7 +427,6 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
             return False
         try:
             # Take as layer
-            LOGGER.debug("%s: MapLayerFromString: %s", alg.id(), l)
             layer = QgsProcessingUtils.mapLayerFromString(l, context)
             if layer is not None:
                 if not ProcessingConfig.getSetting(ProcessingConfig.USE_FILENAME_AS_LAYER_NAME):
@@ -449,10 +448,10 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
                 if style:
                     layer.loadNamedStyle(style)
                 # Add layer to destination project
-                LOGGER.debug("%s: Adding Map layer to Qgs Project", alg.id())
+                feedback.pushDebugInfo("Adding Map layer '%s' to Qgs Project" % l)
                 details.project.addMapLayer(context.temporaryLayerStore().takeMapLayer(layer))
             else:
-                LOGGER.warn("No layer found found for %s" % l)
+                LOGGER.warning("No layer found found for %s", l)
         except Exception:
             LOGGER.error("Processing: Error loading result layer:\n{}".format(traceback.print_exc()))
             wrongLayers.append(str(l))
@@ -476,7 +475,7 @@ class Feedback(QgsProcessingFeedback):
         super().__init__()
         self._response  = response
         self.name       = name
-        self.uuid       = uuid_str
+        self.uuid       = uuid_str[:8]
 
     def setProgress( self, progress ):
         """ We update the wps status 
@@ -495,13 +494,13 @@ class Feedback(QgsProcessingFeedback):
         # https://projects.3liz.org/infra-v3/py-qgis-wps/issues/1 is fixed
 
     def reportError(self, error, fatalError=False ):
-        (LOGGER.critical if fatalError else LOGGER.error)("Processing:%s:%s %s", self.name, self.uuid, error)
+        (LOGGER.critical if fatalError else LOGGER.error)("%s:%s %s", self.name, self.uuid, error)
 
     def pushInfo(self, info):
-        LOGGER.info("Processing:%s:%s %s",self.name, self.uuid, info)
+        LOGGER.info("%s:%s %s",self.name, self.uuid, info)
 
     def pushDebugInfo(self, info):
-        LOGGER.debug("Processing:%s:%s %s",self.name, self.uuid, info)
+        LOGGER.debug("%s:%s %s",self.name, self.uuid, info)
 
 
 
@@ -572,7 +571,7 @@ class QgsProcess(WPSProcess):
 
         workdir  = response.process.workdir
         context  = Context(workdir, map_uri=request.map_uri)
-        feedback = Feedback(response, alg.name(), uuid_str=str(response.uuid)) 
+        feedback = Feedback(response, alg.id(), uuid_str=str(response.uuid)) 
 
         context.setFeedback(feedback)
 

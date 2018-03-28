@@ -30,4 +30,6 @@ __output__
 
 .pytest_cache
 
+__ccache__
+
 factory.manifest
