@@ -49,7 +49,8 @@ function add_process( pr_data ) {
     let pr = fragment.firstElementChild
     pr.setAttribute("id"    , pr_data.uuid)
     pr.setAttribute("status", get_pr_status(pr_data))
-    pr.setAttribute("title" , pr_data.message)
+    // Update tooltip
+    pr.querySelector(".pr-st-box").setAttribute("title" , pr_data.message)
     // Alg identifier 
     let link = set_label( pr, 'alg-name', pr_data.identifier)
     link.setAttribute('href', 'details.html?uuid='+ pr_data.uuid)
