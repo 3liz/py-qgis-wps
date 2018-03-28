@@ -1,0 +1,34 @@
+
+.icon {
+  mask-repeat: no-repeat;
+  mask-size: 1em;
+  mask-position: center center;
+  display: inline-block;
+  vertical-align: middle;
+  background-color: currentColor;
+  height: 1.5em;
+  width: 1.5em;
+  -webkit-mask-repeat:  no-repeat;
+  -webkit-mask-position: center center;
+  -webkit-mask-size: 1em;
+}
+
+.icon-small {
+  mask-size: 0.8em;
+  -webkit-mask-size: 0.8em;
+}
+
+.icon-large {
+  mask-size: 1.2em;
+  -webkit-mask-size: 1.2em;
+}
+
+.icon-trash {
+  mask-image: url("octicons/lib/svg/trashcan.svg");
+  -webkit-mask-image: url("octicons/lib/svg/trashcan.svg");
+}
+
+.icon[disabled="true"] {
+  opacity: 0.2;
+}
+

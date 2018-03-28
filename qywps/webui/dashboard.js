@@ -1,6 +1,7 @@
 
 PROCESSES = new Map()
 
+
 function get_pr_status( pr_data ) {
     // Return the status of
     if (pr_data.status == 'ERROR_STATUS') {
@@ -12,16 +13,18 @@ function get_pr_status( pr_data ) {
     if (pr_data.percent_done == -1) {
         return 'wait'
     }
-    if (pr_data.percent_done > 0) {
+    if (pr_data.percent_done >= 0) {
         return 'run'        
     }
     return 'none';
 }
 
+
 function format_iso_date( isodate ) {
     // Format an iso date to local date
     return (new Date(isodate)).toLocaleString();
 }
+
 
 function set_label( el, name, value ) {
     // Set the value of a label from the parent
@@ -30,11 +33,13 @@ function set_label( el, name, value ) {
     return lbl
 }
 
+
 function update_progressbar( el, value ) {
     let progress = el.querySelector('[name=pr-progress] .progress-bar')
     progress.setAttribute('aria-valuenow', value )
     progress.style.width = value+'%'
 }
+
 
 function add_process( pr_data ) {
     // Get our template
@@ -52,12 +57,18 @@ function add_process( pr_data ) {
     set_label( pr, 'start-date' , format_iso_date(pr_data.time_start))
     set_label( pr, 'finish-date', format_iso_date(pr_data.time_end))
 
+    // Set actions 
+    pr.querySelector("[role=pr-delete]").addEventListener('click', function() {
+        delete_process(pr_data.uuid)
+    })
+
     // Progress
     update_progressbar( pr, pr_data.percent_done )
     // Insert it
     let pr_list = document.getElementById("pr-list")
     pr_list.appendChild(fragment)
 }
+
 
 function update_process( pr_data ) {
     // Get our template
@@ -80,11 +91,20 @@ function update_process( pr_data ) {
     $('[data-toggle="tooltip"]').tooltip();
 }
 
-function delete_process( uuid, dontask ) {
-   let pr  = document.getElementById(uuid)
-   if (pr && (dontask || doconfirm("Are you sure to delete these results ?"))) {
-        pr.remove()
-    }
+
+async function delete_process( uuid, dontask = false) {
+   if(confirm(`Are you sure to delete results:\n${ uuid } ?`)) {
+        response = await fetch("../status/"+uuid, {
+            credentials: 'same-origin',
+            method: 'DELETE'
+        })
+       // Remove element
+       pr = document.getElementById(uuid)
+       if (pr) {
+           pr.remove()
+       }
+   }
+
 }
 
 
@@ -104,6 +124,7 @@ function update_summary() {
         set_label(el, 'pr-'+k+'-count', states[k])
    }
 }
+
 
 function show_details( pr_data ) {
     document.getElementById('pr-raw-link').setAttribute('href','../status/' + pr_data.uuid)
@@ -191,7 +212,7 @@ async function refresh_details() {
  * Dashboard
  */
 
-async function get_status() {
+async function get_status(sort=false) {
     console.log("Refreshing status")
     let response = await fetch('../status/', { credentials: 'same-origin' })
     if (! response.ok) {
@@ -200,6 +221,10 @@ async function get_status() {
 
     let data = await response.json();
     let newMap = new Map()
+    // Sort data by start date
+    if (sort) {
+        data['status'].sort(function(a,b){return a.time_start.localeCompare(b.time_start)})
+    }
     for (let pr_data of data['status']) {
          update_process(pr_data)
          newMap.set(pr_data.uuid,pr_data)
@@ -219,9 +244,10 @@ async function get_status() {
 
 async function run_dashboard()
 {
-    await get_status()
+    await get_status(true)
     setInterval( get_status, 5000 )
 }
+
 
 /*
  * Bootstrap Init stuff

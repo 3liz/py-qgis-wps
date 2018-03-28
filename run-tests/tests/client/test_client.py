@@ -7,11 +7,13 @@ from urllib.parse import urlparse, parse_qs
 
 from client_utils import * 
 
+
 def test_get_capabilities( host, data ):
     """ Test Get capabilities"""
     rv = requests.get(host + "?SERVICE=WPS&Request=GetCapabilities")
     assert rv.status_code == 200
     assert rv.headers.get('Content-Type') == 'text/xml;charset=utf-8'
+
 
 def test_describeprocess( host, data ):
     """ Test describe process"""
@@ -19,12 +21,14 @@ def test_describeprocess( host, data ):
 
     assert rv.status_code == 200
 
+
 def test_executeprocess( host, data ):
     """  Test execute process """
     rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testcopylayer&Version=1.0.0"
                                "&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2"))
     assert rv.status_code == 200
-  
+
+
 def test_executeprocess_async( host, data ):
     """  Test execute async process GET """
     rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testcopylayer&Version=1.0.0"
@@ -76,6 +80,7 @@ POST_DATA="""
 </wps:Execute>
 """
 
+
 def _execute_process( host, storeExecuteResponse="false" ):
     """ Execute a process and return its status json
     """
@@ -94,7 +99,6 @@ def _execute_process( host, storeExecuteResponse="false" ):
     assert 'uuid' in q 
 
     return q['uuid'][0]
-
 
 
 def test_executeprocess_post( host, data):
@@ -148,6 +152,7 @@ def test_executedelete( host, data ):
     rv = requests.get(host+"status/{}?SERVICE=WPS".format(uuid))
     assert rv.status_code == 404 
 
+
 def test_proxy_status_url( host ):
     """ Test that status url has correct host
     """
@@ -167,9 +172,18 @@ def test_proxy_status_url( host ):
     status_url = urlparse(st['status_url'])
     assert "{0.scheme}://{0.netloc}/".format(status_url) == proxy_loc
 
+
 def test_handleprocesserror( host, data ):
     """  Test execute timeout """
     rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testraiseerror&Version=1.0.0"
                                "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"))
     assert rv.status_code == 424
+
+
+def test_slowprogress( host, data ):
+    """  Test execute timeout """
+    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testlongprocess&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=PARAM1=2"))
+    assert rv.status_code == 200
  
+
