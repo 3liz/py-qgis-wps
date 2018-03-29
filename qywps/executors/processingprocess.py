@@ -5,6 +5,7 @@ import logging
 import mimetypes
 import traceback
 
+from os.path import normpath, basename
 from urllib.parse import urlparse, urlencode
 
 from functools import partial
@@ -360,11 +361,11 @@ def input_to_processing( identifier, inp, alg, context ):
         # XXX CRS may be expressed as EPSG (or QgsProperty ?)
         value = inp[0].data
     elif typ == 'fileDestination':
-        # Coerce with the the default value (see above) as we do not let client set
-        # output file name
-        if inp[0].data != inp[0].default:
-            LOGGER.warning("Dropping modified value for fileDestination: %s", inp[0].data)
-        value = inp[0].default
+        # Normalize path
+        value = basename(normpath(inp[0].data))
+        if value != inp[0].data:
+            LOGGER.warning("Warning value for fileDestination %s  has been changed from '%s' to '%s'",
+                    identifier, inp[0].data, value )
     elif len(inp):
         # Return raw value
         value = inp[0].data

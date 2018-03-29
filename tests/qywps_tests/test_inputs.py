@@ -163,6 +163,17 @@ def test_optional_inputs():
         assert not_optional_input.min_occurs > 0
 
 
+def test_file_destination(application):
+        alg = _find_algorithm('qywps_test:testfiledestination')
+
+        inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
+        inputs['OUTPUT'][0].data = '/bad/..//path/to/file'
+
+        context  = QgsProcessingContext()
+        parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
+
+        assert parameters['OUTPUT'] == 'file'
+
 
 def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     if maxOccurence is None:

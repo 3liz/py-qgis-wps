@@ -9,6 +9,7 @@ from qgis.core import (QgsApplication,
 from .TestSimpleValue import TestSimpleValue
 from .TestOptionValue import TestOptionValue
 from .TestCopyLayer import TestCopyLayer
+from .TestFileDestination import TestFileDestination
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -21,6 +22,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestSimpleValue(),
                  TestOptionValue(),
                  TestCopyLayer(),
+                 TestFileDestination(),
             ]
         except:
             traceback.print_exc()
