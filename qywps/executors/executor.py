@@ -197,13 +197,18 @@ class PoolExecutor(Executor):
  
         cfg = config.get_config('server')
 
-        dbstorename = cfg.get('logstorage')
-        maxparallel = cfg.getint('parallelprocesses')
+        dbstorename      = cfg.get('logstorage')
+        maxparallel      = cfg.getint('parallelprocesses')
+        processlifecycle = cfg.getint('processlifecycle')
+
+        # 0 mean eternal life
+        if processlifecycle == 0:
+            processlifecycle=None
 
         self._logstore = LOGStore.create(dbstorename)
        
         maxparallel = max(1,maxparallel)
-        self._pool = Pool(processes=maxparallel, initializer=self.worker_initializer)
+        self._pool = Pool(processes=maxparallel, initializer=self.worker_initializer, maxtasksperchild=processlifecycle )
 
         self.install_processes( processes )
         self._logstore.init_session()
@@ -316,12 +321,8 @@ class PoolExecutor(Executor):
                 await asyncio.sleep(interval)
                 # Run the cleanup function asynchronously
                 future = loop.create_future() 
-                pool.apply_async(self._clean_processes,
-                    callback       = lambda rv: loop.call_soon_threadsafe(future.set_result, rv)  , 
-                    error_callback = lambda exc:  loop.call_soon_threadsafe(future.set_exception, exc))
-                # await for the cleaup to complete
                 try:
-                    await future
+                    self._clean_processes()
                 except Exception as e:
                     traceback.print_exc()
                     LOGGER.error("Cleanup task failed: %s", e)

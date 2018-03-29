@@ -64,6 +64,7 @@ def load_configuration():
     CONFIG.set('server', 'workdir'              , getenv('QYWPS_SERVER_WORKDIR',tempfile.gettempdir()))
     CONFIG.set('server', 'host_proxy'           , getenv('QYWPS_SERVER_HOST_PROXY',''))
     CONFIG.set('server', 'parallelprocesses'    , getenv('QYWPS_SERVER_PARALLELPROCESSES','1'))
+    CONFIG.set('server', 'processlifecycle'     , getenv('QYWPS_SERVER_PROCESSLIFECYCLE','1'))
     CONFIG.set('server', 'response_timeout'     , getenv('QYWPS_SERVER_RESPONSE_TIMEOUT','600'))
     CONFIG.set('server', 'response_expiration'  , getenv('QYWPS_SERVER_RESPONSE_EXPIRATION','86400'))
     CONFIG.set('server', 'wms_service_url'      , getenv('QYWPS_SERVER_WMS_SERVICE_URL','{host_url}'))
