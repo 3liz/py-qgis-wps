@@ -32,7 +32,6 @@ class RedisStore(LOGStore):
 
             Called once when the request is handled
         """
-
         uuid_str = str(request_uuid)
 
         LOGGER.debug("LOGSTORE: logging request %s", uuid_str)
@@ -44,6 +43,7 @@ class RedisStore(LOGStore):
           'status': STATUS.NO_STATUS.name,
           'percent_done': 0,
           'message': '',
+          'map': wps_request.map_uri,
           'expiration': wps_request.expiration,
           'time_start': utcnow().isoformat()+'Z',
           'time_end': None,
