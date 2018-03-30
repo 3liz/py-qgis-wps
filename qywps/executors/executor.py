@@ -349,7 +349,7 @@ class PoolExecutor(Executor):
         if (wps_response.status == STATUS.STORE_AND_UPDATE_STATUS) and self._pool is not None:
 
             def _on_error( exc ):
-                LOGGER.error('Uncaught Process Exception { "exception": "%s", "uuid": "%s" }' % (exc, process.uuid))
+                LOGGER.error('Uncaught Process Exception { "exception": "%s", "type": "%s", "uuid": "%s" }' % (exc, type(exc), process.uuid))
                 wps_response.update_status("Internal error", None, STATUS.ERROR_STATUS)
 
             wps_response.update_status('Task accepted')
@@ -368,7 +368,7 @@ class PoolExecutor(Executor):
     
             def _on_error( exc ):
                 if not isinstance(exc, ProcessException):
-                    LOGGER.error('Uncaught Process Exception { "exception": "%s", "uuid": "%s" }' % (exc, process.uuid))
+                    LOGGER.error('Uncaught Process Exception { "exception": "%s", "type": "%s", "uuid": "%s" }' % (exc, type(exc), process.uuid))
                     wps_response.update_status("Internal error", None, STATUS.ERROR_STATUS)
                 loop.call_soon_threadsafe(future.set_exception, exc)
 
