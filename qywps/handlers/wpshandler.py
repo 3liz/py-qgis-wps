@@ -96,8 +96,9 @@ class StatusHandler(BaseHandler):
         # Add additional informations
         cfg = self.application.config
         def repl( s ):
-            s['status_url'] = cfg['status_url'].format(host_url=proxy_url, uuid=s['uuid'])
-            s['store_url']  = cfg['store_url'].format(host_url=proxy_url, uuid=s['uuid'], file="")
+            s['status_url']  = cfg['status_url'].format(host_url=proxy_url, uuid=s['uuid'])
+            s['store_url']   = cfg['store_url'].format(host_url=proxy_url, uuid=s['uuid'], file="")
+            s['request']     = "{host_url}status/{uuid}?key=request".format(host_url=proxy_url, uuid=s['uuid'])
             return s
 
         if uuid is not None:

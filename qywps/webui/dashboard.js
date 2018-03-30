@@ -157,6 +157,7 @@ async function get_details_status(uuid) {
     show_details(pr_data)
     refresh_store(pr_data.uuid)
     refresh_log(pr_data.uuid)
+    refresh_inputs(pr_data.uuid)
 }
 
 
@@ -199,6 +200,20 @@ async function refresh_log( uuid ) {
     el = document.getElementById('pane-log')
     set_label( el, 'log-content' , data )
 }
+
+
+async function refresh_inputs( uuid ) {
+    console.log("Refreshing inputs: " + uuid)
+    let response = await fetch('../status/' + uuid + '?key=request', { credentials: 'same-origin' })
+    if (! response.ok) {
+        return
+    }
+    let data = await response.json()
+    data = JSON.stringify( data['request']['inputs'], undefined, 2)
+    el   = document.getElementById('pane-inputs')
+    set_label( el, 'inputs-content' , data )
+}
+
 
 
 async function refresh_details() {
