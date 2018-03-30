@@ -83,7 +83,7 @@ class Executor(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def get_status( self, uuid=None):
+    def get_status( self, uuid=None, **kwargs):
         """ Return status of the stored processes
 
             :param uuid: the uuid of the required process. 
@@ -157,7 +157,7 @@ class LOGStore(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def get_status( self, uuid=None ):
+    def get_status( self, uuid=None, **kwargs ):
         """ Return status of the stored processes
 
             :param uuid: the uuid of the required process. 
@@ -218,10 +218,10 @@ class PoolExecutor(Executor):
         # Launch the cleanup task
         self.schedule_cleanup()
 
-    def get_status( self, uuid=None ):
+    def get_status( self, uuid=None, **kwargs ):
         """ Implementation of Execute.get_status
         """
-        return self._logstore.get_status(uuid)
+        return self._logstore.get_status(uuid, **kwargs)
 
     def delete_results( self, uuid):
         """ implementation of Execute.delete_results

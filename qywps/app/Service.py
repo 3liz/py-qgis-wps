@@ -72,10 +72,10 @@ class Service():
 
         return doc
 
-    def get_status(self, uuid=None):
+    def get_status(self, uuid=None, **kwargs):
         """ Return the status of the stored processes
         """
-        return self.executor.get_status(uuid)
+        return self.executor.get_status(uuid, **kwargs)
 
     def delete_results(self, uuid ):
         """ Delete process results and status 

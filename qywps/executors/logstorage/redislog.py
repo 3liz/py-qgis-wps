@@ -56,10 +56,9 @@ class RedisStore(LOGStore):
         if not rv:
             LOGGER.error("Failed to record request %s", uuid_str) 
 
-        # Trace the request if requested
-        if self._trace:
-            self._db.setex("{}:request:{}".format(self._prefix, uuid_str),  self._tracexp, 
-                           wps_request.json)
+        # Record the request
+        self._db.set("{}:request:{}".format(self._prefix, uuid_str), wps_request.json)
+
         return record
 
     def set_json( self, value, expire):
@@ -129,7 +128,6 @@ class RedisStore(LOGStore):
         else:
             raise FileNotFoundError("No status for %s" % uuid_str)
 
-
     def write_response( self,  request_uuid, doc ):
         """ Write response doc
         """
@@ -146,6 +144,7 @@ class RedisStore(LOGStore):
         LOGGER.debug("LOGSTORE: deleting record %s", uuid_str)
         p = self._db.pipeline()
         p.delete("{}:response:{}".format(self._prefix, uuid_str))
+        p.delete("{}:request:{}".format(self._prefix, uuid_str))
         p.hdel(self._hstatus, uuid_str)
         p.execute()
 
@@ -162,11 +161,21 @@ class RedisStore(LOGStore):
         """
         return ((k, json.loads(v.decode('utf-8'))) for k,v in self._db.hscan_iter(self._hstatus))
 
-    def get_status( self, uuid=None ):
+    def get_request( self, uuid):
+        """ Return results status
+        """
+        data = self._db.get("{}:request:{}".format(self._prefix, str(uuid)))
+        if data is not None:
+            return json.loads(data.decode('utf-8'))    
+
+    def get_status( self, uuid=None, key=None ):
         """ Return the status for the given processs
 
             Return None if the status is not found
         """
+        if key == 'request':
+            return self.get_request(uuid)
+
         if uuid is None:
             data = [v for (_,v) in self.records]
         else:
@@ -192,8 +201,6 @@ class RedisStore(LOGStore):
         self._config  = cfg
         self._prefix  = cfg.get('hashprefix','qywps')
         self._hstatus = "%s:status"  % self._prefix
-        self._trace   = cfg.getboolean('trace_request'  , fallback=False)
-        self._tracexp = cfg.getint('trace_expiration'   , fallback=86400)
 
         self._db  = redis.StrictRedis(
             host = cfg.get('host','localhost'),

@@ -245,7 +245,7 @@ class DBStore(LOGStoreBase):
         if os.path.exists(status_location):
             return etree.parse(status_location)
     
-    def get_status( self, uuid=None):
+    def get_status( self, uuid=None, *kwargs):
         """
         """
         raise NotImplementedError
