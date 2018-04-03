@@ -81,7 +81,7 @@ class WPSHandler(BaseHandler):
 
 class StatusHandler(BaseHandler):
 
-    def get_status( self, uuid=None):
+    def get_wps_status( self, uuid=None):
         """ Return the status of the processes
         """ 
         wps_status = self.application.wpsservice.get_status(uuid)
@@ -108,7 +108,7 @@ class StatusHandler(BaseHandler):
         
         self.write_json({ 'status': wps_status })
 
-    def get_request( self, uuid ):
+    def get_wps_request( self, uuid ):
         """ Return request infos
         """
         if uuid is None:
@@ -129,9 +129,9 @@ class StatusHandler(BaseHandler):
         """
         key = self.get_query_argument('key', default=None)
         if key == 'request':
-            self.get_request(uuid)
+            self.get_wps_request(uuid)
         else:
-            self.get_status(uuid)
+            self.get_wps_status(uuid)
 
     def delete( self, uuid=None ):
         """ Delete results
