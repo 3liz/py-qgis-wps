@@ -436,6 +436,7 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
                 style = None
                 if details.outputName:
                     style = RenderingStyles.getStyle(alg.id(), details.outputName)
+                    LOGGER.debug("Getting style for %s: %s <%s>", alg.id(), details.outputName, style) 
                 if style is None:
                     if layer.type() == QgsMapLayer.RasterLayer:
                         style = ProcessingConfig.getSetting(ProcessingConfig.RASTER_STYLE)
@@ -447,6 +448,7 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
                         else:
                             style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_POLYGON_STYLE)
                 if style:
+                    LOGGER.debug("Adding style to layer %s (outputName %s)", details.name, details.outputName)
                     layer.loadNamedStyle(style)
                 # Add layer to destination project
                 feedback.pushDebugInfo("Adding Map layer '%s' to Qgs Project" % l)

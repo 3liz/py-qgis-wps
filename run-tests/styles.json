@@ -1,6 +1,5 @@
 {
-    "myprovider:myalgorithm": {
-        "OUTPUT_VECTOR": "mystyle.qml"
+    "lzmtest:testcopylayer": {
+        "OUTPUT": "hachures_bleues.qml"
     }
 }
-

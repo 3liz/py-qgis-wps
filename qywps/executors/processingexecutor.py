@@ -9,6 +9,7 @@ import os
 import sys
 import logging
 import json
+import traceback
 
 from qywps.executors import PoolExecutor, ExecutorError
 from qywps.utils.qgis import start_qgis_application, setup_qgis_paths
@@ -59,19 +60,22 @@ class ProcessingExecutor(PoolExecutor):
             if not os.path.exists(filepath):
                 return
 
-        LOGGER.info("Loading styles")
+        LOGGER.info("Found styles file description at %s", filepath)
         from processing.core.Processing import RenderingStyles
-        with open(filepath,'r') as fp:
-            data = json.load(fp)
-            # Replace style name with full path
-            for alg in data:
-                for key in data[alg]:
-                    qml = os.path.join(providers_path,'qml',data[alg][key])
-                    if not os.path.exists(qml):
-                        LOGGER.warning("Style '%s' not found" % qml)
-                    data[alg][key] = qml
-            # update processing rendering styles
-            RenderingStyles.styles.update(data)
+        try:
+            with open(filepath,'r') as fp:
+                data = json.load(fp)
+                # Replace style name with full path
+                for alg in data:
+                    for key in data[alg]:
+                        qml = os.path.join(providers_path,'qml',data[alg][key])
+                        if not os.path.exists(qml):
+                            LOGGER.warning("Style '%s' not found" % qml)
+                        data[alg][key] = qml
+                # update processing rendering styles
+                RenderingStyles.styles.update(data)
+        except Exception:
+            LOGGER.error("Failed to load styles:\n%s", traceback.format_exc())
 
     def importproviders(self):
         """ Import algorithm providers
