@@ -16,7 +16,7 @@ from qywps.utils.decorators import singleton
 from qywps import configuration
 from qywps.exceptions import InvalidParameterValue
 
-from qgis.core import QgsProject
+from qgis.core import (QgsProject, QgsMapLayer)
 
 LOGGER = logging.getLogger('QYWPS')
 
@@ -49,7 +49,7 @@ class _Cache(FileCache):
         self.rootdir = rootdir
 
         # Init FileCache
-        super().__init__(size=cachesize, store=_Store())  
+        super().__init__(size=cachesize, store=_Store())
 
 
 def cache_lookup( uri ):
@@ -67,7 +67,7 @@ class Context(QgsProcessingContext):
             self.map_uri = urlparse(map_uri)
             self.setProject(cache_lookup(self.map_uri))
         else:
-            LOGGER.warning("No map url defined, inputs may be incorrect !")    
+            LOGGER.warning("No map url defined, inputs may be incorrect !")
             self.uri = None
 
         # Create the destination project
@@ -101,5 +101,12 @@ class Context(QgsProcessingContext):
         """ Save results to disk
         """
         LOGGER.debug("Writing Results to %s", workdir)
-        return self.destination_project.write(os.path.join(workdir,name+'.qgs'))
+        # Publishing vector layers in WFS and raster layers in WCS
+        dest_project = self.destination_project
+        dest_project.writeEntry( "WFSLayers", "/", [lid for lid,lyr in dest_project.mapLayers().items() if lyr.type() == QgsMapLayer.VectorLayer] )
+        for lid,lyr in dest_project.mapLayers().items():
+            if lyr.type() == QgsMapLayer.VectorLayer:
+                dest_project.writeEntry( "WFSLayersPrecision", "/"+lid, 6 )
+        dest_project.writeEntry( "WCSLayers", "/", [lid for lid,lyr in dest_project.mapLayers().items() if lyr.type() == QgsMapLayer.RasterLayer] )
+        return dest_project.write(os.path.join(workdir,name+'.qgs'))
 
