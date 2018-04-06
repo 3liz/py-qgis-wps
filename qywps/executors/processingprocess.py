@@ -451,7 +451,7 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
                     LOGGER.debug("Adding style to layer %s (outputName %s)", details.name, details.outputName)
                     layer.loadNamedStyle(style)
                 # Add layer to destination project
-                feedback.pushDebugInfo("Adding Map layer '%s' to Qgs Project" % l)
+                LOGGER.debug("Adding Map layer '%s' (outputName %s) to Qgs Project", l, details.outputName )
                 details.project.addMapLayer(context.temporaryLayerStore().takeMapLayer(layer))
             else:
                 LOGGER.warning("No layer found found for %s", l)

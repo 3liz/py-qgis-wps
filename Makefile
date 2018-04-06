@@ -96,7 +96,7 @@ PROVIDERS:=lzmtest
 WORKERS:=2
 
 # Run redis as
-# docker run -it --rm -p 6379:6379 --name redis --net mynet redis:4
+# docker run -it --rm --name redis --net mynet redis:4
 
 docker-run:
 	@echo "Do not forget to run 'docker run -it --rm -p 6379:6379 --name redis --net mynet redis:4'"
