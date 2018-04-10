@@ -65,7 +65,7 @@ def load_configuration():
     CONFIG.set('server', 'host_proxy'           , getenv('QYWPS_SERVER_HOST_PROXY',''))
     CONFIG.set('server', 'parallelprocesses'    , getenv('QYWPS_SERVER_PARALLELPROCESSES','1'))
     CONFIG.set('server', 'processlifecycle'     , getenv('QYWPS_SERVER_PROCESSLIFECYCLE','1'))
-    CONFIG.set('server', 'response_timeout'     , getenv('QYWPS_SERVER_RESPONSE_TIMEOUT','600'))
+    CONFIG.set('server', 'response_timeout'     , getenv('QYWPS_SERVER_RESPONSE_TIMEOUT','1800'))
     CONFIG.set('server', 'response_expiration'  , getenv('QYWPS_SERVER_RESPONSE_EXPIRATION','86400'))
     CONFIG.set('server', 'wms_service_url'      , getenv('QYWPS_SERVER_WMS_SERVICE_URL','{host_url}'))
     CONFIG.set('server', 'wps_result_map_uri'   , getenv('QYWPS_SERVER_RESULTS_MAP_URI','wps-results:'))
