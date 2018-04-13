@@ -39,7 +39,6 @@ class TestCopyLayer(QgsProcessingAlgorithm):
         """
         self.addParameter(QgsProcessingParameterVectorLayer(self.INPUT, 'Vector Layer'))
         self.addParameter(QgsProcessingParameterVectorDestination(self.OUTPUT, 'Output Layer'))
-        self.addOutput(QgsProcessingOutputVectorLayer(self.OUTPUT,"Output"))
 
     def processAlgorithm(self, parameters, context, feedback):
         """ Virtual override

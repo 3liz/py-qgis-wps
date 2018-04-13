@@ -506,13 +506,9 @@ class Feedback(QgsProcessingFeedback):
         LOGGER.debug("%s:%s %s",self.name, self.uuid, info)
 
 
-
-
 def handle_layer_outputs(alg, results, context ):
+    """ Replace output values by the layer names
     """
-    """
-    # Validate outputs
-    # Replace outputs by the layer names
     for l, details in context.layersToLoadOnCompletion().items():
         if details.outputName in results:
             results[details.outputName] = details.name

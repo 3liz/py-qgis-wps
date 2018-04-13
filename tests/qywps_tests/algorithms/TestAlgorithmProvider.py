@@ -10,6 +10,7 @@ from .TestSimpleValue import TestSimpleValue
 from .TestOptionValue import TestOptionValue
 from .TestCopyLayer import TestCopyLayer
 from .TestFileDestination import TestFileDestination
+from .TestSimpleBuffer import TestSimpleBuffer
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -23,6 +24,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestOptionValue(),
                  TestCopyLayer(),
                  TestFileDestination(),
+                 TestSimpleBuffer(),
             ]
         except:
             traceback.print_exc()
