@@ -56,7 +56,7 @@ class TestSimpleBuffer(QgsProcessingAlgorithm):
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         self.addParameter(
-            QgsProcessingParameterVectorLayer(
+            QgsProcessingParameterFeatureSource(
                 self.INPUT,
                 'Input layer'
             )

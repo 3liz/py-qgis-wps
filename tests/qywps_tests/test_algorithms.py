@@ -1,7 +1,7 @@
 """ Test parsing processing itputs to WPS inputs
 """
 import os
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, urlencode
 from qywps.utils.qgis import setup_qgis_paths
 setup_qgis_paths()
 
@@ -226,4 +226,53 @@ def test_buffer_algorithm(application, outputdir, data):
 
     query = parse_qs(urlparse(out.url).query)
     assert query['layer'][0] == parameters['OUTPUT_VECTOR'].destinationName
+
+
+def test_selectfeatures_algorithm(application, outputdir, data):
+    """ Test simple layer output 
+    """
+    alg = _find_algorithm('qywps_test:simplebuffer')
+
+    inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
+    outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
+   
+    inputs['INPUT'][0].data = 'layer:france_parts?'+urlencode((('select','OBJECTID=2662'),))
+    inputs['OUTPUT_VECTOR'][0].data = 'buffer'
+    inputs['DISTANCE'][0].data = 0.05
+
+    # Load source project
+    source      = QgsProject()
+    rv = source.read(data.join('france_parts.qgs').strpath)
+    assert rv == True
+
+    workdir = outputdir.strpath
+
+    context  = Context(source, workdir)
+    feedback = QgsProcessingFeedback() 
+
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+
+    assert isinstance( parameters['OUTPUT_VECTOR'], QgsProcessingOutputLayerDefinition)
+    assert isinstance( parameters['DISTANCE'], float)
+
+    # Run algorithm
+    with chdir(outputdir.strpath):
+        results = Processing.runAlgorithm(alg, parameters=parameters, onFinish=handle_algorithm_results,
+                                          feedback=feedback, context=context)   
+    
+    assert context.destination_project.count() == 1
+
+    handle_layer_outputs(alg, results, context)
+    assert results['OUTPUT_VECTOR'] == parameters['OUTPUT_VECTOR'].destinationName
+
+    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+
+    write_outputs( alg, results, outputs, output_uri, context )
+
+    out = outputs.get('OUTPUT_VECTOR')
+    assert out.output_format == "application/x-ogc-wms"
+
+    query = parse_qs(urlparse(out.url).query)
+    assert query['layer'][0] == parameters['OUTPUT_VECTOR'].destinationName
+
 

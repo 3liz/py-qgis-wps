@@ -6,11 +6,11 @@ import mimetypes
 import traceback
 
 from os.path import normpath, basename
-from urllib.parse import urlparse, urlencode
+from urllib.parse import urlparse, urlencode, parse_qs
 
 from functools import partial
 from qywps.app.Common import Metadata
-from qywps.exceptions import MissingParameterValue, ProcessException
+from qywps.exceptions import NoApplicableCode, MissingParameterValue, ProcessException
 from qywps.inout.formats import Format
 from qywps.app.Process import Process as WPSProcess
 from qywps.inout import (LiteralInput, 
@@ -30,6 +30,7 @@ from qgis.core import QgsProcessingException
 from qgis.core import (QgsProcessing,
                        QgsProcessingParameterDefinition,
                        QgsProcessingParameterNumber,
+                       QgsProcessingFeatureSourceDefinition,
                        QgsProcessingOutputLayerDefinition,
                        QgsProcessingOutputHtml,
                        QgsProcessingOutputFile,
@@ -54,6 +55,7 @@ from qgis.core import (QgsProcessing,
 
 from qywps.executors.processingcontext import Context
 
+
 from processing.core.Processing import (Processing, 
                                         ProcessingConfig,
                                         RenderingStyles)
@@ -67,7 +69,7 @@ DESTINATION_LAYER_TYPES = (QgsProcessingParameterFeatureSink,
 OUTPUT_LITERAL_TYPES = ("string","number","enum","number")
 OUTPUT_LAYER_TYPES = ( QgsProcessingOutputVectorLayer, QgsProcessingOutputRasterLayer )
 
-INPUT_LAYER_TYPES = ('source','layer','vector','raster','sink')
+INPUT_LAYER_TYPES = ('source','layer','vector','raster')
 
 # Map processing source types to string
 SourceTypes = {
@@ -196,7 +198,7 @@ def parse_layer_input(param, kwargs):
     elif isinstance(param, QgsProcessingParameterRasterDestination):
         kwargs['data_type'] = 'string'
         kwargs['metadata'].append(Metadata('processing:extension',param.defaultFileExtension()))
-    elif isinstance(param, QgsProcessingParameterVectorDestination):
+    elif isinstance(param, (QgsProcessingParameterVectorDestination, QgsProcessingParameterFeatureSink)):
         kwargs['data_type'] = 'string'
         kwargs['metadata'].append(Metadata('processing:dataType' , str(param.dataType())))
         kwargs['metadata'].append(Metadata('processing:extension', param.defaultFileExtension()))
@@ -324,6 +326,44 @@ def parse_output_definition( outdef, alg=None ):
     return output 
 
 
+def parse_layer_spec( layerspec, context, allow_selection=False ):
+    """ Parse a layer specification
+
+        if allow_selection is set to True: 'select' parameter
+        is interpreted has holding a qgis feature request expression
+
+        :return: A tuple (path, query)
+    """
+    u = urlparse(layerspec)
+    p = u.path
+    if u.scheme == 'file':
+        p = context.get_as_project_file(p)
+    elif u.scheme and u.scheme != 'layer':
+        raise InvalidParameterValue("Bad scheme: %s" % layerspec)
+
+    if not allow_selection:
+        return p
+
+    qs = parse_qs(u.query)
+    feat_request = qs.get('select')
+    if feat_request is not None:
+        layer = context.getMapLayer(p)
+        if not layer:
+            raise InvalidParameterValue("No layer '%s' found" % u.path)
+
+        if layer.type() != QgsMapLayer.VectorLayer:
+            LOGGER.warning("Can apply selection only to vector layer")
+        else:
+            try:
+                LOGGER.debug("Applying features selection: %", feat_request[0])
+                layer.selectByExpression(feat_request[0])
+            except:
+                LOGGER.error(traceback.format_exc())
+                raise NoApplicableCode("Feature selection failed")
+    return p            
+    
+
+
 def input_to_processing( identifier, inp, alg, context ):
     """ Convert wps input to processing param
 
@@ -349,6 +389,11 @@ def input_to_processing( identifier, inp, alg, context ):
             sink = "%s_%s" % (param.name(), alg.name())
         value = QgsProcessingOutputLayerDefinition(sink, context.destination_project)
         value.destinationName = inp[0].data
+    elif isinstance(param, QgsProcessingParameterFeatureSource):
+        value = parse_layer_spec(inp[0].data, context, allow_selection=True)
+        value = QgsProcessingFeatureSourceDefinition(value, selectedFeaturesOnly=True)
+    elif typ in INPUT_LAYER_TYPES:
+        value = parse_layer_spec(inp[0].data, context) 
     elif typ == 'enum':
         # XXX Processing wants the index of the value in option list
         value = param.options().index(inp[0].data)  
@@ -543,7 +588,7 @@ class QgsProcess(WPSProcess):
         inputs  = list(_parse(parse_input_definition, alg, alg.parameterDefinitions()))
         outputs = list(_parse(parse_output_definition, alg, alg.outputDefinitions()))
 
-        self.map_required = any(p.type() in INPUT_LAYER_TYPES for p in alg.parameterDefinitions())
+        self.map_required = False
 
         super().__init__(QgsProcess._handler,
                 identifier = alg.id(),
