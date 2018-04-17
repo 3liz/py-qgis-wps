@@ -4,7 +4,13 @@
 ##################################################################
 
 from setuptools import setup, find_packages, Extension
-from pip.req import parse_requirements
+
+def parse_requirements( filename ):
+    import os
+    if os.path.exists( filename ):
+        with open( filename ) as fp:
+            return list(filter(None, (r.strip('\n').partition('#')[0] for r in fp.readlines())))
+    return []
 
 def load_source(name, path):
     from importlib.util import spec_from_file_location, module_from_spec
@@ -20,7 +26,7 @@ DESCRIPTION = ('QYWPS is an implementation of the Web Processing Service '
                'standard from the Open Geospatial Consortium. QWPS is '
                'written in Python and is a fork of PyWPS 4.0.')
 KEYWORDS = 'QYWPS WPS OGC processing'
-INSTALL_REQUIRES=list(str(ir.req) for ir in parse_requirements('requirements.txt', session=False))
+INSTALL_REQUIRES = parse_requirements('requirements.txt')
 
 setup(
     name='QYWPS',
