@@ -10,7 +10,11 @@ from urllib.parse import urlparse, urlencode, parse_qs
 
 from functools import partial
 from qywps.app.Common import Metadata
-from qywps.exceptions import NoApplicableCode, MissingParameterValue, ProcessException
+from qywps.exceptions import (NoApplicableCode, 
+                              InvalidParameterValue, 
+                              MissingParameterValue, 
+                              ProcessException)
+
 from qywps.inout.formats import Format
 from qywps.app.Process import Process as WPSProcess
 from qywps.inout import (LiteralInput, 
@@ -49,6 +53,7 @@ from qgis.core import (QgsProcessing,
                        QgsReferencedRectangle,
                        QgsRectangle,
                        QgsMapLayer,
+                       QgsVectorLayer,
                        QgsWkbTypes,
                        QgsProperty,
                        QgsCoordinateReferenceSystem)
@@ -345,18 +350,29 @@ def parse_layer_spec( layerspec, context, allow_selection=False ):
         return p
 
     qs = parse_qs(u.query)
-    feat_request = qs.get('select')
-    if feat_request is not None:
+    feat_requests = qs.get('select',[])
+    feat_rects    = qs.get('rect',[]) 
+    if feat_rects or feat_requests:
         layer = context.getMapLayer(p)
         if not layer:
-            raise InvalidParameterValue("No layer '%s' found" % u.path)
+            LOGGER.error("No layer path for url %s", u)
+            raise InvalidParameterValue("No layer '%s' found" % u.path, )
 
         if layer.type() != QgsMapLayer.VectorLayer:
             LOGGER.warning("Can apply selection only to vector layer")
         else:
+            behavior = QgsVectorLayer.SetSelection
             try:
-                LOGGER.debug("Applying features selection: %", feat_request[0])
-                layer.selectByExpression(feat_request[0])
+                LOGGER.debug("Applying features selection: %s", qs)
+                # Apply filter rect first
+                if feat_rects:
+                    rect = QgsRectangle(feat_rects[-1].split(',')[:4])
+                    layer.selectByRect(rect, behavior=behavior)
+                    behavior = QgsVectorLayer.IntersectSelection 
+                # Selection by expressions
+                if feat_requests:
+                    ftreq = feat_requests[-1]
+                    layer.selectByExpression(ftreq, behavior=behavior )
             except:
                 LOGGER.error(traceback.format_exc())
                 raise NoApplicableCode("Feature selection failed")
