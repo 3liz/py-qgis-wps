@@ -5,12 +5,11 @@
 
 from setuptools import setup, find_packages, Extension
 
+
 def parse_requirements( filename ):
-    import os
-    if os.path.exists( filename ):
-        with open( filename ) as fp:
-            return list(filter(None, (r.strip('\n').partition('#')[0] for r in fp.readlines())))
-    return []
+    with open( filename ) as fp:
+        return list(filter(None, (r.strip('\n ').partition('#')[0] for r in fp.readlines())))
+
 
 def load_source(name, path):
     from importlib.util import spec_from_file_location, module_from_spec
