@@ -624,14 +624,14 @@ class QgsProcess(WPSProcess):
     def _handler( request, response ):
         """  WPS process handler
         """
-
-        LOGGER.debug("Starting task %s", request.identifier) 
+        uuid_str = str(response.uuid)
+        LOGGER.info("Starting task %s:%s", request.identifier, uuid_str[:8]) 
 
         alg = QgsApplication.processingRegistry().createAlgorithmById(request.identifier)
 
         workdir  = response.process.workdir
         context  = Context(workdir, map_uri=request.map_uri)
-        feedback = Feedback(response, alg.id(), uuid_str=str(response.uuid)) 
+        feedback = Feedback(response, alg.id(), uuid_str=uuid_str) 
 
         context.setFeedback(feedback)
 
@@ -642,10 +642,10 @@ class QgsProcess(WPSProcess):
             results = Processing.runAlgorithm(alg, parameters=parameters, onFinish=handle_algorithm_results,
                                               feedback=feedback, context=context)
         except QgsProcessingException as e:
-            traceback.print_exc()
+            LOGGER.error(traceback.format_exc())
             raise ProcessException("%s" % e)
 
-        LOGGER.debug("Task finished %s", request.identifier)
+        LOGGER.info("Task finished %s:%s", request.identifier, uuid_str )
 
         handle_layer_outputs(alg, results, context)
 
