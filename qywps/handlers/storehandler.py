@@ -68,25 +68,23 @@ class StoreShellMixIn():
             LOGGER.error("File '%s' not found", full_path)
             raise HTTPError(404,reason="Resource not found")
 
-        # The resource is asked again, just tell that it is
-        # not modified
-        if self.request.headers.get("If-Modified-Since"):
-            self.set_status(304)
-            return
+        # Check modification time
+        stat  = os.stat(full_path)
+        mtime = str(stat.st_mtime)
 
-        if self.request.headers.get('If-None-Match') == uuid:
-            self.set_header('Etag', uuid)
+        if self.request.headers.get('If-None-Match') == mtime:
+            self.set_header('Etag', mtime)
             self.set_status(304)
             return
 
         # Set headers
         content_type = mimetypes.types_map.get(os.path.splitext(full_path)[1]) or "application/octet-stream"
         self.set_header("Content-Type", content_type)       
-        self.set_header("Etag", uuid)
+        self.set_header("Etag", mtime)
 
         # Set aggresive browser caching since the resource
         # is not going to change
-        self.set_header("Cache-Control", "max-age=" + str(86400*365*10))
+        self.set_header("Cache-Control", "max-age=" + str(86400))
 
         # Push data
         chunk_size = self._chunk_size
