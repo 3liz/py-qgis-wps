@@ -56,7 +56,8 @@ from qgis.core import (QgsProcessing,
                        QgsVectorLayer,
                        QgsWkbTypes,
                        QgsProperty,
-                       QgsCoordinateReferenceSystem)
+                       QgsCoordinateReferenceSystem,
+                       QgsFeatureRequest)
 
 from qywps.executors.processingcontext import Context
 
@@ -634,6 +635,7 @@ class QgsProcess(WPSProcess):
         feedback = Feedback(response, alg.id(), uuid_str=uuid_str) 
 
         context.setFeedback(feedback)
+        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometrySkipInvalid)
 
         # Convert parameters from WPS inputs
         parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in request.inputs.items() )
