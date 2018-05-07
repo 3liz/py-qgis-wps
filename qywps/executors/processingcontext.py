@@ -51,6 +51,12 @@ class _Cache(FileCache):
         # Init FileCache
         super().__init__(size=cachesize, store=_Store())
 
+    def on_cache_update(self, key, path ):
+        """ Called when cache is updated
+        """
+        LOGGER.debug("Updated project cache key=%s path=%s", key, path)
+
+
 
 def cache_lookup( uri ):
     c = _Cache()
@@ -77,9 +83,8 @@ class Context(QgsProcessingContext):
     def rootdir(self):
         return _Cache().rootdir
 
-
     def get_as_project_file( name ):
-        """ Return the full path of a project_file is that file
+        """ Return the full path of a file if that file
             exists in the project cache dir.
 
             The method will ensure that path is relative to 

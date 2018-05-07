@@ -348,12 +348,14 @@ def parse_layer_spec( layerspec, context, allow_selection=False ):
         raise InvalidParameterValue("Bad scheme: %s" % layerspec)
 
     if not allow_selection:
-        return p
+        return p, False
 
+    has_selection = False
     qs = parse_qs(u.query)
     feat_requests = qs.get('select',[])
     feat_rects    = qs.get('rect',[]) 
     if feat_rects or feat_requests:
+        has_selection = True
         layer = context.getMapLayer(p)
         if not layer:
             LOGGER.error("No layer path for url %s", u)
@@ -377,7 +379,7 @@ def parse_layer_spec( layerspec, context, allow_selection=False ):
             except:
                 LOGGER.error(traceback.format_exc())
                 raise NoApplicableCode("Feature selection failed")
-    return p            
+    return p, has_selection            
     
 
 
@@ -407,10 +409,10 @@ def input_to_processing( identifier, inp, alg, context ):
         value = QgsProcessingOutputLayerDefinition(sink, context.destination_project)
         value.destinationName = inp[0].data
     elif isinstance(param, QgsProcessingParameterFeatureSource):
-        value = parse_layer_spec(inp[0].data, context, allow_selection=True)
-        value = QgsProcessingFeatureSourceDefinition(value, selectedFeaturesOnly=True)
+        value, has_selection = parse_layer_spec(inp[0].data, context, allow_selection=True)
+        value = QgsProcessingFeatureSourceDefinition(value, selectedFeaturesOnly=has_selection)
     elif typ in INPUT_LAYER_TYPES:
-        value = parse_layer_spec(inp[0].data, context) 
+        value, _ = parse_layer_spec(inp[0].data, context) 
     elif typ == 'enum':
         # XXX Processing wants the index of the value in option list
         value = param.options().index(inp[0].data)  

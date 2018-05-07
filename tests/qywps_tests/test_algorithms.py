@@ -227,6 +227,13 @@ def test_buffer_algorithm(application, outputdir, data):
     query = parse_qs(urlparse(out.url).query)
     assert query['layer'][0] == parameters['OUTPUT_VECTOR'].destinationName
 
+    # Get the layer 
+    srclayer = QgsProcessingUtils.mapLayerFromString('france_parts', context)
+    assert srclayer is not None
+    layers  = context.destination_project.mapLayersByName(results['OUTPUT_VECTOR'])
+    assert len(layers) == 1
+    assert layers[0].featureCount() == srclayer.featureCount()
+
 
 def test_selectfeatures_algorithm(application, outputdir, data):
     """ Test simple layer output 
@@ -236,7 +243,7 @@ def test_selectfeatures_algorithm(application, outputdir, data):
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
    
-    inputs['INPUT'][0].data = 'layer:france_parts?'+urlencode((('select','OBJECTID=2662'),))
+    inputs['INPUT'][0].data = 'layer:france_parts?'+urlencode((('select','OBJECTID=2662 OR OBJECTID=2664'),))
     inputs['OUTPUT_VECTOR'][0].data = 'buffer'
     inputs['DISTANCE'][0].data = 0.05
 
@@ -274,5 +281,10 @@ def test_selectfeatures_algorithm(application, outputdir, data):
 
     query = parse_qs(urlparse(out.url).query)
     assert query['layer'][0] == parameters['OUTPUT_VECTOR'].destinationName
+
+    # Get the layer 
+    layers = context.destination_project.mapLayersByName(results['OUTPUT_VECTOR'])
+    assert len(layers) == 1
+    assert layers[0].featureCount() == 2
 
 

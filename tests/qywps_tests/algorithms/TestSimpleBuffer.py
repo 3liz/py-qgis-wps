@@ -79,7 +79,7 @@ class TestSimpleBuffer(QgsProcessingAlgorithm):
                 'END_CAP_STYLE': 0,
                 'JOIN_STYLE': 0,
                 'MITER_LIMIT': 2,
-                'DISSOLVE': True,
+                'DISSOLVE': False,
                 'OUTPUT': output
             }, context=context, feedback=feedback)
 
