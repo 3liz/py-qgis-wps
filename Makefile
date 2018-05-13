@@ -62,8 +62,6 @@ docker-test:
     -e PIP_CACHE_DIR=/.pipcache \
     $(QGIS_IMAGE) /src/run_tests.sh
 
-run:
-	gunicorn -w1 -b 127.0.0.1:8084 --chdir tests qgswsgitest:application
 
 # Build dependencies
 deps: dirs

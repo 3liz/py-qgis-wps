@@ -1,13 +1,17 @@
-##################################################################
-# Copyright 2016 OSGeo Foundation,                               #
-# represented by PyWPS Project Steering Committee,               #
-# Author: Calin Ciociu                                           #
-#                                                                #  
-# Copyrigth 2018 3liz                                            #
-# Author: David Marteau                                          #
-#                                                                #
-# licensed under MIT, Please consult LICENSE.txt for details     #
-##################################################################
+#
+# Copyright 2018 3liz
+# Author: David Marteau
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Original parts are Copyright 2016 OSGeo Foundation,            
+# represented by PyWPS Project Steering Committee,               
+# and released under MIT license.                                
+# Please consult PYWPS_LICENCE.txt for details
+# Original Author: Calin Ciociu                                           
+#
 
 """
 Reads the PyWPS configuration file
@@ -156,7 +160,6 @@ def get_size_mb(mbsize):
     """Get real size of given obeject
 
     """
-
     size = mbsize.lower()
 
     import re
@@ -172,6 +175,5 @@ def get_size_mb(mbsize):
         newsize /= 1024
     else:
         newsize *= 1
-    LOGGER.debug('Calculated real size of %s is %s', mbsize, newsize)
     return newsize
 
