@@ -1,7 +1,11 @@
 # QYWPS 
 
 QYWPS is an implementation of the Web Processing Service standard from
-the Open Geospatial Consortium. QWPS is written in Python.
+the Open Geospatial Consortium based on the Qgis processing API.
+
+QYWPS will enable you to use Qgis processing algorithms written for Qgis desktop directy on server side.
+
+QYWPS is written in Python.
 
 QYWPS is a fork of PyWPS 
 
@@ -10,17 +14,11 @@ Requirements and limitations:
 - Python 3.5+ only
 - Windows not officially supported
 
-# License
-
-As of QWPS 4.0.0, QWPS is released under an
-[MIT](https://en.wikipedia.org/wiki/MIT_License) license
-(see [LICENSE.txt](LICENSE.txt)).
-
 # Why QYWPS ?
 
-PyWPS is a great piece of software but has some limitations that we need no overcome ta make it suitable
-for our environment:
+QYWPS differs from PyWPS in the following: 
 
+* Qgis centric
 * Handle all request in asynchronous way: all jobs should run in a non blocking way,  even
   with `storeExecuteResponse=true`
 * Use multiprocessing Pool to handle task queue instead instanciating a new process each time.
@@ -33,18 +31,17 @@ for our environment:
 * Drop MS Windows specifics
 * Drop Python 2 support
 
-All these changes where not easy to implement without some drastic changes of the original code and it was
-a matter of time so that we couldn't afford to go through the whole process of pull request submission.
+All these changes where not easy to implement without some drastic changes of the original code and we think that it  deviates too much from the PyWPS original intentions. 
 
 That is, we have decided to fork the original project and go along with it. 
 
 So, we are really grateful to the original authors of PyWPS for the nice piece of software that helped us very much
-to start quickly our own project.   
+to start quickly this project.   
 
 ## Why moving to Tornado instead WSGI
 
 * We need to support asyncio: asyncio require a blocking running loop. This cannot be achieved simply in a WSGI architecture.
-* Tornado has a better and better integration with native python asyncio and provide a great framework for handling server.
+* Tornado has a better and better integration with native python asyncio and provide a great framework for developpingf http server.
 
 ## Extensions to WPS
 
