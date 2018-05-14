@@ -1,0 +1,4 @@
+include setup.py MANIFEST.in README.m
+include requirements.txt factory.manifest
+recursive-include qywps/schemas *
+

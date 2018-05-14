@@ -1,0 +1,9 @@
+lizMap.events.on({
+    'uicreated':function(evt){
+
+        var newHomeLink = 'http://3liz.com';
+        // Replace home icon URL
+        $('#mapmenu li.home a').attr('href', newHomeLink);
+
+    }
+});

@@ -1,0 +1,29 @@
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/1.0.0" version="1.0.0" service="WPS" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ows:Identifier xmlns:ows="http://www.opengis.net/ows/1.1">lzmtest:testcopylayer</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier xmlns:ows="http://www.opengis.net/ows/1.1">INPUT</ows:Identifier>
+      <ows:Title xmlns:ows="http://www.opengis.net/ows/1.1">Vector Layer</ows:Title>
+      <wps:Data>
+        <wps:LiteralData>{layer}</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier xmlns:ows="http://www.opengis.net/ows/1.1">OUTPUT</ows:Identifier>
+      <ows:Title xmlns:ows="http://www.opengis.net/ows/1.1">Output Layer</ows:Title>
+      <wps:Data>
+        <wps:LiteralData>copy</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:ResponseDocument storeExecuteResponse="{storeExecuteResponse}">
+      <wps:Output asReference="true">
+        <ows:Identifier xmlns:ows="http://www.opengis.net/ows/1.1">OUTPUT</ows:Identifier>
+        <ows:Title xmlns:ows="http://www.opengis.net/ows/1.1"/>
+        <ows:Abstract xmlns:ows="http://www.opengis.net/ows/1.1"/>
+      </wps:Output>
+    </wps:ResponseDocument>
+  </wps:ResponseForm>
+</wps:Execute>
+

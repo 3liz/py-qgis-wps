@@ -1,0 +1,111 @@
+""" Test WPS service
+"""
+import sys
+import os
+import requests
+
+from client_utils import * 
+
+def test_get_capabilities( host, data ):
+    """ Test Get capabilities"""
+    rv = requests.get(host + "?SERVICE=WPS&Request=GetCapabilities")
+    assert rv.status_code == 200
+    assert rv.headers.get('Content-Type') == 'text/xml;charset=utf-8'
+
+def test_describeprocess( host, data ):
+    """ Test describe process"""
+    rv = requests.get(host + "?SERVICE=WPS&Request=DescribeProcess&Identifier=lzmtest:testcopylayer&Version=1.0.0")
+
+    assert rv.status_code == 200
+
+def test_executeprocess( host, data ):
+    """  Test execute process """
+    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testcopylayer&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2"))
+    assert rv.status_code == 200
+  
+def test_executeprocess_async( host, data ):
+    """  Test execute async process GET """
+    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testcopylayer&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2"
+                               "&storeExecuteResponse=true"))
+    assert rv.status_code == 200
+
+    # Get the response and test that we can get the result status
+    assert rv.headers.get('Content-Type') == 'text/xml;charset=utf-8'
+    resp = Response(rv)
+    assert_response_accepted(resp)
+
+    # Get the status url
+    status_url = resp.xpath_attr('/wps:ExecuteResponse','statusLocation')
+    resp = Response(requests.get(status_url))
+    assert resp.status_code == 200 
+    assert resp.xpath('/wps:ExecuteResponse')  is not None
+    
+
+
+POST_DATA="""
+<wps:Execute xmlns:wps="http://www.opengis.net/wps/1.0.0" version="1.0.0" service="WPS" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ows:Identifier xmlns:ows="http://www.opengis.net/ows/1.1">lzmtest:testcopylayer</ows:Identifier>
+  <wps:DataInputs>
+    <wps:Input>
+      <ows:Identifier xmlns:ows="http://www.opengis.net/ows/1.1">INPUT</ows:Identifier>
+      <ows:Title xmlns:ows="http://www.opengis.net/ows/1.1">Vector Layer</ows:Title>
+      <wps:Data>
+        <wps:LiteralData>france_parts</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+    <wps:Input>
+      <ows:Identifier xmlns:ows="http://www.opengis.net/ows/1.1">OUTPUT</ows:Identifier>
+      <ows:Title xmlns:ows="http://www.opengis.net/ows/1.1">Output Layer</ows:Title>
+      <wps:Data>
+        <wps:LiteralData>copy</wps:LiteralData>
+      </wps:Data>
+    </wps:Input>
+  </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:ResponseDocument storeExecuteResponse="{storeExecuteResponse}">
+      <wps:Output asReference="true">
+        <ows:Identifier xmlns:ows="http://www.opengis.net/ows/1.1">OUTPUT</ows:Identifier>
+        <ows:Title xmlns:ows="http://www.opengis.net/ows/1.1"/>
+        <ows:Abstract xmlns:ows="http://www.opengis.net/ows/1.1"/>
+      </wps:Output>
+    </wps:ResponseDocument>
+  </wps:ResponseForm>
+</wps:Execute>
+"""
+
+
+def test_executeprocess_post( host, data):
+    """ Test execute async process POST """
+    rv = requests.post(host+"?SERVICE=WPS&MAP=france_parts",
+            data=POST_DATA.format(storeExecuteResponse="false"),
+            headers={ "Content-Type": "text/xml" })
+
+    # dump the response
+    #fp = data.open("test_executeprocess_post.xml",mode='w')
+    #fp.write(rv.text)
+    #fp.close()
+    assert rv.status_code == 200
+
+
+def test_executeprocess_post_async( host, data):
+    """ Test execute async process POST """
+    rv = requests.post(host+"?SERVICE=WPS&MAP=france_parts",
+            data=POST_DATA.format(storeExecuteResponse="true"),
+            headers={ "Content-Type": "text/xml" })
+
+    # dump the response
+    #fp = data.open("test_executeprocess_post_async.xml",mode='w')
+    #fp.write(rv.text)
+    #fp.close()
+    assert rv.status_code == 200
+
+
+def test_executetimeout( host, data ):
+    """  Test execute timeout """
+    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testlongprocess&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"))
+    assert rv.status_code == 424
+    
+
