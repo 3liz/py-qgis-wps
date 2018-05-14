@@ -18,3 +18,8 @@
 
 ## 1.0.4
 
+* Enable feature selection
+* Expose inputs in web status api
+* Set default value SERVER\_RESPONSE\_TIMEOUT to 1800
+* Publish output layers in WFS and WCS
+
