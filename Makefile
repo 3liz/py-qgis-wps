@@ -6,8 +6,6 @@
 BUILDID=$(shell date +"%Y%m%d%H%M")
 COMMITID=$(shell git rev-parse --short HEAD)
 
-PYPISERVER:=storage
-
 BUILDDIR=build
 DIST=${BUILDDIR}/dist
 
@@ -72,7 +70,7 @@ wheel: deps
 	$(PYTHON) setup.py bdist_wheel --dist-dir=$(DIST)
 
 deliver:
-	twine upload -r $(PYPISERVER) $(DIST)/*
+	twine upload -r storage $(DIST)/*
 
 dist: dirs manifest
 	$(PYTHON) setup.py sdist --dist-dir=$(DIST)

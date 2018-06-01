@@ -104,6 +104,8 @@ class Context(QgsProcessingContext):
             path = (self.rootdir / path.relative_to('/'))
             if path.is_file():
                 return path.as_posix()
+            else:
+                LOGGER.error("File not found: %s", path.as_posix())
         except:
             LOGGER.error(traceback.format_exc())
 
