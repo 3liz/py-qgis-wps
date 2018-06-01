@@ -18,17 +18,17 @@ from urllib.parse import urlparse, urlencode, parse_qs
 
 from functools import partial
 from qywps.app.Common import Metadata
-from qywps.exceptions import (NoApplicableCode, 
-                              InvalidParameterValue, 
-                              MissingParameterValue, 
+from qywps.exceptions import (NoApplicableCode,
+                              InvalidParameterValue,
+                              MissingParameterValue,
                               ProcessException)
 
 from qywps.inout.formats import Format
 from qywps.app.Process import Process as WPSProcess
-from qywps.inout import (LiteralInput, 
+from qywps.inout import (LiteralInput,
                         ComplexInput,
-                        BoundingBoxInput, 
-                        LiteralOutput, 
+                        BoundingBoxInput,
+                        LiteralOutput,
                         ComplexOutput,
                         BoundingBoxOutput)
 
@@ -70,14 +70,14 @@ from qgis.core import (QgsProcessing,
 from qywps.executors.processingcontext import Context
 
 
-from processing.core.Processing import (Processing, 
+from processing.core.Processing import (Processing,
                                         ProcessingConfig,
                                         RenderingStyles)
 
 LOGGER = logging.getLogger("QYWPS")
 
-DESTINATION_LAYER_TYPES = (QgsProcessingParameterFeatureSink, 
-                           QgsProcessingParameterVectorDestination, 
+DESTINATION_LAYER_TYPES = (QgsProcessingParameterFeatureSink,
+                           QgsProcessingParameterVectorDestination,
                            QgsProcessingParameterRasterDestination)
 
 OUTPUT_LITERAL_TYPES = ("string","number","enum","number")
@@ -92,9 +92,9 @@ SourceTypes = {
     QgsProcessing.TypeVectorPoint : 'TypeVectorPoint',
     QgsProcessing.TypeVectorLine: 'TypeVectorLine',
     QgsProcessing.TypeVectorPolygon: 'TypeVectorPolygon',
-    QgsProcessing.TypeRaster: 'TypeRaster', 
-    QgsProcessing.TypeFile: 'TypeFile', 
-    QgsProcessing.TypeVector: 'TypeVector', 
+    QgsProcessing.TypeRaster: 'TypeRaster',
+    QgsProcessing.TypeFile: 'TypeFile',
+    QgsProcessing.TypeVector: 'TypeVector',
 }
 
 
@@ -128,7 +128,7 @@ _generic_version="1.0a1"
 
 
 def parse_literal_input( param, kwargs ):
-    """ 
+    """
     """
     typ = param.type()
 
@@ -145,7 +145,7 @@ def parse_literal_input( param, kwargs ):
             kwargs['default'] = options[param.defaultValue()]
     elif typ == 'number':
         kwargs['data_type'] = { QgsProcessingParameterNumber.Double :'float',
-                                QgsProcessingParameterNumber.Integer:'integer' 
+                                QgsProcessingParameterNumber.Integer:'integer'
                                }[param.dataType()]
         kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
     elif typ =='field':
@@ -185,7 +185,7 @@ def parse_file_input( param, kwargs):
     elif typ == 'fileDestination':
         extension = '.'+param.defaultFileExtension()
         # XXX File destination is name for a destination file
-        # It does not make sense here to let the client choose 
+        # It does not make sense here to let the client choose
         # the name of a file here so we just set a default value as string
         kwargs['data_type'] = 'string'
         kwargs['default']   = param.name()+extension
@@ -240,7 +240,7 @@ def parse_extent_input( param, kwargs ):
        kwargs['crss'] = ['EPSG:4326']
     else:
        return None
-    
+
     return BoundingBoxInput(**kwargs)
 
 
@@ -273,7 +273,7 @@ def parse_input_definition( param, alg=None ):
     parse_metadata(param, kwargs)
 
     return inp
-    
+
 
 def parse_literal_output( outdef, kwargs ):
     """
@@ -285,18 +285,23 @@ def parse_literal_output( outdef, kwargs ):
         kwargs['data_type'] = 'float'
     else:
         return None
- 
+
     return LiteralOutput(**kwargs)
 
 
 def parse_layer_output( outdef, kwargs ):
     """ Parse layer output
 
-        A layer output is merged to a qgis project, we return 
+        A layer output is merged to a qgis project, we return
         the wms uri associated to the project
     """
     if isinstance(outdef, OUTPUT_LAYER_TYPES ):
-        return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")], as_reference=True, **kwargs)
+        if isinstance(outdef, QgsProcessingOutputVectorLayer):
+            return ComplexOutput(supported_formats=[Format("application/x-ogc-wms"),Format("application/x-ogc-wfs")], as_reference=True, **kwargs)
+        elif isinstance(outdef, QgsProcessingOutputRasterLayer):
+            return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")Format("application/x-ogc-wcs")], as_reference=True, **kwargs)
+        else:
+            return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")], as_reference=True, **kwargs)
 
 
 def parse_file_output( outdef, kwargs, alg=None ):
@@ -337,7 +342,7 @@ def parse_output_definition( outdef, alg=None ):
     if output is None:
         raise ProcessingOutputTypeNotSupported(outdef.type())
 
-    return output 
+    return output
 
 
 def parse_layer_spec( layerspec, context, allow_selection=False ):
@@ -361,7 +366,7 @@ def parse_layer_spec( layerspec, context, allow_selection=False ):
     has_selection = False
     qs = parse_qs(u.query)
     feat_requests = qs.get('select',[])
-    feat_rects    = qs.get('rect',[]) 
+    feat_rects    = qs.get('rect',[])
     if feat_rects or feat_requests:
         has_selection = True
         layer = context.getMapLayer(p)
@@ -379,7 +384,7 @@ def parse_layer_spec( layerspec, context, allow_selection=False ):
                 if feat_rects:
                     rect = QgsRectangle(feat_rects[-1].split(',')[:4])
                     layer.selectByRect(rect, behavior=behavior)
-                    behavior = QgsVectorLayer.IntersectSelection 
+                    behavior = QgsVectorLayer.IntersectSelection
                 # Selection by expressions
                 if feat_requests:
                     ftreq = feat_requests[-1]
@@ -387,8 +392,7 @@ def parse_layer_spec( layerspec, context, allow_selection=False ):
             except:
                 LOGGER.error(traceback.format_exc())
                 raise NoApplicableCode("Feature selection failed")
-    return p, has_selection            
-    
+    return p, has_selection
 
 
 def input_to_processing( identifier, inp, alg, context ):
@@ -399,7 +403,7 @@ def input_to_processing( identifier, inp, alg, context ):
 
         see ./python/plugins/processing/tools/general.py:111
         see ./python/plugins/processing/gui/Postprocessing.py:50
-        see ./python/plugins/processing/core/Processing.py:126 
+        see ./python/plugins/processing/core/Processing.py:126
     """
     param = alg.parameterDefinition(identifier)
 
@@ -420,10 +424,10 @@ def input_to_processing( identifier, inp, alg, context ):
         value, has_selection = parse_layer_spec(inp[0].data, context, allow_selection=True)
         value = QgsProcessingFeatureSourceDefinition(value, selectedFeaturesOnly=has_selection)
     elif typ in INPUT_LAYER_TYPES:
-        value, _ = parse_layer_spec(inp[0].data, context) 
+        value, _ = parse_layer_spec(inp[0].data, context)
     elif typ == 'enum':
         # XXX Processing wants the index of the value in option list
-        value = param.options().index(inp[0].data)  
+        value = param.options().index(inp[0].data)
     elif typ == 'extent':
         r = inp[0].data
         rect  = QgsRectangle(r[0],r[2],r[1],r[3])
@@ -443,10 +447,10 @@ def input_to_processing( identifier, inp, alg, context ):
         value = inp[0].data
     else:
         # Return undefined value
-        if not _is_optional(param): 
-            LOGGER.warning("Required input %s has no value", identifier) 
+        if not _is_optional(param):
+            LOGGER.warning("Required input %s has no value", identifier)
         value = None
-    
+
     return param.name(), value
 
 
@@ -491,7 +495,7 @@ def processing_to_output( value, outdef, out, output_uri, context=None ):
 
 def handle_algorithm_results(alg, context, feedback, **kwargs):
     """ Handle algorithms result layeri
-    
+
         Insert result layers into destination project
     """
     wrongLayers = []
@@ -508,7 +512,7 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
                 style = None
                 if details.outputName:
                     style = RenderingStyles.getStyle(alg.id(), details.outputName)
-                    LOGGER.debug("Getting style for %s: %s <%s>", alg.id(), details.outputName, style) 
+                    LOGGER.debug("Getting style for %s: %s <%s>", alg.id(), details.outputName, style)
                 if style is None:
                     if layer.type() == QgsMapLayer.RasterLayer:
                         style = ProcessingConfig.getSetting(ProcessingConfig.RASTER_STYLE)
@@ -553,7 +557,7 @@ class Feedback(QgsProcessingFeedback):
         self.uuid       = uuid_str[:8]
 
     def setProgress( self, progress ):
-        """ We update the wps status 
+        """ We update the wps status
         """
         self._response.update_status(status_percentage=int(progress+0.5))
 
@@ -565,7 +569,7 @@ class Feedback(QgsProcessingFeedback):
         """
         LOGGER.warning("Processing:%s:%s cancel() called", self.name, self.uuid)
         super(Feedback, self).cancel()
-        # TODO Call update status  when 
+        # TODO Call update status  when
         # https://projects.3liz.org/infra-v3/py-qgis-wps/issues/1 is fixed
 
     def reportError(self, error, fatalError=False ):
@@ -587,7 +591,7 @@ def handle_layer_outputs(alg, results, context ):
 
 
 def write_outputs( alg, results, outputs, output_uri=None,  context=None ):
-    """ Set wps outputs and write project 
+    """ Set wps outputs and write project
     """
     for outdef in alg.outputDefinitions():
         out = outputs.get(outdef.name())
@@ -609,7 +613,7 @@ class QgsProcess(WPSProcess):
                 try:
                     yield parser(param, alg)
                 except ProcessingTypeParseError as e:
-                    LOGGER.error("%s: unsupported param %s",alg.id(),e) 
+                    LOGGER.error("%s: unsupported param %s",alg.id(),e)
 
         # Create input/output
         inputs  = list(_parse(parse_input_definition, alg, alg.parameterDefinitions()))
@@ -624,7 +628,7 @@ class QgsProcess(WPSProcess):
                 abstract   = alg.shortHelpString(),
                 inputs     = inputs,
                 outputs    = outputs)
-   
+
     def check( self, request ):
         """ Check request parameters
         """
@@ -636,13 +640,13 @@ class QgsProcess(WPSProcess):
         """  WPS process handler
         """
         uuid_str = str(response.uuid)
-        LOGGER.info("Starting task %s:%s", request.identifier, uuid_str[:8]) 
+        LOGGER.info("Starting task %s:%s", request.identifier, uuid_str[:8])
 
         alg = QgsApplication.processingRegistry().createAlgorithmById(request.identifier)
 
         workdir  = response.process.workdir
         context  = Context(workdir, map_uri=request.map_uri)
-        feedback = Feedback(response, alg.id(), uuid_str=uuid_str) 
+        feedback = Feedback(response, alg.id(), uuid_str=uuid_str)
 
         context.setFeedback(feedback)
         context.setInvalidGeometryCheck(QgsFeatureRequest.GeometrySkipInvalid)
@@ -669,7 +673,7 @@ class QgsProcess(WPSProcess):
 
         context.response = response
         write_outputs( alg, results, response.outputs, output_uri, context)
-        
+
         return response
 
     def clean(self):
