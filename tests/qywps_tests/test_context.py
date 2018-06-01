@@ -115,3 +115,19 @@ def test_context(application, outputdir, data):
         # The WFS layer precision is defined
         assert context.destination_project.readNumEntry("WFSLayersPrecision", "/"+lid)[0] == 6
 
+
+def test_get_project_file(application, outputdir, data):
+    """ Test we can get a project file
+    """
+    # Set Absolute path to the qgis projects root directory, projects references
+    # with the MAP parameter will be searched at this location
+    os.environ['QYWPS_CACHE_ROOTDIR'] = data.strpath
+
+    workdir = outputdir.strpath
+    context  = Context(workdir, 'france_parts.qgs')
+
+    # Fetch a file from rootdir
+    path = context.get_as_project_file("france_parts/france_parts.shp")      
+
+    assert os.path.isfile(path)
+

@@ -3,8 +3,8 @@
 set -e
 
 pip3 install -U --user setuptools
-pip3 install -U --user -r requirements.pip
-pip3 install -U --user -r requirements.txt 
+pip3 install -U --no-warn-script-location --user -r requirements.pip
+pip3 install -U --no-warn-script-location --user -r requirements.txt 
 
 pip3 install --user -e ./ 
 
@@ -17,10 +17,10 @@ export PATH=$PATH:/.local/bin
 # Run legacy pywps tests
 PYTHONPATH=$(pwd)/tests \
 QYWPS_SERVER_LOGSTORAGE=DBLOG \
-python3 tests/pywps_tests/__init__.py
+#python3 tests/pywps_tests/__init__.py
 
 # Run new tests
 cd tests/qywps_tests && py.test -v
 
-
+#cd tests/qywps_tests && py.test -v -s -k  test_get_project_file
 

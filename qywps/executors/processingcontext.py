@@ -81,7 +81,7 @@ class Context(QgsProcessingContext):
             self.setProject(cache_lookup(self.map_uri))
         else:
             LOGGER.warning("No map url defined, inputs may be incorrect !")
-            self.uri = None
+            self.map_uri = None
 
         # Create the destination project
         self.destination_project = QgsProject()
@@ -90,7 +90,7 @@ class Context(QgsProcessingContext):
     def rootdir(self):
         return _Cache().rootdir
 
-    def get_as_project_file( name ):
+    def get_as_project_file( self, name ):
         """ Return the full path of a file if that file
             exists in the project cache dir.
 
@@ -98,12 +98,14 @@ class Context(QgsProcessingContext):
             the the cache root directory
         """
         try:
-            path = Path('/'+name).resolve()
+            # XXX Resolve do not support 'strict' with python 3.5
+            #path = Path('/'+name).resolve(strict=False)
+            path  = Path(os.path.normpath('/'+name))
             path = (self.rootdir / path.relative_to('/'))
             if path.is_file():
                 return path.as_posix()
         except:
-            LOGGING.error(traceback.format_exc())
+            LOGGER.error(traceback.format_exc())
 
         raise InvalidParameterValue(name)
 
