@@ -297,11 +297,18 @@ def parse_layer_output( outdef, kwargs ):
     """
     if isinstance(outdef, OUTPUT_LAYER_TYPES ):
         if isinstance(outdef, QgsProcessingOutputVectorLayer):
-            return ComplexOutput(supported_formats=[Format("application/x-ogc-wms"),Format("application/x-ogc-wfs")], as_reference=True, **kwargs)
+            return ComplexOutput(supported_formats=[
+                        Format("application/x-ogc-wms"),
+                        Format("application/x-ogc-wfs")
+                    ], as_reference=True, **kwargs)
         elif isinstance(outdef, QgsProcessingOutputRasterLayer):
-            return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")Format("application/x-ogc-wcs")], as_reference=True, **kwargs)
+            return ComplexOutput(supported_formats=[
+                        Format("application/x-ogc-wms"),
+                        Format("application/x-ogc-wcs")
+                    ], as_reference=True, **kwargs)
         else:
-            return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")], as_reference=True, **kwargs)
+            return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")], 
+                                 as_reference=True, **kwargs)
 
 
 def parse_file_output( outdef, kwargs, alg=None ):
