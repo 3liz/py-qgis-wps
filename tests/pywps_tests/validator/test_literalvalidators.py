@@ -59,12 +59,12 @@ class ValidateTest(unittest.TestCase):
         allowed_value.minval = 1
         allowed_value.maxval = 11
         allowed_value.spacing = 2
-        allowed_value.range_closure = RANGECLOSURETYPE.OPEN
+        allowed_value.range_closure = RANGECLOSURETYPE.CLOSED
 
         inpt = get_input(allowed_values = [allowed_value])
 
         inpt.data = 1
-        self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE), 'Range OPEN closure')
+        self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE), 'Range CLOSED closure')
 
         inpt.data = 12
         self.assertFalse(validate_allowed_values(inpt, MODE.SIMPLE), 'Value too big')
@@ -76,15 +76,15 @@ class ValidateTest(unittest.TestCase):
         self.assertFalse(validate_allowed_values(inpt, MODE.SIMPLE), 'Spacing fits')
 
         inpt.data = 11
-        allowed_value.range_closure = RANGECLOSURETYPE.OPEN
+        allowed_value.range_closure = RANGECLOSURETYPE.CLOSED
         self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE), 'Open Range')
 
-        allowed_value.range_closure = RANGECLOSURETYPE.OPENCLOSED
-        self.assertFalse(validate_allowed_values(inpt, MODE.SIMPLE), 'OPENCLOSED Range')
-
-        inpt.data = 1
         allowed_value.range_closure = RANGECLOSURETYPE.CLOSEDOPEN
         self.assertFalse(validate_allowed_values(inpt, MODE.SIMPLE), 'CLOSEDOPEN Range')
+
+        inpt.data = 1
+        allowed_value.range_closure = RANGECLOSURETYPE.OPENCLOSED
+        self.assertFalse(validate_allowed_values(inpt, MODE.SIMPLE), 'OPENCLOSED Range')
 
     def test_combined_validator(self):
         """Test allowed values - ranges and values combination"""
@@ -94,7 +94,7 @@ class ValidateTest(unittest.TestCase):
         allowed_value1.minval = 1
         allowed_value1.maxval = 11
         allowed_value1.spacing = 2
-        allowed_value1.range_closure = RANGECLOSURETYPE.OPEN
+        allowed_value1.range_closure = RANGECLOSURETYPE.CLOSED
 
         allowed_value2 = AllowedValue()
         allowed_value2.allowed_type = ALLOWEDVALUETYPE.VALUE
@@ -103,7 +103,7 @@ class ValidateTest(unittest.TestCase):
         inpt = get_input(allowed_values = [allowed_value1, allowed_value2])
 
         inpt.data = 1
-        self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE), 'Range OPEN closure')
+        self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE), 'Range CLOSED closure')
 
         inpt.data = 15
         self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE), 'AllowedValue')

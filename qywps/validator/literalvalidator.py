@@ -76,7 +76,7 @@ def _validate_range(interval, data):
 
     passed = False
 
-    LOGGER.debug('validating range: %s in %r', data, interval)
+    LOGGER.debug('validating range: %s (%s) in %r', data, type(data), interval)
     if interval.minval <= data <= interval.maxval:
 
         if interval.spacing:
@@ -87,14 +87,14 @@ def _validate_range(interval, data):
             passed = True
 
         if passed:
-            if interval.range_closure == RANGECLOSURETYPE.OPEN:
+            if interval.range_closure == RANGECLOSURETYPE.CLOSED:
                 passed = (interval.minval <= data <= interval.maxval)
-            elif interval.range_closure == RANGECLOSURETYPE.CLOSED:
+            elif interval.range_closure == RANGECLOSURETYPE.OPEN:
                 passed = (interval.minval < data < interval.maxval)
             elif interval.range_closure == RANGECLOSURETYPE.OPENCLOSED:
-                passed = (interval.minval <= data < interval.maxval)
-            elif interval.range_closure == RANGECLOSURETYPE.CLOSEDOPEN:
                 passed = (interval.minval < data <= interval.maxval)
+            elif interval.range_closure == RANGECLOSURETYPE.CLOSEDOPEN:
+                passed = (interval.minval <= data < interval.maxval)
     else:
         passed = False
 

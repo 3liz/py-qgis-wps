@@ -111,6 +111,9 @@ class AllowedValue(AnyValue):
                 doc.append(OWS.Spacing(str(self.spacing)))
         return doc
 
+    def __repr__(self):
+        return "AllowedValue(minval=%s, maxval=%s, range_closure=%s)" % (self.minval, self.maxval, self.range_closure)
+
     @property
     def json(self):
         value = self.value

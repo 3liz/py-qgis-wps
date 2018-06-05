@@ -385,6 +385,7 @@ class Service():
         LOGGER.debug('Checking if all mandatory inputs have been passed')
         data_inputs = {}
         for inpt in process.inputs:
+            LOGGER.debug('Checking input: %s', inpt.identifier)
             if inpt.identifier not in wps_request.inputs:
                 if inpt.min_occurs > 0:
                     LOGGER.error('Missing parameter value: %s', inpt.identifier)
