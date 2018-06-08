@@ -208,7 +208,8 @@ class PoolExecutor(Executor):
 
         self._logstore = LOGStore.create(dbstorename)
        
-        maxparallel = max(1,maxparallel)
+        # XXX We need an extra process for cleanup task
+        maxparallel = max(2,maxparallel+1)
         self._pool = Pool(processes=maxparallel, initializer=self.worker_initializer, maxtasksperchild=processlifecycle )
 
         self.install_processes( processes )
