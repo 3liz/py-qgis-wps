@@ -111,8 +111,6 @@ class Context(QgsProcessingContext):
 
         raise InvalidParameterValue(name)
 
-    
-
     def write_result(self, workdir, name):
         """ Save results to disk
         """

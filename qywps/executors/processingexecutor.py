@@ -48,7 +48,6 @@ class ProcessingExecutor(PoolExecutor):
 
         super(ProcessingExecutor, self).initialize(processes)
 
-
     def loadstyles(self):
         """ Load styles definitions
 

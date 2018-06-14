@@ -518,7 +518,10 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
                 # Set styles
                 style = None
                 if details.outputName:
-                    style = RenderingStyles.getStyle(alg.id(), details.outputName)
+                    # Try to load custom style from workdir
+                    style = os.path.join(context.workdir, details.outputName + '.qml')
+                    if not os.path.exists(style):
+                        style = RenderingStyles.getStyle(alg.id(), details.outputName)
                     LOGGER.debug("Getting style for %s: %s <%s>", alg.id(), details.outputName, style)
                 if style is None:
                     if layer.type() == QgsMapLayer.RasterLayer:
