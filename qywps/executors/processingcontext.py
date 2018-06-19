@@ -88,9 +88,20 @@ class Context(QgsProcessingContext):
 
     @property
     def rootdir(self):
+        """ Return the rootdir for all projects
+        """
         return _Cache().rootdir
 
-    def get_as_project_file( self, name ):
+    @property
+    def projectdir(self):
+        """ Return the project directory
+        """
+        if self.map_uri is not None:
+            return os.path.dirname(self.map_uri.path)
+        else:
+            return self.rootdir
+
+    def resolve_path( self, name ):
         """ Return the full path of a file if that file
             exists in the project cache dir.
 
@@ -102,10 +113,10 @@ class Context(QgsProcessingContext):
             #path = Path('/'+name).resolve(strict=False)
             path  = Path(os.path.normpath('/'+name))
             path = (self.rootdir / path.relative_to('/'))
-            if path.is_file():
+            if path.exists():
                 return path.as_posix()
             else:
-                LOGGER.error("File not found: %s", path.as_posix())
+                LOGGER.error("Path not found: %s", path.as_posix())
         except:
             LOGGER.error(traceback.format_exc())
 
@@ -123,4 +134,13 @@ class Context(QgsProcessingContext):
                 dest_project.writeEntry( "WFSLayersPrecision", "/"+lid, 6 )
         dest_project.writeEntry( "WCSLayers", "/", [lid for lid,lyr in dest_project.mapLayers().items() if lyr.type() == QgsMapLayer.RasterLayer] )
         return dest_project.write(os.path.join(workdir,name+'.qgs'))
+
+
+    #XXX DEPRECATED
+    def get_as_project_file( self, name ):
+        """ XXX Deprecated, use 'resolve_path'
+        """
+        LOGGER.warn("get_as_project_file is deprecated, use 'resolve_path' instead")
+        return self.resolve_path(name)
+
 

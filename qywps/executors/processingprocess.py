@@ -363,7 +363,7 @@ def parse_layer_spec( layerspec, context, allow_selection=False ):
     u = urlparse(layerspec)
     p = u.path
     if u.scheme == 'file':
-        p = context.get_as_project_file(p)
+        p = context.resolve_path(p)
     elif u.scheme and u.scheme != 'layer':
         raise InvalidParameterValue("Bad scheme: %s" % layerspec)
 

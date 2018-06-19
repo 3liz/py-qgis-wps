@@ -127,7 +127,23 @@ def test_get_project_file(application, outputdir, data):
     context  = Context(workdir, 'france_parts.qgs')
 
     # Fetch a file from rootdir
-    path = context.get_as_project_file("france_parts/france_parts.shp")      
+    path = context.resolve_path("france_parts/france_parts.shp")      
 
     assert os.path.isfile(path)
+
+def test_get_project_folder(application, outputdir, data):
+    """ Test we can get a project folder
+    """
+    # Set Absolute path to the qgis projects root directory, projects references
+    # with the MAP parameter will be searched at this location
+    os.environ['QYWPS_CACHE_ROOTDIR'] = data.strpath
+
+    workdir = outputdir.strpath
+    context  = Context(workdir, 'france_parts.qgs')
+
+    # Fetch a file from rootdir
+    path = context.resolve_path("france_parts")      
+
+    assert os.path.isdir(path)
+
 
