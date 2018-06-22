@@ -180,9 +180,9 @@ def test_handleprocesserror( host, data ):
     assert rv.status_code == 424
 
 
-def test_mapcontext( host, data ):
-    """ Test describe process"""
-    rv = requests.get(host + "?SERVICE=WPS&Request=DescribeProcess&Identifier=lzmtest:testmapcontext&Version=1.0.0&MAP=context")
+def test_mapcontext_describe( host, data ):
+    """ Test describe process with context"""
+    rv = requests.get(host + "?SERVICE=WPS&Request=DescribeProcess&Identifier=lzmtest:testmapcontext&Version=1.0.0&MAP=france_parts")
 
     assert rv.status_code == 200
 
@@ -191,8 +191,19 @@ def test_mapcontext( host, data ):
     resp = Response(rv)
    
     # Check the contextualized default value
-    assert resp.xpath_text('//DataInputs/Input/LiteralData/DefaultValue') == 'context'
+    assert resp.xpath_text('//DataInputs/Input/LiteralData/DefaultValue') == 'france_parts'
  
+
+def test_mapcontext_execute( host, data ):
+    """ Test execute process with context"""
+
+    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testmapcontext&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=INPUT=hello_context"))
+    assert rv.status_code == 200
+
+    # Get result 
+    resp = Response(rv)    
+    assert resp.xpath_text('//wps:ProcessOutputs/wps:Output/wps:Data/wps:LiteralData') == 'france_parts'
 
 
 

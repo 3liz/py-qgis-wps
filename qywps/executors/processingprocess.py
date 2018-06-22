@@ -13,6 +13,8 @@ import logging
 import mimetypes
 import traceback
 
+from functools import partial
+
 from os.path import normpath, basename
 from urllib.parse import urlparse, urlencode, parse_qs
 
@@ -623,7 +625,8 @@ def write_outputs( alg, results, outputs, output_uri=None,  context=None ):
 
 class QgsProcess(WPSProcess):
 
-    def __init__(self, algorithm):
+    def __init__(self, algorithm, context=None):
+        self._create_context = context or {}
 
         alg = _find_algorithm( algorithm ) if isinstance(algorithm, str) else algorithm
 
@@ -640,7 +643,9 @@ class QgsProcess(WPSProcess):
 
         version = alg.version() if hasattr(alg,'versions') else _generic_version
 
-        super().__init__(QgsProcess._handler,
+        handler = partial(QgsProcess._handler, create_context=self._create_context)
+
+        super().__init__(handler,
                 identifier = alg.id(),
                 version    = version,
                 title      = alg.displayName(),
@@ -654,16 +659,16 @@ class QgsProcess(WPSProcess):
         """
         LOGGER.debug("Creating contextualized process for %s: %s", ident, context)
         alg = _create_algorithm(ident, **context)
-        return QgsProcess(alg)
+        return QgsProcess(alg, context)
 
     @staticmethod
-    def _handler( request, response ):
+    def _handler( request, response, create_context ):
         """  WPS process handler
         """
         uuid_str = str(response.uuid)
-        LOGGER.info("Starting task %s:%s", request.identifier, uuid_str[:8])
+        LOGGER.info("Starting task %s:%s", uuid_str[:8], request.identifier)
 
-        alg = QgsApplication.processingRegistry().createAlgorithmById(request.identifier)
+        alg = QgsApplication.processingRegistry().createAlgorithmById(request.identifier, create_context)
 
         workdir  = response.process.workdir
         context  = Context(workdir, map_uri=request.map_uri)

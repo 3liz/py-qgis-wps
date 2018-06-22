@@ -56,6 +56,14 @@ class MapContext:
         self.map_uri    = urlparse(map_uri)
         self.projectdir = MapContext.resolve_path(self.rootdir, os.path.dirname(self.map_uri.path))
 
+    def update_context( self, context ):
+        """ Update a configuration context
+        """
+        context['rootdir']    = self.rootdir.as_posix()
+        context['projectdir'] = self.projectdir.as_posix()
+        context['project']    = self.map_uri.path
+        return context
+
     @staticmethod
     def resolve_path( rootdir, path, check=False ):
         """ Return the full path of a file if that file

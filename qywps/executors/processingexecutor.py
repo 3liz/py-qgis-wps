@@ -184,10 +184,7 @@ class ProcessingExecutor(PoolExecutor):
         """
         try:
             from qywps.executors.processingprocess import QgsProcess
-            mapContext = MapContext(map_uri)
-            context['rootdir']    = mapContext.rootdir.as_posix()
-            context['projectdir'] = mapContext.projectdir.as_posix()
-            context['project']    = mapContext.map_uri.path
+            context = MapContext(map_uri).update_context(context)
             return [QgsProcess.createInstance(ident,map_uri=map_uri, **context) for ident in identifiers]
         except:
             traceback.print_exc()
