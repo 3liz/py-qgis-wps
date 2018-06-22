@@ -124,7 +124,16 @@ def _find_algorithm( algid ):
     return alg
 
 
-_generic_version="1.0a1"
+def _create_algorithm( algid, **context ):
+    """ Fetch algoritm from its id
+    """
+    alg = QgsApplication.processingRegistry().createAlgorithmById( algid, context )
+    if not alg:
+        raise ProcessingAlgorithmNotFound(algid)
+    return alg
+
+
+_generic_version="1.0generic"
 
 
 def parse_literal_input( param, kwargs ):
@@ -614,7 +623,7 @@ def write_outputs( alg, results, outputs, output_uri=None,  context=None ):
 
 class QgsProcess(WPSProcess):
 
-    def __init__(self, algorithm ):
+    def __init__(self, algorithm):
 
         alg = _find_algorithm( algorithm ) if isinstance(algorithm, str) else algorithm
 
@@ -629,21 +638,23 @@ class QgsProcess(WPSProcess):
         inputs  = list(_parse(parse_input_definition, alg, alg.parameterDefinitions()))
         outputs = list(_parse(parse_output_definition, alg, alg.outputDefinitions()))
 
-        self.map_required = False
+        version = alg.version() if hasattr(alg,'versions') else _generic_version
 
         super().__init__(QgsProcess._handler,
                 identifier = alg.id(),
-                version    = _generic_version,
+                version    = version,
                 title      = alg.displayName(),
                 abstract   = alg.shortHelpString(),
                 inputs     = inputs,
                 outputs    = outputs)
 
-    def check( self, request ):
-        """ Check request parameters
+    @staticmethod
+    def createInstance( ident, **context ):
+        """ Create a contextualized instance
         """
-        if self.map_required and request.map_uri is None:
-            raise MissingParameterValue("Missing 'map' parameter", 'process')
+        LOGGER.debug("Creating contextualized process for %s: %s", ident, context)
+        alg = _create_algorithm(ident, **context)
+        return QgsProcess(alg)
 
     @staticmethod
     def _handler( request, response ):

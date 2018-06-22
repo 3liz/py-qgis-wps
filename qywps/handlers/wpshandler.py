@@ -19,6 +19,7 @@ from .basehandler import BaseHandler
 from ..exceptions import NoApplicableCode, InvalidParameterValue, OperationNotSupported
 
 from ..app.WPSRequest import WPSRequest
+from ..app.Common import MapContext
 
 LOGGER = logging.getLogger("QYWPS")
 
@@ -45,14 +46,16 @@ class WPSHandler(BaseHandler):
             response = service.get_capabilities(wpsrequest)
 
         elif wpsrequest.operation == 'describeprocess':
-            response = service.describe(wpsrequest.identifiers)
+            response = service.describe(wpsrequest.identifiers, map_uri=wpsrequest.map_uri)
 
         elif wpsrequest.operation == 'execute':
             request_uuid = uuid.uuid1()
             response = await service.execute(
                 wpsrequest.identifier,
                 wpsrequest,
-                request_uuid
+                request_uuid,
+                # Context
+                map_uri=wpsrequest.map_uri,
             )
         else:
             raise OperationNotSupported("Unknown operation %r" % wpsrequest.operation)

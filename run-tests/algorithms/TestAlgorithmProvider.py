@@ -8,6 +8,7 @@ from .TestSimpleValue import TestSimpleValue
 from .TestCopyLayer import TestCopyLayer
 from .TestLongProcess import TestLongProcess
 from .TestRaiseError import TestRaiseError
+from .TestMapContext import TestMapContext
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -20,6 +21,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
             TestCopyLayer(),
             TestLongProcess(),
             TestRaiseError(),
+            TestMapContext(),
        ]
        return algs
     

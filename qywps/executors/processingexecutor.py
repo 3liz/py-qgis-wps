@@ -22,6 +22,8 @@ import traceback
 from qywps.executors import PoolExecutor, ExecutorError
 from qywps.utils.qgis import start_qgis_application, setup_qgis_paths
 from qywps.utils.imp import load_source
+from qywps.utils.lru import lrucache
+from qywps.app.Common import MapContext
 
 LOGGER = logging.getLogger("QYWPS")
 
@@ -38,6 +40,7 @@ class ProcessingExecutor(PoolExecutor):
         self._providers = []
         self.PROVIDERS  = []
         self._loaded_providers = []
+        self._context_processes = lrucache(50)
 
     def initialize( self, processes ):
         """ Initialize executor
@@ -148,6 +151,47 @@ class ProcessingExecutor(PoolExecutor):
             providers = providers.split(',')
             qgs_processes = self._pool.apply(self._qgis_processes, args=(providers,))
             self.processes.update(qgs_processes)
+
+
+    def get_processes( self, identifiers, map_uri=None, **context ):
+        """ Override executors.get_process
+        """
+        try:
+            processes = [self.processes[ident] for ident in identifiers]
+        except KeyError as exc:
+            raise UnknownProcessError(str(exc))
+
+        # Create a new instance of a process for the given context
+        # Contextualized processes are stored in lru cache
+        _test = lambda p: (map_uri,p.identifier) not in self._context_processes
+
+        if map_uri is not None:
+            if any(_test(p) for p in processes):
+                processes = self._pool.apply(self._create_contextualized_processes, 
+                                             args=(identifiers,),
+                                             kwds=(lambda **kw: kw)(map_uri=map_uri,**context))
+                # Update cache
+                for p in processes:
+                    self._context_processes[(map_uri,p.identifier)] = p 
+            else:
+                # Get from cache
+                processes = [self._context_processes[(map_uri,p.identifier)] for p in processes]
+        return processes
+
+    @staticmethod
+    def _create_contextualized_processes( identifiers, map_uri, **context ):
+        """ Create processes from context
+        """
+        try:
+            from qywps.executors.processingprocess import QgsProcess
+            mapContext = MapContext(map_uri)
+            context['rootdir']    = mapContext.rootdir.as_posix()
+            context['projectdir'] = mapContext.projectdir.as_posix()
+            context['project']    = mapContext.map_uri.path
+            return [QgsProcess.createInstance(ident,map_uri=map_uri, **context) for ident in identifiers]
+        except:
+            traceback.print_exc()
+            raise
 
     @staticmethod
     def _qgis_processes(providers):

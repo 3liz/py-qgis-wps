@@ -74,12 +74,12 @@ class Executor(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def get_process( self, ident ):
+    def get_processes( self, ident, **context ):
         """ Retrieve process infos
 
-            :param ident: process identifier
+            :param identifires: iteraable of process identitfiers
             
-            :return: Object holding process description data
+            :return: list of Object holding process description data
         """
         raise NotImplementedError
 
@@ -294,17 +294,18 @@ class PoolExecutor(Executor):
         """
         return self.processes.values()
 
-    def get_process( self, ident ):
+    def get_processes( self, identifiers, **context ):
         """ Retrieve process infos
 
-            :param ident: process identitfier
+            :param identifires: iteraable of process identitfiers
             
-            :return: Object holding process description data
+            :return: iterable of Object holding process description data
         """
         try:
-            return self.processes[ident]
-        except KeyError:
-            raise UnknownProcessError(ident)
+            return [self.processes[ident] for ident in identifiers] 
+        except KeyError as exc:
+            raise UnknownProcessError(str(exc))
+ 
 
     def start_request( self, request_uuid, wps_request ):
         """ Log input request 

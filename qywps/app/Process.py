@@ -46,11 +46,6 @@ class Process:
         self.store_supported = True
         self.status_supported = True
 
-    def check( self, request ):
-        """ Validate request parameters
-        """
-        pass
-
     def capabilities_xml(self):
         """ Return capabilities XML
         """
@@ -74,7 +69,7 @@ class Process:
     def describe_xml(self):
         """ Return describe XML
         """
-        input_elements = [i.describe_xml() for i in self.inputs]
+        input_elements  = [i.describe_xml() for i in self.inputs]
         output_elements = [i.describe_xml() for i in self.outputs]
 
         doc = E.ProcessDescription(

@@ -25,6 +25,8 @@ from qywps.exceptions import InvalidParameterValue
 
 from qgis.core import (QgsProject, QgsMapLayer)
 
+
+
 LOGGER = logging.getLogger('QYWPS')
 
 @singleton
@@ -92,15 +94,6 @@ class Context(QgsProcessingContext):
         """
         return _Cache().rootdir
 
-    @property
-    def projectdir(self):
-        """ Return the project directory
-        """
-        if self.map_uri is not None:
-            return os.path.dirname(self.map_uri.path)
-        else:
-            return self.rootdir
-
     def resolve_path( self, name ):
         """ Return the full path of a file if that file
             exists in the project cache dir.
@@ -109,17 +102,13 @@ class Context(QgsProcessingContext):
             the the cache root directory
         """
         try:
-            # XXX Resolve do not support 'strict' with python 3.5
-            #path = Path('/'+name).resolve(strict=False)
-            path  = Path(os.path.normpath('/'+name))
-            path = (self.rootdir / path.relative_to('/'))
-            if path.exists():
-                return path.as_posix()
-            else:
-                LOGGER.error("Path not found: %s", path.as_posix())
+            return  MapContext.resolve_path(self.rootdir, path, check=True).as_posix()
+        except FileNotFoundError as exc:
+            LOGGER.error("Path not found: %s", exc)
         except:
             LOGGER.error(traceback.format_exc())
-
+            raise
+        
         raise InvalidParameterValue(name)
 
     def write_result(self, workdir, name):

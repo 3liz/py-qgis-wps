@@ -65,8 +65,11 @@ class Service():
     def processes(self):
         return self.executor.list_processes()
 
-    def get_process(self, ident):
-        return self.executor.get_process(ident)
+    def get_process(self, ident, **context):
+        return self.get_processes((ident,), **context)[0]
+
+    def get_processes(self, idents, **context):
+        return self.executor.get_processes(idents, **context)
 
     def get_results(self, uuid):
         doc = self.executor.get_results(uuid)
@@ -271,35 +274,24 @@ class Service():
 
         return doc
 
-    def describe(self, identifiers):
+    def describe(self, identifiers, **context):
         if not identifiers:
             raise MissingParameterValue('', 'identifier')
 
         identifier_elements = []
         # 'all' keyword means all processes
         if 'all' in (ident.lower() for ident in identifiers):
-            for process in self.processes:
-                try:
-                    identifier_elements.append(process.describe_xml())
-                except Exception as e:
-                    traceback.print_exc()
-                    raise NoApplicableCode(e, code=500)
-        else:
-            for identifier in identifiers:
-                try:
-                    process = self.get_process(identifier)
-                except UnknownProcessError:
-                    raise InvalidParameterValue(
-                        "Unknown process %r" % identifier, "identifier")
-                try:
-                    identifier_elements.append(process.describe_xml())
-                except Exception as e:
-                    traceback.print_exc()
-                    raise NoApplicableCode(e, code=500)
+            identifiers = [p.identifier for p in self.processes]
+            
+        try:
+            identifier_elements.extend(p.describe_xml() for p in self.get_processes(identifiers,**context))
+        except UnknownProcessError as exc:
+            raise InvalidParameterValue("Unknown process %s" % exc, "identifier")
+        except Exception as e:
+            traceback.print_exc()
+            raise NoApplicableCode(e, code=500)
 
-        doc = WPS.ProcessDescriptions(
-            *identifier_elements
-        )
+        doc = WPS.ProcessDescriptions(*identifier_elements)
         doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
             'http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsDescribeProcess_response.xsd'
         doc.attrib['service'] = 'WPS'
@@ -319,7 +311,7 @@ class Service():
 
         return status_url.format(host_url=proxy_host,uuid=uuid)
 
-    async def execute(self, identifier, wps_request, uuid):
+    async def execute(self, identifier, wps_request, uuid, **context):
         """Parse and perform Execute WPS request call
         
         :param identifier: process identifier string
@@ -327,7 +319,7 @@ class Service():
         :param uuid: string identifier of the request
         """
         try:
-            process = self.get_process(identifier)
+            process = self.get_process(identifier, **context)
         except UnknownProcessError:
             raise InvalidParameterValue("Unknown process '%r'" % identifier, 'Identifier')
 
@@ -375,7 +367,6 @@ class Service():
         """Parse request
         """
 
-        process.check(wps_request);
 
         LOGGER.debug('Checking if datainputs is required and has been passed')
         if process.inputs:

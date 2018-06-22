@@ -180,6 +180,22 @@ def test_handleprocesserror( host, data ):
     assert rv.status_code == 424
 
 
+def test_mapcontext( host, data ):
+    """ Test describe process"""
+    rv = requests.get(host + "?SERVICE=WPS&Request=DescribeProcess&Identifier=lzmtest:testmapcontext&Version=1.0.0&MAP=context")
+
+    assert rv.status_code == 200
+
+    # Get the response and test that we can get the result status
+    assert rv.headers.get('Content-Type') == 'text/xml;charset=utf-8'
+    resp = Response(rv)
+   
+    # Check the contextualized default value
+    assert resp.xpath_text('//DataInputs/Input/LiteralData/DefaultValue') == 'context'
+ 
+
+
+
 #def test_slowprogress( host, data ):
 #    """  Test execute timeout """
 #    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testlongprocess&Version=1.0.0"
