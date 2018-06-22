@@ -22,6 +22,7 @@ from qywps.utils.decorators import singleton
 
 from qywps import configuration
 from qywps.exceptions import InvalidParameterValue
+from qywps.app.Common import MapContext
 
 from qgis.core import (QgsProject, QgsMapLayer)
 
@@ -94,7 +95,7 @@ class Context(QgsProcessingContext):
         """
         return _Cache().rootdir
 
-    def resolve_path( self, name ):
+    def resolve_path( self, path ):
         """ Return the full path of a file if that file
             exists in the project cache dir.
 
