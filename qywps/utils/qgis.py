@@ -56,7 +56,9 @@ def start_qgis_application(enable_gui=False, enable_processing=False, verbose=Fa
     logger = logger or logging.getLogger()
     setup_qgis_paths()
 
-    from qgis.core import QgsApplication
+    from qgis.core import Qgis, QgsApplication
+
+    logger.info("Starting Qgis application: %s",Qgis.QGIS_VERSION)
 
     if QgsApplication.QGIS_APPLICATION_NAME != "QGIS3":
         raise RuntimeError("You need QGIS3 (found %s)" % QgsApplication.QGIS_APPLICATION_NAME)
