@@ -22,5 +22,3 @@ python3 tests/pywps_tests/__init__.py
 # Run new tests
 cd tests/qywps_tests && py.test -v
 
-#cd tests/qywps_tests && py.test -v -s -k  test_get_project_file
-

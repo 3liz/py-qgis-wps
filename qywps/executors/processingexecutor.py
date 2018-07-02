@@ -64,11 +64,10 @@ class ProcessingExecutor(PoolExecutor):
                 ...
             {
         """
-        providers_path = self._config.get('providers_module_path')
-        if providers_path:
-            filepath = os.path.join(providers_path,'styles.json')
-            if not os.path.exists(filepath):
-                return
+        providers_path = self._config.get('providers_module_path','')
+        filepath = os.path.join(providers_path,'styles.json')
+        if not os.path.exists(filepath):
+            return
 
         LOGGER.info("Found styles file description at %s", filepath)
         from processing.core.Processing import RenderingStyles
@@ -91,24 +90,21 @@ class ProcessingExecutor(PoolExecutor):
         """ Import algorithm providers
 
             The method will look for a __algorithms__.py file where all providers 
-            modules should be imported 
-
-            NOTE: this should be called before initialising QGIS application
-            Import will be done automatically when initializing the procesing module
+            modules should be imported
         """
-        providers_path = self._config.get('providers_module_path')
-        if providers_path:
-            filepath = os.path.join(providers_path,'__algorithms__.py')
-            if not os.path.exists(filepath):
-                LOGGER.warn("%s not found" % filepath)
-                return
+        providers_path = self._config.get('providers_module_path','')
+        filepath = os.path.join(providers_path,'__algorithms__.py')
+        if not os.path.exists(filepath):
+            LOGGER.warn("%s not found" % filepath)
+            return
 
-            LOGGER.info("Loading algorithms providers from %s" % filepath)
+        LOGGER.info("Loading algorithms providers from %s" % filepath)
 
-            setup_qgis_paths()            
-            sys.path.append(providers_path)
-            # Load providers
-            self._providers = load_source('wps_imported_algorithms',filepath).providers
+        setup_qgis_paths()            
+        sys.path.append(providers_path)
+        # Load providers
+        self._providers = load_source('wps_imported_algorithms',filepath).providers
+
 
     def worker_initializer(self):
         """ Worker initializer
