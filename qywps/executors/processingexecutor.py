@@ -21,8 +21,11 @@ import traceback
 
 from qywps.executors import PoolExecutor, ExecutorError
 from qywps.utils.qgis import start_qgis_application, setup_qgis_paths
-from qywps.utils.imp import load_source
 from qywps.utils.lru import lrucache
+from qywps.utils.processing import (import_providers_modules, 
+                                    register_providers, 
+                                    load_styles)
+
 from qywps.app.Common import MapContext
 
 LOGGER = logging.getLogger("QYWPS")
@@ -53,36 +56,10 @@ class ProcessingExecutor(PoolExecutor):
 
     def loadstyles(self):
         """ Load styles definitions
-
-            The json structure should be the following:
-
-            {
-                'algid': {
-                    'outputname': file.qml
-                    ...
-                }
-                ...
-            {
         """
         providers_path = self._config.get('providers_module_path','')
-        filepath = os.path.join(providers_path,'styles.json')
-        if not os.path.exists(filepath):
-            return
-
-        LOGGER.info("Found styles file description at %s", filepath)
-        from processing.core.Processing import RenderingStyles
         try:
-            with open(filepath,'r') as fp:
-                data = json.load(fp)
-                # Replace style name with full path
-                for alg in data:
-                    for key in data[alg]:
-                        qml = os.path.join(providers_path,'qml',data[alg][key])
-                        if not os.path.exists(qml):
-                            LOGGER.warning("Style '%s' not found" % qml)
-                        data[alg][key] = qml
-                # update processing rendering styles
-                RenderingStyles.styles.update(data)
+            load_styles(providers_path, logger=LOGGER)
         except Exception:
             LOGGER.error("Failed to load styles:\n%s", traceback.format_exc())
 
@@ -93,18 +70,11 @@ class ProcessingExecutor(PoolExecutor):
             modules should be imported
         """
         providers_path = self._config.get('providers_module_path','')
-        filepath = os.path.join(providers_path,'__algorithms__.py')
-        if not os.path.exists(filepath):
-            LOGGER.warn("%s not found" % filepath)
-            return
-
-        LOGGER.info("Loading algorithms providers from %s" % filepath)
-
-        setup_qgis_paths()            
-        sys.path.append(providers_path)
-        # Load providers
-        self._providers = load_source('wps_imported_algorithms',filepath).providers
-
+        try:
+            setup_qgis_paths()            
+            self._providers = import_providers_modules(providers_path, logger=LOGGER)
+        except FileNotFoundError as exc:
+            LOGGER.warn("%s not found" % exc)
 
     def worker_initializer(self):
         """ Worker initializer
@@ -121,16 +91,7 @@ class ProcessingExecutor(PoolExecutor):
                                 verbose=config.get_config('logging').get('level')=='DEBUG', 
                                 logger=LOGGER, logprefix="[qgis:%s]" % os.getpid())
 
-        # Load providers explicitely
-        from qgis.core import QgsApplication
-        reg = QgsApplication.processingRegistry()
-        for p in self._providers:
-            c = p()
-            # XXX Hold provider instance, processingRegistry does not gain ownership and
-            # we must prevent garbage collection
-            self.PROVIDERS.append(c)
-            reg.addProvider(c)
-
+        self.PROVIDERS.extend(register_providers(provider_classes=self._providers)) 
         return self.qgisapp
 
     def install_processes(self, processes ):

@@ -12,27 +12,13 @@ import os
 import sys
 import logging
 
-
-def darwin_setup():
-    """ Set up environment variables for OSX
-    """
-    prefix = os.environ.get('QGIS3_PREFIX','/Applications')
-    if not os.path.exists('%s/QGIS.app' % prefix):
-        raise FileNotFoundError('%s/QGIS.app' % prefix)
-    os.environ['QGIS3_HOME'] = '%s/QGIS.app/Contents/MacOS' % prefix
-    os.environ['QGIS3_PLUGINPATH'] =  '%s/QGIS.app/Contents/Resources/python/plugins' % prefix
-    # Set up qgis python bindings path
-    sys.path.append('%s/QGIS.app/Contents/Resources/python' % prefix)
-
-
 def setup_qgis_paths():
     """ Init qgis paths 
     """
-    if os.uname()[0].lower() == 'darwin':
-        darwin_setup()
-    qgis_pluginpath = os.environ.get('QGIS3_PLUGINPATH','/usr/share/qgis/python/plugins/')
-    sys.path.append(qgis_pluginpath)
-   
+    qgisPrefixPath = os.environ.get('QGIS_PREFIX_PATH','/usr/')
+    sys.path.append(os.path.join(qgisPrefixPath, "share/qgis/python/plugins/"))
+    return qgisPrefixPath 
+
 
 #XXX Apparently we need to keep a reference instance of the qgis_application object
 # And not make this object garbage collected
@@ -54,7 +40,7 @@ def start_qgis_application(enable_gui=False, enable_processing=False, verbose=Fa
     os.environ['QGIS_DISABLE_MESSAGE_HOOKS'] = '1'
 
     logger = logger or logging.getLogger()
-    setup_qgis_paths()
+    qgisPrefixPath = setup_qgis_paths()
 
     from qgis.core import Qgis, QgsApplication
 
@@ -70,12 +56,10 @@ def start_qgis_application(enable_gui=False, enable_processing=False, verbose=Fa
             logger.info("Setting offscreen mode")
             os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
-    qgis_prefix = os.environ.get('QGIS3_HOME','/usr')
-
     global qgis_application
 
     qgis_application = QgsApplication([], enable_gui )
-    qgis_application.setPrefixPath(qgis_prefix, True)
+    qgis_application.setPrefixPath(qgisPrefixPath, True)
     qgis_application.initQgis()
 
     if cleanup:
@@ -106,13 +90,15 @@ def start_qgis_application(enable_gui=False, enable_processing=False, verbose=Fa
 
     return qgis_application
 
+
 def init_processing():
     from processing.core.Processing import Processing
     from qgis.analysis import QgsNativeAlgorithms
     from qgis.core import QgsApplication
     QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
     Processing.initialize()
- 
+
+
 def install_logger_hook( logger, logprefix, verbose=False ):
     """ Install message log hook
     """
