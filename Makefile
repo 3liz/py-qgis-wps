@@ -47,16 +47,18 @@ test: ptest qtest
 PIP_CONFIG_FILE:=pip.conf
 BECOME_USER:=$(shell id -u)
 
+ifndef LOCAL_HOME
+LOCAL_HOME=$(shell pwd)
+endif
+
 docker-test:
 	mkdir -p $(HOME)/.local $(shell pwd)/.ccache
 	docker run --rm --name qgis3-wps-test-$(COMMITID) -w /src \
     -u $(BECOME_USER) \
     -v $(shell pwd):/src \
-    -v $(HOME)/.local:/.local \
-    -v $(HOME)/.config/pip:/.pipconf  \
-    -v $(HOME)/.cache/pip:/.pipcache \
+    -v $(LOCAL_HOME)/.local:/.local \
+    -v $(LOCAL_HOME)/.cache/pip:/.pipcache \
     -v $(shell pwd)/.ccache:/.ccache \
-    -e PIP_CONFIG_FILE=/.pipconf/$(PIP_CONFIG_FILE) \
     -e PIP_CACHE_DIR=/.pipcache \
     $(QGIS_IMAGE) /src/run_tests.sh
 
