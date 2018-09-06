@@ -16,6 +16,7 @@ __outputdir__
 
 # C/build cache
 .ccache
+.local
 
 # Test outputs
 .cache
