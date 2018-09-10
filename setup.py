@@ -21,31 +21,28 @@ def load_source(name, path):
 kwargs = {}
 
 VERSION = load_source("version", 'qywps/version.py').__version__
-DESCRIPTION = ('QYWPS is an implementation of the Web Processing Service '
-               'standard from the Open Geospatial Consortium. QWPS is '
+DESCRIPTION = ('Qgis-wps is an implementation of the Web Processing Service '
+               'standard from the Open Geospatial Consortium. qgis-wps is '
                'written in Python and is a fork of PyWPS 4.0.')
-KEYWORDS = 'QYWPS WPS OGC processing'
+KEYWORDS = 'QGIS WPS OGC processing'
 INSTALL_REQUIRES = parse_requirements('requirements.txt')
 
 setup(
-    name='QYWPS',
+    name='qgis-wps',
     version=VERSION,
     description=DESCRIPTION,
     keywords=KEYWORDS,
-    license='MIT',
-    platforms='all',
     author='David Marteau',
     author_email='david.marteau@3liz.com',
     maintainer='David Marteau',
     maintainer_email='david.marteau@3liz.com',
-    url='',
-    download_url='',
+    url='https://github.com/3liz/py-qgis-wps',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',

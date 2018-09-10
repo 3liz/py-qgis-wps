@@ -104,11 +104,9 @@ docker-run:
 	docker run -it --rm -p $(LOCAL_PORT):8080 --name qgis3-wps-run-$(COMMITID) $(DOCKER_OPTIONS) -w /src \
     -u $(BECOME_USER) \
     -v $(shell pwd):/src \
-    -v $(HOME)/.local:/.local \
-    -v $(HOME)/.config/pip:/.pipconf  \
-    -v $(HOME)/.cache/pip:/.pipcache \
-    -v $(shell pwd)/run-tests/__ccache__:/.ccache \
-    -e PIP_CONFIG_FILE=/.pipconf/$(PIP_CONFIG_FILE) \
+    -v $(LOCAL_HOME)/.local:/.local \
+    -v $(LOCAL_HOME)/.cache/pip:/.pipcache \
+    -v $(shell pwd)/.ccache/.ccache \
     -e PIP_CACHE_DIR=/.pipcache \
     -v $(PROCESSING):/processing \
     -v $(shell pwd)/run-tests/data:/projects \
