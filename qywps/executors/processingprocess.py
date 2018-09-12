@@ -547,9 +547,15 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
                 if style:
                     LOGGER.debug("Adding style to layer %s (outputName %s)", details.name, details.outputName)
                     layer.loadNamedStyle(style)
+
                 # Add layer to destination project
                 LOGGER.debug("Adding Map layer '%s' (outputName %s) to Qgs Project", l, details.outputName )
                 details.project.addMapLayer(context.temporaryLayerStore().takeMapLayer(layer))
+
+                # Handle post processing
+                if details.postProcessor():
+                    details.postProcessor().postProcessLayer(layer, context, feedback)
+
             else:
                 LOGGER.warning("No layer found found for %s", l)
         except Exception:
