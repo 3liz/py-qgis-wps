@@ -11,13 +11,13 @@ set -e
 LOCAL_PORT=${LOCAL_PORT:-127.0.0.1:8080}
 WORKERS=${WORKERS:-2}
 
-DOCKER_IMAGE=${DOCKER_IMAGE:-3liz/qgis3-wps-service}
+DOCKER_IMAGE=${DOCKER_IMAGE:-3liz/qgis-wps}
 USERID=$(id -u)
 
 LOGSTORAGE=REDIS
 
 mkdir -p __workdir__
-docker run -it --rm -p $LOCAL_PORT:8080 --name qgis3-wps-test --net mynet \
+docker run -it --rm -p $LOCAL_PORT:8080 --name qgis-wps-test --net mynet \
     -v $(pwd):/processing \
     -v $(pwd)/data:/projects \
     -v $(pwd)/__workdir__:/srv/data \

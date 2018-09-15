@@ -206,6 +206,13 @@ def test_mapcontext_execute( host, data ):
     assert resp.xpath_text('//wps:ProcessOutputs/wps:Output/wps:Data/wps:LiteralData') == 'france_parts'
 
 
+def test_unknownprocess( host ):
+    """ Test unknown process error """
+    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testidonotexists&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=INPUT=wtf"))
+
+    assert rv.status_code == 400
+    resp = Response(rv)
 
 #def test_slowprogress( host, data ):
 #    """  Test execute timeout """

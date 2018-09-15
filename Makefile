@@ -33,15 +33,6 @@ manifest:
     echo buildid=$(BUILDID)   >> $(MANIFEST) && \
     echo commitid=$(COMMITID) >> $(MANIFEST)
 
-ptest:
-	PYTHONPATH=$(shell pwd)/tests QYWPS_SERVER_LOGSTORAGE=DBLOG $(PYTHON) tests/pywps_tests/__init__.py
-
-qtest:
-	cd tests/qywps_tests && py.test -v
-
-test: ptest qtest
-
-
 # Define a pip conf to use
 #
 PIP_CONFIG_FILE:=pip.conf
@@ -51,7 +42,7 @@ ifndef LOCAL_HOME
 LOCAL_HOME=$(shell pwd)
 endif
 
-docker-test:
+test:
 	mkdir -p $(HOME)/.local $(shell pwd)/.ccache
 	docker run --rm --name qgis3-wps-test-$(COMMITID) -w /src \
     -u $(BECOME_USER) \
@@ -96,7 +87,7 @@ WORKERS:=2
 # Run redis as
 # docker run -it --rm --name redis --net mynet redis:4
 
-docker-run:
+run:
 	@echo "Do not forget to run 'docker run -it --rm -p 6379:6379 --name redis --net mynet redis:4'"
 	mkdir -p $(HOME)/.local
 	mkdir -p $(shell pwd)/run-tests/__workdir__
