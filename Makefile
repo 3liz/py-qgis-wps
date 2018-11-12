@@ -17,7 +17,9 @@ ifdef REGISTRY_URL
 REGISTRY_PREFIX=$(REGISTRY_URL)/
 endif
 
-QGIS_IMAGE:=$(REGISTRY_PREFIX)qgis-platform-dev:latest
+FLAVOR:=release
+
+QGIS_IMAGE:=$(REGISTRY_PREFIX)qgis-platform-dev:$(FLAVOR)
 
 # This is necessary with pytest as long it is not fixed
 # see also https://github.com/qgis/QGIS/pull/5337
@@ -43,8 +45,8 @@ LOCAL_HOME=$(shell pwd)
 endif
 
 test:
-	mkdir -p $(HOME)/.local $(shell pwd)/.ccache
-	docker run --rm --name qgis3-wps-test-$(COMMITID) -w /src \
+	mkdir -p $(LOCAL_HOME)/.local $(shell pwd)/.ccache
+	docker run --rm --name qgis-wps-test-$(FLAVOR)-$(COMMITID) -w /src \
     -u $(BECOME_USER) \
     -v $(shell pwd):/src \
     -v $(LOCAL_HOME)/.local:/.local \
