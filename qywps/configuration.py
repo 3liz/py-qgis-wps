@@ -26,7 +26,9 @@ import qywps
 import configparser
 
 CONFIG = None
-LOGGER = logging.getLogger("QYWPS")
+
+def _log( *args ):
+    print( *args, file=sys.stderr, flush=True)
 
 
 def get_config(section):
@@ -48,12 +50,11 @@ def load_configuration():
 
     global CONFIG
 
-    LOGGER.info('loading configuration')
+    _log('loading configuration')
     CONFIG = configparser.ConfigParser()
 
     getenv = os.environ.get
 
-    LOGGER.debug('setting default values')
     CONFIG.add_section('server')
     CONFIG.set('server', 'logstorage' , getenv('QYWPS_SERVER_LOGSTORAGE','REDIS'))
     CONFIG.set('server', 'encoding', 'utf-8')
@@ -126,8 +127,10 @@ def read_config_dict( userdict ):
 def read_config_file( cfgfile ):
     """ Read configuration from file
     """
-    CONFIG.read_file(cfgfile)
-    LOGGER.info('Configuration file <%s> loaded', cfgfile)
+    cfgfile = os.path.abspath(cfgfile)
+    with open(cfgfile, mode='rt') as fp:
+        CONFIG.read_file(fp)
+    _log('Configuration file <%s> loaded' % cfgfile)
 
 
 def config_to_dict():
@@ -146,11 +149,11 @@ def validate_config_path(confname, confid, optional=False):
 
     confvalue = os.path.normpath(confvalue)
     if not os.path.isdir(confvalue):
-        LOGGER.error('server->%s configuration value %s is not directory' % (confid, confvalue))
+        _log('ERROR: server->%s configuration value %s is not directory' % (confid, confvalue))
         raise ValueError(confvalue)
 
     if not os.path.isabs(confvalue):
-        LOGGER.error('server->%s configuration value %s is not absolute path' % (confid, confvalue))
+        _log('ERROR: server->%s configuration value %s is not absolute path' % (confid, confvalue))
         raise ValueError(confvalue)
 
     CONFIG.set(confname, confid, confvalue)
