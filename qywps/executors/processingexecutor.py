@@ -20,7 +20,7 @@ import json
 import traceback
 
 from qywps.executors import PoolExecutor, ExecutorError, UnknownProcessError
-from qywps.utils.qgis import start_qgis_application, setup_qgis_paths
+from qywps.utils.qgis import start_qgis_application, setup_qgis_paths, init_qgis_processing
 from qywps.utils.lru import lrucache
 from qywps.utils.processing import (import_providers_modules, 
                                     register_providers, 
@@ -83,19 +83,39 @@ class ProcessingExecutor(PoolExecutor):
         # Init qgis application in worker
         self.start_qgis(main_process=False)
   
+    def init_qgis_settings(self):
+        """ Init qgis settings
+        """
+        from qgis.core import QgsSettings
+
+        settings = QgsSettings()
+
+        # Set up processing script folder
+        scripts_folders = self._config.get('scripts_folders')
+        if os.path.isdir(scripts_folders):
+            settings.setValue( "Processing/Configuration/SCRIPTS_FOLDERS", scripts_folders)
+
     def start_qgis(self, main_process):
         """ Set up qgis
         """
-        # Init qgis application
-        self.qgisapp = start_qgis_application( enable_processing=True, 
-                                verbose=config.get_config('logging').get('level')=='DEBUG', 
-                                logger=LOGGER, logprefix="[qgis:%s]" % os.getpid())
+        logprefix = "[qgis:%s]" % os.getpid()
 
-        self.PROVIDERS.extend(register_providers(provider_classes=self._providers)) 
+        # Init qgis application
+        self.qgisapp = start_qgis_application( enable_processing=False, 
+                                verbose=config.get_config('logging').get('level')=='DEBUG', 
+                                logger=LOGGER, logprefix=logprefix)
+
+        self.init_qgis_settings()
+
+        # Init processing *after* initalizing settings
+        init_qgis_processing()
+        self.PROVIDERS.extend(register_providers(provider_classes=self._providers))
+        LOGGER.info("%s QGis processing initialized" % logprefix)
+
         return self.qgisapp
 
     def install_processes(self, processes ):
-        """ Install processinf processes
+        """ Install processing processes
 
             This method is called by initialize()
         """

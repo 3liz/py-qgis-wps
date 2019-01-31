@@ -632,6 +632,12 @@ def write_outputs( alg, results, outputs, output_uri=None,  context=None ):
 class QgsProcess(WPSProcess):
 
     def __init__(self, algorithm, context=None):
+        """ Initialize algorithm with a create context
+
+            The create context may be used by the algorithm to provide
+            contextualized inputs (i.e inputs that depends on the context source project or 
+            associated data)
+        """
         self._create_context = context or {}
 
         alg = _find_algorithm( algorithm ) if isinstance(algorithm, str) else algorithm
@@ -687,10 +693,10 @@ class QgsProcess(WPSProcess):
         parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in request.inputs.items() )
 
         try:
-            # XXX Warning, a new instance without context will be created of the algorithme will be created at the 'run' call
+            # XXX Warning, a new instance of the algorithm without create_context will be created at the 'run' call
             # see https://qgis.org/api/qgsprocessingalgorithm_8cpp_source.html#l00414
             # We can deal with that because we will have a QgsProcessingContext and we should not 
-            # rely on the create context at this time.
+            # rely on the create_context at this time.
             results = Processing.runAlgorithm(alg, parameters=parameters, onFinish=handle_algorithm_results,
                                               feedback=feedback, context=context)
         except QgsProcessingException as e:

@@ -53,7 +53,7 @@ def load_configuration():
     _log('loading configuration')
     CONFIG = configparser.ConfigParser()
 
-    getenv = os.environ.get
+    getenv = os.getenv
 
     CONFIG.add_section('server')
     CONFIG.set('server', 'logstorage' , getenv('QYWPS_SERVER_LOGSTORAGE','REDIS'))
@@ -99,6 +99,7 @@ def load_configuration():
     CONFIG.add_section('processing')
     CONFIG.set('processing', 'providers', getenv('QYWPS_PROCESSSING_PROVIDERS',''))
     CONFIG.set('processing', 'providers_module_path', getenv('QYWPS_PROCESSSING_PROVIDERS_MODULE_PATH',''))
+    CONFIG.set('processing', 'scripts_folders', getenv('QYWPS_PROCESSSING_SCRIPT_FOLDERS','%(providers_module_path)s/scripts'))
 
     CONFIG.add_section('metadata:main')
     CONFIG.set('metadata:main', 'identification_title', 'QyWPS Processing Service')

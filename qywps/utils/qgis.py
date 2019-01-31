@@ -85,16 +85,19 @@ def start_qgis_application(enable_gui=False, enable_processing=False, verbose=Fa
     logger.info("%s Qgis application initialized......" % logprefix)
 
     if enable_processing:
-        init_processing()
+        init_qgis_processing(logger)
         logger.info("%s QGis processing initialized" % logprefix)
-
+    
     return qgis_application
 
 
-def init_processing():
+def init_qgis_processing():
+    """ Initialize processing 
+    """
     from processing.core.Processing import Processing
     from qgis.analysis import QgsNativeAlgorithms
     from qgis.core import QgsApplication
+    
     QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
     Processing.initialize()
 

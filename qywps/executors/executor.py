@@ -192,7 +192,19 @@ class PoolExecutor(Executor):
     def __init__(self):
         self.processes = {}
         self._cleanup_task = None
-    
+   
+    def _safe_worker_initializer(self):
+        """ Prevent pool to restart process on initializer failure 
+
+            If worker initializer raise an exception then
+            the pool will restart indefinitly.
+        """
+        try:
+            self.worker_initializer()
+        except:
+            traceback.print_exc()
+            os.kill(os.getppid(), signal.SIGTERM)
+
     def initialize(self, processes ):
         super(PoolExecutor, self).initialize()
  
@@ -210,7 +222,7 @@ class PoolExecutor(Executor):
        
         # XXX We need an extra process for cleanup task
         maxparallel = max(2,maxparallel+1)
-        self._pool = Pool(processes=maxparallel, initializer=self.worker_initializer, maxtasksperchild=processlifecycle )
+        self._pool = Pool(processes=maxparallel, initializer=self._safe_worker_initializer, maxtasksperchild=processlifecycle )
 
         self.install_processes( processes )
         self._logstore.init_session()
