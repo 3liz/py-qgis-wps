@@ -45,13 +45,13 @@ LOCAL_HOME=$(shell pwd)
 endif
 
 test:
-	mkdir -p $(LOCAL_HOME)/.local $(shell pwd)/.ccache
+	mkdir -p $(LOCAL_HOME)/.local $(LOCAL_HOME)/.ccache $(LOCAL_HOME)/.cache
 	docker run --rm --name qgis-wps-test-$(FLAVOR)-$(COMMITID) -w /src \
     -u $(BECOME_USER) \
     -v $(shell pwd):/src \
     -v $(LOCAL_HOME)/.local:/.local \
     -v $(LOCAL_HOME)/.cache/pip:/.pipcache \
-    -v $(shell pwd)/.ccache:/.ccache \
+    -v $(LOCAL_HOME)/.ccache:/.ccache \
     -e PIP_CACHE_DIR=/.pipcache \
     $(QGIS_IMAGE) /src/run_tests.sh
 
@@ -91,15 +91,14 @@ WORKERS:=2
 
 run:
 	@echo "Do not forget to run 'docker run -it --rm -p 6379:6379 --name redis --net mynet redis:4'"
-	mkdir -p $(HOME)/.local
+	mkdir -p $(LOCAL_HOME)/.local $(LOCAL_HOME)/.cache/pip $(LOCAL_HOME)/.ccache
 	mkdir -p $(shell pwd)/run-tests/__workdir__
-	mkdir -p $(shell pwd)/run-tests/__ccache__
 	docker run -it --rm -p $(LOCAL_PORT):8080 --name qgis3-wps-run-$(COMMITID) $(DOCKER_OPTIONS) -w /src \
     -u $(BECOME_USER) \
     -v $(shell pwd):/src \
     -v $(LOCAL_HOME)/.local:/.local \
     -v $(LOCAL_HOME)/.cache/pip:/.pipcache \
-    -v $(shell pwd)/.ccache/.ccache \
+    -v $(LOCAL_HOME)/.ccache:/.ccache \
     -e PIP_CACHE_DIR=/.pipcache \
     -v $(PROCESSING):/processing \
     -v $(shell pwd)/run-tests/data:/projects \
