@@ -78,7 +78,7 @@ class WPSRequest:
 
         wpsrequest = WPSRequest()
 
-        _get_query_param = lambda k,dflt=handler._ARG_DEFAULT : handler.get_query_argument(k,default=dflt)
+        _get_query_param = handler.get_query_argument
 
         def parse_get_getresults():
             """ Parse GET GetResults

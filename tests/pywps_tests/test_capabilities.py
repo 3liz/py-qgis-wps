@@ -17,12 +17,12 @@ class BadRequestTest(HTTPTestCase):
     def test_bad_http_verb(self):
         client = self.client_for(Service())
         resp = client.put('')
-        assert resp.status_code == 405  # method not allowed
+        assert resp.status_code == 405, "405 != %s" %  resp.status_code  # method not allowed
 
     def test_bad_request_type_with_get(self):
         client = self.client_for(Service())
         resp = client.get('?Request=foo')
-        assert resp.status_code == 400
+        assert resp.status_code == 400, "400 != %s" %  resp.status_code
 
     def test_bad_service_type_with_get(self):
         client = self.client_for(Service())
@@ -31,14 +31,14 @@ class BadRequestTest(HTTPTestCase):
         exception = resp.xpath('/ows:ExceptionReport'
                                 '/ows:Exception')
 
-        assert resp.status_code == 400
+        assert resp.status_code == 400, "400 != %s" %  resp.status_code
         assert exception[0].attrib['exceptionCode'] == 'InvalidParameterValue'
 
     def test_bad_request_type_with_post(self):
         client = self.client_for(Service())
         request_doc = WPS.Foo()
         resp = client.post_xml(doc=request_doc)
-        assert resp.status_code == 400
+        assert resp.status_code == 400, "400 != %s" %  resp.status_code
 
 
 class CapabilitiesTest(HTTPTestCase):
@@ -52,7 +52,7 @@ class CapabilitiesTest(HTTPTestCase):
         self.client = self.client_for(Service(processes=[Process(pr1, 'pr1', 'Process 1', metadata=[Metadata('pr1 metadata')]), Process(pr2, 'pr2', 'Process 2', metadata=[Metadata('pr2 metadata')])]))
 
     def check_capabilities_response(self, resp):
-        assert resp.status_code == 200
+        assert resp.status_code == 200, "200 != %s" %  resp.status_code
         assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
         title = resp.xpath_text('/wps:Capabilities'
                                 '/ows:ServiceIdentification'
@@ -88,7 +88,7 @@ class CapabilitiesTest(HTTPTestCase):
         resp = self.client.get('?request=getcapabilities&service=wps&acceptversions=2001-123')
         exception = resp.xpath('/ows:ExceptionReport'
                                 '/ows:Exception')
-        assert resp.status_code == 400
+        assert resp.status_code == 400, "400 != %s" %  resp.status_code
         assert exception[0].attrib['exceptionCode'] == 'VersionNegotiationFailed'
 
     def test_post_bad_version(self):
@@ -99,7 +99,7 @@ class CapabilitiesTest(HTTPTestCase):
         exception = resp.xpath('/ows:ExceptionReport'
                                 '/ows:Exception')
 
-        assert resp.status_code == 400
+        assert resp.status_code == 400, "400 != %s" %  resp.status_code
         assert exception[0].attrib['exceptionCode'] == 'VersionNegotiationFailed'
 
     def test_qywps_version(self):

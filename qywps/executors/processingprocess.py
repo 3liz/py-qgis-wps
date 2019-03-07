@@ -559,7 +559,7 @@ def handle_algorithm_results(alg, context, feedback, **kwargs):
             else:
                 LOGGER.warning("No layer found found for %s", l)
         except Exception:
-            LOGGER.error("Processing: Error loading result layer:\n{}".format(traceback.print_exc()))
+            LOGGER.error("Processing: Error loading result layer:\n{}".format(traceback.format_exc()))
             wrongLayers.append(str(l))
 
     if wrongLayers:

@@ -85,7 +85,7 @@ def start_qgis_application(enable_gui=False, enable_processing=False, verbose=Fa
     logger.info("%s Qgis application initialized......" % logprefix)
 
     if enable_processing:
-        init_qgis_processing(logger)
+        init_qgis_processing()
         logger.info("%s QGis processing initialized" % logprefix)
     
     return qgis_application

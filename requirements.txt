@@ -1,4 +1,4 @@
-tornado >= 5
+tornado >= 6
 jsonschema
 lxml
 python-dateutil

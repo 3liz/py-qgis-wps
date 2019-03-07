@@ -288,7 +288,7 @@ class Service():
         except UnknownProcessError as exc:
             raise InvalidParameterValue("Unknown process %s" % exc, "identifier")
         except Exception as e:
-            traceback.print_exc()
+            LOGGER.critical("Exception:\n%s",traceback.format_exc())
             raise NoApplicableCode(e, code=500)
 
         doc = WPS.ProcessDescriptions(*identifier_elements)

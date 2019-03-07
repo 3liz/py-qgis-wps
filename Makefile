@@ -50,7 +50,7 @@ test:
 	docker run --rm --name qgis-wps-test-$(FLAVOR)-$(COMMITID) -w /src \
     -u $(BECOME_USER) \
     -v $(shell pwd):/src \
-    -v $(LOCAL_HOME)/.local \
+    -v $(LOCAL_HOME)/.local:/.local \
     -v $(LOCAL_HOME)/.cache/pip:/.pipcache \
     -v $(LOCAL_HOME)/.ccache:/.ccache \
     -e PIP_CACHE_DIR=/.pipcache \
