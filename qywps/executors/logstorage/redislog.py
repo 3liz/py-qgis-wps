@@ -199,7 +199,7 @@ class RedisStore(LOGStore):
         LOGGER.debug("LOGSTORE: Initializing REDIS session")
         cfg = configuration.get_config('logstorage:redis')
         self._config  = cfg
-        self._prefix  = cfg.get('hashprefix','qywps')
+        self._prefix  = cfg.get('prefix','qywps')
         self._hstatus = "%s:status"  % self._prefix
 
         self._db  = redis.StrictRedis(

@@ -88,9 +88,10 @@ def load_configuration():
     CONFIG.set('logstorage:db', 'prefix', 'qywps_')
 
     CONFIG.add_section('logstorage:redis')
-    CONFIG.set('logstorage:redis', 'host' , getenv('QYWPS_REDIS_HOST','localhost'))
-    CONFIG.set('logstorage:redis', 'port' , getenv('QYWPS_REDIS_PORT','6379'))
-    CONFIG.set('logstorage:redis', 'dbnum', getenv('QYWPS_REDIS_DBNUM','0')) 
+    CONFIG.set('logstorage:redis', 'host'  , getenv('QYWPS_REDIS_HOST'  ,'localhost'))
+    CONFIG.set('logstorage:redis', 'port'  , getenv('QYWPS_REDIS_PORT'  ,'6379'))
+    CONFIG.set('logstorage:redis', 'dbnum' , getenv('QYWPS_REDIS_DBNUM' ,'0')) 
+    CONFIG.set('logstorage:redis', 'prefix', getenv('QYWPS_REDIS_PREFIX','qywps')) 
  
     CONFIG.add_section('cache')
     CONFIG.set('cache', 'size' , '10' )
