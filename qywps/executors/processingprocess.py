@@ -188,6 +188,7 @@ def parse_file_input( param, kwargs):
     if typ == 'file':
         if param.behavior() == QgsProcessingParameterFile.Folder:
             kwargs['data_type'] = 'string'
+            return return LiteralInput(**kwargs)
         ext = param.extension()
         if ext:
             mime = mimetypes.types_map.get(param.extension())
