@@ -90,6 +90,24 @@ def test_options_input():
     assert inp.default == options[1]
 
 
+def test_multi_options_input():
+    options = ["opt0","opt1","opt2"]
+    param   = QgsProcessingParameterEnum("OPTION","Option",
+                    options=options, allowMultiple=True, defaultValue=1)
+
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp, LiteralInput)
+    assert inp.data_type == 'string'
+    assert inp.allowed_values[0].value == options[0]
+    assert inp.allowed_values[1].value == options[1]
+    assert inp.allowed_values[2].value == options[2]
+    assert inp.default == options[1]
+    assert inp.max_occurs == len(options)
+
+
+
+
 def test_field_input():
     param = QgsProcessingParameterField(
                 "XFIELD",

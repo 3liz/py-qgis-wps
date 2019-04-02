@@ -17,14 +17,9 @@ ifdef REGISTRY_URL
 REGISTRY_PREFIX=$(REGISTRY_URL)/
 endif
 
-FLAVOR:=release
+FLAVOR:=ltr
 
-QGIS_IMAGE:=$(REGISTRY_PREFIX)qgis-platform-dev:$(FLAVOR)
-
-# This is necessary with pytest as long it is not fixed
-# see also https://github.com/qgis/QGIS/pull/5337
-export QGIS_DISABLE_MESSAGE_HOOKS := 1
-export QGIS_NO_OVERRIDE_IMPORT := 1
+QGIS_IMAGE:=$(REGISTRY_PREFIX)qgis-platform:$(FLAVOR)
 
 dirs:
 	mkdir -p $(DIST)
@@ -44,16 +39,18 @@ ifndef LOCAL_HOME
 LOCAL_HOME=$(shell pwd)
 endif
 
-test:
-	rm -rf $(LOCAL_HOME)/.local/share
-	mkdir -p  $(LOCAL_HOME)/.local  $(LOCAL_HOME)/.ccache $(LOCAL_HOME)/.cache
+local:
+	rm -rf $$(pwd)/.local/share
+	mkdir -p  $$(pwd)/.local  $(LOCAL_HOME)/.ccache $(LOCAL_HOME)/.cache
+
+test: local
 	docker run --rm --name qgis-wps-test-$(FLAVOR)-$(COMMITID) -w /src \
     -u $(BECOME_USER) \
-    -v $(shell pwd):/src \
-    -v $(LOCAL_HOME)/.local:/.local \
-    -v $(LOCAL_HOME)/.cache/pip:/.pipcache \
+    -v $$(pwd):/src \
+    -v $$(pwd)/.local:/.local \
+    -v $(LOCAL_HOME)/.cache:/.cache \
     -v $(LOCAL_HOME)/.ccache:/.ccache \
-    -e PIP_CACHE_DIR=/.pipcache \
+    -e PIP_CACHE_DIR=/.cache \
     $(QGIS_IMAGE) /src/run_tests.sh
 
 
@@ -90,21 +87,19 @@ WORKERS:=2
 # Run redis as
 # docker run -it --rm --name redis --net mynet redis:<version>
 
-run:
+run: local
 	@echo "Do not forget to run 'docker run -it --rm -p 6379:6379 --name redis --net mynet redis:<version>'"
-	rm -rf $(LOCAL_HOME)/.local/share
-	mkdir -p $(LOCAL_HOME)/.cache/pip $(LOCAL_HOME)/.ccache
-	mkdir -p $(shell pwd)/run-tests/__workdir__
+	mkdir -p $$(pwd)/run-tests/__workdir__
 	docker run -it --rm -p $(LOCAL_PORT):8080 --name qgis3-wps-run-$(COMMITID) $(DOCKER_OPTIONS) -w /src \
     -u $(BECOME_USER) \
-    -v $(shell pwd):/src \
-    -v $(LOCAL_HOME)/.local:/.local \
-    -v $(LOCAL_HOME)/.cache/pip:/.pipcache \
+    -v $$(pwd):/src \
+    -v $$(pwd)/.local:/.local \
+    -v $(LOCAL_HOME)/.cache:/.cache \
     -v $(LOCAL_HOME)/.ccache:/.ccache \
-    -e PIP_CACHE_DIR=/.pipcache \
+    -e PIP_CACHE_DIR=/.cache \
     -v $(PROCESSING):/processing \
-    -v $(shell pwd)/run-tests/data:/projects \
-    -v $(shell pwd)/run-tests/__workdir__:/srv/data \
+    -v $$(pwd)/run-tests/data:/projects \
+    -v $$(pwd)/run-tests/__workdir__:/srv/data \
     -e QYWPS_LOGLEVEL=DEBUG \
     -e QYWPS_SERVER_PARALLELPROCESSES=$(WORKERS) \
     -e QYWPS_SERVER_LOGSTORAGE=$(LOGSTORAGE) \

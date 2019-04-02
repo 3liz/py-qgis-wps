@@ -8,6 +8,7 @@ from qgis.core import (QgsApplication,
 
 from .TestSimpleValue import TestSimpleValue
 from .TestOptionValue import TestOptionValue
+from .TestMultiOptionValue import TestMultiOptionValue
 from .TestCopyLayer import TestCopyLayer
 from .TestFileDestination import TestFileDestination
 from .TestSimpleBuffer import TestSimpleBuffer
@@ -22,6 +23,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
             algs = [
                  TestSimpleValue(),
                  TestOptionValue(),
+                 TestMultiOptionValue(),
                  TestCopyLayer(),
                  TestFileDestination(),
                  TestSimpleBuffer(),

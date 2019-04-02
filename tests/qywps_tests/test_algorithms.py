@@ -138,6 +138,36 @@ def test_option_algorithms(application):
     assert outputs['OUTPUT'].data == "selection is 0"
 
 
+def test_option_multi_algorithms(application):
+    """ Execute a multiple choice  algorithm
+    """
+    alg = _find_algorithm('qywps_test:testmultioptionvalue')
+
+    context  = QgsProcessingContext()
+    feedback = QgsProcessingFeedback() 
+
+    inputs  = { p.name(): parse_input_definition(p)  for p in  alg.parameterDefinitions() }
+    outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
+    
+    source = inputs['INPUT']
+    inputs['INPUT'] = [source.clone(),source.clone()]
+    inputs['INPUT'][0].data = 'value1'
+    inputs['INPUT'][1].data = 'value3'
+
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+
+    assert parameters['INPUT'] == [0,2]
+
+    # Run algorithm
+    results = Processing.runAlgorithm(alg, parameters=parameters, onFinish=handle_algorithm_results,
+                                      feedback=feedback, context=context)   
+
+    assert results['OUTPUT'] == 'selection is 0,2'
+
+    write_outputs( alg, results, outputs )
+
+    assert outputs['OUTPUT'].data == "selection is 0,2"
+
 
 def test_layer_algorithm(application, outputdir, data):
     """ Copy layer 

@@ -58,6 +58,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFileDestination,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterField,
+                       QgsProcessingParameterMultipleLayers,
                        QgsProcessingUtils,
                        QgsProcessingFeedback,
                        QgsReferencedRectangle,
@@ -151,6 +152,7 @@ def parse_literal_input( param, kwargs ):
         options = param.options()
         kwargs['data_type'] = 'string'
         kwargs['allowed_values'] = options
+        kwargs['max_occurs'] = len(options) if param.allowMultiple() else 1
         if param.defaultValue() is not None:
             # XXX Values for processing enum are indices
             kwargs['default'] = options[param.defaultValue()]
@@ -185,7 +187,7 @@ def parse_file_input( param, kwargs):
     typ = param.type()
     if typ == 'file':
         if param.behavior() == QgsProcessingParameterFile.Folder:
-            raise ProcessingInputTypeNotSupported('folder')
+            kwargs['data_type'] = 'string'
         ext = param.extension()
         if ext:
             mime = mimetypes.types_map.get(param.extension())
@@ -195,15 +197,12 @@ def parse_file_input( param, kwargs):
         return ComplexInput(**kwargs)
     elif typ == 'fileDestination':
         extension = '.'+param.defaultFileExtension()
-        # XXX File destination is name for a destination file
-        # It does not make sense here to let the client choose
-        # the name of a file here so we just set a default value as string
         kwargs['data_type'] = 'string'
-        kwargs['default']   = param.name()+extension
         kwargs['metadata'].append(Metadata('processing:format', mimetypes.types_map.get(extension,'')))
-        kwargs['metadata'].append(Metadata('processing:mutable','no'))
         return LiteralInput(**kwargs)
-
+    elif typ == 'folderDestination':
+        kwargs['data_type'] = 'string'
+        return LiteralInput(**kwargs)
 
 def parse_metadata( param, kwargs ):
     """ Parse freeform metadata
@@ -323,7 +322,7 @@ def parse_layer_output( outdef, kwargs ):
 
 
 def parse_file_output( outdef, kwargs, alg=None ):
-    """ Parse html output def
+    """ Parse file output def
     """
     if isinstance(outdef, QgsProcessingOutputHtml):
         mime = mimetypes.types_map.get('.html')
@@ -438,28 +437,46 @@ def input_to_processing( identifier, inp, alg, context ):
             sink = "%s_%s" % (param.name(), alg.name())
         value = QgsProcessingOutputLayerDefinition(sink, context.destination_project)
         value.destinationName = inp[0].data
+
     elif isinstance(param, QgsProcessingParameterFeatureSource):
+        # Support feature selection
         value, has_selection = parse_layer_spec(inp[0].data, context, allow_selection=True)
         value = QgsProcessingFeatureSourceDefinition(value, selectedFeaturesOnly=has_selection)
+
     elif typ in INPUT_LAYER_TYPES:
         value, _ = parse_layer_spec(inp[0].data, context)
+
+    elif typ == 'multilayer':
+        if len(inp) > 1:
+           value = [parse_layer_spec(i.data, context)[0] for i in inp]
+        else:
+           value, _ = parse_layer_spec(inp[0].data, context)
+
     elif typ == 'enum':
         # XXX Processing wants the index of the value in option list
-        value = param.options().index(inp[0].data)
+        if param.allowMultiple() and len(inp) > 1:
+            opts  = param.options()
+            value = [opts.index(d.data) for d in inp] 
+        else:
+            value = param.options().index(inp[0].data)
+
     elif typ == 'extent':
         r = inp[0].data
         rect  = QgsRectangle(r[0],r[2],r[1],r[3])
         ref   = QgsCoordinateReferenceSystem(inp.crs)
         value = QgsReferencedRectangle(rect, ref)
+
     elif typ == 'crs':
         # XXX CRS may be expressed as EPSG (or QgsProperty ?)
         value = inp[0].data
-    elif typ == 'fileDestination':
+
+    elif typ in ('fileDestination','folderDestination'):
         # Normalize path
         value = basename(normpath(inp[0].data))
         if value != inp[0].data:
-            LOGGER.warning("Warning value for fileDestination %s  has been changed from '%s' to '%s'",
+            LOGGER.warning("Value for file or folder destination '%s' has been truncated from '%s' to '%s'",
                     identifier, inp[0].data, value )
+
     elif len(inp):
         # Return raw value
         value = inp[0].data

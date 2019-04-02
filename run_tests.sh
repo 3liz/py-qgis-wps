@@ -3,8 +3,8 @@
 set -e
 
 pip3 install -U --user setuptools
-pip3 install -U --no-warn-script-location --user -r requirements.pip
-pip3 install -U --no-warn-script-location --user -r requirements.txt 
+pip3 install --no-warn-script-location --user --prefer-binary -r requirements.pip
+pip3 install --no-warn-script-location --user --prefer-binary -r requirements.txt 
 
 pip3 install --user -e ./ 
 
