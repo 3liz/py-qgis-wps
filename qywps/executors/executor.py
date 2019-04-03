@@ -444,7 +444,6 @@ class PoolExecutor(Executor):
             for which the timeout has expired. Usually this is task for wich the process
             as died (memory exhaustion, segfault....)
         """
-        LOGGER.info("Running cleanup task")
         # Iterate over done processes
         cfg = config.get_config('server')
         rootdir = os.path.abspath(cfg['workdir'])
