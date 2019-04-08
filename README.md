@@ -190,22 +190,38 @@ be retourned as WMS urls. This configuration variable set the base url for acces
 - QYWPS\_PROCESSSING\_PROVIDERS: List of providers for publishing algorithms (comma separated)
 - QYWPS\_PROCESSSING\_PROVIDERS\_MODULE\_PATH: Path to look for processing algoritms provider to publish, algorithms from providers specified heres will be runnable as WPS processes.
 
-# Configuring providers
+# Exposing algorithms as WPS services
 
-A start, the service will look for a python file `__algorithms__.py`, the file must import providers that will be loaded into Qgis processing by the service. Published providers are a subset of those loaded.
+*IMPORTANT CHANGES* 
 
-The file `__algorithms__.py` must define a `providers` iterable that return the list of provider class (not instance !) to load.
+
+Since 1.1 , the `__algorithms__.py` method for declaring providers is no longer supported.
+
+Processing providers following the same rules as  Qgis regular plugin with a special factory entrypoint: `WPSClassFactory(iface)` in the `__init__.py` file.
+
+### The `metadata.txt` file
+
+As regular Qgis plugin, a metadata.txt file must be present with a special entry `wps=True` indicating that
+the plugin is available as a WPS service provider.
+
+### Registering providers
+
+The `iface`  parameter is a instance of `WPSServerInterface` which provide a 
+`registerProvider( provider: QgsAlgorithmProvider, expose: bool = True) -> Any` method.
+
+Exposed providers as WPS services must be registered usin the `registerProvider` method
 
 Example:
 
 ```
+def WPSClassFactory(iface: WPSServerInterface) -> Any:
 
-from TestAlgorithmProvider1 import  AlgorithmProvider1
-from TestAlgorithmProvider2 import  AlgorithmProvider2
+    from TestAlgorithmProvider1 import  AlgorithmProvider1
+    from TestAlgorithmProvider2 import  AlgorithmProvider2
 
-# Define the provider's list
-providers = ( AlgorithmProvider1, AlgorithmProvider2 )
-```
- 
+    iface.registerProvider( AlgorithmProvider1() )
+    iface.registerProvider( AlgorithmProvider1() )
+
+``` 
 
 
