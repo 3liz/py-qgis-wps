@@ -22,9 +22,7 @@ import traceback
 from qywps.executors import PoolExecutor, ExecutorError, UnknownProcessError
 from qywps.utils.qgis import start_qgis_application, setup_qgis_paths, init_qgis_processing
 from qywps.utils.lru import lrucache
-from qywps.utils.processing import (import_providers_modules, 
-                                    register_providers, 
-                                    load_styles)
+from qywps.utils.processing import WPSServerInterfaceImpl
 
 from qywps.app.Common import MapContext
 
@@ -38,47 +36,32 @@ class ProcessingProviderNotFound(ExecutorError):
 
 class ProcessingExecutor(PoolExecutor):
 
+    worker_instance = None
+
     def __init__( self ):
         super(ProcessingExecutor, self).__init__()
-        self._providers = []
-        self.PROVIDERS  = []
-        self._loaded_providers = []
+        self._plugins = []
         self._context_processes = lrucache(50)
 
     def initialize( self, processes ):
         """ Initialize executor
         """
         self._config = config.get_config('processing')
-        self.importproviders()
-        self.loadstyles()
+
+        plugin_path = self._config.get('providers_module_path')
+
+        setup_qgis_paths()  
+
+        self._wps_interface = WPSServerInterfaceImpl(plugin_path)
+        self._wps_interface.initialize()
 
         super(ProcessingExecutor, self).initialize(processes)
-
-    def loadstyles(self):
-        """ Load styles definitions
-        """
-        providers_path = self._config.get('providers_module_path','')
-        try:
-            load_styles(providers_path, logger=LOGGER)
-        except Exception:
-            LOGGER.error("Failed to load styles:\n%s", traceback.format_exc())
-
-    def importproviders(self):
-        """ Import algorithm providers
-
-            The method will look for a __algorithms__.py file where all providers 
-            modules should be imported
-        """
-        providers_path = self._config.get('providers_module_path','')
-        try:
-            setup_qgis_paths()            
-            self._providers = import_providers_modules(providers_path, logger=LOGGER)
-        except FileNotFoundError as exc:
-            LOGGER.warn("%s not found" % exc)
 
     def worker_initializer(self):
         """ Worker initializer
         """
+        ProcessingExecutor.worker_instance = self
+
         super(ProcessingExecutor, self).worker_initializer()
         # Init qgis application in worker
         self.start_qgis(main_process=False)
@@ -109,7 +92,9 @@ class ProcessingExecutor(PoolExecutor):
 
         # Init processing *after* initalizing settings
         init_qgis_processing()
-        self.PROVIDERS.extend(register_providers(provider_classes=self._providers))
+
+        # Load plugins
+        self._wps_interface.register_providers()
         LOGGER.info("%s QGis processing initialized" % logprefix)
 
         return self.qgisapp
@@ -123,11 +108,8 @@ class ProcessingExecutor(PoolExecutor):
 
         # XXX We do not want to start a qgis application in the main process
         # So let's initialize the processes list in a child process
-        providers = self._config.get('providers')
-        if providers:
-            providers = providers.split(',')
-            qgs_processes = self._pool.apply(self._qgis_processes, args=(providers,))
-            self.processes.update(qgs_processes)
+        qgs_processes = self._pool.apply(self._create_qgis_processes)
+        self.processes.update(qgs_processes)
 
 
     def get_processes( self, identifiers, map_uri=None, **context ):
@@ -168,7 +150,7 @@ class ProcessingExecutor(PoolExecutor):
             raise
 
     @staticmethod
-    def _qgis_processes(providers):
+    def _create_qgis_processes():
 
         # Install processes from processing providers
         from qywps.executors.processingprocess import QgsProcess
@@ -177,14 +159,16 @@ class ProcessingExecutor(PoolExecutor):
         processingRegistry = QgsApplication.processingRegistry()
         processes = {}
 
-        LOGGER.info("Installing processes from providers %s" % providers)
-        for provider_id in providers:
-            LOGGER.debug("Loading processing algorithms from provider '%s'", provider_id)
-            provider = processingRegistry.providerById(provider_id)
-            if not provider:
-                raise ProcessingProviderNotFound(provider_id)
+        iface = ProcessingExecutor.worker_instance._wps_interface
+
+        for provider in iface.providers:
+            LOGGER.debug("Loading processing algorithms from provider '%s'", provider.id())
             processes.update({ alg.id():QgsProcess( alg ) for alg in provider.algorithms()})
 
-        LOGGER.info("Published processes:\n * %s", "\n * ".join(sorted(processes.keys())))
+        if processes:
+            LOGGER.info("Published processes:\n * %s", "\n * ".join(sorted(processes.keys())))
+        else:
+            LOGGER.warning("No published processes !")
+
         return processes
 

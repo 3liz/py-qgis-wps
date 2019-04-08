@@ -44,3 +44,17 @@ class TestAlgorithmProvider(QgsProcessingProvider):
         for a in self.algs:
             self.addAlgorithm(a)
 
+class DummyAlgorithmProvider(QgsProcessingProvider):
+
+    def __init__(self):
+        super().__init__()
+    
+    def id(self):
+        return 'qywps_dummy_test'
+
+    def name(self):
+        return "QyWPS Dummy Test"
+
+    def loadAlgorithms(self):
+        pass
+

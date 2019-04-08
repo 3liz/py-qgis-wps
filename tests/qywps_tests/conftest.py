@@ -1,6 +1,8 @@
 import os
 import pytest
 
+from pathlib import Path
+
 from qywps.utils.qgis import start_qgis_application, setup_qgis_paths
 
 @pytest.fixture(scope='session')
@@ -18,11 +20,18 @@ def data(request):
 @pytest.fixture(scope='session')
 def application(request):
     setup_qgis_paths()
-    from algorithms.TestAlgorithmProvider import  TestAlgorithmProvider
+    from qywps.utils.processing import WPSServerInterfaceImpl
     qappl = start_qgis_application(enable_processing=True, cleanup=False)
     try:
-        qappl.__PROVIDER = TestAlgorithmProvider()
-        qappl.processingRegistry().addProvider(qappl.__PROVIDER)
+        
+        iface = WPSServerInterfaceImpl(request.config.rootdir.strpath)
+        iface.initialize()
+        assert len(iface.plugins) > 0
+
+        iface.register_providers()
+        assert len(list(iface.providers)) > 0
+        
+        qappl.__IFACE = iface
         
     except Exception as e:
         qappl.exitQgis()

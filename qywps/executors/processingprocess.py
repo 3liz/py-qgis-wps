@@ -655,6 +655,8 @@ class QgsProcess(WPSProcess):
             The create context may be used by the algorithm to provide
             contextualized inputs (i.e inputs that depends on the context source project or 
             associated data)
+
+            WPSInputs and Outputs are parsed from the processing definition.
         """
         self._create_context = context or {}
 

@@ -28,6 +28,8 @@ from .configuration import (get_config,
 from .handlers import (RootHandler, WPSHandler, StoreHandler, StatusHandler, 
                        DownloadHandler)
 
+from .version import __version__
+
 LOGGER = logging.getLogger("QYWPS")
 
 
@@ -141,7 +143,7 @@ def run_server( port, address="", jobs=1, user=None ):
     tornado.platform.asyncio.AsyncIOMainLoop().install()
 
     # Run
-    LOGGER.info("Running server on port %s:%s", address, port)
+    LOGGER.info("Running WPS server %s on port %s:%s", __version__, address, port)
     try:
         if task_id is not None:
             # Clean up signals handlers
