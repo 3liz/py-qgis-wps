@@ -9,6 +9,14 @@ build:
     - $FACTORY_SCRIPTS/trigger-ci $DOCKER_WPS_ID $DOCKER_WPS_TOKEN master
   environment:
     name: snap
+  only:
+    changes:
+      - qywps
+      - tests
+      - "*.sh"
+      - Makefile
+      - "setup.*"
+      - LICENSE.txt
   tags:
     - infrav3
   artifacts:
