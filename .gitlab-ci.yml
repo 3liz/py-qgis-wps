@@ -11,8 +11,8 @@ build:
     name: snap
   only:
     changes:
-      - qywps
-      - tests
+      - qywps/**/*
+      - tests/**/*
       - "*.sh"
       - Makefile
       - "setup.*"
