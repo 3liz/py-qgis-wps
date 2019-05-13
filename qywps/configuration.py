@@ -55,6 +55,10 @@ def load_configuration():
 
     getenv = os.getenv
 
+    #
+    # Server
+    #
+
     CONFIG.add_section('server')
     CONFIG.set('server', 'logstorage' , getenv('QYWPS_SERVER_LOGSTORAGE','REDIS'))
     CONFIG.set('server', 'encoding', 'utf-8')
@@ -79,9 +83,17 @@ def load_configuration():
 
     CONFIG.set('server', 'outputurl'            , '%(store_url)s')
     CONFIG.set('server', 'download_ttl'         , getenv('QYWPS_DOWNLOAD_TTL','30'))
- 
+
+    #
+    # Logging
+    #
+
     CONFIG.add_section('logging')
     CONFIG.set('logging', 'level', getenv('QYWPS_LOGLEVEL','INFO'))
+
+    #
+    # Log storage
+    #
 
     CONFIG.add_section('logstorage:db')
     CONFIG.set('logstorage:db', 'database', 'sqlite:///:memory:')
@@ -92,15 +104,27 @@ def load_configuration():
     CONFIG.set('logstorage:redis', 'port'  , getenv('QYWPS_REDIS_PORT'  ,'6379'))
     CONFIG.set('logstorage:redis', 'dbnum' , getenv('QYWPS_REDIS_DBNUM' ,'0')) 
     CONFIG.set('logstorage:redis', 'prefix', getenv('QYWPS_REDIS_PREFIX','qywps')) 
- 
+
+    #
+    # Projects cache
+    #
+
     CONFIG.add_section('cache')
     CONFIG.set('cache', 'size' , '10' )
     CONFIG.set('cache', 'rootdir' , getenv('QYWPS_CACHE_ROOTDIR',''))
 
+    #
+    # Processing
+    #
+
     CONFIG.add_section('processing')
-    CONFIG.set('processing', 'providers', getenv('QYWPS_PROCESSSING_PROVIDERS',''))
-    CONFIG.set('processing', 'providers_module_path', getenv('QYWPS_PROCESSSING_PROVIDERS_MODULE_PATH',''))
-    CONFIG.set('processing', 'scripts_folders', getenv('QYWPS_PROCESSSING_SCRIPT_FOLDERS','%(providers_module_path)s/scripts'))
+    CONFIG.set('processing', 'providers_module_path', getenv('QYWPS_PROCESSING_PROVIDERS_MODULE_PATH',''))
+    CONFIG.set('processing', 'scripts_folders'      , getenv('QYWPS_PROCESSING_SCRIPT_FOLDERS','%(providers_module_path)s/scripts'))
+    CONFIG.set('processing', 'expose_scripts'       , getenv('QYWPS_PROCESSING_EXPOSE_SCRIPTS','true'))
+
+    #
+    # Metadata
+    #
 
     CONFIG.add_section('metadata:main')
     CONFIG.set('metadata:main', 'identification_title', 'QyWPS Processing Service')

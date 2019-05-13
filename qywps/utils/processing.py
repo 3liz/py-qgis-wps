@@ -26,14 +26,27 @@ from typing import Generator, Iterable, List, Dict, Any
 
 _ProviderItem = namedtuple('_ProviderItem', ('provider','exposed'))
 
+SCRIPTS_PROVIDER_ID='script'
+
+def _register_script_provider(reg, providers):
+    """ Register scripts provider for exposition
+    """
+    p = reg.providerById(SCRIPTS_PROVIDER_ID)
+    if p is None:
+        LOGGER.error("Cannot find %s provider", SCRIPTS_PROVIDER_ID)
+        return
+
+    providers.append(_ProviderItem(p,True))
+    
 
 class WPSServerInterfaceImpl:
 
-    def __init__(self, path) -> None:
+    def __init__(self, path, with_scripts: bool=True) -> None:
 
         self._path = path
         self._plugins = {}
-        self._providers = None
+        self._providers    = None
+        self._with_scripts = with_scripts
 
     def initialize(self) -> None:
         """  Collect wps plugins
@@ -58,6 +71,10 @@ class WPSServerInterfaceImpl:
         reg = QgsApplication.processingRegistry()
 
         providers = []
+        self._providers = providers
+        
+        if self._with_scripts:
+            _register_script_provider(reg,providers)
 
         class _WPSServerInterface:
             def registerProvider( self, provider: 'QgsAlgorithmProvider', expose: bool = True ) -> None:
@@ -67,7 +84,6 @@ class WPSServerInterfaceImpl:
                 # the returned instances
                 providers.append(_ProviderItem(provider,expose))
 
-        self._providers = providers
         wpsIface = _WPSServerInterface()
 
         sys.path.append(self._path)

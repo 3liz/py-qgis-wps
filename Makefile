@@ -78,7 +78,6 @@ LOGSTORAGE:=REDIS
 REDIS_HOST:=redis
 DOCKER_OPTIONS:= --net mynet
 PROCESSING:=$(shell pwd)/run-tests
-PROVIDERS:=lzmtest
 
 # Install in  develop mode in a docker
 
@@ -104,8 +103,7 @@ run: local
     -e QYWPS_SERVER_PARALLELPROCESSES=$(WORKERS) \
     -e QYWPS_SERVER_LOGSTORAGE=$(LOGSTORAGE) \
     -e QYWPS_REDIS_HOST=$(REDIS_HOST) \
-    -e QYWPS_PROCESSSING_PROVIDERS=$(PROVIDERS) \
-    -e QYWPS_PROCESSSING_PROVIDERS_MODULE_PATH=/processing \
+    -e QYWPS_PROCESSING_PROVIDERS_MODULE_PATH=/processing \
     -e QYWPS_CACHE_ROOTDIR=/projects \
     -e QYWPS_SERVER_WORKDIR=/srv/data \
     $(QGIS_IMAGE) /src/run-tests/setup.sh
