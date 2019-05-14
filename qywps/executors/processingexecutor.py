@@ -22,8 +22,7 @@ import traceback
 from qywps.executors import PoolExecutor, ExecutorError, UnknownProcessError
 from qywps.utils.qgis import start_qgis_application, setup_qgis_paths, init_qgis_processing
 from qywps.utils.lru import lrucache
-from qywps.utils.processing import WPSServerInterfaceImpl
-
+from qywps.utils.plugins import WPSServerInterfaceImpl
 from qywps.app.Common import MapContext
 
 LOGGER = logging.getLogger("QYWPS")
@@ -67,32 +66,26 @@ class ProcessingExecutor(PoolExecutor):
         # Init qgis application in worker
         self.start_qgis(main_process=False)
   
-    def init_qgis_settings(self):
-        """ Init qgis settings
-        """
-        from qgis.core import QgsSettings
-
-        settings = QgsSettings()
-
-        # Set up processing script folder
-        scripts_folders = self._config.get('scripts_folders')
-        if os.path.isdir(scripts_folders):
-            settings.setValue( "Processing/Configuration/SCRIPTS_FOLDERS", scripts_folders)
-
     def start_qgis(self, main_process):
         """ Set up qgis
         """
         logprefix = "[qgis:%s]" % os.getpid()
 
+        settings = {}
+
+        # Set up processing script folder
+        scripts_folders = self._config.get('scripts_folders')
+        if os.path.isdir(scripts_folders):
+            LOGGER.info("Scripts folder set to %s", scripts_folders)
+            settings["Processing/Configuration/SCRIPTS_FOLDERS"] = scripts_folders
+        else:
+            LOGGER.warning("Scripts folder '%s' does not exists, qgis default will be used", scripts_folders)
+
         # Init qgis application
-        self.qgisapp = start_qgis_application( enable_processing=False, 
+        self.qgisapp = start_qgis_application( enable_processing=True, 
                                 verbose=config.get_config('logging').get('level')=='DEBUG', 
-                                logger=LOGGER, logprefix=logprefix)
-
-        self.init_qgis_settings()
-
-        # Init processing *after* initalizing settings
-        init_qgis_processing()
+                                logger=LOGGER, logprefix=logprefix,
+                                settings=settings)
 
         # Load plugins
         self._wps_interface.register_providers()

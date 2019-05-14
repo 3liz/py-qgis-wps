@@ -70,8 +70,8 @@ class Context(QgsProcessingContext):
         return self.destination_project.write(os.path.join(workdir,name+'.qgs'))
 
 
-def test_provider(application): 
-    registry = application.processingRegistry()
+def test_provider(): 
+    registry = QgsApplication.processingRegistry()
     provider = registry.providerById('qywps_test')
     assert provider is not None
     assert provider.id() == 'qywps_test'
@@ -80,7 +80,7 @@ def test_provider(application):
     assert registry.algorithmById('qywps_test:testcopylayer') is not None,   'qywps_test:testcopylayer'
 
 
-def test_simple_algorithms(application):
+def test_simple_algorithms():
     """ Execute a simple algorithm
     """
     alg = _find_algorithm('qywps_test:testsimplevalue')
@@ -110,7 +110,7 @@ def test_simple_algorithms(application):
     assert outputs['OUTPUT'].data == "1 stuff"
 
 
-def test_option_algorithms(application):
+def test_option_algorithms():
     """ Execute a simple choice  algorithm
     """
     alg = _find_algorithm('qywps_test:testoptionvalue')
@@ -138,7 +138,7 @@ def test_option_algorithms(application):
     assert outputs['OUTPUT'].data == "selection is 0"
 
 
-def test_option_multi_algorithms(application):
+def test_option_multi_algorithms():
     """ Execute a multiple choice  algorithm
     """
     alg = _find_algorithm('qywps_test:testmultioptionvalue')
@@ -169,7 +169,7 @@ def test_option_multi_algorithms(application):
     assert outputs['OUTPUT'].data == "selection is 0,2"
 
 
-def test_layer_algorithm(application, outputdir, data):
+def test_layer_algorithm(outputdir, data):
     """ Copy layer 
     """
     alg = _find_algorithm('qywps_test:testcopylayer')
@@ -210,7 +210,7 @@ def test_layer_algorithm(application, outputdir, data):
     assert outputs 
 
 
-def test_buffer_algorithm(application, outputdir, data):
+def test_buffer_algorithm(outputdir, data):
     """ Test simple layer output 
     """
     alg = _find_algorithm('qywps_test:simplebuffer')
@@ -265,7 +265,7 @@ def test_buffer_algorithm(application, outputdir, data):
     assert layers[0].featureCount() == srclayer.featureCount()
 
 
-def test_selectfeatures_algorithm(application, outputdir, data):
+def test_selectfeatures_algorithm(outputdir, data):
     """ Test simple layer output 
     """
     alg = _find_algorithm('qywps_test:simplebuffer')

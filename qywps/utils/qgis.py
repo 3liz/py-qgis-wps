@@ -12,7 +12,12 @@ import os
 import sys
 import logging
 
-def setup_qgis_paths():
+from collections import namedtuple
+from typing import Dict
+
+version_info = (0,0,0)
+
+def setup_qgis_paths() -> str:
     """ Init qgis paths 
     """
     qgisPrefixPath = os.environ.get('QGIS_PREFIX_PATH','/usr/')
@@ -25,8 +30,12 @@ def setup_qgis_paths():
 qgis_application = None
 
 
-def start_qgis_application(enable_gui=False, enable_processing=False, verbose=False, cleanup=True,
-                           logger=None, logprefix='Qgis:'):
+def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False, 
+                           verbose: bool=False, 
+                           cleanup: bool=True,
+                           logger: logging.Logger=None, 
+                           logprefix: str='Qgis:',
+                           settings: Dict=None) -> 'qgis.core.QgsApplication':
     """ Start qgis application
 
         :param boolean enable_gui: Enable graphical interface, default to False
@@ -45,6 +54,9 @@ def start_qgis_application(enable_gui=False, enable_processing=False, verbose=Fa
     from qgis.core import Qgis, QgsApplication
 
     logger.info("Starting Qgis application: %s",Qgis.QGIS_VERSION)
+
+    global version_info
+    version_info = tuple(int(n) for n in Qgis.QGIS_VERSION.split('-')[0].split('.'))
 
     if QgsApplication.QGIS_APPLICATION_NAME != "QGIS3":
         raise RuntimeError("You need QGIS3 (found %s)" % QgsApplication.QGIS_APPLICATION_NAME)
@@ -76,6 +88,13 @@ def start_qgis_application(enable_gui=False, enable_processing=False, verbose=Fa
                 qgis_application.exitQgis()
                 del qgis_application
 
+    if settings:
+        # Initialize settings
+        from qgis.core import QgsSettings
+        qgsettings = QgsSettings()
+        for k,v in settings.items():
+            qgsettings.setValue(k,v)
+
     if verbose:
         print(qgis_application.showSettings())
 
@@ -91,7 +110,7 @@ def start_qgis_application(enable_gui=False, enable_processing=False, verbose=Fa
     return qgis_application
 
 
-def init_qgis_processing():
+def init_qgis_processing() -> None:
     """ Initialize processing 
     """
     from processing.core.Processing import Processing
@@ -102,7 +121,7 @@ def init_qgis_processing():
     Processing.initialize()
 
 
-def install_logger_hook( logger, logprefix, verbose=False ):
+def install_logger_hook( logger: logging.Logger, logprefix: str, verbose: bool=False ) -> None:
     """ Install message log hook
     """
     from qgis.core import Qgis, QgsApplication, QgsMessageLog
@@ -121,31 +140,4 @@ def install_logger_hook( logger, logprefix, verbose=False ):
     messageLog = QgsApplication.messageLog()
     messageLog.messageReceived.connect( writelogmessage )
 
-
-def init_qgis_server(network_timeout=20000, **kwargs):
-    """ Init Qgis server
-    """
-    start_qgis_application(**kwargs)
-
-    # XXX HACK issue a dummy request for initializing
-    # network stuff
-    # This is a workaround to https://issues.qgis.org/issues/17866
-    from qgis.core import QgsProviderRegistry
-    from qgis.PyQt.QtCore import QSettings
-
-    wmsuri = ("contextualWMSLegend=0&crs=EPSG:4326&dpiMode=7&featureCount=10&format=image/jpeg"
-      "&layers=s2cloudless&styles&amp;tileMatrixSet=s2cloudless-wmsc-14"
-      "&url=http://localhost:8080/?" )
-   
-    # XXX This will fail with a timeout, subesquent requests should
-    # be ok then
-    s = QSettings()
-    s.setValue('/qgis/networkAndProxy/networkTimeout', 3000)
-    provider = QgsProviderRegistry.instance().createProvider( "wms", wmsuri )
-
-    # Set configuration settings
-    s.setValue( '/qgis/networkAndProxy/networkTimeout', network_timeout)
-
-    from qgis.server import QgsServer
-    return  QgsServer()
 

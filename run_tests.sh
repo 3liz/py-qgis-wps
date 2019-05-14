@@ -17,7 +17,7 @@ export PATH=$PATH:/.local/bin
 # Run legacy pywps tests
 PYTHONPATH=$(pwd)/tests \
 QYWPS_SERVER_LOGSTORAGE=DBLOG \
-python3 tests/pywps_tests/__init__.py
+#python3 tests/pywps_tests/__init__.py
 
 # Run new tests
 cd tests/qywps_tests && py.test -v

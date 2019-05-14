@@ -56,7 +56,7 @@ from processing.core.Processing import Processing
 
 from qywps.executors.processingprocess import Context
 
-def test_context(application, outputdir, data):
+def test_context(outputdir, data):
     """ Context with Copy layer
     """
     alg = _find_algorithm('qywps_test:testcopylayer')
@@ -116,7 +116,7 @@ def test_context(application, outputdir, data):
         assert context.destination_project.readNumEntry("WFSLayersPrecision", "/"+lid)[0] == 6
 
 
-def test_get_project_file(application, outputdir, data):
+def test_get_project_file(outputdir, data):
     """ Test we can get a project file
     """
     # Set Absolute path to the qgis projects root directory, projects references
@@ -131,7 +131,7 @@ def test_get_project_file(application, outputdir, data):
 
     assert os.path.isfile(path)
 
-def test_get_project_folder(application, outputdir, data):
+def test_get_project_folder(outputdir, data):
     """ Test we can get a project folder
     """
     # Set Absolute path to the qgis projects root directory, projects references
