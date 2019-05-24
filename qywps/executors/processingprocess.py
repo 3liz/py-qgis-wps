@@ -720,7 +720,6 @@ class QgsProcess(WPSProcess):
             results = Processing.runAlgorithm(alg, parameters=parameters, onFinish=handle_algorithm_results,
                                               feedback=feedback, context=context)
         except QgsProcessingException as e:
-            LOGGER.error(traceback.format_exc())
             raise ProcessException("%s" % e)
 
         LOGGER.info("Task finished %s:%s", request.identifier, uuid_str )

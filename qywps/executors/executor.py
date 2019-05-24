@@ -362,7 +362,9 @@ class PoolExecutor(Executor):
         timeout = wps_request.timeout
 
         if (wps_response.status == STATUS.STORE_AND_UPDATE_STATUS) and self._pool is not None:
-
+            # ---------------------------------
+            # Run the processe asynchronously
+            # ---------------------------------
             def _on_error( exc ):
                 LOGGER.error('Uncaught Process Exception { "exception": "%s", "type": "%s", "uuid": "%s" }' % (exc, type(exc), process.uuid))
                 wps_response.update_status("Internal error", None, STATUS.ERROR_STATUS)
@@ -372,8 +374,9 @@ class PoolExecutor(Executor):
                     kwds={'is_async':True, 'timeout': timeout },
                     error_callback = _on_error)
         else:
-            # Run the processe asynchronously
-
+            # -------------------------------
+            # Run process and wait for response 
+            # -------------------------------
             loop = asyncio.get_event_loop()
             # Create a future for holding the result
             future = loop.create_future()

@@ -121,7 +121,7 @@ class WPSRequest:
 
             wpsrequest.store_execute = _get_query_param('storeExecuteResponse', 'false')
             # XXX If storeExecuteResponse is set to true then we enforce 
-            # status supports
+            # status supports. This will trigger *asynchronous* request.
             wpsrequest.status = wpsrequest.store_execute
             wpsrequest.lineage = _get_query_param('lineage', 'false')
 

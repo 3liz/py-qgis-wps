@@ -3,33 +3,34 @@
 import sys
 import os
 import requests
-from urllib.parse import urlparse, parse_qs
+import time
 
+from urllib.parse import urlparse, parse_qs
 from client_utils import * 
 
 
-def test_get_capabilities( host, data ):
+def test_get_capabilities( host ):
     """ Test Get capabilities"""
     rv = requests.get(host + "?SERVICE=WPS&Request=GetCapabilities")
     assert rv.status_code == 200
     assert rv.headers.get('Content-Type') == 'text/xml;charset=utf-8'
 
 
-def test_describeprocess( host, data ):
+def test_describeprocess( host ):
     """ Test describe process"""
     rv = requests.get(host + "?SERVICE=WPS&Request=DescribeProcess&Identifier=lzmtest:testcopylayer&Version=1.0.0")
 
     assert rv.status_code == 200
 
 
-def test_executeprocess( host, data ):
+def test_executeprocess( host ):
     """  Test execute process """
     rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testcopylayer&Version=1.0.0"
                                "&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2"))
     assert rv.status_code == 200
 
 
-def test_executeprocess_async( host, data ):
+def test_executeprocess_async( host ):
     """  Test execute async process GET """
     rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testcopylayer&Version=1.0.0"
                                "&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2"
@@ -45,7 +46,7 @@ def test_executeprocess_async( host, data ):
     status_url = resp.xpath_attr('/wps:ExecuteResponse','statusLocation')
     resp = Response(requests.get(status_url))
     assert resp.status_code == 200 
-    assert resp.xpath('/wps:ExecuteResponse')  is not None
+    assert resp.xpath_element('/wps:ExecuteResponse[1]')  is not None
     
 
 
@@ -101,8 +102,8 @@ def _execute_process( host, storeExecuteResponse="false" ):
     return q['uuid'][0]
 
 
-def test_executeprocess_post( host, data):
-    """ Test execute async process POST """
+def test_executeprocess_post( host ):
+    """ Test execute synchronous process POST """
     rv = requests.post(host+"?SERVICE=WPS&MAP=france_parts",
             data=POST_DATA.format(storeExecuteResponse="false"),
             headers={ "Content-Type": "text/xml" })
@@ -114,27 +115,23 @@ def test_executeprocess_post( host, data):
     assert rv.status_code == 200
 
 
-def test_executeprocess_post_async( host, data):
+def test_executeprocess_post_async( host ):
     """ Test execute async process POST """
     rv = requests.post(host+"?SERVICE=WPS&MAP=france_parts",
             data=POST_DATA.format(storeExecuteResponse="true"),
             headers={ "Content-Type": "text/xml" })
 
-    # dump the response
-    #fp = data.open("test_executeprocess_post_async.xml",mode='w')
-    #fp.write(rv.text)
-    #fp.close()
     assert rv.status_code == 200
 
 
-def test_executetimeout( host, data ):
+def test_executetimeout( host ):
     """  Test execute timeout """
     rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testlongprocess&Version=1.0.0"
                                "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"))
     assert rv.status_code == 424
     
 
-def test_executedelete( host, data ):
+def test_executedelete( host ):
     """ Test delete process
     """
     # Execute a process
@@ -173,14 +170,41 @@ def test_proxy_status_url( host ):
     assert "{0.scheme}://{0.netloc}/".format(status_url) == proxy_loc
 
 
-def test_handleprocesserror( host, data ):
-    """  Test execute timeout """
+def test_handleprocesserror( host ):
+    """  Test execute process error """
     rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testraiseerror&Version=1.0.0"
                                "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"))
     assert rv.status_code == 424
 
 
-def test_mapcontext_describe( host, data ):
+def test_handleprocesserror_async( host ):
+    """  Test execute process error asynchronously """
+    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testraiseerror&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"
+                               "&storeExecuteResponse=true"))
+    assert rv.status_code == 200
+
+    # Get the response and test that we can get the result status
+    assert rv.headers.get('Content-Type') == 'text/xml;charset=utf-8'
+    resp = Response(rv)
+    assert_response_accepted(resp)
+
+    # Get the status url
+    time.sleep(1)
+    status_url = resp.xpath_attr('/wps:ExecuteResponse','statusLocation')
+    resp = Response(requests.get(status_url))
+
+    #fp = open("../test_handleprocesserror_async.xml",mode='w')
+    #fp.write(resp.text)
+    #fp.close()
+
+    assert resp.status_code == 200 
+
+    assert resp.xpath_element('/wps:ExecuteResponse')  is not  None
+    assert resp.xpath_element('//wps:ProcessFailed')  is not  None
+ 
+
+def test_mapcontext_describe( host ):
     """ Test describe process with context"""
     rv = requests.get(host + "?SERVICE=WPS&Request=DescribeProcess&Identifier=lzmtest:testmapcontext&Version=1.0.0&MAP=france_parts")
 
@@ -194,7 +218,7 @@ def test_mapcontext_describe( host, data ):
     assert resp.xpath_text('//DataInputs/Input/LiteralData/DefaultValue') == 'france_parts'
  
 
-def test_mapcontext_execute( host, data ):
+def test_mapcontext_execute( host ):
     """ Test execute process with context"""
 
     rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testmapcontext&Version=1.0.0"
@@ -213,11 +237,4 @@ def test_unknownprocess( host ):
 
     assert rv.status_code == 400
     resp = Response(rv)
-
-#def test_slowprogress( host, data ):
-#    """  Test execute timeout """
-#    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=lzmtest:testlongprocess&Version=1.0.0"
-#                               "&MAP=france_parts&DATAINPUTS=PARAM1=2"))
-#    assert rv.status_code == 200
- 
 

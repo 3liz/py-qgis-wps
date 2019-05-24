@@ -341,6 +341,8 @@ class Service():
         wps_response = WPSResponse( process, wps_request, uuid, status_url=status_url)
 
         if wps_request.store_execute == 'true':
+            # Setting STORE_AND_UPDATE_STATUS will trigger
+            # asynchronous requests
             wps_response.status = STATUS.STORE_AND_UPDATE_STATUS
             LOGGER.debug("Update status enabled")
 

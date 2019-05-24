@@ -1,0 +1,30 @@
+version: '3'
+services:
+  wps:
+    image: ${QGIS_IMAGE}
+    user: ${BECOME_USER}
+    working_dir: /src
+    command: /src/run-tests/setup.sh
+    environment:
+      WORKERS: ${WORKERS}
+      QYWPS_SERVER_LOGSTORAGE: REDIS
+      QYWPS_REDIS_HOST: redis
+      QYWPS_PROCESSING_PROVIDERS_MODULE_PATH: /srv/processing
+      QYWPS_CACHE_ROOTDIR: /srv/projects
+      QYWPS_SERVER_WORKDIR: /srv/data
+      QYWPS_LOGLEVEL: DEBUG
+      PIP_CACHE_DIR: /.cache
+    volumes:
+      - ${PWD}:/srv/processing
+      - ${PWD}/data:/srv/projects
+      - ${PWD}/__workdir__:/srv/data
+      - ${PWD}/.home:/home/qgis
+      - ${SRCDIR}:/src
+      - ${PWD}/.local:/.local
+      - ${LOCAL_HOME}/.cache:/.cache
+      - ${LOCAL_HOME}/.ccache:/.ccache
+    ports:
+      - 127.0.0.1:8888:8080
+  redis:
+      image: redis:5
+

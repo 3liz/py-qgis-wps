@@ -25,8 +25,21 @@ class Response:
     def headers(self):
         return self.http_response.headers
 
+    @property
+    def body(self):
+        return self.http_response.content
+
+    @property
+    def text(self):
+        return self.http_response.text
+
     def xpath(self, path):
         return self.xml.xpath(path, namespaces=NAMESPACES)
+
+    def xpath_element(self, path):
+        l = self.xpath(path)
+        if l and len(l)>0:
+            return l[0]
 
     def xpath_attr(self, path, attribut):
         return self.xpath(path)[0].attrib[attribut]
