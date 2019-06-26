@@ -39,6 +39,8 @@ from qywps.validator.allowed_value import ALLOWEDVALUETYPE
 
 from qywps import configuration
 
+from qgis.PyQt.QtCore import QVariant
+
 from qgis.core import QgsApplication
 from qgis.core import QgsProcessingException
 from qgis.core import (QgsProcessing,
@@ -69,6 +71,7 @@ from qgis.core import (QgsProcessing,
                        QgsProperty,
                        QgsCoordinateReferenceSystem,
                        QgsFeatureRequest)
+
 
 from qywps.executors.processingcontext import Context
 
@@ -264,11 +267,21 @@ def parse_input_definition( param, alg=None ):
         'identifier': param.name() ,
         'title'     : param.description(),
         'abstract'  : param.description(),
-        'default'   : param.defaultValue(),
         'metadata'  : [
             Metadata('processing:type',param.type()),
         ]
     }
+
+    # Handle defaultValue
+    # XXX In some case QVariant are 
+    # not converted to python object (SIP bug ?)
+    # Problem stated in getting QgsProcessingParameterFeatureSource
+    # from processing.core.parameters.getParameterFromString
+    defaultValue = param.defaultValue()
+    if isinstance(defaultValue, QVariant):
+        defaultValue = None if defaultValue.isNull() else defaultValue.value()
+
+    kwargs['default'] = defaultValue
 
     # Check for optional flags
     if _is_optional(param):
