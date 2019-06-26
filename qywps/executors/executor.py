@@ -220,8 +220,7 @@ class PoolExecutor(Executor):
 
         self._logstore = LOGStore.create(dbstorename)
        
-        # XXX We need an extra process for cleanup task
-        maxparallel = max(2,maxparallel+1)
+        maxparallel = max(2,maxparallel)
         self._pool = Pool(processes=maxparallel, initializer=self._safe_worker_initializer, maxtasksperchild=processlifecycle )
 
         self.install_processes( processes )
@@ -329,13 +328,9 @@ class PoolExecutor(Executor):
         """
         interval = config.get_config('server').getint('cleanup_interval')
         loop     = asyncio.get_event_loop()
-        pool     = self._pool
-
         async def _run_cleanup():
             while True:
                 await asyncio.sleep(interval)
-                # Run the cleanup function asynchronously
-                future = loop.create_future() 
                 try:
                     self._clean_processes()
                 except Exception as e:

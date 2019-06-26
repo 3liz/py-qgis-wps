@@ -289,7 +289,7 @@ class Service():
             raise InvalidParameterValue("Unknown process %s" % exc, "identifier")
         except Exception as e:
             LOGGER.critical("Exception:\n%s",traceback.format_exc())
-            raise NoApplicableCode(e, code=500)
+            raise NoApplicableCode(str(e), code=500)
 
         doc = WPS.ProcessDescriptions(*identifier_elements)
         doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
