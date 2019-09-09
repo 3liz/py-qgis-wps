@@ -193,11 +193,11 @@ class ComplexOutput(basic.ComplexOutput):
 
         # An url is already defined, use it as reference, do nothing with file
         if self.url is not None:
-            doc.attrib['{http://www.w3.org/1999/xlink}href'] = self.url
+            doc.attrib['href'] = self.url
         else:
             # get_url will create the file and return the url for it
             self.storage = FileStorage()
-            doc.attrib['{http://www.w3.org/1999/xlink}href'] = self.get_url()
+            doc.attrib['href'] = self.get_url()
 
         if self.data_format:
             if self.data_format.mime_type:
