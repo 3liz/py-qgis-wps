@@ -74,12 +74,17 @@ class ProcessingExecutor(PoolExecutor):
         settings = {}
 
         # Set up processing script folder
+        # XXX  If scripts folder is not set then ScriptAlgorithmProvider will crash !
         scripts_folders = self._config.get('scripts_folders')
-        if os.path.isdir(scripts_folders):
+
+        for folder in scripts_folders.split(';'):
+            if not os.path.isdir(folder):
+                LOGGER.error("Script folder '%s' not found, disabling" ,folder) 
+
+        scripts_folders = ';'.join( f for f in scripts_folders if os.path.isdir(folder))
+        if scripts_folders:
             LOGGER.info("Scripts folder set to %s", scripts_folders)
             settings["Processing/Configuration/SCRIPTS_FOLDERS"] = scripts_folders
-        else:
-            LOGGER.warning("Scripts folder '%s' does not exists, qgis default will be used", scripts_folders)
 
         # Init qgis application
         self.qgisapp = start_qgis_application( enable_processing=True, 
