@@ -77,7 +77,8 @@ class ProcessingExecutor(PoolExecutor):
         # XXX  If scripts folder is not set then ScriptAlgorithmProvider will crash !
         scripts_folders = self._config.get('scripts_folders')
 
-        for folder in scripts_folders.split(';'):
+        scripts_folders = scripts_folders.split(';')
+        for folder in scripts_folders:
             if not os.path.isdir(folder):
                 LOGGER.error("Script folder '%s' not found, disabling" ,folder) 
 
