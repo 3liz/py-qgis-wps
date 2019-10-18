@@ -27,6 +27,16 @@ LOGGER = logging.getLogger("QYWPS")
 class WPSHandler(BaseHandler):
     """ Handle WPS requests
     """
+    def initialize(self, filters=None):
+        super().initialize()
+    
+        self._filters = filters or []
+
+    async def prepare(self):
+        # Handle filters
+        for filt in self._filters:
+            await filt.apply( self )
+
     async def handle_wps_request(self, method_parser):
         """ Handle a wps request
         """

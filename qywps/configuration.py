@@ -31,14 +31,14 @@ def _log( *args ):
     print( *args, file=sys.stderr, flush=True)
 
 
-def get_config(section):
+def get_config(section=None):
     """ Return the configuration section
     """
     if CONFIG is None:
         load_configuration()
 
-    return CONFIG[section]
-
+    return CONFIG[section] if section else CONFIG
+    
 
 def load_configuration():
     """Load PyWPS configuration from configuration file.
@@ -84,6 +84,7 @@ def load_configuration():
 
     CONFIG.set('server', 'outputurl'            , '%(store_url)s')
     CONFIG.set('server', 'download_ttl'         , getenv('QYWPS_DOWNLOAD_TTL','30'))
+    CONFIG.set('server', 'enable_filters'       , getenv('QYWPS_SERVER_ENABLE_FILTERS', 'yes'))
 
     #
     # Logging

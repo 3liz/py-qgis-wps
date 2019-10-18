@@ -28,6 +28,8 @@ from .configuration import (get_config,
 from .handlers import (RootHandler, WPSHandler, StoreHandler, StatusHandler, 
                        DownloadHandler)
 
+from .filters import load_filters
+
 from .version import __version__
 
 LOGGER = logging.getLogger("QYWPS")
@@ -38,12 +40,23 @@ def configure_handlers( processes ):
     """
     staticpath = docpath = pkg_resources.resource_filename("qywps", "webui")
 
-    workdir = get_config('server')['workdir']
-    dnl_ttl = get_config('server').getint('download_ttl')
+    cfg = get_config('server')
 
-    handlers = [
-        (r"/"     , RootHandler),
-        (r"/ows/" , WPSHandler ),
+    workdir = cfg['workdir']
+    dnl_ttl = cfg.getint('download_ttl')
+
+    def ows_handlers():
+        # Load filters overriding '/ows/'
+        if cfg.getboolean('enable_filters'):
+            filters = load_filters(r"/ows/")
+            for uri,fltrs in filters.items():
+                yield (uri, WPSHandler, dict(filters=fltrs) )
+        else:
+            yield (r"/ows/", WPSHandler)
+
+    handlers = [ (r"/"     , RootHandler) ]
+    handlers.extend( ows_handlers() )
+    handlers.extend( [
         (r"/ows/store/([^/]+)/(.*)?", StoreHandler, { 'workdir': workdir }),
         (r"/ows/status/([^/]+)?", StatusHandler),
         # Add theses as shortcuts
@@ -57,7 +70,7 @@ def configure_handlers( processes ):
             'path': staticpath, 
             'default_filename':"dashboard.html"
         }),
-    ]
+    ] )
 
     return handlers
 
