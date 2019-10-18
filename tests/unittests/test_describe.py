@@ -6,7 +6,7 @@
 
 import unittest
 from collections import namedtuple
-from qywps import Process, Service, LiteralInput, ComplexInput, BoundingBoxInput
+from qywps import WPSProcess, Service, LiteralInput, ComplexInput, BoundingBoxInput
 from qywps import LiteralOutput, ComplexOutput, BoundingBoxOutput
 from qywps import E, WPS, OWS, OGCTYPE, Format, NAMESPACES, OGCUNIT
 from qywps.inout.literaltypes import LITERAL_DATA_TYPES
@@ -67,7 +67,7 @@ class DescribeProcessTest(HTTPTestCase):
         super().setUp()
         def hello(request): pass
         def ping(request): pass
-        processes = [Process(hello, 'hello', 'Process Hello'), Process(ping, 'ping', 'Process Ping')]
+        processes = [WPSProcess(hello, 'hello', 'Process Hello'), WPSProcess(ping, 'ping', 'Process Ping')]
         self.client = self.client_for(Service(processes=processes))
 
     def test_get_request_all_args(self):
@@ -132,7 +132,7 @@ class DescribeProcessInputTest(HTTPTestCase):
 
     def test_one_literal_string_input(self):
         def hello(request): pass
-        hello_process = Process(
+        hello_process = WPSProcess(
                 hello,
                 'hello',
                 'Process Hello',
@@ -145,7 +145,7 @@ class DescribeProcessInputTest(HTTPTestCase):
 
     def test_one_literal_integer_input(self):
         def hello(request): pass
-        hello_process = Process(hello, 'hello',
+        hello_process = WPSProcess(hello, 'hello',
                                 'Process Hello',
                                 inputs=[LiteralInput('the_number',
                                                      'Input number',
@@ -278,12 +278,3 @@ class OutputDescriptionTest(unittest.TestCase):
         assert len(supported) == 1
 
 
-def load_tests(loader=None, tests=None, pattern=None):
-    if not loader:
-        loader = unittest.TestLoader()
-    suite_list = [
-        loader.loadTestsFromTestCase(DescribeProcessTest),
-        loader.loadTestsFromTestCase(DescribeProcessInputTest),
-        loader.loadTestsFromTestCase(InputDescriptionTest),
-    ]
-    return unittest.TestSuite(suite_list)

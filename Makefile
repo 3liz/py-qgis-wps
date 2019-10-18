@@ -51,6 +51,8 @@ test: local
     -v $(LOCAL_HOME)/.cache:/.cache \
     -v $(LOCAL_HOME)/.ccache:/.ccache \
     -e PIP_CACHE_DIR=/.cache \
+    -e PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
+    -e QYWPS_CACHE_ROOTDIR=/src/tests/unittests/data \
     $(QGIS_IMAGE) /src/run_tests.sh
 
 

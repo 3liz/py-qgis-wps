@@ -20,7 +20,7 @@ from qywps import E, WPS, OWS
 
 LOGGER = logging.getLogger("QYWPS")
 
-class Process:
+class WPSProcess:
     """ Define a process descriptor
     """
     def __init__(self, handler, identifier, title, abstract='',

@@ -12,7 +12,7 @@ import tempfile
 import unittest
 import lxml.etree
 import sys
-from qywps import Service, Process, ComplexInput, ComplexOutput, Format, FORMATS, get_format
+from qywps import Service, WPSProcess, ComplexInput, ComplexOutput, Format, FORMATS, get_format
 from qywps.dependencies import ogr
 from qywps.exceptions import NoApplicableCode
 from qywps import WPS, OWS
@@ -62,7 +62,7 @@ def feature(request, response):
 
 def create_feature():
 
-    return Process(handler=feature,
+    return WPSProcess(handler=feature,
                    identifier='feature',
                    title='Process Feature',
                    inputs=[ComplexInput('input', 'Input', supported_formats=[get_format('GML')])],
@@ -94,7 +94,7 @@ def create_sum_one():
         response.outputs['output'] = out
         return response
 
-    return Process(handler=sum_one,
+    return WPSProcess(handler=sum_one,
                    identifier='sum_one',
                    title='Process Sum One',
                    inputs=[ComplexInput('input', [Format('image/img')])],
@@ -147,10 +147,3 @@ class ExecuteTests(HTTPTestCase):
         # . the type of output
 
 
-def load_tests(loader=None, tests=None, pattern=None):
-    if not loader:
-        loader = unittest.TestLoader()
-    suite_list = [
-        loader.loadTestsFromTestCase(ExecuteTests),
-    ]
-    return unittest.TestSuite(suite_list)

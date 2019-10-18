@@ -26,7 +26,7 @@ from qywps.exceptions import (NoApplicableCode,
                               ProcessException)
 
 from qywps.inout.formats import Format
-from qywps.app.Process import Process as WPSProcess
+from qywps.app.Process import WPSProcess
 from qywps.inout import (LiteralInput,
                         ComplexInput,
                         BoundingBoxInput,

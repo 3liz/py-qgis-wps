@@ -17,30 +17,12 @@ from lxml import etree
 import time
 from qywps import WPS, OWS
 from qywps.exceptions import NoApplicableCode
+from qywps.executors.logstore import STATUS, logstore
 import qywps.configuration as config
-from enum import IntEnum
 
 
-class STATUS(IntEnum):
-    NO_STATUS = 0
-    STORE_STATUS = 10
-    STORE_AND_UPDATE_STATUS = 20
-    DONE_STATUS = 30
-    ERROR_STATUS = 40
-
-
-_logstore = None
 
 class WPSResponse():
-
-    @staticmethod
-    def set_logstore( logstore ):
-        global _logstore
-        _logstore = logstore
-
-    @staticmethod
-    def get_logstore():
-        return _logstore
 
     def __init__(self, process, wps_request, uuid, status_url=None):
         """constructor
@@ -97,14 +79,14 @@ class WPSResponse():
         """ Write response document
         """
         try:
-            _logstore.write_response( request_uuid, doc)
+            logstore.write_response( request_uuid, doc)
         except IOError as e:
             raise NoApplicableCode('Writing Response Document failed with : %s' % e, code=500)
 
     def _update_response( self, request_uuid ):
         """ Log input request
         """
-        _logstore.update_response( request_uuid, self )
+        logstore.update_response( request_uuid, self )
 
     def _process_accepted(self):
         return WPS.Status(

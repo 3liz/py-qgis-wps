@@ -5,7 +5,7 @@
 ##################################################################
 
 import unittest
-from qywps import Process, Service, WPS, OWS
+from qywps import WPSProcess, Service, WPS, OWS
 from qywps.app.basic import xpath_ns
 from qywps.tests import HTTPTestCase, assert_qywps_version
 import lxml.etree
@@ -45,10 +45,3 @@ class ExceptionsTest(HTTPTestCase):
         assert exception_el.attrib['exceptionCode'] == 'OperationNotSupported'
         assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
 
-def load_tests(loader=None, tests=None, pattern=None):
-    if not loader:
-        loader = unittest.TestLoader()
-    suite_list = [
-        loader.loadTestsFromTestCase(ExceptionsTest),
-    ]
-    return unittest.TestSuite(suite_list)

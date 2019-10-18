@@ -60,7 +60,6 @@ def load_configuration():
     #
 
     CONFIG.add_section('server')
-    CONFIG.set('server', 'logstorage' , getenv('QYWPS_SERVER_LOGSTORAGE','REDIS'))
     CONFIG.set('server', 'encoding', 'utf-8')
     CONFIG.set('server', 'language', 'en-US')
     CONFIG.set('server', 'url', '{host_url}')
@@ -96,10 +95,6 @@ def load_configuration():
     #
     # Log storage
     #
-
-    CONFIG.add_section('logstorage:db')
-    CONFIG.set('logstorage:db', 'database', 'sqlite:///:memory:')
-    CONFIG.set('logstorage:db', 'prefix', 'qywps_')
 
     CONFIG.add_section('logstorage:redis')
     CONFIG.set('logstorage:redis', 'host'  , getenv('QYWPS_REDIS_HOST'  ,'localhost'))

@@ -1,9 +1,22 @@
 import os
+import sys
+import logging
 import pytest
 
 from pathlib import Path
 
 from qywps.utils.qgis import start_qgis_application, setup_qgis_paths
+
+def pytest_addoption(parser):
+    parser.addoption("--server-log-level", choices=['debug', 'info', 'warning', 'error','critical'] , help="log level",
+                     default='warning')
+
+server_log_level = None
+
+def pytest_configure(config):
+    global server_log_level
+    server_log_level = config.getoption('server_log_level')
+
 
 @pytest.fixture(scope='session')
 def outputdir(request):
@@ -16,11 +29,18 @@ def outputdir(request):
 def data(request):
     return request.config.rootdir.join('data')
 
-
 qgis_application = None
 
 def pytest_sessionstart(session):
     setup_qgis_paths()
+
+    logging.basicConfig( stream=sys.stderr )
+
+    log_level = getattr(logging, server_log_level.upper())
+    logging.disable(log_level)
+
+    logger = logging.getLogger('QGSRV')
+    logger.setLevel(log_level)
 
     from qywps.utils.plugins import WPSServerInterfaceImpl
     
@@ -52,7 +72,4 @@ def pytest_sessionfinish(session, exitstatus):
     qgis_application.exitQgis()
     qgis_application = None
 
-
-def pytest_configure(config):
-    pass 
 

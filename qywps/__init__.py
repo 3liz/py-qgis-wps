@@ -63,7 +63,7 @@ OGCUNIT = {
     'unity': 'urn:ogc:def:uom:OGC:1.0:unity'
 }
 
-from qywps.app import Process, Service, WPSRequest
+from qywps.app import WPSProcess, Service, WPSRequest
 from qywps.app.WPSRequest import get_inputs_from_xml, get_output_from_xml
 from qywps.inout.inputs import LiteralInput, ComplexInput, BoundingBoxInput
 from qywps.inout.outputs import LiteralOutput, ComplexOutput, BoundingBoxOutput

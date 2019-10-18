@@ -5,7 +5,7 @@
 ##################################################################
 
 
-from qywps.app.Process import Process  # noqa: F401
+from qywps.app.Process import WPSProcess  # noqa: F401
 from qywps.app.Service import Service  # noqa: F401
 from qywps.app.WPSResponse import WPSResponse  # noqa: F401
 from qywps.app.WPSRequest import WPSRequest  # noqa: F401

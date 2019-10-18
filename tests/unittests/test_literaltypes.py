@@ -74,11 +74,3 @@ class ConvertorTest(unittest.TestCase):
             convert_datetime(datetime.datetime(2016, 9, 22, 6)),
             datetime.datetime))
 
-
-def load_tests(loader=None, tests=None, pattern=None):
-    if not loader:
-        loader = unittest.TestLoader()
-    suite_list = [
-        loader.loadTestsFromTestCase(ConvertorTest)
-    ]
-    return unittest.TestSuite(suite_list)

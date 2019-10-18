@@ -130,7 +130,7 @@ class Context(QgsProcessingContext):
     def get_as_project_file( self, name ):
         """ XXX Deprecated, use 'resolve_path'
         """
-        LOGGER.warn("get_as_project_file is deprecated, use 'resolve_path' instead")
+        LOGGER.warning("get_as_project_file is deprecated, use 'resolve_path' instead")
         return self.resolve_path(name)
 
 

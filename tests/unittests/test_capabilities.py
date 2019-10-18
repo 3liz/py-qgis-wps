@@ -4,10 +4,7 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-import unittest
-import lxml
-import lxml.etree
-from qywps.app import Process, Service
+from qywps.app import WPSProcess, Service
 from qywps.app.Common import Metadata
 from qywps import WPS, OWS
 from qywps.tests import HTTPTestCase, assert_qywps_version
@@ -49,7 +46,7 @@ class CapabilitiesTest(HTTPTestCase):
         def pr1(): pass
         def pr2(): pass
 
-        self.client = self.client_for(Service(processes=[Process(pr1, 'pr1', 'Process 1', metadata=[Metadata('pr1 metadata')]), Process(pr2, 'pr2', 'Process 2', metadata=[Metadata('pr2 metadata')])]))
+        self.client = self.client_for(Service(processes=[WPSProcess(pr1, 'pr1', 'Process 1', metadata=[Metadata('pr1 metadata')]), WPSProcess(pr2, 'pr2', 'Process 2', metadata=[Metadata('pr2 metadata')])]))
 
     def check_capabilities_response(self, resp):
         assert resp.status_code == 200, "200 != %s" %  resp.status_code
@@ -106,12 +103,3 @@ class CapabilitiesTest(HTTPTestCase):
         resp = self.client.get('?service=WPS&request=GetCapabilities')
         assert_qywps_version(resp)
 
-
-def load_tests(loader=None, tests=None, pattern=None):
-    if not loader:
-        loader = unittest.TestLoader()
-    suite_list = [
-        loader.loadTestsFromTestCase(BadRequestTest),
-        loader.loadTestsFromTestCase(CapabilitiesTest),
-    ]
-    return unittest.TestSuite(suite_list)

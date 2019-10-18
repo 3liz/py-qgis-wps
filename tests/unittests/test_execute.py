@@ -8,7 +8,7 @@ import asyncio
 import unittest
 import lxml.etree
 import json
-from qywps import Service, Process, LiteralOutput, LiteralInput,\
+from qywps import Service, WPSProcess, LiteralOutput, LiteralInput,\
     BoundingBoxOutput, BoundingBoxInput, Format, ComplexInput, ComplexOutput
 from qywps.validator.base import emptyvalidator
 from qywps.validator.complexvalidator import validategml
@@ -28,7 +28,7 @@ def ultimate_question(request, response):
 
 
 def create_ultimate_question():
-    return Process(handler=ultimate_question,
+    return WPSProcess(handler=ultimate_question,
                    identifier='ultimate_question',
                    title='Ultimate Question',
                    outputs=[LiteralOutput('outvalue', 'Output Value', data_type='string')])
@@ -41,7 +41,7 @@ def greeter(request, response):
     return response
 
 def create_greeter():
-    return Process(handler=greeter,
+    return WPSProcess(handler=greeter,
                    identifier='greeter',
                    title='Greeter',
                    inputs=[LiteralInput('name', 'Input name', data_type='string')],
@@ -57,7 +57,7 @@ def bbox_process(request, response):
 
 
 def create_bbox_process():
-    return Process(handler=bbox_process,
+    return WPSProcess(handler=bbox_process,
                    identifier='my_bbox_process',
                    title='Bbox process',
                    inputs=[BoundingBoxInput('mybbox', 'Input name', ["EPSG:4326"])],
@@ -70,7 +70,7 @@ def complex_proces(request, response):
 def create_complex_proces():
     frmt = Format(mime_type='application/gml') # this is unknown mimetype
 
-    return Process(handler=complex_proces,
+    return WPSProcess(handler=complex_proces,
             identifier='my_complex_process',
             title='Complex process',
             inputs=[
@@ -363,11 +363,3 @@ class ExecuteXmlParserTest(unittest.TestCase):
         self.assertEqual(rv['name'][0]['bodyreference'], 'http://foo/bar/reference')
 
 
-def load_tests(loader=None, tests=None, pattern=None):
-    if not loader:
-        loader = unittest.TestLoader()
-    suite_list = [
-        loader.loadTestsFromTestCase(ExecuteTest),
-        loader.loadTestsFromTestCase(ExecuteXmlParserTest),
-    ]
-    return unittest.TestSuite(suite_list)

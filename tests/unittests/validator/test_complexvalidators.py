@@ -113,10 +113,3 @@ class ValidateTest(unittest.TestCase):
         self.assertFalse(validategml(fake_input, MODE.SIMPLE), 'SIMPLE validation invalid')
         fake_input.stream.close()
 
-def load_tests(loader=None, tests=None, pattern=None):
-    if not loader:
-        loader = unittest.TestLoader()
-    suite_list = [
-        loader.loadTestsFromTestCase(ValidateTest)
-    ]
-    return unittest.TestSuite(suite_list)

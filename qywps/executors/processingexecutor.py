@@ -19,7 +19,7 @@ import logging
 import json
 import traceback
 
-from qywps.executors import PoolExecutor, ExecutorError, UnknownProcessError
+from qywps.executors.pool import PoolExecutor, ExecutorError, UnknownProcessError
 from qywps.utils.qgis import start_qgis_application, setup_qgis_paths, init_qgis_processing
 from qywps.utils.lru import lrucache
 from qywps.utils.plugins import WPSServerInterfaceImpl

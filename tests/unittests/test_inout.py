@@ -332,17 +332,3 @@ class BoxOutputTest(unittest.TestCase):
         self.bbox_out.store = storage
         self.assertEqual(self.bbox_out.store, storage)
 
-def load_tests(loader=None, tests=None, pattern=None):
-    if not loader:
-        loader = unittest.TestLoader()
-    suite_list = [
-        loader.loadTestsFromTestCase(IOHandlerTest),
-        loader.loadTestsFromTestCase(ComplexInputTest),
-        loader.loadTestsFromTestCase(ComplexOutputTest),
-        loader.loadTestsFromTestCase(SimpleHandlerTest),
-        loader.loadTestsFromTestCase(LiteralInputTest),
-        loader.loadTestsFromTestCase(LiteralOutputTest),
-        loader.loadTestsFromTestCase(BoxInputTest),
-        loader.loadTestsFromTestCase(BoxOutputTest)
-    ]
-    return unittest.TestSuite(suite_list)

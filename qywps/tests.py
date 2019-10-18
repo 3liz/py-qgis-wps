@@ -23,7 +23,7 @@ from qywps import __version__, NAMESPACES
 
 import logging
 
-logging.disable(logging.CRITICAL)
+#logging.disable(logging.CRITICAL)
 
 from qywps.runtime import Application
 from qywps.logger import setup_log_handler
@@ -110,7 +110,7 @@ class WpsTestResponse:
 
 
 def assert_response_accepted(resp):
-    assert resp.status_code == 200
+    assert resp.status_code == 200, "resp.status_code = %s" % resp.status_code
     assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
     success = resp.xpath_text('/wps:ExecuteResponse'
                               '/wps:Status'
@@ -120,7 +120,7 @@ def assert_response_accepted(resp):
 
 
 def assert_process_started(resp):
-    assert resp.status_code == 200
+    assert resp.status_code == 200, "resp.status_code = %s" % resp.status_code
     assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
     success = resp.xpath_text('/wps:ExecuteResponse'
                               '/wps:Status'
@@ -130,7 +130,7 @@ def assert_process_started(resp):
 
 
 def assert_response_success(resp):
-    assert resp.status_code == 200
+    assert resp.status_code == 200, "resp.status_code = %s" % resp.status_code
     assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
     success = resp.xpath('/wps:ExecuteResponse/wps:Status/wps:ProcessSucceeded')
     assert len(success) == 1

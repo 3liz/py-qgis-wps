@@ -63,10 +63,3 @@ class WPSRequestTest(unittest.TestCase):
         self.assertTrue(self.request.inputs['myliteral'][0].any_value, 'Any value set')
 
 
-def load_tests(loader=None, tests=None, pattern=None):
-    if not loader:
-        loader = unittest.TestLoader()
-    suite_list = [
-        loader.loadTestsFromTestCase(WPSRequestTest)
-    ]
-    return unittest.TestSuite(suite_list)

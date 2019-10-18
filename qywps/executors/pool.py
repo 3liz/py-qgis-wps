@@ -32,6 +32,7 @@ from qywps.app.WPSResponse import STATUS
 from qywps.app.WPSRequest import WPSRequest
 from qywps.logger import logfile_context
 
+
 from lxml import etree
 from qywps.exceptions import (StorageNotSupported, OperationNotSupported,
                               NoApplicableCode, ProcessException)
@@ -39,6 +40,8 @@ from qywps.exceptions import (StorageNotSupported, OperationNotSupported,
 import qywps.configuration as config
 
 LOGGER = logging.getLogger("QYWPS")
+
+from .logstore import logstore
 
 class ExecutorError(Exception):
     pass
@@ -50,142 +53,7 @@ class StorageNotFound(ExecutorError):
     pass
 
 
-class Executor(metaclass=ABCMeta):
-    """ Define base class for all executors
-
-        An executor is responsible for managing processes creation, execution
-        and returning processes status. 
-    """
-
-    @abstractmethod
-    def install_processes( self, processes ):
-        """ Install processes 
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def list_processes( self ):
-        """ List all available processes
-
-            :param ident: process identifier
-
-            :return: A list of processes infos
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_processes( self, ident, **context ):
-        """ Retrieve process infos
-
-            :param identifires: iteraable of process identitfiers
-            
-            :return: list of Object holding process description data
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_status( self, uuid=None, **kwargs):
-        """ Return status of the stored processes
-
-            :param uuid: the uuid of the required process. 
-             If set to None, return all the stored status.
-
-            :return: The status or the list of status.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def delete_results( self, uuid):
-        """ Delete process results and status 
- 
-            :param uuid: the uuid of the required process. 
-             If set to None, return all the stored status.
-
-            :return: True if the status has been deleted.
-        """
-        raise NotImplementedError
-
-
-    @abstractmethod
-    def start_request( self, request_uuid, wps_request ):
-        """ Indicate that a request processing is started 
-            
-            This method is intended for the executor to record incoming request and process
-            status.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    async def execute( self, wps_request, wps_response ):
-        """ Execute a process
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_results(self, uuid):
-        """ Return results status
-        """
-        raise NotImplementedError
-
-    def initialize( self ):
-        """ Initialize an executor
-        """
-        pass
-
-    def terminate( self ):
-        """ Terminate and free executor ressources
-        """
-        pass
-
-
-class LOGStore(metaclass=ABCMeta):
-
-    @staticmethod
-    def create(name):
-        """ Return a storage instance
-        """
-        from pkg_resources import iter_entry_points
-        for entry in iter_entry_points(group="qywps.logstorage", name=name):
-            LOGGER.info("Loading logstore %s" % name)
-            return entry.load()()
-        else:
-           raise StorageNotFound( name )
-
-    @abstractmethod
-    def log_request( self, request_uuid, wps_request):
-        """
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_status( self, uuid=None, **kwargs ):
-        """ Return status of the stored processes
-
-            :param uuid: the uuid of the required process. 
-             If set to None, return all the stored status.
-
-            :return: The status or the list of status.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_results(self, uuid):
-        """ Return results status
-        """
-        raise NotImplementedError
-
-    def delete_response(self, uuid):
-        """ Delete response record
-        """
-        pass
-
-    def init_session(self):
-        """ initialize store session
-        """
-        pass
-
-
-class PoolExecutor(Executor):
+class PoolExecutor:
     """ Pool executor
     """
 
@@ -206,7 +74,6 @@ class PoolExecutor(Executor):
             os.kill(os.getppid(), signal.SIGTERM)
 
     def initialize(self, processes ):
-        super(PoolExecutor, self).initialize()
  
         cfg = config.get_config('server')
 
@@ -214,32 +81,40 @@ class PoolExecutor(Executor):
         maxparallel      = cfg.getint('parallelprocesses')
         processlifecycle = cfg.getint('processlifecycle')
 
+        # Initialize logstore (redis)
+        logstore.init_session()
+
         # 0 mean eternal life
         if processlifecycle == 0:
             processlifecycle=None
 
-        self._logstore = LOGStore.create(dbstorename)
-       
         maxparallel = max(2,maxparallel)
         self._pool = Pool(processes=maxparallel, initializer=self._safe_worker_initializer, maxtasksperchild=processlifecycle )
 
         self.install_processes( processes )
-        self._logstore.init_session()
-
-        WPSResponse.set_logstore(self._logstore)
 
         # Launch the cleanup task
         self.schedule_cleanup()
 
     def get_status( self, uuid=None, **kwargs ):
-        """ Implementation of Execute.get_status
+        """ Return status of the stored processes
+
+            :param uuid: the uuid of the required process. 
+             If set to None, return all the stored status.
+
+            :return: The status or the list of status.
         """
-        return self._logstore.get_status(uuid, **kwargs)
+        return logstore.get_status(uuid, **kwargs)
 
     def delete_results( self, uuid):
-        """ implementation of Execute.delete_results
+        """ Delete process results and status 
+ 
+            :param uuid: the uuid of the required process. 
+             If set to None, return all the stored status.
+
+            :return: True if the status has been deleted.
         """
-        rec = self._logstore.get_status(uuid)
+        rec = logstore.get_status(uuid)
         if rec is None:
             raise FileNotFoundError(uuid)
         try:
@@ -262,13 +137,13 @@ class PoolExecutor(Executor):
         except Exception as err:
             LOGGER.error('Unable to remove directory: %s: %s', workdir, err)
         # Delete the record/response
-        self._logstore.delete_response(uuid_str)
+        logstore.delete_response(uuid_str)
         return True
 
     def get_results(self, uuid):
         """ Return results status
         """
-        return self._logstore.get_results(uuid) 
+        return logstore.get_results(uuid) 
 
     def terminate(self):
         super(PoolExecutor,self).terminate()
@@ -286,10 +161,6 @@ class PoolExecutor(Executor):
         """ Worker initializer
         """
         LOGGER.info("Starting executor worker pid %s" % os.getpid())
-        self._logstore.init_session()
-
-        # Set logstore to all Response instance
-        WPSResponse.set_logstore(self._logstore)
 
     def install_processes( self, processes ):
         """ Install processes 
@@ -321,7 +192,7 @@ class PoolExecutor(Executor):
     def start_request( self, request_uuid, wps_request ):
         """ Log input request 
         """
-        self._logstore.log_request( request_uuid, wps_request)
+        logstore.log_request( request_uuid, wps_request)
 
     def schedule_cleanup( self ):
         """ Schedule a periodic cleanup
@@ -449,7 +320,6 @@ class PoolExecutor(Executor):
         # The response expiration in seconds
         expire_default = cfg.getint('response_expiration')
 
-        logstore = WPSResponse.get_logstore()
         now_ts   = datetime.utcnow().timestamp()
 
         for _, rec in list(logstore.records):

@@ -19,12 +19,12 @@ from qywps import WPS, OWS
 from urllib.request import urlopen
 from qywps.app.WPSRequest import WPSRequest
 from qywps.app.WPSResponse import WPSResponse
-from qywps.app.WPSResponse import STATUS
+from qywps.executors.logstore import STATUS
 import qywps.configuration as config
 from qywps.exceptions import (MissingParameterValue, NoApplicableCode, InvalidParameterValue, 
                               FileSizeExceeded, StorageNotSupported, OperationNotSupported)
 from qywps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
-from qywps.executors import PoolExecutor, UnknownProcessError
+from qywps.executors.pool import PoolExecutor, UnknownProcessError
 
 from io import StringIO
 
@@ -56,10 +56,6 @@ class Service():
         """ Clean ressource 
         """
         self.executor.terminate()
-
-    @property
-    def logstore(self):
-        return self.executor._logstore
 
     @property
     def processes(self):

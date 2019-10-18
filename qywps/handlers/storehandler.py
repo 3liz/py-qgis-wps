@@ -21,6 +21,7 @@ from ..exceptions import NoApplicableCode, InvalidParameterValue, OperationNotSu
 
 LOGGER = logging.getLogger("QYWPS")
 
+from qywps.executors.logstore import logstore
 
 def _format_size( size ):
     for u in ['B','K','M','G']:
@@ -158,7 +159,6 @@ class DownloadHandler(BaseHandler, StoreShellMixIn):
     def create_dnl_url(self, uuid, filename):
         """ Store the request and create a download url
         """
-        logstore = self.application.wpsservice.logstore
         token = logstore.set_json({
             'uuid': uuid,
             'filename': filename,
@@ -176,8 +176,7 @@ class DownloadHandler(BaseHandler, StoreShellMixIn):
     def get_dnl_params(self, token):
         """ Retrieve the download parameters
         """
-        logstore = self.application.wpsservice.logstore
-        params   = logstore.get_json(token)
+        params = logstore.get_json(token)
         if params is None:
             raise HTTPError(403)
         return params['uuid'],params['filename']

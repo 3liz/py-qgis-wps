@@ -53,10 +53,6 @@ setup(
     packages=find_packages(include=['qywps','qywps.*']),
     include_package_data = True,
     entry_points={
-        'qywps.logstorage':[
-            'DBLOG=qywps.executors.logstorage.dblog:DBStore',
-            'REDIS=qywps.executors.logstorage.redislog:RedisStore'
-        ],
         'console_scripts': ['wpsserver = qywps.wpsserver:main'],
     },
 

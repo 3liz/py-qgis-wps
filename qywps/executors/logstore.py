@@ -1,4 +1,4 @@
-""" Redis storage for WPS 
+""" Redis log storage for WPS 
 
     See http://redis-py.readthedocs.io/en/latest/
 """
@@ -12,20 +12,37 @@ import uuid
 from datetime import datetime
 from lxml import etree
 from collections import namedtuple
-from qywps.executors import LOGStore
-from qywps.app.WPSResponse import STATUS
+from enum import IntEnum
+
+from qywps.utils.decorators import singleton
 from qywps import configuration
 
-import redis
 
 LOGGER = logging.getLogger('QYWPS')
+
+##
+## Use fakeredis for unittests
+##
+use_fakeredis = os.getenv('FAKEREDIS','').lower() in ('1','yes','y','true')
+if use_fakeredis:
+    import fakeredis
+else:
+    import redis
 
 
 def utcnow():
     return datetime.utcnow().replace(microsecond=0)
 
 
-class RedisStore(LOGStore):
+class STATUS(IntEnum):
+    NO_STATUS = 0
+    STORE_STATUS = 10
+    STORE_AND_UPDATE_STATUS = 20
+    DONE_STATUS = 30
+    ERROR_STATUS = 40
+
+
+class LogStore:
 
     def log_request( self, request_uuid, wps_request):
         """ Create request status
@@ -88,7 +105,7 @@ class RedisStore(LOGStore):
             # The request has not been recorded for any reason
             # log error and record it.
             LOGGER.error("No recorded status for request %s", uuid_str)
-            record = log_request(wps_response.wps_request)
+            record = self.log_request(request_uuid, wps_response.wps_request)
         else:
             record = json.loads(data.decode('utf-8'))
         record['message']      = wps_response.message
@@ -185,12 +202,6 @@ class RedisStore(LOGStore):
  
         return data
 
-    @property
-    def connection(self):
-        """ return the current connection
-        """
-        return self._db
-
     def init_session(self):
         """ Initialize store session
 
@@ -202,8 +213,19 @@ class RedisStore(LOGStore):
         self._prefix  = cfg.get('prefix','qywps')
         self._hstatus = "%s:status"  % self._prefix
 
-        self._db  = redis.StrictRedis(
-            host = cfg.get('host','localhost'),
-            port = cfg.getint('port' , fallback=6379),
-            db   = cfg.getint('dbnum', fallback=0))
+        if use_fakeredis:
+            LOGGER.warning("LOGSTORE: Simulating REDIS connection")
+            self._db  = fakeredis.FakeStrictRedis()
+        else:
+            self._db  = redis.StrictRedis(
+                host = cfg.get('host','localhost'),
+                port = cfg.getint('port' , fallback=6379),
+                db   = cfg.getint('dbnum', fallback=0))
+
+
+#
+# The one and only one instance of logstore
+#
+
+logstore = LogStore()
 

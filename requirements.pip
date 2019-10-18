@@ -1,8 +1,4 @@
 setuptools
 coverage
-pylint
-Sphinx
-gunicorn
-SQLAlchemy
 pytest
-
+fakeredis

@@ -66,7 +66,7 @@ class BoundingBox(object):
         try:
             self.crs = Crs(val)
         except (AttributeError, ValueError):
-            logging.warn('Invalid CRS %r. Expected integer')
+            logging.warning('Invalid CRS %r. Expected integer')
             self.crs = None
 
         val = elem.attrib.get('dimensions')
