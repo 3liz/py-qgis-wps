@@ -49,7 +49,7 @@ class HTTPTestCase(AsyncHTTPTestCase):
   
     def get_app(self):
         setup_log_handler('info')
-        self.logger = logging.getLogger('QYWPS')
+        self.logger = logging.getLogger('SRVLOG')
         return Application()
 
     def client_for(self, service):

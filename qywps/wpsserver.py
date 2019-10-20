@@ -16,7 +16,7 @@ from .runtime import run_server
 from .configuration import get_config, load_configuration, read_config_file, read_config_dict
 from .logger import setup_log_handler
 
-LOGGER=logging.getLogger('QYWPS')
+LOGGER=logging.getLogger('SRVLOG')
 
 
 def print_version(config):

@@ -22,7 +22,7 @@ from qywps.inout.formats import FORMATS
 import mimetypes
 import os
 
-LOGGER = logging.getLogger('QYWPS')
+LOGGER = logging.getLogger('SRVLOG')
 
 
 def validategml(data_input, mode):

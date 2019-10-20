@@ -21,7 +21,7 @@ from ..exceptions import NoApplicableCode
 from ..version import __version__
 
 
-LOGGER = logging.getLogger('QYWPS')
+LOGGER = logging.getLogger('SRVLOG')
 
 class BaseHandler(tornado.web.RequestHandler):
     """ Base class for HTTP request hanlers

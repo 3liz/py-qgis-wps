@@ -15,7 +15,7 @@ from contextlib import contextmanager
 
 from .configuration import get_config
 
-LOGGER = logging.getLogger('QYWPS')
+LOGGER = logging.getLogger('SRVLOG')
 
 REQ_LOG_TEMPLATE = u"{ip}\t{code}\t{method}\t{url}\t{time}\t{length}\t"
 REQ_FORMAT = REQ_LOG_TEMPLATE+'{agent}\t{referer}'

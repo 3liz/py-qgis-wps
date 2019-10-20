@@ -19,7 +19,7 @@ import logging
 from qywps.validator.complexvalidator import validategml, validateshapefile, validategeojson, validategeotiff
 from qywps.validator.base import emptyvalidator
 
-LOGGER = logging.getLogger('QYWPS')
+LOGGER = logging.getLogger('SRVLOG')
 
 _VALIDATORS = {
     'application/vnd.geo+json': validategeojson,

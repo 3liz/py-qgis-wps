@@ -17,7 +17,7 @@ from abc import ABCMeta, abstractmethod
 from urllib.parse import urljoin
 from qywps import configuration
 
-LOGGER = logging.getLogger('QYWPS')
+LOGGER = logging.getLogger('SRVLOG')
 
 
 class STORE_TYPE:

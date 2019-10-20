@@ -30,7 +30,7 @@ from qywps import __version__
 
 HTTPException = HTTPError
 
-LOGGER = logging.getLogger('QYWPS')
+LOGGER = logging.getLogger('SRVLOG')
 
 
 class NoApplicableCode(HTTPException):

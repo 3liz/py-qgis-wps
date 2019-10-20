@@ -28,7 +28,7 @@ from qgis.core import (QgsProject, QgsMapLayer)
 
 
 
-LOGGER = logging.getLogger('QYWPS')
+LOGGER = logging.getLogger('SRVLOG')
 
 @singleton
 class _Cache(FileCache):

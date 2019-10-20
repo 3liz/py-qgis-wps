@@ -20,7 +20,7 @@ from qywps.validator.mode import MODE
 from qywps.validator.allowed_value import ALLOWEDVALUETYPE, RANGECLOSURETYPE
 
 
-LOGGER = logging.getLogger('QYWPS')
+LOGGER = logging.getLogger('SRVLOG')
 
 
 def validate_anyvalue(data_input, mode):

@@ -24,7 +24,7 @@ from qywps.validator.allowed_value import ALLOWEDVALUETYPE
 from qywps import OWS, NAMESPACES
 
 import logging
-LOGGER = logging.getLogger('QYWPS')
+LOGGER = logging.getLogger('SRVLOG')
 
 LITERAL_DATA_TYPES = ('float', 'boolean', 'integer', 'string',
                       'positiveInteger', 'anyURI', 'time', 'date', 'dateTime',

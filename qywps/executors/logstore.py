@@ -18,7 +18,7 @@ from qywps.utils.decorators import singleton
 from qywps import configuration
 
 
-LOGGER = logging.getLogger('QYWPS')
+LOGGER = logging.getLogger('SRVLOG')
 
 ##
 ## Use fakeredis for unittests
