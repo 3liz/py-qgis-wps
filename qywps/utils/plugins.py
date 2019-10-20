@@ -20,7 +20,7 @@ import traceback
 from collections import namedtuple
 from .styles import load_styles
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 from typing import Generator, Iterable, List, Dict, Any
 

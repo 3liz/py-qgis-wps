@@ -16,7 +16,7 @@ import logging
 import traceback
 
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 
 def load_styles(styledef_path: str) -> None:

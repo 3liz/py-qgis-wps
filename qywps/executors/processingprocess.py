@@ -80,7 +80,7 @@ from processing.core.Processing import (Processing,
                                         ProcessingConfig,
                                         RenderingStyles)
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 DESTINATION_LAYER_TYPES = (QgsProcessingParameterFeatureSink,
                            QgsProcessingParameterVectorDestination,

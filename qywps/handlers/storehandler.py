@@ -19,7 +19,7 @@ from datetime import datetime
 from .basehandler import BaseHandler
 from ..exceptions import NoApplicableCode, InvalidParameterValue, OperationNotSupported
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 from qywps.executors.logstore import logstore
 

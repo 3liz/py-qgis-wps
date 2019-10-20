@@ -32,7 +32,7 @@ from .filters import load_filters
 
 from .version import __version__
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 
 def configure_handlers( processes ):

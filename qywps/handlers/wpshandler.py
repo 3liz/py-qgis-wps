@@ -21,7 +21,7 @@ from ..exceptions import NoApplicableCode, InvalidParameterValue, OperationNotSu
 from ..app.WPSRequest import WPSRequest
 from ..app.Common import MapContext
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 
 class WPSHandler(BaseHandler):

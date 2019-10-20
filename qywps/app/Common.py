@@ -20,7 +20,7 @@ from urllib.parse import urlparse
 
 from qywps import configuration
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 
 class Metadata:

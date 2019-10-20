@@ -34,7 +34,7 @@ import sys
 import copy
 
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 
 class Service():

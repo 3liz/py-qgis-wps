@@ -39,7 +39,7 @@ import json
 
 from urllib.parse import urlparse
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 class WPSRequest:
 

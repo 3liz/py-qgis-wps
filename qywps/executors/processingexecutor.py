@@ -25,7 +25,7 @@ from qywps.utils.lru import lrucache
 from qywps.utils.plugins import WPSServerInterfaceImpl
 from qywps.app.Common import MapContext
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 import qywps.configuration as config
 

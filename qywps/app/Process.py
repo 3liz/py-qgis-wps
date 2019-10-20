@@ -18,7 +18,7 @@ import shutil
 
 from qywps import E, WPS, OWS
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 class WPSProcess:
     """ Define a process descriptor

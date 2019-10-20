@@ -39,7 +39,7 @@ from qywps.exceptions import (StorageNotSupported, OperationNotSupported,
 
 import qywps.configuration as config
 
-LOGGER = logging.getLogger("QYWPS")
+LOGGER = logging.getLogger('SRVLOG')
 
 from .logstore import logstore
 
