@@ -146,8 +146,8 @@ class PoolExecutor:
         return logstore.get_results(uuid) 
 
     def terminate(self):
-        super(PoolExecutor,self).terminate()
-
+        """ Execute cleanup tasks
+        """
         if self._cleanup_task:
             self._cleanup_task.cancel()
 
