@@ -4,17 +4,15 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-import unittest
 import lxml.etree
 from qywps.app import WPSRequest
 import tempfile
 
 
-class WPSRequestTest(unittest.TestCase):
+class TestWPSRequest:
 
-    def setUp(self):
+    def setup_method(self, me):
 
-        self.request = WPSRequest()
         self.tempfile = tempfile.mktemp()
 
         x = open(self.tempfile, 'w')
@@ -54,12 +52,12 @@ class WPSRequestTest(unittest.TestCase):
             'raw': False
         }
 
-        self.request = WPSRequest()
-        self.request.json = obj
+        request = WPSRequest()
+        request.json = obj
 
-        self.assertEqual(self.request.inputs['myliteral'][0].data, 1, 'Data are in the file')
-        self.assertEqual(self.request.inputs['myin'][0].data, 'ahoj', 'Data are in the file')
-        self.assertListEqual(self.request.inputs['myliteral'][0].allowed_values, [], 'Any value set')
-        self.assertTrue(self.request.inputs['myliteral'][0].any_value, 'Any value set')
+        assert request.inputs['myliteral'][0].data == 1, 'Data are in the file'
+        assert request.inputs['myin'][0].data == 'ahoj', 'Data are in the file'
+        assert request.inputs['myliteral'][0].allowed_values == [], 'Any value set'
+        assert request.inputs['myliteral'][0].any_value, 'Any value set'
 
 

@@ -8,7 +8,7 @@
 
 import os
 import tempfile
-import unittest
+import pytest
 
 from io import StringIO
 from qywps import Format
@@ -29,40 +29,36 @@ def get_data_format(mime_type):
     return Format(mime_type=mime_type,
     validate=get_validator(mime_type))
 
-class IOHandlerTest(unittest.TestCase):
+
+class TestIOHandler:
     """IOHandler test cases"""
 
-    def setUp(self):
+    def setup_method(self, me):
         tmp_dir = tempfile.mkdtemp()
         self.iohandler = IOHandler(workdir=tmp_dir)
         self._value = 'lalala'
 
-    def tearDown(self):
-        pass
-
     def test_basic_IOHandler(self):
         """Test basic IOHandler"""
-        self.assertTrue(os.path.isdir(self.iohandler.workdir))
+        assert os.path.isdir(self.iohandler.workdir)
 
     def test_validator(self):
         """Test available validation function
         """
-        self.assertEqual(self.iohandler.validator, emptyvalidator)
+        assert self.iohandler.validator == emptyvalidator
 
     def _test_outout(self, source_type):
         """Test all outputs"""
 
-        self.assertEqual(source_type, self.iohandler.source_type,
-                          'Source type properly set')
-
-        self.assertEqual(self._value, self.iohandler.data, 'Data obtained')
+        assert source_type == self.iohandler.source_type, 'Source type properly set'
+        assert self._value == self.iohandler.data, 'Data obtained'
 
         if self.iohandler.source_type == SOURCE_TYPE.STREAM:
             source = StringIO(str(self._value))
             self.iohandler.stream = source
 
         file_handler = open(self.iohandler.file)
-        self.assertEqual(self._value, file_handler.read(), 'File obtained')
+        assert self._value == file_handler.read(), 'File obtained'
         file_handler.close()
 
         if self.iohandler.source_type == SOURCE_TYPE.STREAM:
@@ -73,20 +69,13 @@ class IOHandlerTest(unittest.TestCase):
         self.iohandler.stream.close()
 
         if type(stream_val) == type(b''):
-            self.assertEqual(str.encode(self._value), stream_val,
-                             'Stream obtained')
+            assert str.encode(self._value) == stream_val,'Stream obtained'
         else:
-            self.assertEqual(self._value, stream_val,
-                             'Stream obtained')
+            assert self._value == stream_val,'Stream obtained'
 
         if self.iohandler.source_type == SOURCE_TYPE.STREAM:
             source = StringIO(str(self._value))
             self.iohandler.stream = source
-
-        self.skipTest('Memory object not implemented')
-        self.assertEqual(stream_val, self.iohandler.memory_object,
-                         'Memory object obtained')
-
 
     def test_data(self):
         """Test data input IOHandler"""
@@ -113,22 +102,18 @@ class IOHandlerTest(unittest.TestCase):
         """Test workdir"""
         workdir = tempfile.mkdtemp()
         self.iohandler.workdir = workdir
-        self.assertTrue(os.path.isdir(self.iohandler.workdir))
+        assert os.path.isdir(self.iohandler.workdir)
 
         # make another
         workdir = tempfile.mkdtemp()
         self.iohandler.workdir = workdir
-        self.assertTrue(os.path.isdir(self.iohandler.workdir))
-
-    def test_memory(self):
-        """Test data input IOHandler"""
-        self.skipTest('Memory object not implemented')
+        assert os.path.isdir(self.iohandler.workdir)
 
 
-class ComplexInputTest(unittest.TestCase):
+class TestComplexInput:
     """ComplexInput test cases"""
 
-    def setUp(self):
+    def setup_method(self, me):
         self.tmp_dir = tempfile.mkdtemp()
         data_format = get_data_format('application/json')
         self.complex_in = ComplexInput(identifier="complexinput",
@@ -140,40 +125,39 @@ class ComplexInputTest(unittest.TestCase):
         self.complex_in.data = "Hallo world!"
 
     def test_validator(self):
-        self.assertEqual(self.complex_in.data_format.validate,
-                       get_validator('application/json'))
-        self.assertEqual(self.complex_in.validator,
-                         get_validator('application/json'))
+        assert self.complex_in.data_format.validate == get_validator('application/json')
+        assert self.complex_in.validator == get_validator('application/json')
         frmt = get_data_format('application/json')
         def my_validate():
             return True
         frmt.validate = my_validate
-        self.assertNotEqual(self.complex_in.validator, frmt.validate)
+        assert not self.complex_in.validator == frmt.validate
 
     def test_contruct(self):
-        self.assertIsInstance(self.complex_in, ComplexInput)
+        assert isinstance(self.complex_in, ComplexInput)
 
     def test_data_format(self):
-        self.assertIsInstance(self.complex_in.supported_formats[0], Format)
+        assert isinstance(self.complex_in.supported_formats[0], Format)
 
     def test_json_out(self):
         out = self.complex_in.json
 
-        self.assertEqual(out['workdir'], self.tmp_dir, 'Workdir defined')
-        self.assertTrue(out['file'], 'There is no file')
-        self.assertTrue(out['supported_formats'], 'There are some formats')
-        self.assertEqual(len(out['supported_formats']), 1, 'There is one formats')
-        self.assertEqual(out['title'], 'MyComplex', 'Title not set but existing')
-        self.assertEqual(out['abstract'], 'My complex input', 'Abstract not set but existing')
-        self.assertEqual(out['identifier'], 'complexinput', 'identifier set')
-        self.assertEqual(out['type'], 'complex', 'it is complex input')
-        self.assertTrue(out['data_format'], 'data_format set')
-        self.assertEqual(out['data_format']['mime_type'], 'application/json', 'data_format set')
+        assert out['workdir'] == self.tmp_dir, 'Workdir defined'
+        assert out['file'], 'There is no file'
+        assert out['supported_formats'], 'There are some formats'
+        assert len(out['supported_formats']) == 1, 'There is one formats'
+        assert out['title'] == 'MyComplex', 'Title not set but existing'
+        assert out['abstract'] == 'My complex input', 'Abstract not set but existing'
+        assert out['identifier'] == 'complexinput', 'identifier set'
+        assert out['type'] == 'complex', 'it is complex input'
+        assert out['data_format'], 'data_format set'
+        assert out['data_format']['mime_type'] == 'application/json', 'data_format set'
 
-class ComplexOutputTest(unittest.TestCase):
+
+class TestComplexOutput:
     """ComplexOutput test cases"""
 
-    def setUp(self):
+    def setup_method(self, me):
         tmp_dir = tempfile.mkdtemp()
         data_format = get_data_format('application/json')
         self.complex_out = ComplexOutput(identifier="complexinput", workdir=tmp_dir,
@@ -181,154 +165,140 @@ class ComplexOutputTest(unittest.TestCase):
                                          supported_formats=[data_format])
 
     def test_contruct(self):
-        self.assertIsInstance(self.complex_out, ComplexOutput)
+        assert isinstance(self.complex_out, ComplexOutput)
 
     def test_data_format(self):
-        self.assertIsInstance(self.complex_out.data_format, Format)
+        assert isinstance(self.complex_out.data_format, Format)
 
     def test_storage(self):
         class Storage(object):
             pass
         storage = Storage()
         self.complex_out.store = storage
-        self.assertEqual(self.complex_out.store, storage)
+        assert self.complex_out.store == storage
 
     def test_validator(self):
-        self.assertEqual(self.complex_out.validator,
-                         get_validator('application/json'))
+        assert self.complex_out.validator == get_validator('application/json')
 
 
 
-class SimpleHandlerTest(unittest.TestCase):
+class TestSimpleHandler:
     """SimpleHandler test cases"""
 
-    def setUp(self):
-
+    def setup_method(self, me):
         data_type = 'integer'
-
         self.simple_handler = SimpleHandler(data_type=data_type)
 
     def test_contruct(self):
-        self.assertIsInstance(self.simple_handler, SimpleHandler)
+        assert isinstance(self.simple_handler, SimpleHandler)
 
     def test_data_type(self):
-        self.assertEqual(convert(self.simple_handler.data_type, '1'), 1)
+        assert convert(self.simple_handler.data_type, '1') == 1
 
-class LiteralInputTest(unittest.TestCase):
+
+class TestLiteralInput:
     """LiteralInput test cases"""
 
-    def setUp(self):
-
+    def setup_method(self, me):
         self.literal_input = LiteralInput(
                 identifier="literalinput",
                 mode=2,
                 allowed_values=(1, 2, (3, 3, 12)))
 
-
     def test_contruct(self):
-        self.assertIsInstance(self.literal_input, LiteralInput)
-        self.assertEqual(len(self.literal_input.allowed_values), 3)
-        self.assertIsInstance(self.literal_input.allowed_values[0], AllowedValue)
-        self.assertIsInstance(self.literal_input.allowed_values[2], AllowedValue)
-        self.assertEqual(self.literal_input.allowed_values[2].spacing, 3)
-        self.assertEqual(self.literal_input.allowed_values[2].minval, 3)
+        assert isinstance(self.literal_input, LiteralInput)
+        assert len(self.literal_input.allowed_values) == 3
+        assert isinstance(self.literal_input.allowed_values[0], AllowedValue)
+        assert isinstance(self.literal_input.allowed_values[2], AllowedValue)
+        assert self.literal_input.allowed_values[2].spacing == 3
+        assert self.literal_input.allowed_values[2].minval == 3
 
     def test_valid(self):
         self.literal_input.data = 1
-        self.assertEqual(self.literal_input.data, 1)
-        try:
+        assert self.literal_input.data == 1
+        
+        with pytest.raises(InvalidParameterValue):
             self.literal_input.data = 5
-            self.assertTrue(False, '5 does not work for spacing')
-        except InvalidParameterValue:
-            self.assertTrue(True)
 
-        try:
+        with pytest.raises(InvalidParameterValue):
             self.literal_input.data = "a"
-            self.assertTrue(False, '"a" should not be allowed to be set')
-        except InvalidParameterValue:
-            self.assertTrue(True)
 
-        try:
+        with pytest.raises(InvalidParameterValue):
             self.literal_input.data = 15
-            self.assertTrue(False, '11 should not be allowed to be set')
-        except InvalidParameterValue:
-            self.assertTrue(True)
 
         self.literal_input.data = 6
-        self.assertEqual(self.literal_input.data, 6)
+        assert self.literal_input.data == 6
 
     def test_json_out(self):
         self.literal_input.data = 9
         out = self.literal_input.json
 
-        self.assertFalse(out['uoms'], 'UOMs exist')
-        self.assertFalse(out['workdir'], 'Workdir exist')
-        self.assertEqual(out['data_type'], 'integer', 'Data type is integer')
-        self.assertFalse(out['abstract'], 'abstract exist')
-        self.assertFalse(out['title'], 'title exist')
-        self.assertEqual(out['data'], 9, 'data set')
-        self.assertEqual(out['mode'], MODE.STRICT, 'Mode set')
-        self.assertEqual(out['identifier'], 'literalinput', 'identifier set')
-        self.assertEqual(out['type'], 'literal', 'it\'s literal input')
-        self.assertFalse(out['uom'], 'uom exists')
-        self.assertEqual(len(out['allowed_values']), 3, '3 allowed values')
-        self.assertEqual(out['allowed_values'][0]['value'], 1, 'allowed value 1')
+        assert not out['uoms'], 'UOMs exist'
+        assert not out['workdir'], 'Workdir exist'
+        assert out['data_type'] == 'integer', 'Data type is integer'
+        assert not out['abstract'], 'abstract exist'
+        assert not out['title'], 'title exist'
+        assert out['data'] == 9, 'data set'
+        assert out['mode'] == MODE.STRICT, 'Mode set'
+        assert out['identifier'] == 'literalinput', 'identifier set'
+        assert out['type'] == 'literal', 'it\'s literal input'
+        assert not out['uom'], 'uom exists'
+        assert len(out['allowed_values']) == 3, '3 allowed values'
+        assert out['allowed_values'][0]['value'] == 1, 'allowed value 1'
 
 
-class LiteralOutputTest(unittest.TestCase):
+class TestLiteralOutput:
     """LiteralOutput test cases"""
 
-    def setUp(self):
-
+    def setup_method(self, me):
         self.literal_output = LiteralOutput("literaloutput", data_type="integer")
 
     def test_contruct(self):
-        self.assertIsInstance(self.literal_output, LiteralOutput)
+        assert isinstance(self.literal_output, LiteralOutput)
 
     def test_storage(self):
         class Storage(object):
             pass
         storage = Storage()
         self.literal_output.store = storage
-        self.assertEqual(self.literal_output.store, storage)
+        assert self.literal_output.store == storage
 
-class BoxInputTest(unittest.TestCase):
+
+class TestBoxInput:
     """BBoxInput test cases"""
 
-    def setUp(self):
-
+    def setup_method(self, me):
         self.bbox_input = BBoxInput("bboxinput", dimensions=2)
         self.bbox_input.ll = [0, 1]
         self.bbox_input.ur = [2, 4]
 
     def test_contruct(self):
-        self.assertIsInstance(self.bbox_input, BBoxInput)
+        assert isinstance(self.bbox_input, BBoxInput)
 
     def test_json_out(self):
         out = self.bbox_input.json
 
-        self.assertTrue(out['identifier'], 'identifier exists')
-        self.assertFalse(out['title'], 'title exists')
-        self.assertFalse(out['abstract'], 'abstract set')
-        self.assertEqual(out['type'], 'bbox', 'type set')
-        self.assertTupleEqual(out['bbox'], ([0, 1], [2, 4]), 'data are tehre')
-        self.assertEqual(out['dimensions'], 2, 'Dimensions set')
+        assert out['identifier'], 'identifier exists'
+        assert not out['title'], 'title exists'
+        assert not out['abstract'], 'abstract set'
+        assert out['type'] == 'bbox', 'type set'
+        assert out['bbox'] == ([0, 1], [2, 4]), 'data are there'
+        assert out['dimensions'] == 2, 'Dimensions set'
 
 
-class BoxOutputTest(unittest.TestCase):
+class TestBoxOutput:
     """BoundingBoxOutput test cases"""
 
-    def setUp(self):
-
+    def setup_method(self, me):
         self.bbox_out = BBoxOutput("bboxoutput")
 
     def test_contruct(self):
-        self.assertIsInstance(self.bbox_out, BBoxOutput)
+        assert isinstance(self.bbox_out, BBoxOutput)
 
     def test_storage(self):
         class Storage(object):
             pass
         storage = Storage()
         self.bbox_out.store = storage
-        self.assertEqual(self.bbox_out.store, storage)
+        assert self.bbox_out.store == storage
 

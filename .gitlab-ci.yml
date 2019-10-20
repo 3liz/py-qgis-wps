@@ -21,6 +21,6 @@ build:
     - infrav3
   artifacts:
     reports:
-        junit: tests/qywps_tests/__output__/junit.xml
+        junit: tests/unittests/__output__/junit.xml
 
 

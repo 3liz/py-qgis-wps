@@ -5,7 +5,6 @@
 ##################################################################
 
 import asyncio
-import unittest
 import lxml.etree
 import json
 from qywps import Service, WPSProcess, LiteralOutput, LiteralInput,\
@@ -219,147 +218,154 @@ class ExecuteTest(HTTPTestCase):
         self.assertEqual('15 50', xpath_ns(output,
             './ows:BoundingBox/ows:LowerCorner')[0].text)
 
-class ExecuteXmlParserTest(unittest.TestCase):
-    """Tests for Execute request XML Parser
-    """
+#
+# Tests for Execute request XML Parser
+#
 
-    def test_empty(self):
-        request_doc = WPS.Execute(OWS.Identifier('foo'))
-        assert get_inputs_from_xml(request_doc) == {}
-
-    def test_one_string(self):
-        request_doc = WPS.Execute(
-            OWS.Identifier('foo'),
-            WPS.DataInputs(
-                WPS.Input(
-                    OWS.Identifier('name'),
-                    WPS.Data(WPS.LiteralData('foo'))),
-                WPS.Input(
-                    OWS.Identifier('name'),
-                    WPS.Data(WPS.LiteralData('bar')))
-                ))
-        rv = get_inputs_from_xml(request_doc)
-        self.assertTrue('name' in rv)
-        self.assertEqual(len(rv['name']), 2)
-        self.assertEqual(rv['name'][0]['data'], 'foo')
-        self.assertEqual(rv['name'][1]['data'], 'bar')
-
-    def test_two_strings(self):
-        request_doc = WPS.Execute(
-            OWS.Identifier('foo'),
-            WPS.DataInputs(
-                WPS.Input(
-                    OWS.Identifier('name1'),
-                    WPS.Data(WPS.LiteralData('foo'))),
-                WPS.Input(
-                    OWS.Identifier('name2'),
-                    WPS.Data(WPS.LiteralData('bar')))))
-        rv = get_inputs_from_xml(request_doc)
-        self.assertEqual(rv['name1'][0]['data'], 'foo')
-        self.assertEqual(rv['name2'][0]['data'], 'bar')
-
-    def test_complex_input(self):
-        the_data = E.TheData("hello world")
-        request_doc = WPS.Execute(
-            OWS.Identifier('foo'),
-            WPS.DataInputs(
-                WPS.Input(
-                    OWS.Identifier('name'),
-                    WPS.Data(
-                        WPS.ComplexData(the_data, mimeType='text/foobar')))))
-        rv = get_inputs_from_xml(request_doc)
-        self.assertEqual(rv['name'][0]['mimeType'], 'text/foobar')
-        rv_doc = lxml.etree.parse(StringIO(rv['name'][0]['data'])).getroot()
-        self.assertEqual(rv_doc.tag, 'TheData')
-        self.assertEqual(rv_doc.text, 'hello world')
-
-    def test_complex_input_raw_value(self):
-        the_data = '{ "plot":{ "Version" : "0.1" } }'
-
-        request_doc = WPS.Execute(
-            OWS.Identifier('foo'),
-            WPS.DataInputs(
-                WPS.Input(
-                    OWS.Identifier('json'),
-                    WPS.Data(
-                        WPS.ComplexData(the_data, mimeType='application/json')))))
-        rv = get_inputs_from_xml(request_doc)
-        self.assertEqual(rv['json'][0]['mimeType'], 'application/json')
-        json_data = json.loads(rv['json'][0]['data'])
-        self.assertEqual(json_data['plot']['Version'], '0.1')
-
-    def test_complex_input_base64_value(self):
-        the_data = 'eyAicGxvdCI6eyAiVmVyc2lvbiIgOiAiMC4xIiB9IH0='
-
-        request_doc = WPS.Execute(
-            OWS.Identifier('foo'),
-            WPS.DataInputs(
-                WPS.Input(
-                    OWS.Identifier('json'),
-                    WPS.Data(
-                        WPS.ComplexData(the_data,
-                            encoding='base64',
-                            mimeType='application/json')))))
-        rv = get_inputs_from_xml(request_doc)
-        self.assertEqual(rv['json'][0]['mimeType'], 'application/json')
-        json_data = json.loads(rv['json'][0]['data'].decode())
-        self.assertEqual(json_data['plot']['Version'], '0.1')
+def test_empty():
+    request_doc = WPS.Execute(OWS.Identifier('foo'))
+    assert get_inputs_from_xml(request_doc) == {}
 
 
-    def test_bbox_input(self):
-        request_doc = WPS.Execute(
-            OWS.Identifier('request'),
-            WPS.DataInputs(
-                WPS.Input(
-                    OWS.Identifier('bbox'),
-                    WPS.Data(
-                        WPS.BoundingBoxData(
-                            OWS.LowerCorner('40 50'),
-                            OWS.UpperCorner('60 70'))))))
-        rv = get_inputs_from_xml(request_doc)
-        bbox = rv['bbox'][0]
-        assert isinstance(bbox, BoundingBox)
-        assert bbox.minx == '40'
-        assert bbox.miny == '50'
-        assert bbox.maxx == '60'
-        assert bbox.maxy == '70'
+def test_one_string():
+    request_doc = WPS.Execute(
+        OWS.Identifier('foo'),
+        WPS.DataInputs(
+            WPS.Input(
+                OWS.Identifier('name'),
+                WPS.Data(WPS.LiteralData('foo'))),
+            WPS.Input(
+                OWS.Identifier('name'),
+                WPS.Data(WPS.LiteralData('bar')))
+            ))
+    rv = get_inputs_from_xml(request_doc)
+    assert 'name' in rv
+    assert len(rv['name']) == 2
+    assert rv['name'][0]['data'] == 'foo'
+    assert rv['name'][1]['data'] == 'bar'
 
-    def test_reference_post_input(self):
-        request_doc = WPS.Execute(
-            OWS.Identifier('foo'),
-            WPS.DataInputs(
-                WPS.Input(
-                    OWS.Identifier('name'),
-                    WPS.Reference(
-                        WPS.Body('request body'),
-                        {'{http://www.w3.org/1999/xlink}href': 'http://foo/bar/service'},
-                        method='POST'
-                    )
+
+def test_two_strings():
+    request_doc = WPS.Execute(
+        OWS.Identifier('foo'),
+        WPS.DataInputs(
+            WPS.Input(
+                OWS.Identifier('name1'),
+                WPS.Data(WPS.LiteralData('foo'))),
+            WPS.Input(
+                OWS.Identifier('name2'),
+                WPS.Data(WPS.LiteralData('bar')))))
+    rv = get_inputs_from_xml(request_doc)
+    assert rv['name1'][0]['data'] == 'foo'
+    assert rv['name2'][0]['data'] == 'bar'
+
+
+def test_complex_input():
+    the_data = E.TheData("hello world")
+    request_doc = WPS.Execute(
+        OWS.Identifier('foo'),
+        WPS.DataInputs(
+            WPS.Input(
+                OWS.Identifier('name'),
+                WPS.Data(
+                    WPS.ComplexData(the_data, mimeType='text/foobar')))))
+    rv = get_inputs_from_xml(request_doc)
+    assert rv['name'][0]['mimeType'] == 'text/foobar'
+    rv_doc = lxml.etree.parse(StringIO(rv['name'][0]['data'])).getroot()
+    assert rv_doc.tag == 'TheData'
+    assert rv_doc.text == 'hello world'
+
+
+def test_complex_input_raw_value():
+    the_data = '{ "plot":{ "Version" : "0.1" } }'
+
+    request_doc = WPS.Execute(
+        OWS.Identifier('foo'),
+        WPS.DataInputs(
+            WPS.Input(
+                OWS.Identifier('json'),
+                WPS.Data(
+                    WPS.ComplexData(the_data, mimeType='application/json')))))
+    rv = get_inputs_from_xml(request_doc)
+    assert rv['json'][0]['mimeType'] == 'application/json'
+    json_data = json.loads(rv['json'][0]['data'])
+    assert json_data['plot']['Version'] == '0.1'
+
+
+def test_complex_input_base64_value():
+    the_data = 'eyAicGxvdCI6eyAiVmVyc2lvbiIgOiAiMC4xIiB9IH0='
+
+    request_doc = WPS.Execute(
+        OWS.Identifier('foo'),
+        WPS.DataInputs(
+            WPS.Input(
+                OWS.Identifier('json'),
+                WPS.Data(
+                    WPS.ComplexData(the_data,
+                        encoding='base64',
+                        mimeType='application/json')))))
+    rv = get_inputs_from_xml(request_doc)
+    assert rv['json'][0]['mimeType'] == 'application/json'
+    json_data = json.loads(rv['json'][0]['data'].decode())
+    assert json_data['plot']['Version'] == '0.1'
+
+
+def test_bbox_input():
+    request_doc = WPS.Execute(
+        OWS.Identifier('request'),
+        WPS.DataInputs(
+            WPS.Input(
+                OWS.Identifier('bbox'),
+                WPS.Data(
+                    WPS.BoundingBoxData(
+                        OWS.LowerCorner('40 50'),
+                        OWS.UpperCorner('60 70'))))))
+    rv = get_inputs_from_xml(request_doc)
+    bbox = rv['bbox'][0]
+    assert isinstance(bbox, BoundingBox)
+    assert bbox.minx == '40'
+    assert bbox.miny == '50'
+    assert bbox.maxx == '60'
+    assert bbox.maxy == '70'
+
+
+def test_reference_post_input():
+    request_doc = WPS.Execute(
+        OWS.Identifier('foo'),
+        WPS.DataInputs(
+            WPS.Input(
+                OWS.Identifier('name'),
+                WPS.Reference(
+                    WPS.Body('request body'),
+                    {'{http://www.w3.org/1999/xlink}href': 'http://foo/bar/service'},
+                    method='POST'
                 )
             )
         )
-        rv = get_inputs_from_xml(request_doc)
-        self.assertEqual(rv['name'][0]['href'], 'http://foo/bar/service')
-        self.assertEqual(rv['name'][0]['method'], 'POST')
-        self.assertEqual(rv['name'][0]['body'], 'request body')
+    )
+    rv = get_inputs_from_xml(request_doc)
+    assert rv['name'][0]['href'] == 'http://foo/bar/service'
+    assert rv['name'][0]['method'] == 'POST'
+    assert rv['name'][0]['body'] == 'request body'
 
-    def test_reference_post_bodyreference_input(self):
-        request_doc = WPS.Execute(
-            OWS.Identifier('foo'),
-            WPS.DataInputs(
-                WPS.Input(
-                    OWS.Identifier('name'),
-                    WPS.Reference(
-                        WPS.BodyReference(
-                        {'{http://www.w3.org/1999/xlink}href': 'http://foo/bar/reference'}),
-                        {'{http://www.w3.org/1999/xlink}href': 'http://foo/bar/service'},
-                        method='POST'
-                    )
+
+def test_reference_post_bodyreference_input():
+    request_doc = WPS.Execute(
+        OWS.Identifier('foo'),
+        WPS.DataInputs(
+            WPS.Input(
+                OWS.Identifier('name'),
+                WPS.Reference(
+                    WPS.BodyReference(
+                    {'{http://www.w3.org/1999/xlink}href': 'http://foo/bar/reference'}),
+                    {'{http://www.w3.org/1999/xlink}href': 'http://foo/bar/service'},
+                    method='POST'
                 )
             )
         )
-        rv = get_inputs_from_xml(request_doc)
-        self.assertEqual(rv['name'][0]['href'], 'http://foo/bar/service')
-        self.assertEqual(rv['name'][0]['bodyreference'], 'http://foo/bar/reference')
+    )
+    rv = get_inputs_from_xml(request_doc)
+    assert rv['name'][0]['href'] == 'http://foo/bar/service'
+    assert rv['name'][0]['bodyreference'] == 'http://foo/bar/reference'
 
 

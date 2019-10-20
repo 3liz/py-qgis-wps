@@ -4,7 +4,6 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-import unittest
 from collections import namedtuple
 from qywps import WPSProcess, Service, LiteralInput, ComplexInput, BoundingBoxInput
 from qywps import LiteralOutput, ComplexOutput, BoundingBoxOutput
@@ -154,127 +153,130 @@ class DescribeProcessInputTest(HTTPTestCase):
         assert result.inputs == [('the_number', 'literal', 'positiveInteger')]
 
 
-class InputDescriptionTest(unittest.TestCase):
+# ---------------------
+# InputDescriptionTest
+# ---------------------
 
-    def test_literal_integer_input(self):
-        literal = LiteralInput('foo', 'Literal foo', data_type='positiveInteger', uoms=['metre'])
-        doc = literal.describe_xml()
-        self.assertEqual(doc.tag, E.Input().tag)
-        [identifier_el] = xpath_ns(doc, './ows:Identifier')
-        self.assertEqual(identifier_el.text, 'foo')
-        [type_el] = xpath_ns(doc, './LiteralData/ows:DataType')
-        self.assertEqual(type_el.text, 'positiveInteger')
-        self.assertEqual(type_el.attrib['{%s}reference' % NAMESPACES['ows']],
-            OGCTYPE['positiveInteger'])
-        anyvalue = xpath_ns(doc, './LiteralData/ows:AnyValue')
-        self.assertEqual(len(anyvalue), 1)
+def test_literal_integer_input():
+    literal = LiteralInput('foo', 'Literal foo', data_type='positiveInteger', uoms=['metre'])
+    doc = literal.describe_xml()
+    assert doc.tag == E.Input().tag
+    [identifier_el] = xpath_ns(doc, './ows:Identifier')
+    assert identifier_el.text == 'foo'
+    [type_el] = xpath_ns(doc, './LiteralData/ows:DataType')
+    assert type_el.text == 'positiveInteger'
+    assert type_el.attrib['{%s}reference' % NAMESPACES['ows']] == OGCTYPE['positiveInteger']
+    anyvalue = xpath_ns(doc, './LiteralData/ows:AnyValue')
+    assert len(anyvalue) == 1
 
-    def test_literal_allowed_values_input(self):
-        """Test all around allowed_values
-        """
-        literal = LiteralInput(
-            'foo',
-            'Foo',
-            data_type='integer',
-            uoms=['metre'],
-            allowed_values=(
-                1, 2, (5, 10), (12, 4, 24),
-                AllowedValue(
-                    allowed_type=ALLOWEDVALUETYPE.RANGE,
-                    minval=30,
-                    maxval=33,
-                    range_closure='closed-open')
-            )
+
+def test_literal_allowed_values_input():
+    """Test all around allowed_values
+    """
+    literal = LiteralInput(
+        'foo',
+        'Foo',
+        data_type='integer',
+        uoms=['metre'],
+        allowed_values=(
+            1, 2, (5, 10), (12, 4, 24),
+            AllowedValue(
+                allowed_type=ALLOWEDVALUETYPE.RANGE,
+                minval=30,
+                maxval=33,
+                range_closure='closed-open')
         )
-        doc = literal.describe_xml()
+    )
+    doc = literal.describe_xml()
 
-        allowed_values = xpath_ns(doc, './LiteralData/ows:AllowedValues')
-        self.assertEqual(len(allowed_values), 1)
+    allowed_values = xpath_ns(doc, './LiteralData/ows:AllowedValues')
+    assert len(allowed_values) == 1
 
-        allowed_value = allowed_values[0]
+    allowed_value = allowed_values[0]
 
-        values = xpath_ns(allowed_value, './ows:Value')
-        ranges = xpath_ns(allowed_value, './ows:Range')
+    values = xpath_ns(allowed_value, './ows:Value')
+    ranges = xpath_ns(allowed_value, './ows:Range')
 
-        self.assertEqual(len(values), 2)
-        self.assertEqual(len(ranges), 3)
+    assert len(values) == 2
+    assert len(ranges) == 3
 
-    def test_complex_input_identifier(self):
-        complex_in = ComplexInput('foo', 'Complex foo', supported_formats=[Format('bar/baz')])
-        doc = complex_in.describe_xml()
-        self.assertEqual(doc.tag, E.Input().tag)
-        [identifier_el] = xpath_ns(doc, './ows:Identifier')
-        self.assertEqual(identifier_el.text, 'foo')
 
-    def test_complex_input_default_and_supported(self):
-        complex_in = ComplexInput(
-            'foo',
-            'Complex foo',
-            supported_formats=[
-                Format('a/b'),
-                Format('c/d')
-            ]
-        )
-        doc = complex_in.describe_xml()
-        [default_format] = xpath_ns(doc, './ComplexData/Default/Format')
-        [default_mime_el] = xpath_ns(default_format, './MimeType')
-        self.assertEqual(default_mime_el.text, 'a/b')
-        supported_mime_types = []
-        for supported_el in xpath_ns(doc, './ComplexData/Supported/Format'):
-            [mime_el] = xpath_ns(supported_el, './MimeType')
-            supported_mime_types.append(mime_el.text)
-        self.assertEqual(supported_mime_types, ['a/b', 'c/d'])
+def test_complex_input_identifier():
+    complex_in = ComplexInput('foo', 'Complex foo', supported_formats=[Format('bar/baz')])
+    doc = complex_in.describe_xml()
+    assert doc.tag == E.Input().tag
+    [identifier_el] = xpath_ns(doc, './ows:Identifier')
+    assert identifier_el.text == 'foo'
 
-    def test_bbox_input(self):
-        bbox = BoundingBoxInput('bbox', 'BBox foo',
-                                crss=["EPSG:4326", "EPSG:3035"])
-        doc = bbox.describe_xml()
-        [inpt] = xpath_ns(doc, '/Input')
-        [default_crs] = xpath_ns(doc, './BoundingBoxData/Default/CRS')
-        supported = xpath_ns(doc, './BoundingBoxData/Supported/CRS')
-        self.assertEqual(inpt.attrib['minOccurs'], '1')
-        self.assertEqual(default_crs.text, 'EPSG:4326')
-        self.assertEqual(len(supported), 2)
 
-class OutputDescriptionTest(unittest.TestCase):
+def test_complex_input_default_and_supported():
+    complex_in = ComplexInput(
+        'foo',
+        'Complex foo',
+        supported_formats=[
+            Format('a/b'),
+            Format('c/d')
+        ]
+    )
+    doc = complex_in.describe_xml()
+    [default_format] = xpath_ns(doc, './ComplexData/Default/Format')
+    [default_mime_el] = xpath_ns(default_format, './MimeType')
+    assert default_mime_el.text == 'a/b'
+    supported_mime_types = []
+    for supported_el in xpath_ns(doc, './ComplexData/Supported/Format'):
+        [mime_el] = xpath_ns(supported_el, './MimeType')
+        supported_mime_types.append(mime_el.text)
+    assert supported_mime_types == ['a/b', 'c/d']
 
-    def test_literal_output(self):
-        literal = LiteralOutput('literal', 'Literal foo', uoms=['metre'])
-        doc = literal.describe_xml()
-        [output] = xpath_ns(doc, '/Output')
-        [identifier] = xpath_ns(doc, '/Output/ows:Identifier')
-        [data_type] = xpath_ns(doc, '/Output/LiteralOutput/ows:DataType')
-        [uoms] = xpath_ns(doc, '/Output/LiteralOutput/UOMs')
-        [default_uom] = xpath_ns(uoms, './Default/ows:UOM')
-        supported_uoms = xpath_ns(uoms, './Supported/ows:UOM')
 
-        assert output is not None
-        assert identifier.text == 'literal'
-        assert data_type.attrib['{%s}reference' % NAMESPACES['ows']] == OGCTYPE['string']
-        assert uoms is not None
-        assert default_uom.text == 'metre'
-        assert default_uom.attrib['{%s}reference' % NAMESPACES['ows']] == OGCUNIT['metre']
-        assert len(supported_uoms) == 1
+def test_bbox_input():
+    bbox = BoundingBoxInput('bbox', 'BBox foo',
+                            crss=["EPSG:4326", "EPSG:3035"])
+    doc = bbox.describe_xml()
+    [inpt] = xpath_ns(doc, '/Input')
+    [default_crs] = xpath_ns(doc, './BoundingBoxData/Default/CRS')
+    supported = xpath_ns(doc, './BoundingBoxData/Supported/CRS')
+    assert inpt.attrib['minOccurs'] == '1'
+    assert default_crs.text == 'EPSG:4326'
+    assert len(supported) == 2
 
-    def test_complex_output(self):
-        complexo = ComplexOutput('complex', 'Complex foo', [Format('GML')])
-        doc = complexo.describe_xml()
-        [outpt] = xpath_ns(doc, '/Output')
-        [default] = xpath_ns(doc, '/Output/ComplexOutput/Default/Format/MimeType')
-        supported = xpath_ns(doc,
-                             '/Output/ComplexOutput/Supported/Format/MimeType')
 
-        assert default.text == 'application/gml+xml'
-        assert len(supported) == 1
+def test_literal_output():
+    literal = LiteralOutput('literal', 'Literal foo', uoms=['metre'])
+    doc = literal.describe_xml()
+    [output] = xpath_ns(doc, '/Output')
+    [identifier] = xpath_ns(doc, '/Output/ows:Identifier')
+    [data_type] = xpath_ns(doc, '/Output/LiteralOutput/ows:DataType')
+    [uoms] = xpath_ns(doc, '/Output/LiteralOutput/UOMs')
+    [default_uom] = xpath_ns(uoms, './Default/ows:UOM')
+    supported_uoms = xpath_ns(uoms, './Supported/ows:UOM')
+    assert output is not None
+    assert identifier.text == 'literal'
+    assert data_type.attrib['{%s}reference' % NAMESPACES['ows']] == OGCTYPE['string']
+    assert uoms is not None
+    assert default_uom.text == 'metre'
+    assert default_uom.attrib['{%s}reference' % NAMESPACES['ows']] == OGCUNIT['metre']
+    assert len(supported_uoms) == 1
 
-    def test_bbox_output(self):
-        bbox = BoundingBoxOutput('bbox', 'BBox foo',
-                crss=["EPSG:4326"])
-        doc = bbox.describe_xml()
-        [outpt] = xpath_ns(doc, '/Output')
-        [default_crs] = xpath_ns(doc, './BoundingBoxOutput/Default/CRS')
-        supported = xpath_ns(doc, './BoundingBoxOutput/Supported/CRS')
-        assert default_crs.text == 'EPSG:4326'
-        assert len(supported) == 1
+
+def test_complex_output():
+    complexo = ComplexOutput('complex', 'Complex foo', [Format('GML')])
+    doc = complexo.describe_xml()
+    [outpt] = xpath_ns(doc, '/Output')
+    [default] = xpath_ns(doc, '/Output/ComplexOutput/Default/Format/MimeType')
+    supported = xpath_ns(doc, '/Output/ComplexOutput/Supported/Format/MimeType')
+    assert default.text == 'application/gml+xml'
+    assert len(supported) == 1
+
+
+def test_bbox_output():
+    bbox = BoundingBoxOutput('bbox', 'BBox foo',
+            crss=["EPSG:4326"])
+    doc = bbox.describe_xml()
+    [outpt] = xpath_ns(doc, '/Output')
+    [default_crs] = xpath_ns(doc, './BoundingBoxOutput/Default/CRS')
+    supported = xpath_ns(doc, './BoundingBoxOutput/Supported/CRS')
+    assert default_crs.text == 'EPSG:4326'
+    assert len(supported) == 1
 
 
