@@ -39,6 +39,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterEnum,
                        QgsProcessingOutputLayerDefinition,
                        QgsProcessingOutputHtml,
+                       QgsProcessingOutputFile,
                        QgsProcessingOutputRasterLayer,
                        QgsProcessingOutputVectorLayer,
                        QgsProcessingParameterFeatureSource,
@@ -161,36 +162,52 @@ def test_freeform_metadata():
     
 
 def test_optional_inputs():
-        not_optional_param = QgsProcessingParameterNumber("TEST1", "LiteralInteger",
-                  type=QgsProcessingParameterNumber.Integer,
-                  minValue=1, defaultValue=10)
+    not_optional_param = QgsProcessingParameterNumber("TEST1", "LiteralInteger",
+              type=QgsProcessingParameterNumber.Integer,
+              minValue=1, defaultValue=10)
 
-        assert not _is_optional(not_optional_param)
+    assert not _is_optional(not_optional_param)
 
-        optional_param = QgsProcessingParameterNumber("TEST2", "LiteralInteger",
-                  type=QgsProcessingParameterNumber.Integer,
-                  optional = True,
-                  minValue=1, defaultValue=10)
+    optional_param = QgsProcessingParameterNumber("TEST2", "LiteralInteger",
+              type=QgsProcessingParameterNumber.Integer,
+              optional = True,
+              minValue=1, defaultValue=10)
 
-        assert _is_optional(optional_param)
+    assert _is_optional(optional_param)
 
-        optional_input     = parse_input_definition(optional_param) 
-        not_optional_input = parse_input_definition(not_optional_param) 
+    optional_input     = parse_input_definition(optional_param) 
+    not_optional_input = parse_input_definition(not_optional_param) 
 
-        assert optional_input.min_occurs == 0
-        assert not_optional_input.min_occurs > 0
+    assert optional_input.min_occurs == 0
+    assert not_optional_input.min_occurs > 0
 
 
 def test_file_destination():
-        alg = _find_algorithm('qywps_test:testfiledestination')
+    alg = _find_algorithm('qywps_test:testfiledestination')
 
-        inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
-        inputs['OUTPUT'][0].data = '/bad/..//path/to/file'
+    inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
+    inputs['OUTPUT'][0].data = '/bad/..//path/to/file'
 
-        context  = QgsProcessingContext()
-        parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
+    context  = QgsProcessingContext()
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
-        assert parameters['OUTPUT'] == 'file'
+    assert parameters['OUTPUT'] == 'file'
+
+
+def test_file_output_mimetypes():
+    """ Test file output mimetype 
+    """
+    outdef  = QgsProcessingOutputFile("OUTPUT","test output file") 
+    context = QgsProcessingContext()
+    context.workdir = "/path/to/workdir"
+
+    out = parse_output_definition(outdef)
+
+    output = processing_to_output('file.png', outdef, out, output_uri=None, context=context)  
+    assert output.output_format == 'image/png'
+
+    output = processing_to_output('binaryfile', outdef, out, output_uri=None, context=context)  
+    assert output.output_format == 'application/octet-stream'
 
 
 def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):

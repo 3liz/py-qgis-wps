@@ -208,6 +208,7 @@ def parse_file_input( param, kwargs):
         kwargs['data_type'] = 'string'
         return LiteralInput(**kwargs)
 
+
 def parse_metadata( param, kwargs ):
     """ Parse freeform metadata
     """
@@ -336,7 +337,7 @@ def parse_layer_output( outdef, kwargs ):
 
 
 def parse_file_output( outdef, kwargs, alg=None ):
-    """ Parse file output def
+    """ Parse file output definition
     """
     if isinstance(outdef, QgsProcessingOutputHtml):
         mime = mimetypes.types_map.get('.html')
@@ -535,7 +536,11 @@ def processing_to_output( value, outdef, out, output_uri, context=None ):
         return to_output_file( value, out, context )
     elif isinstance(outdef, QgsProcessingOutputFile):
         _, sfx = os.path.splitext(value)
-        out.output_format = mimetypes.types_map[sfx]
+        mime = mimetypes.types_map.get(sfx.lower())
+        if mime is None:
+            LOGGER.warning("Cannot get file type for output %s: %s", outdef.name(), value)
+            mime = "application/octet-stream"    
+        out.output_format = mime
         return to_output_file( value, out, context )
     else:
         # Return raw value
