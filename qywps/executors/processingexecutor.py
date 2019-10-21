@@ -82,7 +82,7 @@ class ProcessingExecutor(PoolExecutor):
             if not os.path.isdir(folder):
                 LOGGER.error("Script folder '%s' not found, disabling" ,folder) 
 
-        scripts_folders = ';'.join( f for f in scripts_folders if os.path.isdir(folder))
+        scripts_folders = ';'.join( f for f in scripts_folders if os.path.isdir(f))
         if scripts_folders:
             LOGGER.info("Scripts folder set to %s", scripts_folders)
             settings["Processing/Configuration/SCRIPTS_FOLDERS"] = scripts_folders
