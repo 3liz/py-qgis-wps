@@ -5,9 +5,9 @@
 ##################################################################
 
 import unittest
-from qywps import WPSProcess, Service, WPS, OWS
-from qywps.app.basic import xpath_ns
-from qywps.tests import HTTPTestCase, assert_qywps_version
+from pyqgiswps import WPSProcess, Service, WPS, OWS
+from pyqgiswps.app.basic import xpath_ns
+from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
 import lxml.etree
 
 
@@ -23,7 +23,7 @@ class ExceptionsTest(HTTPTestCase):
         assert exception_el.attrib['exceptionCode'] == 'InvalidParameterValue'
         assert resp.status_code == 400
         assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
-        assert_qywps_version(resp)
+        assert_pyqgiswps_version(resp)
 
     def test_missing_parameter_value(self):
         resp = self.client.get('')

@@ -2,20 +2,20 @@
 """
 import os
 from urllib.parse import urlparse, parse_qs, urlencode
-from qywps.utils.qgis import setup_qgis_paths
+from pyqgiswps.utils.qgis import setup_qgis_paths
 setup_qgis_paths()
 
-from qywps.utils.contexts import chdir
+from pyqgiswps.utils.contexts import chdir
 
-from qywps.inout import (LiteralInput,
+from pyqgiswps.inout import (LiteralInput,
                         ComplexInput,
                         BoundingBoxInput,
                         LiteralOutput,
                         ComplexOutput,
                         BoundingBoxOutput)
 
-from qywps.validator.allowed_value import ALLOWEDVALUETYPE
-from qywps.executors.processingprocess import(
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
+from pyqgiswps.executors.processingprocess import(
             parse_literal_input,
             parse_layer_input,
             parse_extent_input,
@@ -54,12 +54,12 @@ from qgis.core import (QgsProcessingParameterNumber,
 
 from processing.core.Processing import Processing
 
-from qywps.executors.processingprocess import Context
+from pyqgiswps.executors.processingprocess import Context
 
 def test_context(outputdir, data):
     """ Context with Copy layer
     """
-    alg = _find_algorithm('qywps_test:testcopylayer')
+    alg = _find_algorithm('pyqgiswps_test:testcopylayer')
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }

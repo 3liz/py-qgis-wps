@@ -34,10 +34,10 @@ class TestAlgorithmProvider(QgsProcessingProvider):
         return algs
     
     def id(self):
-        return 'qywps_test'
+        return 'pyqgiswps_test'
 
     def name(self):
-        return "QyWPS Test"
+        return "PyQgisWPS Test"
 
     def loadAlgorithms(self):
         self.algs = self.getAlgs()
@@ -50,7 +50,7 @@ class DummyAlgorithmProvider(QgsProcessingProvider):
         super().__init__()
     
     def id(self):
-        return 'qywps_dummy_test'
+        return 'pyqgiswps_dummy_test'
 
     def name(self):
         return "QyWPS Dummy Test"

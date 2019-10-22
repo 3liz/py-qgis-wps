@@ -2,20 +2,20 @@
 """
 import os
 
-from qywps.utils.qgis import setup_qgis_paths
+from pyqgiswps.utils.qgis import setup_qgis_paths
 setup_qgis_paths()
 
-from qywps.utils.contexts import chdir 
+from pyqgiswps.utils.contexts import chdir 
 
-from qywps.inout import (LiteralInput, 
+from pyqgiswps.inout import (LiteralInput, 
                         ComplexInput,
                         BoundingBoxInput, 
                         LiteralOutput, 
                         ComplexOutput,
                         BoundingBoxOutput)
 
-from qywps.validator.allowed_value import ALLOWEDVALUETYPE
-from qywps.executors.processingprocess import(
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
+from pyqgiswps.executors.processingprocess import(
             parse_literal_input,
             parse_layer_input,
             parse_extent_input,
@@ -183,7 +183,7 @@ def test_optional_inputs():
 
 
 def test_file_destination():
-    alg = _find_algorithm('qywps_test:testfiledestination')
+    alg = _find_algorithm('pyqgiswps_test:testfiledestination')
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     inputs['OUTPUT'][0].data = '/bad/..//path/to/file'

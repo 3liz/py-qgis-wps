@@ -4,14 +4,14 @@ stages:
 build:
   stage: build
   script:
-    - make test LOCAL_HOME=$RUNNER_HOME FLAVOR=ltr
+    - make docker-test FLAVOR=ltr
     - make dist deliver
     - $FACTORY_SCRIPTS/trigger-ci $DOCKER_WPS_ID $DOCKER_WPS_TOKEN master
   environment:
     name: snap
   only:
     changes:
-      - qywps/**/*
+      - pyqgiswps/**/*
       - tests/**/*
       - "*.sh"
       - Makefile

@@ -6,10 +6,10 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-from qywps.inout.formats import Format, get_format, FORMATS
+from pyqgiswps.inout.formats import Format, get_format, FORMATS
 from lxml import etree
-from qywps.app.basic import xpath_ns
-from qywps.validator.base import emptyvalidator
+from pyqgiswps.app.basic import xpath_ns
+from pyqgiswps.validator.base import emptyvalidator
 
 
 def validate(inpt, level=None):
@@ -19,7 +19,7 @@ def validate(inpt, level=None):
 
 
 def test_format_class():
-    """Test qywps.formats.Format class
+    """Test pyqgiswps.formats.Format class
     """
     frmt = Format('mimetype', schema='halloworld', encoding='asdf', 
                   validate=validate)

@@ -8,7 +8,7 @@
 
 import datetime
 import pytest
-from qywps.inout.literaltypes import *
+from pyqgiswps.inout.literaltypes import *
 
 
 def test_integer():

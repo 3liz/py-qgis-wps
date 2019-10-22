@@ -2,20 +2,20 @@
 """
 import os
 from urllib.parse import urlparse, parse_qs, urlencode
-from qywps.utils.qgis import setup_qgis_paths
+from pyqgiswps.utils.qgis import setup_qgis_paths
 setup_qgis_paths()
 
-from qywps.utils.contexts import chdir 
+from pyqgiswps.utils.contexts import chdir 
 
-from qywps.inout import (LiteralInput, 
+from pyqgiswps.inout import (LiteralInput, 
                         ComplexInput,
                         BoundingBoxInput, 
                         LiteralOutput, 
                         ComplexOutput,
                         BoundingBoxOutput)
 
-from qywps.validator.allowed_value import ALLOWEDVALUETYPE
-from qywps.executors.processingprocess import(
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
+from pyqgiswps.executors.processingprocess import(
             parse_literal_input,
             parse_layer_input,
             parse_extent_input,
@@ -72,18 +72,18 @@ class Context(QgsProcessingContext):
 
 def test_provider(): 
     registry = QgsApplication.processingRegistry()
-    provider = registry.providerById('qywps_test')
+    provider = registry.providerById('pyqgiswps_test')
     assert provider is not None
-    assert provider.id() == 'qywps_test'
+    assert provider.id() == 'pyqgiswps_test'
     assert len(provider.algorithms()) > 0
-    assert registry.algorithmById('qywps_test:testsimplevalue') is not None, 'qywps_test:testsimplevalue' 
-    assert registry.algorithmById('qywps_test:testcopylayer') is not None,   'qywps_test:testcopylayer'
+    assert registry.algorithmById('pyqgiswps_test:testsimplevalue') is not None, 'pyqgiswps_test:testsimplevalue' 
+    assert registry.algorithmById('pyqgiswps_test:testcopylayer') is not None,   'pyqgiswps_test:testcopylayer'
 
 
 def test_simple_algorithms():
     """ Execute a simple algorithm
     """
-    alg = _find_algorithm('qywps_test:testsimplevalue')
+    alg = _find_algorithm('pyqgiswps_test:testsimplevalue')
 
     context  = QgsProcessingContext()
     feedback = QgsProcessingFeedback() 
@@ -113,7 +113,7 @@ def test_simple_algorithms():
 def test_option_algorithms():
     """ Execute a simple choice  algorithm
     """
-    alg = _find_algorithm('qywps_test:testoptionvalue')
+    alg = _find_algorithm('pyqgiswps_test:testoptionvalue')
 
     context  = QgsProcessingContext()
     feedback = QgsProcessingFeedback() 
@@ -141,7 +141,7 @@ def test_option_algorithms():
 def test_option_multi_algorithms():
     """ Execute a multiple choice  algorithm
     """
-    alg = _find_algorithm('qywps_test:testmultioptionvalue')
+    alg = _find_algorithm('pyqgiswps_test:testmultioptionvalue')
 
     context  = QgsProcessingContext()
     feedback = QgsProcessingFeedback() 
@@ -172,7 +172,7 @@ def test_option_multi_algorithms():
 def test_layer_algorithm(outputdir, data):
     """ Copy layer 
     """
-    alg = _find_algorithm('qywps_test:testcopylayer')
+    alg = _find_algorithm('pyqgiswps_test:testcopylayer')
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
@@ -213,7 +213,7 @@ def test_layer_algorithm(outputdir, data):
 def test_buffer_algorithm(outputdir, data):
     """ Test simple layer output 
     """
-    alg = _find_algorithm('qywps_test:simplebuffer')
+    alg = _find_algorithm('pyqgiswps_test:simplebuffer')
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
@@ -268,7 +268,7 @@ def test_buffer_algorithm(outputdir, data):
 def test_selectfeatures_algorithm(outputdir, data):
     """ Test simple layer output 
     """
-    alg = _find_algorithm('qywps_test:simplebuffer')
+    alg = _find_algorithm('pyqgiswps_test:simplebuffer')
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }

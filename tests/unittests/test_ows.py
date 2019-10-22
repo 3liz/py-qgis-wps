@@ -12,11 +12,11 @@ import tempfile
 import unittest
 import lxml.etree
 import sys
-from qywps import Service, WPSProcess, ComplexInput, ComplexOutput, Format, FORMATS, get_format
-from qywps.dependencies import ogr
-from qywps.exceptions import NoApplicableCode
-from qywps import WPS, OWS
-from qywps.tests import HTTPTestCase, assert_response_success, temp_dir
+from pyqgiswps import Service, WPSProcess, ComplexInput, ComplexOutput, Format, FORMATS, get_format
+from pyqgiswps.dependencies import ogr
+from pyqgiswps.exceptions import NoApplicableCode
+from pyqgiswps import WPS, OWS
+from pyqgiswps.tests import HTTPTestCase, assert_response_success, temp_dir
 
 wfsResource = 'http://demo.mapserver.org/cgi-bin/wfs?service=WFS&version=1.1.0&request=GetFeature&typename=continents&maxfeatures=10'
 wcsResource = 'http://demo.mapserver.org/cgi-bin/wcs?service=WCS&version=1.0.0&request=GetCoverage&coverage=ndvi&crs=EPSG:4326&bbox=-92,42,-85,45&format=image/tiff&width=400&height=300'

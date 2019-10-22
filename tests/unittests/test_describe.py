@@ -5,17 +5,17 @@
 ##################################################################
 
 from collections import namedtuple
-from qywps import WPSProcess, Service, LiteralInput, ComplexInput, BoundingBoxInput
-from qywps import LiteralOutput, ComplexOutput, BoundingBoxOutput
-from qywps import E, WPS, OWS, OGCTYPE, Format, NAMESPACES, OGCUNIT
-from qywps.inout.literaltypes import LITERAL_DATA_TYPES
-from qywps.app.basic import xpath_ns
-from qywps.app.Common import Metadata
-from qywps.inout.formats import Format
-from qywps.inout.literaltypes import AllowedValue
-from qywps.validator.allowed_value import ALLOWEDVALUETYPE
+from pyqgiswps import WPSProcess, Service, LiteralInput, ComplexInput, BoundingBoxInput
+from pyqgiswps import LiteralOutput, ComplexOutput, BoundingBoxOutput
+from pyqgiswps import E, WPS, OWS, OGCTYPE, Format, NAMESPACES, OGCUNIT
+from pyqgiswps.inout.literaltypes import LITERAL_DATA_TYPES
+from pyqgiswps.app.basic import xpath_ns
+from pyqgiswps.app.Common import Metadata
+from pyqgiswps.inout.formats import Format
+from pyqgiswps.inout.literaltypes import AllowedValue
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 
-from qywps.tests import HTTPTestCase, assert_qywps_version
+from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
 
 ProcessDescription = namedtuple('ProcessDescription', ['identifier', 'inputs', 'metadata'])
 
@@ -74,7 +74,7 @@ class DescribeProcessTest(HTTPTestCase):
         identifiers = [desc.identifier for desc in get_describe_result(self, resp)]
         assert 'ping' in identifiers
         assert 'hello' in identifiers
-        assert_qywps_version(resp)
+        assert_pyqgiswps_version(resp)
 
     def test_get_request_zero_args(self):
         resp = self.client.get('?Request=DescribeProcess&version=1.0.0&service=wps')

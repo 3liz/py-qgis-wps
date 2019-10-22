@@ -20,7 +20,7 @@ def load_source(name, path):
 
 kwargs = {}
 
-VERSION = load_source("version", 'qywps/version.py').__version__
+VERSION = load_source("version", 'pyqgiswps/version.py').__version__
 DESCRIPTION = ('Qgis-wps is an implementation of the Web Processing Service '
                'standard from the Open Geospatial Consortium. qgis-wps is '
                'written in Python and is a fork of PyWPS 4.0.')
@@ -28,7 +28,7 @@ KEYWORDS = 'QGIS WPS OGC processing'
 INSTALL_REQUIRES = parse_requirements('requirements.txt')
 
 setup(
-    name='qgis-wps',
+    name='py-qgis-wps',
     version=VERSION,
     description=DESCRIPTION,
     keywords=KEYWORDS,
@@ -50,10 +50,10 @@ setup(
         'Topic :: Scientific/Engineering :: GIS'
     ],
     install_requires=INSTALL_REQUIRES,
-    packages=find_packages(include=['qywps','qywps.*']),
+    packages=find_packages(include=['pyqgiswps','pyqgiswps.*']),
     include_package_data = True,
     entry_points={
-        'console_scripts': ['wpsserver = qywps.wpsserver:main'],
+        'console_scripts': ['wpsserver = pyqgiswps.wpsserver:main'],
     },
 
     **kwargs

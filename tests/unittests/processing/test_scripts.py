@@ -4,21 +4,21 @@ import os
 import pytest
 
 from urllib.parse import urlparse, parse_qs, urlencode
-from qywps.utils.qgis import setup_qgis_paths
-from qywps.utils.qgis import version_info as qgis_version_info
+from pyqgiswps.utils.qgis import setup_qgis_paths
+from pyqgiswps.utils.qgis import version_info as qgis_version_info
 
 #setup_qgis_paths()
 
-from qywps.utils.contexts import chdir 
+from pyqgiswps.utils.contexts import chdir 
 
-from qywps.inout import (LiteralInput, 
+from pyqgiswps.inout import (LiteralInput, 
                         ComplexInput,
                         BoundingBoxInput, 
                         LiteralOutput, 
                         ComplexOutput,
                         BoundingBoxOutput)
 
-from qywps.validator.allowed_value import ALLOWEDVALUETYPE
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 
 from qgis.core import QgsApplication
 from qgis.core import (QgsProcessingParameterNumber,

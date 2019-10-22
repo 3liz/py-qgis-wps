@@ -2,7 +2,7 @@
 try:
     from qgis.processing import alg
 except ImportError:
-    from qywps.utils.future import alg
+    from pyqgiswps.utils.future import alg
 
 @alg(name='testalgfactory', label='test 2', group='test', group_label='Test scripts')
 @alg.input(type=alg.STRING, name="IN1", label='In string')

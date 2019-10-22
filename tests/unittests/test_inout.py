@@ -11,16 +11,16 @@ import tempfile
 import pytest
 
 from io import StringIO
-from qywps import Format
-from qywps.validator import get_validator
-from qywps import NAMESPACES
-from qywps.inout.basic import IOHandler, SOURCE_TYPE, SimpleHandler, BBoxInput, BBoxOutput, \
+from pyqgiswps import Format
+from pyqgiswps.validator import get_validator
+from pyqgiswps import NAMESPACES
+from pyqgiswps.inout.basic import IOHandler, SOURCE_TYPE, SimpleHandler, BBoxInput, BBoxOutput, \
     ComplexInput, ComplexOutput, LiteralInput, LiteralOutput
-from qywps.inout import BoundingBoxInput as BoundingBoxInputXML
-from qywps.inout.literaltypes import convert, AllowedValue
-from qywps.validator.base import emptyvalidator
-from qywps.exceptions import InvalidParameterValue
-from qywps.validator.mode import MODE
+from pyqgiswps.inout import BoundingBoxInput as BoundingBoxInputXML
+from pyqgiswps.inout.literaltypes import convert, AllowedValue
+from pyqgiswps.validator.base import emptyvalidator
+from pyqgiswps.exceptions import InvalidParameterValue
+from pyqgiswps.validator.mode import MODE
 
 from lxml import etree
 

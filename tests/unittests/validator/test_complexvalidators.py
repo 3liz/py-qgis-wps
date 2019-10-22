@@ -7,12 +7,12 @@
 """Unit tests for complex validator
 """
 
-import unittest
 import sys
-from qywps.validator.complexvalidator import *
-from qywps.inout.formats import FORMATS
+from pyqgiswps.validator.complexvalidator import *
+from pyqgiswps.inout.formats import FORMATS
 import tempfile
 import os
+import pytest
 
 try:
     import osgeo
@@ -51,65 +51,59 @@ def get_input(name, schema, mime_type):
 
     return fake_input
 
+def test_gml_validator():
+    """Test GML validator
+    """
+    gml_input = get_input('gml/point.gml', 'point.xsd', FORMATS.GML.mime_type)
+    assert validategml(gml_input, MODE.NONE), 'NONE validation'
+    assert validategml(gml_input, MODE.SIMPLE), 'SIMPLE validation'
+    if WITH_GDAL:
+        assert validategml(gml_input, MODE.STRICT), 'STRICT validation'
+        # XXX Depends on external connection, may fail if not online
+        # Prevent test to fail if site is down
+        #assert validategml(gml_input, MODE.VERYSTRICT), 'VERYSTRICT validation'
+    gml_input.stream.close()
 
-class ValidateTest(unittest.TestCase):
-    """Complex validator test cases"""
 
-    def setUp(self):
-        pass
+def test_geojson_validator():
+    """Test GeoJSON validator
+    """
+    geojson_input = get_input('json/point.geojson', 'json/schema/geojson.json',
+                              FORMATS.GEOJSON.mime_type)
+    assert validategeojson(geojson_input, MODE.NONE), 'NONE validation'
+    assert validategeojson(geojson_input, MODE.SIMPLE), 'SIMPLE validation'
+    if WITH_GDAL:
+        assert validategeojson(geojson_input, MODE.STRICT), 'STRICT validation'
+        assert validategeojson(geojson_input, MODE.VERYSTRICT), 'VERYSTRICT validation'
+    geojson_input.stream.close()
 
 
-    def tearDown(self):
-        pass
+def test_shapefile_validator():
+    """Test ESRI Shapefile validator
+    """
+    shapefile_input = get_input('shp/point.shp.zip', None,
+            FORMATS.SHP.mime_type)
+    assert validateshapefile(shapefile_input, MODE.NONE), 'NONE validation'
+    assert validateshapefile(shapefile_input, MODE.SIMPLE), 'SIMPLE validation'
+    if WITH_GDAL:
+        assert validateshapefile(shapefile_input, MODE.STRICT), 'STRICT validation'
+    shapefile_input.stream.close()
 
-    def test_gml_validator(self):
-        """Test GML validator
-        """
-        gml_input = get_input('gml/point.gml', 'point.xsd', FORMATS.GML.mime_type)
-        self.assertTrue(validategml(gml_input, MODE.NONE), 'NONE validation')
-        self.assertTrue(validategml(gml_input, MODE.SIMPLE), 'SIMPLE validation')
-        if WITH_GDAL:
-            self.assertTrue(validategml(gml_input, MODE.STRICT), 'STRICT validation')
-            self.assertTrue(validategml(gml_input, MODE.VERYSTRICT), 'VERYSTRICT validation')
-        gml_input.stream.close()
 
-    def test_geojson_validator(self):
-        """Test GeoJSON validator
-        """
-        geojson_input = get_input('json/point.geojson', 'json/schema/geojson.json',
-                                  FORMATS.GEOJSON.mime_type)
-        self.assertTrue(validategeojson(geojson_input, MODE.NONE), 'NONE validation')
-        self.assertTrue(validategeojson(geojson_input, MODE.SIMPLE), 'SIMPLE validation')
-        if WITH_GDAL:
-            self.assertTrue(validategeojson(geojson_input, MODE.STRICT), 'STRICT validation')
-            self.assertTrue(validategeojson(geojson_input, MODE.VERYSTRICT), 'VERYSTRICT validation')
-        geojson_input.stream.close()
+def test_geotiff_validator():
+    """Test GeoTIFF validator
+    """
+    geotiff_input = get_input('geotiff/dem.tiff', None,
+                              FORMATS.GEOTIFF.mime_type)
+    assert validategeotiff(geotiff_input, MODE.NONE), 'NONE validation'
+    assert validategeotiff(geotiff_input, MODE.SIMPLE), 'SIMPLE validation'
+    if WITH_GDAL:
+        assert validategeotiff(geotiff_input, MODE.STRICT), 'STRICT validation'
+    geotiff_input.stream.close()
 
-    def test_shapefile_validator(self):
-        """Test ESRI Shapefile validator
-        """
-        shapefile_input = get_input('shp/point.shp.zip', None,
-                FORMATS.SHP.mime_type)
-        self.assertTrue(validateshapefile(shapefile_input, MODE.NONE), 'NONE validation')
-        self.assertTrue(validateshapefile(shapefile_input, MODE.SIMPLE), 'SIMPLE validation')
-        if WITH_GDAL:
-            self.assertTrue(validateshapefile(shapefile_input, MODE.STRICT), 'STRICT validation')
-        shapefile_input.stream.close()
 
-    def test_geotiff_validator(self):
-        """Test GeoTIFF validator
-        """
-        geotiff_input = get_input('geotiff/dem.tiff', None,
-                                  FORMATS.GEOTIFF.mime_type)
-        self.assertTrue(validategeotiff(geotiff_input, MODE.NONE), 'NONE validation')
-        self.assertTrue(validategeotiff(geotiff_input, MODE.SIMPLE), 'SIMPLE validation')
-        if not WITH_GDAL:
-            self.testSkipp('GDAL Not Installed')
-        self.assertTrue(validategeotiff(geotiff_input, MODE.STRICT), 'STRICT validation')
-        geotiff_input.stream.close()
-
-    def test_fail_validator(self):
-        fake_input = get_input('point.xsd', 'point.xsd', FORMATS.SHP.mime_type)
-        self.assertFalse(validategml(fake_input, MODE.SIMPLE), 'SIMPLE validation invalid')
-        fake_input.stream.close()
+def test_fail_validator():
+    fake_input = get_input('point.xsd', 'point.xsd', FORMATS.SHP.mime_type)
+    assert not validategml(fake_input, MODE.SIMPLE), 'SIMPLE validation invalid'
+    fake_input.stream.close()
 

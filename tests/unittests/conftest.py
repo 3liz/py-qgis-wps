@@ -5,7 +5,7 @@ import pytest
 
 from pathlib import Path
 
-from qywps.utils.qgis import start_qgis_application, setup_qgis_paths
+from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths
 
 def pytest_addoption(parser):
     parser.addoption("--server-log-level", choices=['debug', 'info', 'warning', 'error','critical'] , help="log level",
@@ -42,7 +42,7 @@ def pytest_sessionstart(session):
     logger = logging.getLogger('QGSRV')
     logger.setLevel(log_level)
 
-    from qywps.utils.plugins import WPSServerInterfaceImpl
+    from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
     
     rootdir  = Path(session.config.rootdir.strpath)
     settings = { "Processing/Configuration/SCRIPTS_FOLDERS": str(rootdir / 'scripts') }

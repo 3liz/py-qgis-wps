@@ -5,7 +5,7 @@
 ##################################################################
 
 import lxml.etree
-from qywps.app import WPSRequest
+from pyqgiswps.app import WPSRequest
 import tempfile
 
 

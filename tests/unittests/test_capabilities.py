@@ -4,10 +4,10 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-from qywps.app import WPSProcess, Service
-from qywps.app.Common import Metadata
-from qywps import WPS, OWS
-from qywps.tests import HTTPTestCase, assert_qywps_version
+from pyqgiswps.app import WPSProcess, Service
+from pyqgiswps.app.Common import Metadata
+from pyqgiswps import WPS, OWS
+from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
 
 class BadRequestTest(HTTPTestCase):
 
@@ -99,7 +99,7 @@ class CapabilitiesTest(HTTPTestCase):
         assert resp.status_code == 400, "400 != %s" %  resp.status_code
         assert exception[0].attrib['exceptionCode'] == 'VersionNegotiationFailed'
 
-    def test_qywps_version(self):
+    def test_pyqgiswps_version(self):
         resp = self.client.get('?service=WPS&request=GetCapabilities')
-        assert_qywps_version(resp)
+        assert_pyqgiswps_version(resp)
 

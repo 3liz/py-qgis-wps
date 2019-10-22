@@ -1,5 +1,5 @@
 include setup.py MANIFEST.in README.md
 include requirements.txt factory.manifest
-recursive-include qywps/schemas *
-recursive-include qywps/webui *
+recursive-include pyqgiswps/schemas *
+recursive-include pyqgiswps/webui *
 

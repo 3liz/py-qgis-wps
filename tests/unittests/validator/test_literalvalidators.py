@@ -8,8 +8,8 @@
 """
 
 import unittest
-from qywps.validator.literalvalidator import *
-from qywps.inout.literaltypes import AllowedValue
+from pyqgiswps.validator.literalvalidator import *
+from pyqgiswps.inout.literaltypes import AllowedValue
 
 def get_input(allowed_values, data = 1):
 
