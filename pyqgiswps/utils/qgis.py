@@ -51,6 +51,7 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
     logger = logger or logging.getLogger()
     qgisPrefixPath = setup_qgis_paths()
 
+    from qgis.PyQt.QtCore import QCoreApplication
     from qgis.core import Qgis, QgsApplication
 
     logger.info("Starting Qgis application: %s",Qgis.QGIS_VERSION)
@@ -72,6 +73,13 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
 
     qgis_application = QgsApplication([], enable_gui )
     qgis_application.setPrefixPath(qgisPrefixPath, True)
+
+    # From qgis server
+    # Will enable us to read qgis setting file
+    QCoreApplication.setOrganizationName( QgsApplication.QGIS_ORGANIZATION_NAME );
+    QCoreApplication.setOrganizationDomain( QgsApplication.QGIS_ORGANIZATION_DOMAIN );
+    QCoreApplication.setApplicationName( QgsApplication.QGIS_APPLICATION_NAME );
+
     qgis_application.initQgis()
 
     if cleanup:
@@ -88,6 +96,12 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
                 qgis_application.exitQgis()
                 del qgis_application
 
+        
+    optpath = os.getenv('QGIS_OPTIONS_PATH')
+    if optpath:
+        # Log qgis settings 
+        load_qgis_settings( optpath, logger, verbose )
+    
     if settings:
         # Initialize settings
         from qgis.core import QgsSettings
@@ -140,4 +154,15 @@ def install_logger_hook( logger: logging.Logger, logprefix: str, verbose: bool=F
     messageLog = QgsApplication.messageLog()
     messageLog.messageReceived.connect( writelogmessage )
 
+
+def load_qgis_settings( optpath, logger, verbose=False ):
+    """ Load qgis settings
+    """
+    from qgis.PyQt.QtCore import QSettings
+    from qgis.core import QgsSettings, QgsApplication
+
+    QSettings.setDefaultFormat( QSettings.IniFormat )
+    QSettings.setPath( QSettings.IniFormat, QSettings.UserScope, optpath )
+    logger.info("Settings loaded from %s", QgsSettings().fileName())
+    
 

@@ -57,6 +57,7 @@ run: local
     -e QYWPS_PROCESSING_PROVIDERS_MODULE_PATH=/src/tests/unittests \
     -e QYWPS_SERVER_WORKDIR=/srv/data \
     -e QGIS_OPTIONS_PATH=/src/tests/qgis \
+    -e QYWPS_LOGLEVEL=DEBUG \
     -p $(SERVER_HTTP_PORT):8080 \
     $(QGIS_IMAGE) /src/tests/run-server.sh
 
