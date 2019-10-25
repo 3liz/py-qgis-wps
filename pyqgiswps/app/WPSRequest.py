@@ -70,11 +70,11 @@ class WPSRequest:
 
             :return: A WPSRequest instance
         """
-        service = handler.get_query_argument('service')
+        service = handler.get_query_argument('SERVICE')
         if service.lower() != 'wps':
-            raise InvalidParameterValue('parameter SERVICE [%s] not supported' % service, 'service')
+            raise InvalidParameterValue('parameter SERVICE [%s] not supported' % service, 'SERVICE')
 
-        operation = handler.get_query_argument('request').lower()
+        operation = handler.get_query_argument('REQUEST').lower()
 
         wpsrequest = WPSRequest()
 
@@ -83,54 +83,54 @@ class WPSRequest:
         def parse_get_getresults():
             """ Parse GET GetResults
             """
-            wpsrequest.results_uuid = _get_query_param('uuid')
+            wpsrequest.results_uuid = _get_query_param('UUID')
 
         def parse_get_getcapabilities():
             """Parse GET GetCapabilities request
             """
-            acceptedversions =  _get_query_param('acceptversions', None)
+            acceptedversions =  _get_query_param('ACCEPTVERSIONS', None)
             wpsrequest.check_accepted_versions(acceptedversions)
 
         def parse_get_describeprocess():
             """Parse GET DescribeProcess request
             """
-            version = _get_query_param('version', None)
+            version = _get_query_param('VERSION', None)
             wpsrequest.check_and_set_version(version)
 
-            language = _get_query_param('language', None)
+            language = _get_query_param('LANGUAGE', None)
             wpsrequest.check_and_set_language(language)
 
-            wpsrequest.identifiers = _get_query_param('identifier').split(',')
+            wpsrequest.identifiers = _get_query_param('IDENTIFIER').split(',')
 
         def parse_get_execute():
             """Parse GET Execute request
             """
-            version = _get_query_param('version', None)
+            version = _get_query_param('VERSION', None)
             wpsrequest.check_and_set_version(version)
 
-            language = _get_query_param('language', None)
+            language = _get_query_param('LANGUAGE', None)
             wpsrequest.check_and_set_language(language)
 
-            wpsrequest.identifier = _get_query_param('identifier')
+            wpsrequest.identifier = _get_query_param('IDENTIFIER')
             
-            timeout = _get_query_param('timeout', None)
+            timeout = _get_query_param('TIMEOUT', None)
             wpsrequest.check_and_set_timeout(timeout)
 
-            expire = _get_query_param('expire', None)
+            expire = _get_query_param('EXPIRE', None)
             wpsrequest.check_and_set_expiration(expire)
 
-            wpsrequest.store_execute = _get_query_param('storeExecuteResponse', 'false')
+            wpsrequest.store_execute = _get_query_param('STOREEXECUTERESPONSE', 'false')
             # XXX If storeExecuteResponse is set to true then we enforce 
             # status supports. This will trigger *asynchronous* request.
             wpsrequest.status = wpsrequest.store_execute
-            wpsrequest.lineage = _get_query_param('lineage', 'false')
+            wpsrequest.lineage = _get_query_param('LINEAGE', 'false')
 
-            wpsrequest.inputs = get_data_from_kvp(_get_query_param('datainputs', None), 'DataInputs')
+            wpsrequest.inputs = get_data_from_kvp(_get_query_param('DATAINPUTS', None), 'DataInputs')
             wpsrequest.outputs = {}
 
             # take responseDocument preferably
-            resp_outputs = get_data_from_kvp(_get_query_param('responsedocument', None))
-            raw_outputs  = get_data_from_kvp(_get_query_param('rawdataoutput', None))
+            resp_outputs = get_data_from_kvp(_get_query_param('RESPONSEDOCUMENT', None))
+            raw_outputs  = get_data_from_kvp(_get_query_param('RAWDATAOUTPUT', None))
             wpsrequest.raw = False
             if resp_outputs:
                 wpsrequest.outputs = resp_outputs

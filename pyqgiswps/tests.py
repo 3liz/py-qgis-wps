@@ -69,14 +69,15 @@ class WpsClient:
     def __init__(self, testcase):
         self._testcase = testcase
 
-    def post(self, data):
-        return WpsTestResponse(self._testcase.fetch('/ows/', method='POST', body=data, raise_error=False))
+    def post(self, data, headers=None, path='/ows/'):
+        return WpsTestResponse(self._testcase.fetch(path, method='POST', body=data, raise_error=False, headers=headers))
 
-    def get(self, query):
-        return WpsTestResponse(self._testcase.fetch('/ows/' + query, raise_error=False))
+    def get(self, query, headers=None, path='/ows/'):
+        return WpsTestResponse(self._testcase.fetch(path + query, raise_error=False,
+               headers=headers))
 
-    def put(self, data):
-        return WpsTestResponse(self._testcase.fetch('/ows/', method='PUT', body=data, raise_error=False))
+    def put(self, data, headers=None, path='/ows/'):
+        return WpsTestResponse(self._testcase.fetch(path, method='PUT', body=data, raise_error=False, headers=headers))
 
     def post_xml(self, doc):
         return self.post(data=lxml.etree.tostring(doc, pretty_print=True))

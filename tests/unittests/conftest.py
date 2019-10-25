@@ -39,7 +39,7 @@ def pytest_sessionstart(session):
     log_level = getattr(logging, server_log_level.upper())
     logging.disable(log_level)
 
-    logger = logging.getLogger('QGSRV')
+    logger = logging.getLogger('SRVLOG')
     logger.setLevel(log_level)
 
     from pyqgiswps.utils.plugins import WPSServerInterfaceImpl

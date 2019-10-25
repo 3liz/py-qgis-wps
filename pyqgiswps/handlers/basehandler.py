@@ -30,8 +30,13 @@ class BaseHandler(tornado.web.RequestHandler):
         super().initialize()
         self.connection_closed = False
 
-        # Convert query arguments to *lower* case:
-        self.request.query_arguments.update( [(k.lower(), v) for (k,v) in self.request.query_arguments.items()] )
+        # Convert query arguments to *upper* case:
+        self.request.query_arguments.update( [(k.upper(), v) for (k,v) in self.request.query_arguments.items()] )
+
+    def prepare(self):
+        self.has_body_arguments = len(self.request.body_arguments)>0
+        # Replace query arguments to upper case:
+        self.request.arguments = { k.upper():v for (k,v) in self.request.arguments.items() }
 
     def compute_etag(self):
         # Disable etag computation
