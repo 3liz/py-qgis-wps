@@ -73,9 +73,6 @@ def load_configuration():
     CONFIG.set('server', 'url', '{host_url}')
     CONFIG.set('server', 'maxsingleinputsize', '1mb')
     CONFIG.set('server', 'temp_path', tempfile.gettempdir())
-    outputpath = tempfile.gettempdir()
-    ## XXX outputpath is only used for dblog 
-    CONFIG.set('server', 'outputpath'           , getenv('QYWPS_OUTPUTPATH',outputpath))
     CONFIG.set('server', 'store_url'            , '{host_url}store/{uuid}/{file}?service=WPS')
     CONFIG.set('server', 'status_url'           , '{host_url}ows/?service=WPS&request=GetResults&uuid={uuid}') 
     CONFIG.set('server', 'workdir'              , getenv('QYWPS_SERVER_WORKDIR',tempfile.gettempdir()))
