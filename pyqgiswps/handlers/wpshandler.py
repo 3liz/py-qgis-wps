@@ -19,7 +19,6 @@ from .basehandler import BaseHandler
 from ..exceptions import NoApplicableCode, InvalidParameterValue, OperationNotSupported
 
 from ..app.WPSRequest import WPSRequest
-from ..app.Common import MapContext
 
 LOGGER = logging.getLogger('SRVLOG')
 

@@ -23,7 +23,6 @@ from pyqgiswps.executors.pool import PoolExecutor, ExecutorError, UnknownProcess
 from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths, init_qgis_processing
 from pyqgiswps.utils.lru import lrucache
 from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
-from pyqgiswps.app.Common import MapContext
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -143,7 +142,6 @@ class ProcessingExecutor(PoolExecutor):
         """
         try:
             from pyqgiswps.executors.processingprocess import QgsProcess
-            context = MapContext(map_uri).update_context(context)
             return [QgsProcess.createInstance(ident,map_uri=map_uri, **context) for ident in identifiers]
         except:
             traceback.print_exc()

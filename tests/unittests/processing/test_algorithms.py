@@ -15,7 +15,7 @@ from pyqgiswps.inout import (LiteralInput,
                         BoundingBoxOutput)
 
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
-from pyqgiswps.executors.processingprocess import(
+from pyqgiswps.executors.processingio import(
             parse_literal_input,
             parse_layer_input,
             parse_extent_input,
@@ -25,11 +25,13 @@ from pyqgiswps.executors.processingprocess import(
             parse_output_definition,
             input_to_processing,
             processing_to_output,
+        ) 
+
+from pyqgiswps.executors.processingprocess import(
             handle_algorithm_results,
             handle_layer_outputs,
             write_outputs,
-            _find_algorithm,
-        ) 
+            _find_algorithm)
 
 from qgis.core import QgsApplication
 from qgis.core import (QgsProcessingParameterNumber,
@@ -201,7 +203,7 @@ def test_layer_algorithm(outputdir, data):
     
     assert context.destination_project.count() == 1
 
-    handle_layer_outputs(alg, results, context)
+    handle_layer_outputs(results, context)
     assert results['OUTPUT'] == parameters['OUTPUT'].destinationName
 
     output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=alg.name())
@@ -244,7 +246,7 @@ def test_buffer_algorithm(outputdir, data):
     
     assert context.destination_project.count() == 1
 
-    handle_layer_outputs(alg, results, context)
+    handle_layer_outputs(results, context)
     assert results['OUTPUT_VECTOR'] == parameters['OUTPUT_VECTOR'].destinationName
 
     output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
@@ -299,7 +301,7 @@ def test_selectfeatures_algorithm(outputdir, data):
     
     assert context.destination_project.count() == 1
 
-    handle_layer_outputs(alg, results, context)
+    handle_layer_outputs(results, context)
     assert results['OUTPUT_VECTOR'] == parameters['OUTPUT_VECTOR'].destinationName
 
     output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())

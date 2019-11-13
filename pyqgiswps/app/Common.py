@@ -15,14 +15,6 @@
 import os
 import logging
 
-from pathlib import Path
-from urllib.parse import urlparse
-
-from pyqgiswps import config
-
-LOGGER = logging.getLogger('SRVLOG')
-
-
 class Metadata:
     """
     ows:Metadata content model.
@@ -43,41 +35,4 @@ class Metadata:
             yield '{http://www.w3.org/1999/xlink}href', self.href
         yield '{http://www.w3.org/1999/xlink}type', self.type
 
-
-class MapContext:
-    """ Hold context regarding the MAP parameter
-    """
-    
-    def __init__(self, map_uri=None):
-        self.rootdir = Path(config.get_config('cache')['rootdir'])
-        if map_uri is None:
-                map_uri = '/'
-        self.map_uri    = urlparse(map_uri)
-        self.projectdir = MapContext.resolve_path(self.rootdir, os.path.dirname(self.map_uri.path))
-
-    def update_context( self, context ):
-        """ Update a configuration context
-        """
-        context['rootdir']    = self.rootdir.as_posix()
-        context['projectdir'] = self.projectdir.as_posix()
-        context['project']    = self.map_uri.path
-        return context
-
-    @staticmethod
-    def resolve_path( rootdir, path, check=False ):
-        """ Return the full path of a file if that file
-            exists in the project root director.
-
-            The method will ensure that path is relative to 
-            the the cache root directory
-        """
-        # XXX Resolve do not support 'strict' with python 3.5
-        #path = Path('/'+path).resolve(strict=False)
-        path  = Path(os.path.normpath('/'+path))
-        path = (rootdir / path.relative_to('/'))
-        if check and not path.exists():
-            raise FileNotFoundError(path.as_posix())
-        return path
-
-
-        
+       

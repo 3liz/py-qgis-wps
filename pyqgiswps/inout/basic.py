@@ -33,7 +33,7 @@ _SOURCE_TYPE = namedtuple('SOURCE_TYPE', 'MEMORY, FILE, STREAM, DATA')
 SOURCE_TYPE = _SOURCE_TYPE(0, 1, 2, 3)
 
 
-class IOHandler(object):
+class IOHandler:
     """Basic IO class. Provides functions, to accept input data in file,
     memory object and stream object and give them out in all three types
 
@@ -223,11 +223,11 @@ class IOHandler(object):
 class SimpleHandler(IOHandler):
     """Data handler for Literal In- and Outputs
 
-    >>> class Int_type(object):
+    >>> class Int_type:
     ...     @staticmethod
     ...     def convert(value): return int(value)
     >>>
-    >>> class MyValidator(object):
+    >>> class MyValidator:
     ...     @staticmethod
     ...     def validate(inpt): return 0 < inpt.data < 3
     >>>
@@ -302,7 +302,7 @@ class BasicLiteral:
         self._uom = uom
 
 
-class BasicComplex(object):
+class BasicComplex:
     """Basic complex input/output class
 
     """
@@ -383,7 +383,7 @@ class BasicComplex(object):
         return False
 
 
-class BasicBoundingBox(object):
+class BasicBoundingBox:
     """Basic BoundingBox input/output class
     """
 
@@ -614,7 +614,7 @@ class ComplexOutput(BasicIO, BasicComplex, IOHandler):
         return url
 
 
-class UOM(object):
+class UOM:
     """
     :param uom: unit of measure
     """

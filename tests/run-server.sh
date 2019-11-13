@@ -18,5 +18,5 @@ export QGIS_NO_OVERRIDE_IMPORT=1
 
 export FAKEREDIS=yes
 
-exec wpsserver -w $WORKERS -p 8080 --chdir run-tests
+exec wpsserver -w $WORKERS -p 8080 --chdir tests/unittests
 

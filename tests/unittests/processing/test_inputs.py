@@ -15,7 +15,7 @@ from pyqgiswps.inout import (LiteralInput,
                         BoundingBoxOutput)
 
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
-from pyqgiswps.executors.processingprocess import(
+from pyqgiswps.executors.processingio import(
             parse_literal_input,
             parse_layer_input,
             parse_extent_input,
@@ -25,12 +25,15 @@ from pyqgiswps.executors.processingprocess import(
             parse_output_definition,
             input_to_processing,
             processing_to_output,
-            handle_algorithm_results,
-            handle_layer_outputs,
-            write_outputs,
-            _find_algorithm,
             _is_optional,
         ) 
+
+from pyqgiswps.executors.processingprocess import(
+        handle_algorithm_results,
+        handle_layer_outputs,
+        write_outputs,
+        _find_algorithm)
+
 
 from qgis.core import QgsApplication
 from qgis.core import (QgsProcessing,

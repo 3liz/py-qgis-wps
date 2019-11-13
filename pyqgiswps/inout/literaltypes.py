@@ -338,9 +338,11 @@ def convert_angle(inpt):
 
 
 def make_allowedvalues(allowed_values):
-    """convert given value list to AllowedValue objects
+    """ convert given value list to AllowedValue objects
 
-    :return: list of pyqgiswps.inout.literaltypes.AllowedValue
+        List/tuple value are intepreted as range
+
+        :return: list of pyqgiswps.inout.literaltypes.AllowedValue
     """
 
     new_allowedvalues = []
