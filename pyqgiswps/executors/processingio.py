@@ -216,7 +216,7 @@ def parse_allowed_layers(param: QgsProcessingParameterDefinition, kwargs, contex
     if not datatypes: 
         if isinstance(param, INPUT_VECTOR_LAYER_TYPES):
             datatypes = [QgsProcessing.TypeVector]
-        elif isinstance(param, INPUT_VECTOR_RASTER_TYPES):
+        elif isinstance(param, INPUT_RASTER_LAYER_TYPES):
             datatypes = [QgsProcessing.TypeRaster]
         else:
             datatypes = [QgsProcessing.TypeMapLayer]

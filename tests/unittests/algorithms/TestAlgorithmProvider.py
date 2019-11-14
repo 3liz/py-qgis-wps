@@ -12,6 +12,7 @@ from .TestMultiOptionValue import TestMultiOptionValue
 from .TestCopyLayer import TestCopyLayer
 from .TestFileDestination import TestFileDestination
 from .TestSimpleBuffer import TestSimpleBuffer
+from .TestInputRasterLayer import TestInputRasterLayer
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -27,6 +28,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestCopyLayer(),
                  TestFileDestination(),
                  TestSimpleBuffer(),
+                 TestInputRasterLayer(),
             ]
         except:
             traceback.print_exc()

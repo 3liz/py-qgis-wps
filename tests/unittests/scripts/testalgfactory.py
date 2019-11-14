@@ -1,8 +1,5 @@
 
-try:
-    from qgis.processing import alg
-except ImportError:
-    from pyqgiswps.utils.future import alg
+from qgis.processing import alg
 
 @alg(name='testalgfactory', label='test 2', group='test', group_label='Test scripts')
 @alg.input(type=alg.STRING, name="IN1", label='In string')

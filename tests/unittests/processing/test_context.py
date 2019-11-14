@@ -140,7 +140,7 @@ def test_get_project_folder(outputdir, data):
     assert os.path.isdir(path.as_posix())
 
 
-def test_map_context(outputdir, data):
+def test_map_vector_context(outputdir, data):
     """ Test map context return allowed layers
     """
     alg = _find_algorithm('pyqgiswps_test:testcopylayer')
@@ -154,6 +154,20 @@ def test_map_context(outputdir, data):
     assert len(allowed_values) == len(layers)
     assert allowed_values == layers
 
+
+def test_map_raster_context(outputdir, data):
+    """ Test map context return allowed layers
+    """
+    alg = _find_algorithm('pyqgiswps_test:testinputrasterlayer')
+    context = MapContext('raster_layer.qgs')
+    inputs  = { p.name(): [parse_input_definition(p,alg,context)] for p in  alg.parameterDefinitions() }
+
+    layers = { l.name() for l in context.project().mapLayers().values() if l.type() == QgsMapLayer.RasterLayer }
+    
+    allowed_values = { v.value for v in inputs['INPUT'][0].allowed_values }
+
+    assert len(allowed_values) == len(layers)
+    assert allowed_values == layers
 
 
 
