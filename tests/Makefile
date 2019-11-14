@@ -37,6 +37,7 @@ test: local
     -e PIP_CACHE_DIR=/.cache \
     -e PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
     -e QYWPS_CACHE_ROOTDIR=/src/tests/unittests/data \
+    -e QYWPS_PROCESSING_PROVIDERS_MODULE_PATH=/src/tests/unittests \
     -e QGIS_OPTIONS_PATH=/src/tests/qgis \
     $(QGIS_IMAGE) /src/tests/run-tests.sh
 

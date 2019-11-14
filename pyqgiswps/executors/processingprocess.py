@@ -35,7 +35,8 @@ from qgis.core import (QgsApplication,
                        QgsProcessingFeedback,
                        QgsProcessingContext,
                        QgsProcessingAlgorithm,
-                       QgsProcessingUtils)
+                       QgsProcessingUtils,
+                       QgsFeatureRequest)
 
 from pyqgiswps.app.Process import WPSProcess
 from pyqgiswps.app.WPSResponse import WPSResponse

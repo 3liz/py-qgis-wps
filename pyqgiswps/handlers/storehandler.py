@@ -135,7 +135,7 @@ class StoreHandler(BaseHandler, StoreShellMixIn):
         if wps_status is None:
             raise HTTPError(404, reason="The resource does not exists") 
 
-        action = self.get_query_argument('ACTION') 
+        action = self.get_argument('ACTION') 
         
         if action.lower() == 'archive':
             await self.archive(uuid)

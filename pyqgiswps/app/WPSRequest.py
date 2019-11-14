@@ -70,15 +70,15 @@ class WPSRequest:
 
             :return: A WPSRequest instance
         """
-        service = handler.get_query_argument('SERVICE')
+        service = handler.get_argument('SERVICE')
         if service.lower() != 'wps':
             raise InvalidParameterValue('parameter SERVICE [%s] not supported' % service, 'SERVICE')
 
-        operation = handler.get_query_argument('REQUEST').lower()
+        operation = handler.get_argument('REQUEST').lower()
 
         wpsrequest = WPSRequest()
 
-        _get_query_param = handler.get_query_argument
+        _get_query_param = handler.get_argument
 
         def parse_get_getresults():
             """ Parse GET GetResults

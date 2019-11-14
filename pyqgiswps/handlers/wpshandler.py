@@ -43,7 +43,7 @@ class WPSHandler(BaseHandler):
         http_request = self.request
         wpsrequest   = method_parser(self)
 
-        wpsrequest.map_uri  = self.get_query_argument('MAP', default=None)
+        wpsrequest.map_uri  = self.get_argument('MAP', default=None)
         wpsrequest.host_url = self.proxy_url()
 
         service = self.application.wpsservice
@@ -75,7 +75,7 @@ class WPSHandler(BaseHandler):
     async def get(self):
         """ Handle Get Method
         """
-        service = self.get_query_argument('SERVICE')
+        service = self.get_argument('SERVICE')
         if service.lower() != 'wps':
             raise InvalidParameterValue('parameter SERVICE [%s] not supported' % service, 'service')
 
@@ -142,7 +142,7 @@ class StatusHandler(BaseHandler):
     def get( self, uuid=None):
         """ Return status infos
         """
-        key = self.get_query_argument('KEY', default=None)
+        key = self.get_argument('KEY', default=None)
         if key == 'request':
             self.get_wps_request(uuid)
         else:
