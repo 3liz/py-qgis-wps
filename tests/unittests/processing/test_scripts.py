@@ -58,7 +58,7 @@ class Context(QgsProcessingContext):
         """
         return self.destination_project.write(os.path.join(workdir,name+'.qgs'))
 
-@pytest.mark.skipif(qgis_version_info < (3,6), reason="requires qgis 3.6+")
+#@pytest.mark.skipif(qgis_version_info < (3,6), reason="requires qgis 3.6+")
 def test_alg_factory(): 
     """ Test that alg factory is functional
     """
@@ -69,4 +69,16 @@ def test_alg_factory():
  
     alg = registry.algorithmById('script:testalgfactory')
     assert alg is not None, 'script:testalgfactory'
+
+def test_model(): 
+    """ Test that model  is functional
+    """
+    registry = QgsApplication.processingRegistry()
+
+    provider = registry.providerById('model')
+    assert provider is not None, 'model provider'
+ 
+    alg = registry.algorithmById('model:centroides')
+    assert alg is not None, 'model:centroides'
+
 

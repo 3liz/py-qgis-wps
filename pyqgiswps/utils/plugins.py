@@ -28,6 +28,7 @@ _ProviderItem = namedtuple('_ProviderItem', ('provider','exposed'))
 
 SCRIPTS_PROVIDER_ID='script'
 
+
 def _register_script_provider(reg, providers):
     """ Register scripts provider for exposition
     """
@@ -37,16 +38,31 @@ def _register_script_provider(reg, providers):
         return
 
     providers.append(_ProviderItem(p,True))
-    
+
+
+MODEL_PROVIDER_ID='model'
+
+
+def _register_model_provider(reg, providers):
+    """ Register model provider for exposition
+    """
+    p = reg.providerById(MODEL_PROVIDER_ID)
+    if p is None:
+        LOGGER.error("Cannot find %s provider", MODEL_PROVIDER_ID)
+        return
+
+    providers.append(_ProviderItem(p,True))
+
 
 class WPSServerInterfaceImpl:
 
-    def __init__(self, path, with_scripts: bool=True) -> None:
+    def __init__(self, path, with_scripts: bool=True, with_models: bool=True) -> None:
 
         self._path = path
         self._plugins = {}
         self._providers    = None
         self._with_scripts = with_scripts
+        self._with_models  = with_models
 
     def initialize(self) -> None:
         """  Collect wps plugins
@@ -75,6 +91,9 @@ class WPSServerInterfaceImpl:
         
         if self._with_scripts:
             _register_script_provider(reg,providers)
+
+        if self._with_models:
+            _register_model_provider(reg,providers)
 
         class _WPSServerInterface:
             def registerProvider( self, provider: 'QgsAlgorithmProvider', expose: bool = True ) -> None:

@@ -48,10 +48,12 @@ class ProcessingExecutor(PoolExecutor):
 
         plugin_path = self._config.get('providers_module_path')
         expose_scripts = self._config.getboolean('expose_scripts')
-        
+        expose_models  = self._config.getboolean('expose_models')
+
         setup_qgis_paths()  
 
-        self._wps_interface = WPSServerInterfaceImpl(plugin_path, with_scripts=expose_scripts)
+        self._wps_interface = WPSServerInterfaceImpl(plugin_path, with_scripts=expose_scripts,
+                                                                  with_models=expose_models)
         self._wps_interface.initialize()
 
         super(ProcessingExecutor, self).initialize(processes)
@@ -72,19 +74,22 @@ class ProcessingExecutor(PoolExecutor):
 
         settings = {}
 
+        def _validate_folders( name, setting, conf ):
+            folders = self._config.get(conf)
+            folders = folders.split(';')
+            for folder in folders:
+                if not os.path.isdir(folder):
+                    LOGGER.error("%s '%s' not found, disabling" , name, folder)
+
+            folders = ';'.join( f for f in folders if os.path.isdir(f) )
+            if folders:
+                LOGGER.info("%s set to %s", name, folders)
+                settings["Processing/Configuration/%s" % setting] = folders
+
         # Set up processing script folder
         # XXX  If scripts folder is not set then ScriptAlgorithmProvider will crash !
-        scripts_folders = self._config.get('scripts_folders')
-
-        scripts_folders = scripts_folders.split(';')
-        for folder in scripts_folders:
-            if not os.path.isdir(folder):
-                LOGGER.error("Script folder '%s' not found, disabling" ,folder) 
-
-        scripts_folders = ';'.join( f for f in scripts_folders if os.path.isdir(f))
-        if scripts_folders:
-            LOGGER.info("Scripts folder set to %s", scripts_folders)
-            settings["Processing/Configuration/SCRIPTS_FOLDERS"] = scripts_folders
+        _validate_folders('Script folders', 'SCRIPTS_FOLDERS', 'scripts_folders')
+        _validate_folders('Models folders', 'MODELS_FOLDER'  , 'models_folders')
 
         # Init qgis application
         self.qgisapp = start_qgis_application( enable_processing=True, 

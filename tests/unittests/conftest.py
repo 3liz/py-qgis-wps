@@ -45,13 +45,16 @@ def pytest_sessionstart(session):
     from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
     
     rootdir  = Path(session.config.rootdir.strpath)
-    settings = { "Processing/Configuration/SCRIPTS_FOLDERS": str(rootdir / 'scripts') }
+    settings = { 
+        "Processing/Configuration/SCRIPTS_FOLDERS": str(rootdir / 'scripts'),
+        "Processing/Configuration/MODELS_FOLDER"  : str(rootdir / 'models') 
+    }
 
     global qgis_application
     qgis_application = start_qgis_application(enable_processing=True, cleanup=False, 
                                    settings=settings)
     try:
-        iface = WPSServerInterfaceImpl(str(rootdir), with_scripts=True)
+        iface = WPSServerInterfaceImpl(str(rootdir), with_scripts=True, with_models=True)
         iface.initialize()
         assert len(iface.plugins) > 0
 
