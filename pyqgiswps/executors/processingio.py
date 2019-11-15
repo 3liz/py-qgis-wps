@@ -144,9 +144,15 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
         kwargs['data_type'] = 'string'
         kwargs['allowed_values'] = options
         kwargs['max_occurs'] = len(options) if param.allowMultiple() else 1
-        if param.defaultValue() is not None:
+        default_value = param.defaultValue()
+        if default_value is not None:
             # XXX Values for processing enum are indices
-            kwargs['default'] = options[param.defaultValue()]
+            if isinstance(default_value, int): 
+                kwargs['default'] = options[default_value]
+            elif isinstance(default_value, list):
+                kwargs['default'] = options[default_value[0]]
+            else:
+                raise InvalidParameterValue('Unsupported default value: %s' % default_value)
     elif typ == 'number':
         kwargs['data_type'] = { QgsProcessingParameterNumber.Double :'float',
                                 QgsProcessingParameterNumber.Integer:'integer'

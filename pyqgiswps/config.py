@@ -124,8 +124,7 @@ def load_configuration():
     CONFIG.set('processing', 'providers_module_path', getenv('QYWPS_PROCESSING_PROVIDERS_MODULE_PATH',''))
     CONFIG.set('processing', 'scripts_folders'      , getenv('QYWPS_PROCESSING_SCRIPT_FOLDERS','%(providers_module_path)s/scripts'))
     CONFIG.set('processing', 'models_folders'       , getenv('QYWPS_PROCESSING_MODEL_FOLDERS' ,'%(providers_module_path)s/models'))
-    CONFIG.set('processing', 'expose_scripts'       , getenv('QYWPS_PROCESSING_EXPOSE_SCRIPTS','true'))
-    CONFIG.set('processing', 'expose_models'        , getenv('QYWPS_PROCESSING_EXPOSE_MODELS' ,'true'))
+    CONFIG.set('processing', 'exposed_providers'    , getenv('QYWPS_PROCESSING_EXPOSED_PROVIDERS' ,'script,model'))
 
     #
     # Metadata

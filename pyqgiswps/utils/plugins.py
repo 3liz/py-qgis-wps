@@ -26,29 +26,12 @@ from typing import Generator, Iterable, List, Dict, Any
 
 _ProviderItem = namedtuple('_ProviderItem', ('provider','exposed'))
 
-SCRIPTS_PROVIDER_ID='script'
-
-
-def _register_script_provider(reg, providers):
+def _register_provider(reg: 'QgsProcessingRegistry', provider_id: str, providers: List[_ProviderItem] ) -> None:
     """ Register scripts provider for exposition
     """
-    p = reg.providerById(SCRIPTS_PROVIDER_ID)
+    p = reg.providerById(provider_id)
     if p is None:
-        LOGGER.error("Cannot find %s provider", SCRIPTS_PROVIDER_ID)
-        return
-
-    providers.append(_ProviderItem(p,True))
-
-
-MODEL_PROVIDER_ID='model'
-
-
-def _register_model_provider(reg, providers):
-    """ Register model provider for exposition
-    """
-    p = reg.providerById(MODEL_PROVIDER_ID)
-    if p is None:
-        LOGGER.error("Cannot find %s provider", MODEL_PROVIDER_ID)
+        LOGGER.error("Processing provider '%s' not found", provider_id)
         return
 
     providers.append(_ProviderItem(p,True))
@@ -56,13 +39,12 @@ def _register_model_provider(reg, providers):
 
 class WPSServerInterfaceImpl:
 
-    def __init__(self, path, with_scripts: bool=True, with_models: bool=True) -> None:
+    def __init__(self, path: str, with_providers: List[str]) -> None:
 
         self._path = path
         self._plugins = {}
-        self._providers    = None
-        self._with_scripts = with_scripts
-        self._with_models  = with_models
+        self._providers      = None
+        self._with_providers = with_providers
 
     def initialize(self) -> None:
         """  Collect wps plugins
@@ -77,7 +59,7 @@ class WPSServerInterfaceImpl:
     def plugins(self) -> Dict[str,Any]:
         return self._plugins
 
-    def register_providers(self) -> List[_ProviderItem]:
+    def register_providers(self) -> None:
         """ Register providers
         """
         if self._providers:
@@ -88,12 +70,10 @@ class WPSServerInterfaceImpl:
 
         providers = []
         self._providers = providers
-        
-        if self._with_scripts:
-            _register_script_provider(reg,providers)
-
-        if self._with_models:
-            _register_model_provider(reg,providers)
+   
+        # Register internal/default qgis providers
+        for provider_id in self._with_providers:
+            _register_provider(reg, provider_id, providers)
 
         class _WPSServerInterface:
             def registerProvider( self, provider: 'QgsAlgorithmProvider', expose: bool = True ) -> None:

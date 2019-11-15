@@ -54,7 +54,7 @@ def pytest_sessionstart(session):
     qgis_application = start_qgis_application(enable_processing=True, cleanup=False, 
                                    settings=settings)
     try:
-        iface = WPSServerInterfaceImpl(str(rootdir), with_scripts=True, with_models=True)
+        iface = WPSServerInterfaceImpl(str(rootdir), with_providers=['script','model'])
         iface.initialize()
         assert len(iface.plugins) > 0
 

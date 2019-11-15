@@ -46,14 +46,12 @@ class ProcessingExecutor(PoolExecutor):
         """
         self._config = config.get_config('processing')
 
-        plugin_path = self._config.get('providers_module_path')
-        expose_scripts = self._config.getboolean('expose_scripts')
-        expose_models  = self._config.getboolean('expose_models')
+        plugin_path       = self._config.get('providers_module_path')
+        exposed_providers = self._config.get('exposed_providers','').split(',') 
 
         setup_qgis_paths()  
 
-        self._wps_interface = WPSServerInterfaceImpl(plugin_path, with_scripts=expose_scripts,
-                                                                  with_models=expose_models)
+        self._wps_interface = WPSServerInterfaceImpl(plugin_path, with_providers=exposed_providers)
         self._wps_interface.initialize()
 
         super(ProcessingExecutor, self).initialize(processes)
