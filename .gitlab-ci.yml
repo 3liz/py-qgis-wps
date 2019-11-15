@@ -1,26 +1,49 @@
 stages:
+- test
 - build
 
-build:
-  stage: build
+.only_changes: &changes_def
+  changes:
+    - pyqgiswps/**/*
+    - tests/**/*
+    - "*.sh"
+    - Makefile
+    - "setup.*"
+    - LICENSE.txt
+
+test:ltr:
+  stage: test
   script:
     - make docker-test FLAVOR=ltr
-    - make dist deliver
-    - $FACTORY_SCRIPTS/trigger-ci $DOCKER_WPS_ID $DOCKER_WPS_TOKEN master
-  environment:
-    name: snap
   only:
-    changes:
-      - pyqgiswps/**/*
-      - tests/**/*
-      - "*.sh"
-      - Makefile
-      - "setup.*"
-      - LICENSE.txt
+    <<: *changes_def
   tags:
     - infrav3
   artifacts:
     reports:
         junit: tests/unittests/__output__/junit.xml
 
+test:release:
+  stage: test
+  script:
+    - make docker-test FLAVOR=release
+  only:
+    <<: *changes_def
+  tags:
+    - infrav3
+  artifacts:
+    reports:
+        junit: tests/unittests/__output__/junit.xml
+
+build:
+  stage: build
+  script:
+    - make dist deliver
+    - $FACTORY_SCRIPTS/trigger-ci $DOCKER_WPS_ID $DOCKER_WPS_TOKEN master
+  environment:
+    name: snap
+  only:
+    <<: *changes_def
+  tags:
+    - infrav3
 

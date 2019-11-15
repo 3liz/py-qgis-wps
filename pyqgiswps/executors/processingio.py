@@ -475,11 +475,7 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
         # Do not supports memory: layer since we are storing destination project to file
         param.setSupportsNonFileBasedOutput(False)
         # Enforce pushing created layers to layersToLoadOnCompletion list
-        if param.defaultFileExtension():
-            sink = "./%s.%s" % (param.name(), param.defaultFileExtension())
-        else:
-            # No file extension defined: we assume to use a stored layer
-            sink = "%s_%s" % (param.name(), alg.name())
+        sink = "./%s.%s" % (param.name(), param.defaultFileExtension())
         value = QgsProcessingOutputLayerDefinition(sink, context.destination_project)
         value.destinationName = inp[0].data
 

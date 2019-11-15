@@ -29,6 +29,7 @@ local:
 	mkdir -p  $$(pwd)/.local  $(LOCAL_HOME)/.cache
 
 test: local
+	rm -rf unittests/__outputdir__/*
 	docker run --rm --name qgis-wps-test-$(FLAVOR)-$(COMMITID) -w /src \
     -u $(BECOME_USER) \
     -v $(SRCDIR):/src \
