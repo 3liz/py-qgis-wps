@@ -39,7 +39,8 @@ build:
   stage: build
   script:
     - make dist deliver
-    - $FACTORY_SCRIPTS/trigger-ci $DOCKER_WPS_ID $DOCKER_WPS_TOKEN master
+    - $FACTORY_SCRIPTS/trigger-ci $DOCKER_WPS_ID $DOCKER_WPS_TOKEN master -F "variables[QGIS_FLAVOR]=ltr"
+    - $FACTORY_SCRIPTS/trigger-ci $DOCKER_WPS_ID $DOCKER_WPS_TOKEN master -F "variables[QGIS_FLAVOR]=release"
   environment:
     name: snap
   only:
