@@ -29,13 +29,14 @@ from .handlers import (RootHandler, WPSHandler, StoreHandler, StatusHandler,
                        DownloadHandler)
 
 from .filters import load_filters
+from .accesspolicy import init_access_policy
 
 from .version import __version__
 
 LOGGER = logging.getLogger('SRVLOG')
 
 
-def configure_handlers( processes ):
+def configure_handlers( appfilters ):
     """ Set up request handlers
     """
     staticpath = docpath = pkg_resources.resource_filename("pyqgiswps", "webui")
@@ -45,10 +46,12 @@ def configure_handlers( processes ):
     workdir = cfg['workdir']
     dnl_ttl = cfg.getint('download_ttl')
 
+    init_access_policy()
+
     def ows_handlers():
         # Load filters overriding '/ows/'
         if cfg.getboolean('enable_filters'):
-            filters = load_filters(r"/ows/")
+            filters = load_filters(r"/ows/", appfilters=appfilters)
             for uri,fltrs in filters.items():
                 yield (uri, WPSHandler, dict(filters=fltrs) )
         else:
@@ -77,11 +80,11 @@ def configure_handlers( processes ):
 
 class Application(tornado.web.Application):
 
-    def __init__(self, processes=[], executor=None):
+    def __init__(self, processes=[], executor=None, filters=None):
         from pyqgiswps.app.Service import Service
         self.wpsservice = Service(processes=processes, executor=executor)
         self.config     = get_config('server')
-        super().__init__(configure_handlers( processes ))
+        super().__init__(configure_handlers( filters ))
 
     def log_request(self, handler):
         """ Write HTTP requet to the logs

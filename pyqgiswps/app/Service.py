@@ -84,10 +84,11 @@ class Service():
         """
         return self.executor.delete_results(uuid)
 
-
-    def get_capabilities(self, wps_request):
+    def get_capabilities(self, wps_request, accesspolicy=None):
+        """ Handle getcapbabilities request
+        """
         process_elements = [p.capabilities_xml()
-                            for p in self.processes]
+                            for p in self.processes if accesspolicy.allow(p.identifier)]
 
         doc = WPS.Capabilities()
 
@@ -271,14 +272,16 @@ class Service():
         return doc
 
     def describe(self, identifiers, **context):
+        """ Return process description
+        """
         if not identifiers:
             raise MissingParameterValue('', 'identifier')
 
-        identifier_elements = []
         # 'all' keyword means all processes
         if 'all' in (ident.lower() for ident in identifiers):
             identifiers = [p.identifier for p in self.processes]
-            
+
+        identifier_elements = []
         try:
             identifier_elements.extend(p.describe_xml() for p in self.get_processes(identifiers,**context))
         except UnknownProcessError as exc:

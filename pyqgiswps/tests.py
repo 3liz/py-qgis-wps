@@ -44,11 +44,11 @@ def _pop_kwarg(name, kwargs):
     return val
 
 class HTTPTestCase(AsyncHTTPTestCase):
-  
+ 
     def get_app(self):
         setup_log_handler('info')
         self.logger = logging.getLogger('SRVLOG')
-        return Application()
+        return Application(filters=self.get_filters())
 
     def client_for(self, service):
         self._app.wpsservice = service
@@ -62,6 +62,15 @@ class HTTPTestCase(AsyncHTTPTestCase):
         asyncio.set_event_loop(io_loop.asyncio_loop)
 
         return io_loop
+
+    def get_filters(self):
+        """ Return custom filters
+
+            Override in tests
+        """
+        return None
+
+
 
 
 class WpsClient:

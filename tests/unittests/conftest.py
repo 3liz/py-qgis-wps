@@ -29,7 +29,14 @@ def outputdir(request):
 def data(request):
     return request.config.rootdir.join('data')
 
+
+@pytest.fixture(scope='session')
+def rootdir(request):
+    return request.config.rootdir
+
+
 qgis_application = None
+
 
 def pytest_sessionstart(session):
     setup_qgis_paths()

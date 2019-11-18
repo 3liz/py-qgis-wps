@@ -4,10 +4,7 @@ import os
 import pytest
 
 from urllib.parse import urlparse, parse_qs, urlencode
-from pyqgiswps.utils.qgis import setup_qgis_paths
 from pyqgiswps.utils.qgis import version_info as qgis_version_info
-
-#setup_qgis_paths()
 
 from pyqgiswps.utils.contexts import chdir 
 

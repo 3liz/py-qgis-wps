@@ -2,8 +2,8 @@
 """
 import os
 
-from pyqgiswps.utils.qgis import setup_qgis_paths
-setup_qgis_paths()
+#from pyqgiswps.utils.qgis import setup_qgis_paths
+#setup_qgis_paths()
 
 from pyqgiswps.utils.contexts import chdir 
 

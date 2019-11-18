@@ -1,0 +1,5 @@
+
+deny: all
+allow:
+    - allowed_*
+

@@ -2,11 +2,8 @@
 """
 import os
 from urllib.parse import urlparse, parse_qs, urlencode
-from pyqgiswps.utils.qgis import setup_qgis_paths
-setup_qgis_paths()
 
 from pyqgiswps.utils.contexts import chdir 
-
 from pyqgiswps.inout import (LiteralInput, 
                         ComplexInput,
                         BoundingBoxInput, 

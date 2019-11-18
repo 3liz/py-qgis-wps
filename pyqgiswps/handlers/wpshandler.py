@@ -17,8 +17,10 @@ from urllib.parse import urljoin
 
 from .basehandler import BaseHandler
 from ..exceptions import NoApplicableCode, InvalidParameterValue, OperationNotSupported
+from ..accesspolicy import new_access_policy
 
 from ..app.WPSRequest import WPSRequest
+
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -29,10 +31,10 @@ class WPSHandler(BaseHandler):
     def initialize(self, filters=None):
         super().initialize()
     
-        self._filters = filters or []
+        self._filters     = filters or []
+        self.accesspolicy = new_access_policy()
 
     async def prepare(self):
-        # Handle filters
         super().prepare()
         for filt in self._filters:
             await filt.apply( self )
@@ -53,17 +55,17 @@ class WPSHandler(BaseHandler):
             response = service.get_results(wpsrequest.results_uuid)
 
         elif wpsrequest.operation == 'getcapabilities':
-            response = service.get_capabilities(wpsrequest)
+            response = service.get_capabilities(wpsrequest, self.accesspolicy)
 
         elif wpsrequest.operation == 'describeprocess':
+            if any( not self.accesspolicy.allow(ident) for ident in wpsrequest.identifiers ):
+                raise HTTPError(403,reason="Unauthorized operation")
             response = service.describe(wpsrequest.identifiers, map_uri=wpsrequest.map_uri)
 
         elif wpsrequest.operation == 'execute':
-            request_uuid = uuid.uuid1()
-            response = await service.execute(
-                wpsrequest.identifier,
-                wpsrequest,
-                request_uuid,
+            if not self.accesspolicy.allow(wpsrequest.identifier):
+                raise HTTPError(403,reason="Unauthorized operation")
+            response = await service.execute(wpsrequest.identifier, wpsrequest, uuid.uuid1(),
                 # Context
                 map_uri=wpsrequest.map_uri,
             )
