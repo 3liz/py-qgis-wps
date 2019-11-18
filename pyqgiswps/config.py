@@ -59,7 +59,8 @@ def load_configuration():
     global CONFIG
 
     _log('loading configuration')
-    CONFIG = configparser.ConfigParser()
+    CONFIG = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    CONFIG.optionxform = lambda opt: opt
 
     getenv = os.getenv
 
@@ -72,7 +73,6 @@ def load_configuration():
     CONFIG.set('server', 'language', 'en-US')
     CONFIG.set('server', 'url', '{host_url}')
     CONFIG.set('server', 'maxsingleinputsize', '1mb')
-    CONFIG.set('server', 'temp_path', tempfile.gettempdir())
     CONFIG.set('server', 'store_url'            , '{host_url}store/{uuid}/{file}?service=WPS')
     CONFIG.set('server', 'status_url'           , '{host_url}ows/?service=WPS&request=GetResults&uuid={uuid}') 
     CONFIG.set('server', 'workdir'              , getenv('QYWPS_SERVER_WORKDIR',tempfile.gettempdir()))
@@ -84,10 +84,10 @@ def load_configuration():
     CONFIG.set('server', 'response_expiration'  , getenv('QYWPS_SERVER_RESPONSE_EXPIRATION','86400'))
     CONFIG.set('server', 'wms_service_url'      , getenv('QYWPS_SERVER_WMS_SERVICE_URL','{host_url}'))
     CONFIG.set('server', 'wps_result_map_uri'   , getenv('QYWPS_SERVER_RESULTS_MAP_URI','wps-results:'))
-    CONFIG.set('server', 'wms_response_uri'     , '%(wms_service_url)s?MAP=%(wps_result_map_uri)s{uuid}/{name}.qgs&service=WMS&request=GetCapabilities')
+    CONFIG.set('server', 'wms_response_uri'     , '${wms_service_url}?MAP=${wps_result_map_uri}{uuid}/{name}.qgs&service=WMS&request=GetCapabilities')
     CONFIG.set('server', 'cleanup_interval'     ,'600')
 
-    CONFIG.set('server', 'outputurl'            , '%(store_url)s')
+    CONFIG.set('server', 'outputurl'            , '${store_url}')
     CONFIG.set('server', 'download_ttl'         , getenv('QYWPS_DOWNLOAD_TTL','30'))
     CONFIG.set('server', 'enable_filters'       , getenv('QYWPS_SERVER_ENABLE_FILTERS', 'yes'))
 
@@ -122,10 +122,21 @@ def load_configuration():
 
     CONFIG.add_section('processing')
     CONFIG.set('processing', 'providers_module_path', getenv('QYWPS_PROCESSING_PROVIDERS_MODULE_PATH',''))
-    CONFIG.set('processing', 'scripts_folders'      , getenv('QYWPS_PROCESSING_SCRIPT_FOLDERS','%(providers_module_path)s/scripts'))
-    CONFIG.set('processing', 'models_folders'       , getenv('QYWPS_PROCESSING_MODEL_FOLDERS' ,'%(providers_module_path)s/models'))
     CONFIG.set('processing', 'exposed_providers'    , getenv('QYWPS_PROCESSING_EXPOSED_PROVIDERS' ,'script,model'))
-    CONFIG.set('processing', 'accesspolicy'         , getenv('QYWPS_PROCESSING_ACCESSPOLICY' ,'%(providers_module_path)s/accesspolicy.yml'))
+    CONFIG.set('processing', 'accesspolicy'         , getenv('QYWPS_PROCESSING_ACCESSPOLICY' ,'${providers_module_path}/accesspolicy.yml'))
+    # For compatibility
+    CONFIG.set('processing', 'scripts_folders'      , getenv('QYWPS_PROCESSING_SCRIPT_FOLDERS','${providers_module_path}/scripts'))
+    CONFIG.set('processing', 'models_folders'       , getenv('QYWPS_PROCESSING_MODEL_FOLDERS' ,'${providers_module_path}/models'))
+
+    #
+    # Qgis folders settings
+    # 
+    # Enable to define search folder list with globbing patterns
+    # to be expanded in Qgis settings
+    #
+    CONFIG.add_section('qgis.settings.folders')
+    CONFIG.set('qgis.settings.folders', 'Processing/Configuration/SCRIPTS_FOLDERS', '${processing:scripts_folders}')
+    CONFIG.set('qgis.settings.folders', 'Processing/Configuration/MODELS_FOLDER'  , '${processing:models_folders}')
 
     #
     # Metadata

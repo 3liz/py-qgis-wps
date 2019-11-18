@@ -19,6 +19,9 @@ import logging
 import json
 import traceback
 
+from glob import glob
+from itertools import chain
+
 from pyqgiswps.executors.pool import PoolExecutor, ExecutorError, UnknownProcessError
 from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths, init_qgis_processing
 from pyqgiswps.utils.lru import lrucache
@@ -72,22 +75,18 @@ class ProcessingExecutor(PoolExecutor):
 
         settings = {}
 
-        def _validate_folders( name, setting, conf ):
-            folders = self._config.get(conf)
+        def _folders_setting( setting, folders ):
             folders = folders.split(';')
-            for folder in folders:
-                if not os.path.isdir(folder):
-                    LOGGER.error("%s '%s' not found, disabling" , name, folder)
-
+            folders = chain( *(glob(f) for f in folders) )
             folders = ';'.join( f for f in folders if os.path.isdir(f) )
             if folders:
-                LOGGER.info("%s set to %s", name, folders)
-                settings["Processing/Configuration/%s" % setting] = folders
+                LOGGER.info("%s = %s", setting, folders)
+                settings[setting] = folders
 
-        # Set up processing script folder
-        # XXX  If scripts folder is not set then ScriptAlgorithmProvider will crash !
-        _validate_folders('Script folders', 'SCRIPTS_FOLDERS', 'scripts_folders')
-        _validate_folders('Models folders', 'MODELS_FOLDER'  , 'models_folders')
+        # Set up folder settings
+        # XXX  Note that if scripts folder is not set then ScriptAlgorithmProvider will crash !
+        for setting, value in config.get_config().items('qgis.settings.folders'):
+            _folders_setting(setting, value)
 
         # Init qgis application
         self.qgisapp = start_qgis_application( enable_processing=True, 
