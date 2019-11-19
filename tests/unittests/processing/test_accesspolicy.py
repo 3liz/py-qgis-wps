@@ -53,7 +53,16 @@ class TestAccessPolicy(HTTPTestCase):
         # Check that there is only one exposed pyqgiswps_test
         idents = [x for x in exposed.split() if x.startswith('pyqgiswps_test:')]
         assert idents == ['pyqgiswps_test:simplebuffer']
-        
+
+    def test_execute_forbidden_process(self):
+        """ Test processing executor 'Execute' request
+        """
+        uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0'
+                               '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
+        client = self.client_for(Service(executor=ProcessingExecutor()))
+        rv = client.get(uri, path='')
+        assert rv.status_code == 403
+
 
 
 

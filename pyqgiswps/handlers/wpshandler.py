@@ -13,9 +13,11 @@ import mimetypes
 import logging
 import uuid
 
+
+
 from urllib.parse import urljoin
 
-from .basehandler import BaseHandler
+from .basehandler import HTTPError, BaseHandler
 from ..exceptions import NoApplicableCode, InvalidParameterValue, OperationNotSupported
 from ..accesspolicy import new_access_policy
 
