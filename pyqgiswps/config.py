@@ -124,7 +124,7 @@ def load_configuration():
     CONFIG.set('processing', 'providers_module_path', getenv('QYWPS_PROCESSING_PROVIDERS_MODULE_PATH',''))
     CONFIG.set('processing', 'exposed_providers'    , getenv('QYWPS_PROCESSING_EXPOSED_PROVIDERS' ,'script,model'))
     CONFIG.set('processing', 'accesspolicy'         , getenv('QYWPS_PROCESSING_ACCESSPOLICY' ,'${providers_module_path}/accesspolicy.yml'))
-    # For compatibility
+    # XXX DEPRECATED
     CONFIG.set('processing', 'scripts_folders'      , getenv('QYWPS_PROCESSING_SCRIPT_FOLDERS','${providers_module_path}/scripts'))
     CONFIG.set('processing', 'models_folders'       , getenv('QYWPS_PROCESSING_MODEL_FOLDERS' ,'${providers_module_path}/models'))
 

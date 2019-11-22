@@ -1,22 +1,22 @@
-# QYWPS 
+# Py-Qgis-WPS 
 
-QYWPS is an implementation of the Web Processing Service standard from
+Py-Qgis-WPS is an implementation of the Web Processing Service standard from
 the Open Geospatial Consortium based on the Qgis processing API.
 
-QYWPS will enable you to use Qgis processing algorithms written for Qgis desktop directy on server side.
+Py-Qgis-WPS will enable you to use Qgis processing algorithms written for Qgis desktop directy on server side.
 
-QYWPS is written in Python.
+Py-Qgis-WPS is written in Python.
 
-QYWPS is a fork of PyWPS 
+Py-Qgis-WPS is a fork of PyWPS 
 
 Requirements and limitations:
 
 - Python 3.5+ only
 - Windows not officially supported
 
-# Why QYWPS ?
+# Why Py-Qgis-WPS ?
 
-QYWPS differs from PyWPS in the following: 
+Py-Qgis-WPS differs from PyWPS in the following: 
 
 * Qgis centric
 * Handle all request in asynchronous way: all jobs should run in a non blocking way,  even
@@ -106,7 +106,7 @@ pip install -e .
 ## From python package archive
 
 ```
-pip install QYWPS-X.Y.Z.tar.gz
+pip install py-qgis-wps-X.Y.Z.tar.gz
 ```
 
 # Running the server
