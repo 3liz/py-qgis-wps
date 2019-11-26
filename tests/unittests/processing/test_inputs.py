@@ -111,21 +111,6 @@ def test_multi_options_input():
     assert inp.max_occurs == len(options)
 
 
-def test_input_title():
-    param = QgsProcessingParameterNumber(
-                "XFIELD",
-                'X Field',
-                parentLayerParameterName='INPUT',
-                type=QgsProcessingParameterField.Any
-            )
-
-    inp = parse_input_definition(param)
-    assert isinstance(inp, LiteralInput)
-    assert inp.data_type == 'string'
-    assert get_metadata(inp,'processing:dataType')[0].href == 'Any'
-    assert get_metadata(inp,'processing:parentLayerParameterName')[0].href == 'INPUT'
-
-
 def test_field_input():
     param = QgsProcessingParameterField(
                 "XFIELD",
