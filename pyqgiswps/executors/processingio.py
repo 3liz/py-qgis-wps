@@ -299,7 +299,7 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsPro
     """
     kwargs = {
         'identifier': param.name() ,
-        'title'     : param.description(),
+        'title'     : param.name().replace('_',' '),
         'abstract'  : param.description(),
         'metadata'  : [
             Metadata('processing:type',param.type()),

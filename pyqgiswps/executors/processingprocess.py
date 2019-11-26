@@ -243,7 +243,8 @@ class QgsProcess(WPSProcess):
                 identifier = alg.id(),
                 version    = version,
                 title      = alg.displayName(),
-                abstract   = alg.shortHelpString(),
+                # XXX Scripts do not provide description string
+                abstract   = alg.shortDescription() or alg.shortHelpString(),
                 inputs     = inputs,
                 outputs    = outputs)
 

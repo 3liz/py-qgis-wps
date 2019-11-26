@@ -79,6 +79,7 @@ def test_literal_input():
     assert inp.default == param.defaultValue()
 
 
+
 def test_options_input():
     options = ["opt0","opt1","opt2"]
     param   = QgsProcessingParameterEnum("OPTION","Option",
@@ -110,6 +111,19 @@ def test_multi_options_input():
     assert inp.max_occurs == len(options)
 
 
+def test_input_title():
+    param = QgsProcessingParameterNumber(
+                "XFIELD",
+                'X Field',
+                parentLayerParameterName='INPUT',
+                type=QgsProcessingParameterField.Any
+            )
+
+    inp = parse_input_definition(param)
+    assert isinstance(inp, LiteralInput)
+    assert inp.data_type == 'string'
+    assert get_metadata(inp,'processing:dataType')[0].href == 'Any'
+    assert get_metadata(inp,'processing:parentLayerParameterName')[0].href == 'INPUT'
 
 
 def test_field_input():
@@ -213,6 +227,18 @@ def test_file_output_mimetypes():
     assert output.output_format == 'application/octet-stream'
 
 
+def test_input_title():
+    param = QgsProcessingParameterNumber("Input_title",
+                  description="A short description",
+                  type=QgsProcessingParameterNumber.Integer,
+                  minValue=1, defaultValue=10)
+
+    inp = parse_input_definition(param)
+
+    assert inp.title == "Input title"
+    assert inp.abstract == "A short description"
+
+
 def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     if maxOccurence is None:
         maxOccurence = minOccurence
@@ -221,4 +247,5 @@ def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     assert len(m) >= minOccurence
     assert len(m) <= maxOccurence
     return m
+
 
