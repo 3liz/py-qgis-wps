@@ -13,6 +13,7 @@ from .TestCopyLayer import TestCopyLayer
 from .TestFileDestination import TestFileDestination
 from .TestSimpleBuffer import TestSimpleBuffer
 from .TestInputRasterLayer import TestInputRasterLayer
+from .TestRaiseError import TestRaiseError
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -29,6 +30,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestFileDestination(),
                  TestSimpleBuffer(),
                  TestInputRasterLayer(),
+                 TestRaiseError(),
             ]
         except:
             traceback.print_exc()

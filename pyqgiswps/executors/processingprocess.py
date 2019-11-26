@@ -41,6 +41,7 @@ from qgis.core import (QgsApplication,
 from pyqgiswps.app.Process import WPSProcess
 from pyqgiswps.app.WPSResponse import WPSResponse
 from pyqgiswps.app.WPSRequest  import WPSRequest
+from pyqgiswps.exceptions import ProcessException
 
 from processing.core.Processing import (Processing,
                                         ProcessingConfig,
