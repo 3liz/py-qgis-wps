@@ -44,8 +44,7 @@ def get_env_config(section, name, env, default=None):
     """ Get configuration value from environment
         if not found in loaded config
     """
-    cfg = CONFIG[section]
-    return cfg.get(name,os.getenv(env,default))
+    return CONFIG.get(section,name,fallback=os.getenv(env,default))
 
 
 def load_configuration():
