@@ -14,6 +14,7 @@ from .TestFileDestination import TestFileDestination
 from .TestSimpleBuffer import TestSimpleBuffer
 from .TestInputRasterLayer import TestInputRasterLayer
 from .TestRaiseError import TestRaiseError
+from .TestClipRasterLayer import TestClipRasterLayer
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -31,12 +32,13 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestSimpleBuffer(),
                  TestInputRasterLayer(),
                  TestRaiseError(),
+                 TestClipRasterLayer(),
             ]
         except:
             traceback.print_exc()
             algs = []
         return algs
-    
+
     def id(self):
         return 'pyqgiswps_test'
 
@@ -52,7 +54,7 @@ class DummyAlgorithmProvider(QgsProcessingProvider):
 
     def __init__(self):
         super().__init__()
-    
+
     def id(self):
         return 'pyqgiswps_dummy_test'
 
