@@ -45,6 +45,8 @@ build:
     name: snap
   only:
     <<: *changes_def
+    refs:
+      - master
   tags:
     - infrav3
 
