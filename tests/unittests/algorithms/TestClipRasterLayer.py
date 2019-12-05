@@ -8,7 +8,6 @@ from qgis.core import (QgsProcessingParameterRasterLayer,
 
 import processing
 
-
 class TestClipRasterLayer(QgsProcessingAlgorithm):
 
     INPUT  = 'INPUT'
@@ -41,13 +40,13 @@ class TestClipRasterLayer(QgsProcessingAlgorithm):
         self.addParameter(QgsProcessingParameterRasterDestination(self.OUTPUT, 'Clipped Layer'))
 
     def processAlgorithm(self, parameters, context, feedback):
-        try:
-            output = self.parameterAsOutputLayer(parameters, self.OUTPUT, context)
+
+            output = self.parameterAsOutputLayer(parameters, 'OUTPUT', context)
 
             # Run buffer
             buffer_result = processing.run("gdal:cliprasterbyextent", {
-                'INPUT': parameters[self.INPUT],
-                'EXTENT': parameters[self.EXTENT],
+                'INPUT': parameters['INPUT'],
+                'PROJWIN': parameters['EXTENT'],
                 'NODATA': None,
                 'OPTIONS': '',
                 'DATA_TYPE': 0,
@@ -55,7 +54,4 @@ class TestClipRasterLayer(QgsProcessingAlgorithm):
             }, context=context, feedback=feedback)
 
             return { self.OUTPUT: output }
-
-        except Exception:
-            traceback.print_exc()
 

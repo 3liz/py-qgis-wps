@@ -54,7 +54,7 @@ def testXMLValue(val, attrib=False):
         return None
 
 
-class BoundingBox(object):
+class BoundingBox:
     """Initialize an OWS BoundingBox construct"""
     def __init__(self, elem, namespace=OWS_NAMESPACE): 
         self.minx = None

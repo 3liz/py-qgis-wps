@@ -11,21 +11,17 @@ def testcliprasterlayer(instance, parameters, context, feedback, inputs):
     """
     This is a test function for clip raster layer
     """
-    try:
-        output = instance.parameterAsOutputLayer(parameters, self.OUTPUT, context)
+    output = instance.parameterAsOutputLayer(parameters, 'OUTPUT', context)
 
-        # Run clip
-        clip_result = processing.run("gdal:cliprasterbyextent", {
-            'INPUT': parameters[self.INPUT],
-            'EXTENT': parameters[self.EXTENT],
-            'NODATA': None,
-            'OPTIONS': '',
-            'DATA_TYPE': 0,
-            'OUTPUT': output
-        }, context=context, feedback=feedback)
+    # Run clip
+    clip_result = processing.run("gdal:cliprasterbyextent", {
+        'INPUT': parameters['INPUT'],
+        'PROJWIN': parameters['EXTENT'],
+        'NODATA': None,
+        'OPTIONS': '',
+        'DATA_TYPE': 0,
+        'OUTPUT': output
+    }, context=context, feedback=feedback)
 
-        return { 'OUTPUT': output }
-
-    except Exception:
-        traceback.print_exc()
+    return { 'OUTPUT': output }
 
