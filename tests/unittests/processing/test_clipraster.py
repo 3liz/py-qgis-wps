@@ -105,3 +105,14 @@ class TestsClipRaster(HTTPTestCase):
         # TODO FIXME error in parsing BoundingBox
         assert rv.status_code == 200
 
+
+    def test_model_execute_request_get(self):
+        """ Test processing executor 'Execute' request
+        """
+        uri = ('/ows/?service=WPS&request=Execute&Identifier=model:testcliprasterlayer&Version=1.0.0'
+                               '&MAP=raster_layer&DATAINPUTS=INPUT=raster_layer%3BEXTENT=-112,20,-87,45%3BOUTPUT=clipped_layer')
+        client = self.client_for(Service(executor=ProcessingExecutor()))
+        rv = client.get(uri, path='')
+        # TODO FIXME error in parsing BoundingBox
+        assert rv.status_code == 200
+
