@@ -35,6 +35,7 @@ test: local
     -v $(SRCDIR):/src \
     -v $$(pwd)/.local:/.local \
     -v $(LOCAL_HOME)/.cache:/.cache \
+    -e FAKEREDIS=yes \
     -e PIP_CACHE_DIR=/.cache \
     -e PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
     -e QYWPS_CACHE_ROOTDIR=/src/tests/unittests/data \
@@ -45,21 +46,32 @@ test: local
 
 WORKERS:=1
 
-run: local
+stop:
+	docker-compose stop  || true
+	docker-compose rm -f || true
+
+run: stop local
 	mkdir -p $$(pwd)/__workdir__
-	docker run -it --rm --name qgis-wps-run-$(FLAVOR)-$(COMMITID) -w /src \
-    -u $(BECOME_USER) \
-    -v $(SRCDIR):/src \
-    -v $$(pwd)/.local:/.local \
-    -v $(LOCAL_HOME)/.cache:/.cache \
-    -v $$(pwd)/__workdir__:/srv/data \
-    -e PIP_CACHE_DIR=/.cache \
-    -e WORKERS=$(WORKERS) \
-    -e QYWPS_CACHE_ROOTDIR=/src/tests/unittests/data \
-    -e QYWPS_PROCESSING_PROVIDERS_MODULE_PATH=/src/tests/unittests \
-    -e QYWPS_SERVER_WORKDIR=/srv/data \
-    -e QGIS_OPTIONS_PATH=/src/tests/qgis \
-    -e QYWPS_LOGLEVEL=DEBUG \
-    -p $(SERVER_HTTP_PORT):8080 \
-    $(QGIS_IMAGE) /src/tests/run-server.sh
+	export BECOME_USER=$(BECOME_USER)  \
+    QGIS_IMAGE=$(QGIS_IMAGE) \
+    WORKERS=$(WORKERS) \
+    LOCAL_HOME=$(LOCAL_HOME) \
+    SRCDIR=$(SRCDIR) \
+    PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
+    RUN_COMMAND=/src/tests/run-server.sh \
+    && docker-compose up     
+
+# Run tests with real redis to test asynchronous
+# behavior  
+test-async: stop local
+	rm -rf unittests/__outputdir__/*
+	export BECOME_USER=$(BECOME_USER)  \
+    QGIS_IMAGE=$(QGIS_IMAGE) \
+    WORKERS=$(WORKERS) \
+    LOCAL_HOME=$(LOCAL_HOME) \
+    SRCDIR=$(SRCDIR) \
+    PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
+    RUN_COMMAND=/src/tests/run-tests.sh \
+    && docker-compose up     
+
 
