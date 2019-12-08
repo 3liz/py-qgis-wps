@@ -12,13 +12,13 @@ CLIPRASTER_EXECUTE_POST="""<?xml version="1.0" encoding="UTF-8"?>
   <ows:Identifier>{PROVIDER}:testcliprasterlayer</ows:Identifier>
   <wps:DataInputs>
     <wps:Input>
-      <ows:Identifier>INPUT</ows:Identifier>
+      <ows:Identifier>{INPUT}</ows:Identifier>
       <wps:Data>
         <wps:LiteralData>raster_layer</wps:LiteralData>
       </wps:Data>
     </wps:Input>
     <wps:Input>
-      <ows:Identifier>EXTENT</ows:Identifier>
+      <ows:Identifier>{EXTENT}</ows:Identifier>
       <wps:Data>
         <wps:BoundingBoxData crs="EPSG:4326" dimenstions="2">
             <ows:LowerCorner>-112 20</ows:LowerCorner>
@@ -27,7 +27,7 @@ CLIPRASTER_EXECUTE_POST="""<?xml version="1.0" encoding="UTF-8"?>
       </wps:Data>
     </wps:Input>
     <wps:Input>
-      <ows:Identifier>OUTPUT</ows:Identifier>
+      <ows:Identifier>{OUTPUT}</ows:Identifier>
       <wps:Data>
         <wps:LiteralData>clipped_layer</wps:LiteralData>
       </wps:Data>
@@ -57,29 +57,26 @@ class TestsClipRaster(HTTPTestCase):
         """ Test processing executor 'Execute' request
         """
         uri = ('/ows/?service=WPS&MAP=raster_layer')
-        body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='pyqgiswps_test')
+        body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='pyqgiswps_test',INPUT='INPUT',EXTENT='EXTENT',OUTPUT='OUTPUT')
         client = self.client_for(Service(executor=ProcessingExecutor()))
         rv = client.post(body, path=uri)
-        # TODO FIXME error in parsing BoundingBox
         assert rv.status_code == 200
 
     def test_script_execute_request_post(self):
         """ Test processing executor 'Execute' request
         """
         uri = ('/ows/?service=WPS&MAP=raster_layer')
-        body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='script')
+        body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='script',INPUT='INPUT',EXTENT='EXTENT',OUTPUT='OUTPUT')
         client = self.client_for(Service(executor=ProcessingExecutor()))
         rv = client.post(body, path=uri)
-        # TODO FIXME error in parsing BoundingBox
         assert rv.status_code == 200
 
     def test_model_execute_request_post(self):
         """ Test processing executor 'Execute' request
         """
         uri = ('/ows/?service=WPS&MAP=raster_layer')
-        body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='model')
+        body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='model',INPUT='input',EXTENT='extent',OUTPUT='gdal:cliprasterbyextent_1:OUTPUT')
         client = self.client_for(Service(executor=ProcessingExecutor()))
         rv = client.post(body, path=uri)
-        # TODO FIXME error in parsing BoundingBox
         assert rv.status_code == 200
 
