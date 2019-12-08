@@ -7,6 +7,8 @@ import os
 
 from pyqgiswps.utils.contexts import chdir 
 
+from pyqgiswps import WPS, OWS
+from pyqgiswps.owsutils.ows import BoundingBox
 from pyqgiswps.inout import (LiteralInput, 
                         ComplexInput,
                         BoundingBoxInput, 
@@ -25,6 +27,7 @@ from pyqgiswps.executors.processingio import(
             parse_output_definition,
             input_to_processing,
             processing_to_output,
+            input_to_extent,
             _is_optional,
         ) 
 
@@ -49,6 +52,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFeatureSink,
                        QgsProcessingParameterVectorDestination,
                        QgsProcessingParameterRasterDestination,
+                       QgsProcessingParameterExtent,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterField,
                        QgsProcessingUtils,
@@ -232,5 +236,22 @@ def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     assert len(m) >= minOccurence
     assert len(m) <= maxOccurence
     return m
+
+
+def test_bbox_input():
+    """ Test extent parameter
+    """ 
+    param = QgsProcessingParameterExtent("BBOX")
+    
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp,BoundingBoxInput)
+
+    # see create_bbox_inputs at L532 app/Service.py
+    inp.data = ['15', '50', '16', '51']
+    value = input_to_extent( [inp] ) 
+
+    assert isinstance(value,QgsReferencedRectangle)
+
 
 

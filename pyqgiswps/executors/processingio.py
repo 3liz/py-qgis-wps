@@ -462,6 +462,15 @@ def parse_layer_spec( layerspec: str, context: ProcessingContext, allow_selectio
     return p, has_selection
 
 
+def input_to_extent( inp: WPSInput ) -> QgsReferencedRectangle:
+    """ Convert input to processing extent data
+    """
+    r = inp[0].data
+    rect  = QgsRectangle(float(r[0]),float(r[2]),float(r[1]),float(r[3]))
+    ref   = QgsCoordinateReferenceSystem(inp[0].crs)
+    return QgsReferencedRectangle(rect, ref)
+
+
 def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgorithm, 
                          context: ProcessingContext ) -> Tuple[str, Any]:
     """ Convert wps input to processing param
@@ -508,10 +517,7 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
             value = param.options().index(inp[0].data)
 
     elif typ == 'extent':
-        r = inp[0].data
-        rect  = QgsRectangle(r[0],r[2],r[1],r[3])
-        ref   = QgsCoordinateReferenceSystem(inp.crs)
-        value = QgsReferencedRectangle(rect, ref)
+        value = input_to_extent( inp )
 
     elif typ == 'crs':
         # XXX CRS may be expressed as EPSG (or QgsProperty ?)

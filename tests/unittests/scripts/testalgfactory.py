@@ -7,8 +7,6 @@ from qgis.processing import alg
 @alg.input(type=str, name='IN3', label='In string 2')
 @alg.input(type=alg.SINK, name='SINK', label='Sink it!')
 @alg.output(type=str, name='OUT', label='WAT')
-@alg.output(type=alg.MAPLAYER, name='OUT2', label= 'WAT')
-@alg.output(type=alg.VECTOR_LAYER, name='VECTOR_LAYER', label='WAT')
 def testalg(instance, parms, context, feedback, inputs):
     """
     This is a test function that does stuff
@@ -18,6 +16,6 @@ def testalg(instance, parms, context, feedback, inputs):
     feedback.pushInfo(inputs['IN2'])
     feedback.pushInfo(inputs['IN3'])
     return {
-      'OUT2': 'wat'
+      'OUT': 'wat'
     }
 
