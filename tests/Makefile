@@ -75,3 +75,13 @@ test-async: stop local
     && docker-compose up     
 
 
+test-pool: local
+	docker run --rm --name qgis-wps-test-pool-$(FLAVOR)-$(COMMITID) -w /src \
+    -u $(BECOME_USER) \
+    -v $(SRCDIR):/src \
+    -v $$(pwd)/.local:/.local \
+    -v $(LOCAL_HOME)/.cache:/.cache \
+    -e PIP_CACHE_DIR=/.cache \
+    -e PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
+    $(QGIS_IMAGE) /src/tests/run-pool-tests.sh
+
