@@ -24,7 +24,7 @@ from .worker import worker_handler
 # Early failure min delay
 # If any process fail before that starting delay
 # we abort the whole process
-EARLY_FAILURE_DELAY = 5
+EARLY_FAILURE_DELAY = 2
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -117,7 +117,7 @@ class Pool:
 
     def __reduce__(self) -> None:
         raise NotImplementedError(
-            'cluster objects cannot be passed between processes or pickled'
+            'Pool objects cannot be passed between processes or pickled'
         )
 
     def terminate(self) -> None:

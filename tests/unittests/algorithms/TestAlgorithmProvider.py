@@ -59,7 +59,7 @@ class DummyAlgorithmProvider(QgsProcessingProvider):
         return 'pyqgiswps_dummy_test'
 
     def name(self):
-        return "QyWPS Dummy Test"
+        return "Py-Qgis-WPS Dummy Test"
 
     def loadAlgorithms(self):
         pass

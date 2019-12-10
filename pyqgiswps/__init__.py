@@ -18,8 +18,6 @@ import os
 from lxml.builder import ElementMaker
 from .version import __version__ 
 
-QYWPS_INSTALL_DIR = os.path.dirname(os.path.abspath(__file__))
-
 NAMESPACES = {
     'xlink': "http://www.w3.org/1999/xlink",
     'wps': "http://www.opengis.net/wps/1.0.0",

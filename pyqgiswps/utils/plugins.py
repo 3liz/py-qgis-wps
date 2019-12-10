@@ -93,7 +93,7 @@ class WPSServerInterfaceImpl:
                 package = sys.modules[plugin] 
 
                 # Initialize the plugin
-                LOGGER.info("Loaded plugin %s",plugin)
+                LOGGER.info("Loaded plugin '%s'",plugin)
                 self._plugins[plugin] = package.WPSClassFactory(wpsIface)
             except:
                 LOGGER.error("Failed to initialize plugin: %s", plugin)

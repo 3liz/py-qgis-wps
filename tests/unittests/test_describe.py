@@ -5,7 +5,8 @@
 ##################################################################
 
 from collections import namedtuple
-from pyqgiswps import WPSProcess, Service, LiteralInput, ComplexInput, BoundingBoxInput
+from pyqgiswps import WPSProcess
+from pyqgiswps import LiteralInput, ComplexInput, BoundingBoxInput
 from pyqgiswps import LiteralOutput, ComplexOutput, BoundingBoxOutput
 from pyqgiswps import E, WPS, OWS, OGCTYPE, Format, NAMESPACES, OGCUNIT
 from pyqgiswps.inout.literaltypes import LITERAL_DATA_TYPES
@@ -62,16 +63,15 @@ def get_describe_result(self,resp):
 
 class DescribeProcessTest(HTTPTestCase):
 
-    def setUp(self):
-        super().setUp()
+    def get_processes(self):
         def hello(request): pass
         def ping(request): pass
-        processes = [WPSProcess(hello, 'hello', 'Process Hello'), WPSProcess(ping, 'ping', 'Process Ping')]
-        self.client = self.client_for(Service(processes=processes))
+        return [WPSProcess(hello, 'hello', 'Process Hello'), WPSProcess(ping, 'ping', 'Process Ping')]
 
     def test_get_request_all_args(self):
         resp = self.client.get('?Request=DescribeProcess&service=wps&version=1.0.0&identifier=all')
         identifiers = [desc.identifier for desc in get_describe_result(self, resp)]
+        assert len(identifiers) == 2
         assert 'ping' in identifiers
         assert 'hello' in identifiers
         assert_pyqgiswps_version(resp)
@@ -92,7 +92,7 @@ class DescribeProcessTest(HTTPTestCase):
     def test_get_one_arg(self):
         resp = self.client.get('?service=wps&version=1.0.0&Request=DescribeProcess&identifier=hello')
         assert [pr.identifier for pr in get_describe_result(self, resp)] == ['hello']
-
+    
     def test_post_one_arg(self):
         request_doc = WPS.DescribeProcess(
             OWS.Identifier('hello'),
@@ -122,34 +122,39 @@ class DescribeProcessTest(HTTPTestCase):
 
 class DescribeProcessInputTest(HTTPTestCase):
 
-    def describe_process(self, process):
-        client = self.client_for(Service(processes=[process]))
-        resp = client.get('?service=wps&version=1.0.0&Request=DescribeProcess&identifier=%s'
-                          % process.identifier)
-        [result] = get_describe_result(self, resp)
-        return result
+    def get_processes(self):
 
-    def test_one_literal_string_input(self):
         def hello(request): pass
-        hello_process = WPSProcess(
+        hello_string = WPSProcess(
                 hello,
-                'hello',
+                'hello_string',
                 'Process Hello',
                 inputs=[LiteralInput('the_name', 'Input name')],
                 metadata=[Metadata('process metadata 1', 'http://example.org/1'), Metadata('process metadata 2', 'http://example.org/2')]
         )
-        result = self.describe_process(hello_process)
+
+        def hello(request): pass
+        hello_integer = WPSProcess(hello, 'hello_integer',
+                               'Process Hello',
+                               inputs=[LiteralInput('the_number',
+                                                    'Input number',
+                                                     data_type='positiveInteger')])
+        return [hello_string, hello_integer]
+
+
+    def describe_process(self, identifier):
+        resp = self.client.get('?service=wps&version=1.0.0&Request=DescribeProcess&identifier=%s'
+                          % identifier)
+        [result] = get_describe_result(self, resp)
+        return result
+
+    def test_one_literal_string_input(self):
+        result = self.describe_process('hello_string')
         assert result.inputs == [('the_name', 'literal', 'integer')]
         assert result.metadata == ['process metadata 1', 'process metadata 2']
 
     def test_one_literal_integer_input(self):
-        def hello(request): pass
-        hello_process = WPSProcess(hello, 'hello',
-                                'Process Hello',
-                                inputs=[LiteralInput('the_number',
-                                                     'Input number',
-                                                     data_type='positiveInteger')])
-        result = self.describe_process(hello_process)
+        result = self.describe_process('hello_integer')
         assert result.inputs == [('the_number', 'literal', 'positiveInteger')]
 
 

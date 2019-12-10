@@ -18,7 +18,6 @@ from .logger import setup_log_handler
 
 LOGGER=logging.getLogger('SRVLOG')
 
-
 def print_version(config):
     from .version import __version__
     program = os.path.basename(sys.argv[0])
@@ -48,7 +47,6 @@ def read_configuration(args=None):
             default=False, help="Return version number and exit")
     cli_parser.add_argument('-p','--port'    , type=int, help="http port", dest='port', default=8080)
     cli_parser.add_argument('-b','--bind'    , metavar='IP',  default='0.0.0.0', help="Interface to bind to", dest='interface')
-    cli_parser.add_argument('-w','--workers' , metavar='NUM', default=1, type=int, help="Num workers", dest='workers')
     cli_parser.add_argument('-u','--setuid'  , default=None, help="uid to switch to", dest='setuid')
     cli_parser.add_argument('--chdir'  , metavar='DIR', default=None, help="Set the Working directory")
 
@@ -86,7 +84,7 @@ def main():
     """ Run the server as cli command
     """
     args = read_configuration()
-    run_server( port=args.port, address=args.interface, jobs=args.workers, user=args.setuid ) 
+    run_server( port=args.port, address=args.interface, user=args.setuid ) 
 
 
 

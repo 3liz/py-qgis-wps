@@ -20,6 +20,8 @@ import signal
 import time
 
 from multiprocessing import Process
+from multiprocessing.util import Finalize
+
 from typing import Callable
 
 from .supervisor import Supervisor
@@ -38,23 +40,49 @@ class _Server:
         pub.setsockopt(zmq.SNDHWM, 1)      # Max 1 item on send queue
         pub.bind(broadcastaddr)
 
+        self._timeout = timeout 
         self._sock = pub
 
-        sprvsr = Supervisor(timeout, lambda pid: os.kill(pid, signal.SIGKILL))
-        sprvsr.run()
-
         LOGGER.debug("Started server")
-        self._supervisor = sprvsr
         self._pool = pool
+        self._supervisor = None
+
+        # Ensure that pool is terminated is called
+        # at process exit
+        self._terminate = Finalize(
+            self, self._terminate_pool, 
+            args=(self._pool,),
+            exitpriority=16
+        )
+
+    def start_supervisor(self):
+        """ Start supervisor independently
+
+            Note: It is no recommended to run supervisor before asyncio loop
+            has been properly set - for exemple when using a custom loop.
+        """
+        if self._supervisor is None:
+            LOGGER.info("Starting supervisor")
+            self._supervisor = Supervisor(self._timeout, lambda pid: os.kill(pid, signal.SIGKILL))
+            self._supervisor.run()
+
+    @classmethod
+    def _terminate_pool(cls, p: Process) -> None:
+        if p and hasattr(p, 'terminate'):
+            if p.exitcode is None:
+                p.terminate()
+            if p.is_alive():
+                p.join()
 
     def terminate(self):
         """ Terminate handler
         """
         self._sock.close()
-        self._supervisor.stop()
+        if self._supervisor:
+            LOGGER.info("Stopping supervisor")
+            self._supervisor.stop()
         LOGGER.info("Stopping worker pool")
-        self._pool.terminate()
-        self._pool.join()
+        self._terminate()
 
     def broadcast(self, command: bytes ) -> None:
         """ Broadcast notification to workers 
@@ -63,7 +91,7 @@ class _Server:
             self._sock.send(command, zmq.NOBLOCK)
         except zmq.ZMQError as err:
             if err.errno != zmq.EAGAIN:
-              LOGGER.error("Broadcast Error %s\n%s", exc, traceback.format_exc())
+                LOGGER.error("Broadcast Error %s\n%s", exc, traceback.format_exc())
 
     def restart(self) -> None:
         """ Send restart command

@@ -7,12 +7,12 @@ services:
     environment:
       PIP_CACHE_DIR: /.cache
       WORKERS: ${WORKERS}
-      QYWPS_CACHE_ROOTDIR: /src/tests/unittests/data 
-      QYWPS_PROCESSING_PROVIDERS_MODULE_PATH: /src/tests/unittests
-      QYWPS_SERVER_WORKDIR: /srv/data
+      QGSWPS_CACHE_ROOTDIR: /src/tests/unittests/data 
+      QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH: /src/tests/unittests
+      QGSWPS_SERVER_WORKDIR: /srv/data
       QGIS_OPTIONS_PATH: /src/tests/qgis
-      QYWPS_LOGLEVEL: DEBUG
-      QYWPS_REDIS_HOST: redis
+      QGSWPS_LOGLEVEL: DEBUG
+      QGSWPS_REDIS_HOST: redis
     user: ${BECOME_USER}
     volumes:
       - ${SRCDIR}:/src

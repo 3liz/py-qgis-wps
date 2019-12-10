@@ -17,7 +17,7 @@ import zmq.asyncio
 import logging
 import uuid
 import pickle
-
+import traceback
 
 from time import time
 from collections import deque
@@ -108,8 +108,6 @@ class _Client:
                     LOGGER.warning("%s: No pending future found for message %s",self.identity, correlation_id)
             except zmq.ZMQError as err:
                 LOGGER.error("%s error:  zmq error: %s (%s)", self.identity, zmq.strerror(err.errno),err.errno)
-            except Exception as err:
-                LOGGER.error("poll() exception %s\n%s", err, traceback.format_exc())
             except asyncio.CancelledError:
                 LOGGER.debug("polling stopped")
                 cancelled = True

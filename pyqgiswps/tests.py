@@ -17,6 +17,7 @@ from tornado.testing import AsyncHTTPTestCase
 from contextlib import contextmanager
 import shutil
 import tempfile
+import time
 
 import lxml.etree
 from pyqgiswps import __version__, NAMESPACES
@@ -24,8 +25,8 @@ from pyqgiswps import __version__, NAMESPACES
 import logging
 
 from pyqgiswps.runtime import Application
-from pyqgiswps.logger import setup_log_handler
-
+from pyqgiswps.logger import configure_log_levels
+from pyqgiswps.executors import processfactory
 
 @contextmanager
 def temp_dir():
@@ -43,25 +44,56 @@ def _pop_kwarg(name, kwargs):
         del kwargs[name]
     return val
 
+
+class TestRuntime:
+
+    def __init__(self) -> None:
+        self.started = False
+
+    def start(self) -> None:
+        if self.started:
+            return
+
+        configure_log_levels()
+        self.factory = processfactory.get_process_factory()
+        self.factory.initialize()
+        self.started = True
+
+        # Wait for processes to initialize
+        time.sleep(2)
+
+    def stop(self) -> None:
+        if not self.started:
+            return
+        self.factory.terminate()        
+
+    @classmethod
+    def instance(cls) -> 'TestRuntime':
+        if not hasattr(cls,'_instance'):
+            cls._instance = TestRuntime()
+        return cls._instance        
+
+
 class HTTPTestCase(AsyncHTTPTestCase):
  
-    def get_app(self):
-        setup_log_handler('info')
-        self.logger = logging.getLogger('SRVLOG')
-        return Application(filters=self.get_filters())
+    def get_app(self) ->  Application:
+        configure_log_levels()
+        self._application =  Application(processes=self.get_processes(),filters=self.get_filters())
+        return self._application
 
-    def client_for(self, service):
-        self._app.wpsservice = service
+    def tearDown(self) -> None:
+        self._application.terminate()
+        super().tearDown()
+
+
+    @property
+    def client(self):
         return WpsClient(self)
 
-    def get_new_ioloop(self):
+    def get_processes(self):
+        """ Return custom processes
         """
-        Needed to make sure that I can also run asyncio based callbacks in our tests
-        """
-        io_loop = tornado.platform.asyncio.AsyncIOLoop()
-        asyncio.set_event_loop(io_loop.asyncio_loop)
-
-        return io_loop
+        return []
 
     def get_filters(self):
         """ Return custom filters
@@ -69,8 +101,6 @@ class HTTPTestCase(AsyncHTTPTestCase):
             Override in tests
         """
         return None
-
-
 
 
 class WpsClient:

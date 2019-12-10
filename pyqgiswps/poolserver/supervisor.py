@@ -94,8 +94,6 @@ class Supervisor:
     async def _run_async(self) -> None:
         """ Run supervisor
         """
-        LOGGER.debug("Starting supervisor")
-
         loop = asyncio.get_event_loop()
 
         def kill(pid:int) -> None:

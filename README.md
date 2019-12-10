@@ -141,8 +141,6 @@ optional arguments:
   --version             Return version number and exit
   -p PORT, --port PORT  http port
   -b IP, --bind IP      Interface to bind to
-  -w NUM, --workers NUM
-                        Num workers
   -u SETUID, --setuid SETUID
                         uid to switch to
   --chdir DIR           Set the Working directory
@@ -161,34 +159,34 @@ The server can be configured with environnement variables:
 
 Confguration is done with environment variables:
 
-- QYWPS\_SERVER\_WORKDIR: set the current dir processes, all processes will be running in that directory.
-- QYWPS\_SERVER\_HOST\_PROXY: When the service is behind a reverse proxy, set this to the proxy entrypoint.
-- QYWPS\_SERVER\_PARALLELPROCESSES: Number of parrallel process workers 
-- QYWPS\_SERVER\_RESPONSE\_TIMEOUT: The max response time before killing a process.
-- QYWPS\_SERVER\_RESPONSE\_EXPIRATION: The maxe time (in seconds) the response from a WPS process will be available.
-- QYWPS\_SERVER\_WMS\_SERVICE\_URL: The base url for WMS service. Default to <hosturl>/wms. Responses from processing will
+- QGSWPS\_SERVER\_WORKDIR: set the current dir processes, all processes will be running in that directory.
+- QGSWPS\_SERVER\_HOST\_PROXY: When the service is behind a reverse proxy, set this to the proxy entrypoint.
+- QGSWPS\_SERVER\_PARALLELPROCESSES: Number of parrallel process workers 
+- QGSWPS\_SERVER\_RESPONSE\_TIMEOUT: The max response time before killing a process.
+- QGSWPS\_SERVER\_RESPONSE\_EXPIRATION: The maxe time (in seconds) the response from a WPS process will be available.
+- QGSWPS\_SERVER\_WMS\_SERVICE\_URL: The base url for WMS service. Default to <hosturl>/wms. Responses from processing will
 be retourned as WMS urls. This configuration variable set the base url for accessing results.
-- QYWPS\_SERVER\_RESULTS\_MAP\_URI
+- QGSWPS\_SERVER\_RESULTS\_MAP\_URI
 
 ### Logging
 
-- QYWPS\_LOGLEVEL: the log level, should be `INFO` in production mode, `DEBUG` for debug output. 
+- QGSWPS\_LOGLEVEL: the log level, should be `INFO` in production mode, `DEBUG` for debug output. 
 
 ### REDIS logstorage configuration
 
-- QYWPS\_REDIS\_HOST: The redis host
-- QYWPS\_REDIS\_PORT: The redis port. Default to 6379
-- QYWPS\_REDIS\_DBNUM: The redis database number used. Default to 0
+- QGSWPS\_REDIS\_HOST: The redis host
+- QGSWPS\_REDIS\_PORT: The redis port. Default to 6379
+- QGSWPS\_REDIS\_DBNUM: The redis database number used. Default to 0
 
 
 ### Qgis project Cache configuration
 
-- QYWPS\_CACHE\_ROOTDIR: Absolute path to the qgis projects root directory, projects referenges with the MAP parameter will be searched at this location
+- QGSWPS\_CACHE\_ROOTDIR: Absolute path to the qgis projects root directory, projects referenges with the MAP parameter will be searched at this location
 
 ### Processing configuration
 
-- QYWPS\_PROCESSSING\_PROVIDERS: List of providers for publishing algorithms (comma separated)
-- QYWPS\_PROCESSSING\_PROVIDERS\_MODULE\_PATH: Path to look for processing algoritms provider to publish, algorithms from providers specified heres will be runnable as WPS processes.
+- QGSWPS\_PROCESSSING\_PROVIDERS: List of providers for publishing algorithms (comma separated)
+- QGSWPS\_PROCESSSING\_PROVIDERS\_MODULE\_PATH: Path to look for processing algoritms provider to publish, algorithms from providers specified heres will be runnable as WPS processes.
 
 # Exposing algorithms as WPS services
 

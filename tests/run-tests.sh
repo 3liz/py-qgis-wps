@@ -16,5 +16,8 @@ pip3 install --user -e ./
 export QGIS_DISABLE_MESSAGE_HOOKS=1
 export QGIS_NO_OVERRIDE_IMPORT=1
 
+# Do no resart workers on each run
+export QGSWPS_SERVER_PROCESSLIFECYCLE=0
+
 cd tests/unittests && pytest -v $@
 
