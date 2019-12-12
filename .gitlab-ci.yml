@@ -1,6 +1,9 @@
 stages:
 - test
 - build
+- docker
+- deploy
+- release
 
 .only_changes: &changes_def
   changes:
@@ -11,10 +14,10 @@ stages:
     - "setup.*"
     - LICENSE.txt
 
-test:ltr:
+.tests:
   stage: test
   script:
-    - make docker-test FLAVOR=ltr
+    - make docker-test FLAVOR=$QGIS_FLAVOR
   only:
     <<: *changes_def
   tags:
@@ -23,24 +26,20 @@ test:ltr:
     reports:
         junit: tests/unittests/__output__/junit.xml
 
+test:ltr:
+  extends: .tests
+  variables:
+    QGIS_FLAVOR: ltr
+
 test:release:
-  stage: test
-  script:
-    - make docker-test FLAVOR=release
-  only:
-    <<: *changes_def
-  tags:
-    - infrav3
-  artifacts:
-    reports:
-        junit: tests/unittests/__output__/junit.xml
+  extends: .tests
+  variables:
+    QGIS_FLAVOR: release
 
 build:
   stage: build
   script:
     - make dist deliver
-    - $FACTORY_SCRIPTS/trigger-ci $DOCKER_WPS_ID $DOCKER_WPS_TOKEN master -F "variables[QGIS_FLAVOR]=ltr"
-    - $FACTORY_SCRIPTS/trigger-ci $DOCKER_WPS_ID $DOCKER_WPS_TOKEN master -F "variables[QGIS_FLAVOR]=release"
   environment:
     name: snap
   only:
@@ -49,4 +48,7 @@ build:
       - master
   tags:
     - infrav3
+
+# Docker build 
+include: '/docker/.gitlab-ci.yml'
 

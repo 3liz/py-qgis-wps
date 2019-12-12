@@ -218,7 +218,7 @@ def WPSClassFactory(iface: WPSServerInterface) -> Any:
     from TestAlgorithmProvider2 import  AlgorithmProvider2
 
     iface.registerProvider( AlgorithmProvider1() )
-    iface.registerProvider( AlgorithmProvider1() )
+    iface.registerProvider( AlgorithmProvider2() )
 
 ``` 
 
