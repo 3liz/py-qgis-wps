@@ -37,3 +37,8 @@ __output__
 __ccache__
 
 factory.manifest
+
+# Qgis files
+
+qgis.db
+

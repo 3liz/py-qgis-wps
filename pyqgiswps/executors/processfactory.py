@@ -123,6 +123,7 @@ class QgsProcessFactory:
     def start_qgis(self):
         """ Set up qgis
         """
+        # Do not intialize twice
         if self.qgisapp is not None:
             return
 

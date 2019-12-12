@@ -24,7 +24,7 @@ from .worker import worker_handler
 # Early failure min delay
 # If any process fail before that starting delay
 # we abort the whole process
-EARLY_FAILURE_DELAY = 2
+EARLY_FAILURE_DELAY = 5
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -66,6 +66,8 @@ class Pool:
         for i in reversed(range(len(self._pool))):
             worker = self._pool[i]
             if worker.exitcode is not None:
+                # Handle special case when 
+                # Return is not zero
                 if worker.exitcode != 0:
                     # Handle early failure by killing current process
                     LOGGER.warning("Qgis Worker exited with code %s", worker.exitcode) 

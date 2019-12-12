@@ -57,10 +57,9 @@ class TestRuntime:
         configure_log_levels()
         self.factory = processfactory.get_process_factory()
         self.factory.initialize()
+        # Ensure Qgis is initialized
+        self.factory.start_qgis() 
         self.started = True
-
-        # Wait for processes to initialize
-        time.sleep(2)
 
     def stop(self) -> None:
         if not self.started:
