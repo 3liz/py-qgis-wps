@@ -13,10 +13,6 @@ import lxml.etree
 
 class ExceptionsTest(HTTPTestCase):
 
-    def setUp(self):
-        super().setUp()
-        self.client = self.client_for(Service(processes=[]))
-
     def test_invalid_parameter_value(self):
         resp = self.client.get('?service=wms')
         exception_el = resp.xpath('/ows:ExceptionReport/ows:Exception')[0]

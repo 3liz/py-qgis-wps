@@ -7,7 +7,6 @@ from pyqgiswps.accesspolicy import new_access_policy, DefaultPolicy
 from pyqgiswps.filters import blockingfilter
 from pyqgiswps.app import Service
 from pyqgiswps.tests import HTTPTestCase
-from pyqgiswps.executors.processingexecutor import ProcessingExecutor
 
 
 def test_accesspolicy(rootdir):
@@ -42,8 +41,7 @@ class TestAccessPolicy(HTTPTestCase):
         """ Test processing executor 'Execute' request
         """
         uri = ('/ows/?service=WPS&request=GetCapabilities')
-        client = self.client_for(Service(executor=ProcessingExecutor()))
-        rv = client.get(uri, path='')
+        rv = self.client.get(uri, path='')
         assert rv.status_code == 200
 
         exposed = rv.xpath_text('/wps:Capabilities'
@@ -59,8 +57,7 @@ class TestAccessPolicy(HTTPTestCase):
         """
         uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0'
                                '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
-        client = self.client_for(Service(executor=ProcessingExecutor()))
-        rv = client.get(uri, path='')
+        rv = self.client.get(uri, path='')
         assert rv.status_code == 403
 
 

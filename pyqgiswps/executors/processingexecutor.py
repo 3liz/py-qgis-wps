@@ -6,112 +6,153 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-""" Qgis executor
-
-    The qgis executor publish processing algorithms to
-    as wps service. 
-
-    Only processes from selected  providers can be published 
-"""
+import asyncio
 import os
 import sys
-import logging
-import json
 import traceback
+import json
+import shutil
+import tempfile
+import logging
+import lxml
+import signal
 
-from glob import glob
-from itertools import chain
+import psutil
 
-from pyqgiswps.executors.pool import PoolExecutor, ExecutorError, UnknownProcessError
-from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths, init_qgis_processing
+from contextlib import contextmanager
+from datetime import datetime
+
+from abc import ABCMeta, abstractmethod
+from pyqgiswps import WPS, OWS
+
+from pyqgiswps.app.WPSResponse import WPSResponse
+from pyqgiswps.app.WPSResponse import STATUS
+from pyqgiswps.app.WPSRequest import WPSRequest
+from pyqgiswps.logger import logfile_context
+
 from pyqgiswps.utils.lru import lrucache
-from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
 
-LOGGER = logging.getLogger('SRVLOG')
+from lxml import etree
+from pyqgiswps.exceptions import (StorageNotSupported, OperationNotSupported,
+                                  NoApplicableCode, ProcessException)
 
 from pyqgiswps import config
 
-class ProcessingProviderNotFound(ExecutorError):
+LOGGER = logging.getLogger('SRVLOG')
+
+from .logstore import logstore
+
+class ExecutorError(Exception):
+    pass
+
+class UnknownProcessError(ExecutorError):
+    pass
+
+class StorageNotFound(ExecutorError): 
     pass
 
 
-class ProcessingExecutor(PoolExecutor):
+from pyqgiswps.poolserver.server import create_poolserver
+from pyqgiswps.poolserver.client import create_client, RequestBackendError
 
-    worker_instance = None
+from .processfactory import get_process_factory
 
-    def __init__( self ):
-        super(ProcessingExecutor, self).__init__()
-        self._plugins = []
+class ProcessingExecutor:
+    """ Progessing executor
+    """
+
+    def __init__(self, processes=[]):
+        self.processes = {}
         self._context_processes = lrucache(50)
 
-    def initialize( self, processes ):
-        """ Initialize executor
+        cfg = config.get_config('server')
+        maxqueuesize = cfg.getint('maxqueuesize')
+
+        self._pool = create_client( maxqueuesize )
+        self._factory = get_process_factory()
+
+        self.install_processes( processes )
+
+        # Launch the cleanup task
+        self.schedule_cleanup()
+
+    def get_status( self, uuid=None, **kwargs ):
+        """ Return status of the stored processes
+
+            :param uuid: the uuid of the required process. 
+             If set to None, return all the stored status.
+
+            :return: The status or the list of status.
         """
-        self._config = config.get_config('processing')
+        return logstore.get_status(uuid, **kwargs)
 
-        plugin_path       = self._config.get('providers_module_path')
-        exposed_providers = self._config.get('exposed_providers','').split(',') 
+    def delete_results( self, uuid):
+        """ Delete process results and status 
+ 
+            :param uuid: the uuid of the required process. 
+             If set to None, return all the stored status.
 
-        setup_qgis_paths()  
-
-        self._wps_interface = WPSServerInterfaceImpl(plugin_path, with_providers=exposed_providers)
-        self._wps_interface.initialize()
-
-        super(ProcessingExecutor, self).initialize(processes)
-
-    def worker_initializer(self):
-        """ Worker initializer
+            :return: True if the status has been deleted.
         """
-        ProcessingExecutor.worker_instance = self
+        rec = logstore.get_status(uuid)
+        if rec is None:
+            raise FileNotFoundError(uuid)
+        try:
+            if STATUS[rec['status']] < STATUS.DONE_STATUS:
+                return False
+        except KeyError:
+            # Handle legacy status
+            pass
 
-        super(ProcessingExecutor, self).worker_initializer()
-        # Init qgis application in worker
-        self.start_qgis(main_process=False)
-  
-    def start_qgis(self, main_process):
-        """ Set up qgis
+        cfg = config.get_config('server')
+        rootdir = os.path.abspath(cfg['workdir'])
+
+        # Delete the working directory
+        uuid_str = rec['uuid']
+        workdir = os.path.join(rootdir, uuid_str)
+        LOGGER.info("Cleaning response status: %s", uuid_str)
+        try:
+            if os.path.isdir(workdir):
+                shutil.rmtree(workdir)
+        except Exception as err:
+            LOGGER.error('Unable to remove directory: %s: %s', workdir, err)
+        # Delete the record/response
+        logstore.delete_response(uuid_str)
+        return True
+
+    def get_results(self, uuid):
+        """ Return results status
         """
-        logprefix = "[qgis:%s]" % os.getpid()
+        return logstore.get_results(uuid) 
 
-        settings = {}
-
-        def _folders_setting( setting, folders ):
-            folders = folders.split(';')
-            folders = chain( *(glob(f) for f in folders) )
-            folders = ';'.join( f for f in folders if os.path.isdir(f) )
-            if folders:
-                LOGGER.info("%s = %s", setting, folders)
-                settings[setting] = folders
-
-        # Set up folder settings
-        # XXX  Note that if scripts folder is not set then ScriptAlgorithmProvider will crash !
-        for setting, value in config.get_config().items('qgis.settings.folders'):
-            _folders_setting(setting, value)
-
-        # Init qgis application
-        self.qgisapp = start_qgis_application( enable_processing=True, 
-                                verbose=config.get_config('logging').get('level')=='DEBUG', 
-                                logger=LOGGER, logprefix=logprefix,
-                                settings=settings)
-
-        # Load plugins
-        self._wps_interface.register_providers()
-        LOGGER.info("%s QGis processing initialized" % logprefix)
-
-        return self.qgisapp
-
-    def install_processes(self, processes ):
-        """ Install processing processes
-
-            This method is called by initialize()
+    def terminate(self):
+        """ Execute cleanup tasks
         """
-        super().install_processes(processes)
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
 
-        # XXX We do not want to start a qgis application in the main process
-        # So let's initialize the processes list in a child process
-        qgs_processes = self._pool.apply(self._create_qgis_processes)
-        self.processes.update(qgs_processes)
+        if self._pool:
+            self._pool.close()
 
+    def install_processes( self, processes ):
+        """ Install processes 
+        """
+        LOGGER.debug("Installing processes")
+        if processes:
+            self._qgis_disabled = True
+            self.processes = { p.identifier: p for p in processes }
+        else:
+            self._qgis_disabled = False
+            self.processes = self._factory.create_qgis_processes()
+
+    def list_processes( self ):
+        """ List all available processes
+
+            :param ident: process identifier
+
+            :return: A list of processes infos
+        """
+        return self.processes.values()
 
     def get_processes( self, identifiers, map_uri=None, **context ):
         """ Override executors.get_process
@@ -125,11 +166,10 @@ class ProcessingExecutor(PoolExecutor):
         # Contextualized processes are stored in lru cache
         _test = lambda p: (map_uri,p.identifier) not in self._context_processes
 
-        if map_uri is not None:
+        # TODO Allow create contextualized processes from non-processing processes
+        if not self._qgis_disabled and map_uri is not None:
             if any(_test(p) for p in processes):
-                processes = self._pool.apply(self._create_contextualized_processes, 
-                                             args=(identifiers,),
-                                             kwds=(lambda **kw: kw)(map_uri=map_uri,**context))
+                processes = self._factory.create_contextualized_processes(identifiers, map_uri=map_uri, **context)
                 # Update cache
                 for p in processes:
                     self._context_processes[(map_uri,p.identifier)] = p 
@@ -138,37 +178,164 @@ class ProcessingExecutor(PoolExecutor):
                 processes = [self._context_processes[(map_uri,p.identifier)] for p in processes]
         return processes
 
+    def schedule_cleanup( self ):
+        """ Schedule a periodic cleanup
+        """
+        interval = config.get_config('server').getint('cleanup_interval')
+        loop     = asyncio.get_event_loop()
+        async def _run_cleanup():
+            while True:
+                await asyncio.sleep(interval)
+                try:
+                    self._clean_processes()
+                except Exception as e:
+                    traceback.print_exc()
+                    LOGGER.error("Cleanup task failed: %s", e)
+
+        # Schedule the task
+        self._cleanup_task = asyncio.ensure_future( _run_cleanup() )
+
+    async def execute( self, wps_request, wps_response ):
+        """ Execute a process
+
+            :return: wps_response or None
+        """
+        process = wps_response.process
+        process.uuid = wps_response.uuid
+
+        # Start request
+        logstore.log_request( process.uuid, wps_request)
+
+        # Check if we need no store the response
+        wps_response.store = (wps_response.status >= STATUS.STORE_STATUS)
+
+        # Get request defined timeout
+        timeout = wps_request.timeout
+
+        future = self._pool.apply_async(self._run_process, args=(process.handler, wps_request, wps_response))
+
+        if wps_response.status == STATUS.STORE_AND_UPDATE_STATUS:
+            # ---------------------------------
+            # Run the processe asynchronously
+            # ---------------------------------
+            wps_response.update_status('Task accepted')
+            async def do_execute_async():
+                try:
+                    await asyncio.wait_for(future,timeout)
+                except asyncio.TimeoutError:
+                    wps_response.update_status("Timeout Error", None, STATUS.ERROR_STATUS)
+                except Exception:
+                    pass
+
+            # Fire and forget
+            asyncio.ensure_future(do_execute_async())
+            return wps_response.document                        
+        else:
+            # -------------------------------
+            # Run process and wait for response 
+            # -------------------------------
+            try:
+                return await asyncio.wait_for(future,timeout)
+            except asyncio.TimeoutError:
+                wps_response.update_status("Timeout Error", None, STATUS.ERROR_STATUS)
+                raise NoApplicableCode("Execute Timeout", code=424)
+            except RequestBackendError as e:
+                if isinstance(e.response, ProcessException):
+                    raise NoApplicableCode("Process Error", code=424)
+                else:
+                    raise
+
     @staticmethod
-    def _create_contextualized_processes( identifiers, map_uri, **context ):
-        """ Create processes from context
+    def _run_process(handler, wps_request, wps_response):
+        """ Run WPS  process
+
+            Note that there is nothing to return is async mode
         """
         try:
-            from pyqgiswps.executors.processingprocess import QgsProcess
-            return [QgsProcess.createInstance(ident,map_uri=map_uri, **context) for ident in identifiers]
-        except:
-            traceback.print_exc()
+            workdir = wps_response.process.workdir
+            # Change current dir to workdir
+            os.chdir(workdir)
+
+            wps_response.update_status('Task started', 0)
+
+            with logfile_context(workdir, 'processing'), memory_logger(wps_response):
+                handler(wps_request, wps_response)
+                wps_response.update_status('Task finished'.format(wps_response.process.title),
+                                    100, STATUS.DONE_STATUS)
+
+                ## Return pickable response
+                return lxml.etree.tostring(wps_response.document, pretty_print=True)
+
+        except ProcessException as e:
+            wps_response.update_status("%s" % e, None, STATUS.ERROR_STATUS)
+            raise
+        except Exception:
+            wps_response.update_status("Internal error", None, STATUS.ERROR_STATUS)
             raise
 
+
     @staticmethod
-    def _create_qgis_processes():
+    def _clean_processes():
+        """ Clean up all processes
+            Remove status and delete processes workdir
 
-        # Install processes from processing providers
-        from pyqgiswps.executors.processingprocess import QgsProcess
-        from qgis.core import QgsApplication
+            Dangling tasks will be removed: these are tasks no marked finished but 
+            for which the timeout has expired. Usually this is task for wich the process
+            as died (memory exhaustion, segfault....)
+        """
+        # Iterate over done processes
+        cfg = config.get_config('server')
+        rootdir = os.path.abspath(cfg['workdir'])
 
-        processingRegistry = QgsApplication.processingRegistry()
-        processes = {}
+        # The response expiration in seconds
+        expire_default = cfg.getint('response_expiration')
 
-        iface = ProcessingExecutor.worker_instance._wps_interface
+        now_ts   = datetime.utcnow().timestamp()
 
-        for provider in iface.providers:
-            LOGGER.debug("Loading processing algorithms from provider '%s'", provider.id())
-            processes.update({ alg.id():QgsProcess( alg ) for alg in provider.algorithms()})
+        for _, rec in list(logstore.records):
+            timestamp = rec.get('timestamp')
+            dangling  = timestamp is None
+            try:
+                if not dangling and STATUS[rec['status']] < STATUS.DONE_STATUS:
+                    # Check that the task is not in dangling state
+                    timeout  = rec.get('timeout')
+                    dangling = timeout is None or (now_ts - int(timestamp)) >= timeout
+                    if not dangling:
+                        continue
+            except KeyError:
+                # Handle legacy status
+                pass
+            
+            expiration = rec.get('expiration', expire_default)
+            notpinned  = not rec.get('pinned',False)
+            if notpinned and (dangling or (now_ts - int(timestamp)) >= expiration):
+                # Delete the working directory
+                uuid_str = rec['uuid']
+                workdir = os.path.join(rootdir, uuid_str)
+                LOGGER.info("Cleaning response status: %s", uuid_str)
+                try:
+                    if os.path.isdir(workdir):
+                        shutil.rmtree(workdir)
+                except Exception as err:
+                    LOGGER.error('Unable to remove directory: %s', err)
+                # Delete the record/response
+                logstore.delete_response(uuid_str)
 
-        if processes:
-            LOGGER.info("Published processes:\n * %s", "\n * ".join(sorted(processes.keys())))
-        else:
-            LOGGER.warning("No published processes !")
 
-        return processes
+@contextmanager
+def memory_logger(response):
+    """ Log memory consumption
+    """
+    # Get the current process info
+    process = psutil.Process(os.getpid())
+    start_mem = process.memory_info().rss
+    mb = 1024*1024.0
+    try:
+        yield
+    finally:
+        # Log memory infos
+        end_mem = process.memory_info().rss
+        LOGGER.info("{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb delta={3:.3f}Mb".format(
+                str(response.uuid)[:8], start_mem/mb, end_mem/mb, (end_mem - start_mem)/mb,
+                response.process.identifier))
 

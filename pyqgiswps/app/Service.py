@@ -19,12 +19,12 @@ from pyqgiswps import WPS, OWS
 from urllib.request import urlopen
 from pyqgiswps.app.WPSRequest import WPSRequest
 from pyqgiswps.app.WPSResponse import WPSResponse
-from pyqgiswps.executors.logstore import STATUS
+from pyqgiswps.executors.logstore import logstore, STATUS
 from pyqgiswps import config
 from pyqgiswps.exceptions import (MissingParameterValue, NoApplicableCode, InvalidParameterValue, 
                               FileSizeExceeded, StorageNotSupported, OperationNotSupported)
 from pyqgiswps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
-from pyqgiswps.executors.pool import PoolExecutor, UnknownProcessError
+from pyqgiswps.executors.processingexecutor import ProcessingExecutor, UnknownProcessError
 
 from io import StringIO
 
@@ -47,14 +47,11 @@ class Service():
 
     """
 
-    def __init__(self, processes=[], executor=None):
+    def __init__(self, processes=[] ):
         # Get and start executor
-        self.executor = executor or PoolExecutor()
-        self.executor.initialize( processes )
+        self.executor = ProcessingExecutor(processes)
 
     def terminate(self):
-        """ Clean ressource 
-        """
         self.executor.terminate()
 
     @property
@@ -348,21 +345,9 @@ class Service():
         if wps_request.raw:
             raise NotImplementedError("Raw output is not implemented")
  
-        wps_response = await self.executor.execute(wps_request, wps_response)
+        document = await self.executor.execute(wps_request, wps_response)
 
-        # get the specified output as raw
-        # FIXME Raw output
-        #if wps_request.raw:
-        #    for outpt in wps_request.outputs:
-        #        for proc_outpt in process.outputs:
-        #            if outpt == proc_outpt.identifier:
-        #                resp = Response(proc_outpt.data)
-        #                return resp
-        #
-        #    # if the specified identifier was not found raise error
-        #    raise InvalidParameterValue('')
-
-        return wps_response.document
+        return document
 
     def _parse(self, process, wps_request):
         """Parse request

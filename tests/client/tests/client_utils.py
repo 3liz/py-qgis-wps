@@ -75,12 +75,3 @@ def assert_response_success(resp):
     assert len(success) == 1
 
 
-def assert_qywps_version(resp, version):
-    # get first child of root element
-    root_firstchild = resp.xpath('/*')[0].getprevious()
-    assert isinstance(root_firstchild, lxml.etree._Comment)
-    tokens = root_firstchild.text.split()
-    assert len(tokens) == 2
-    assert tokens[0] == 'QyWPS'
-    assert tokens[1] == version
-

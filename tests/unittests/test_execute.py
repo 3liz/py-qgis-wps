@@ -7,8 +7,8 @@
 import asyncio
 import lxml.etree
 import json
-from pyqgiswps import Service, WPSProcess, LiteralOutput, LiteralInput,\
-    BoundingBoxOutput, BoundingBoxInput, Format, ComplexInput, ComplexOutput
+from pyqgiswps import (WPSProcess, LiteralOutput, LiteralInput,
+    BoundingBoxOutput, BoundingBoxInput, Format, ComplexInput, ComplexOutput)
 from pyqgiswps.validator.base import emptyvalidator
 from pyqgiswps.validator.complexvalidator import validategml
 from pyqgiswps.exceptions import InvalidParameterValue
@@ -62,14 +62,14 @@ def create_bbox_process():
                    inputs=[BoundingBoxInput('mybbox', 'Input name', ["EPSG:4326"])],
                    outputs=[BoundingBoxOutput('outbbox', 'Output message', ["EPSG:4326"])])
 
-def complex_proces(request, response):
+def complex_process(request, response):
     response.outputs['complex'].data = request.inputs['complex'][0].data
     return response
 
-def create_complex_proces():
+def create_complex_process():
     frmt = Format(mime_type='application/gml') # this is unknown mimetype
 
-    return WPSProcess(handler=complex_proces,
+    return WPSProcess(handler=complex_process,
             identifier='my_complex_process',
             title='Complex process',
             inputs=[
@@ -99,86 +99,32 @@ def get_output(doc):
 class ExecuteTest(HTTPTestCase):
     """Test for Exeucte request KVP request"""
 
-    def test_input_parser(self):
-        """Test input parsing
-        """
-        my_process = create_complex_proces()
-        service = Service(processes=[my_process])
-        self.assertEqual(len(service.processes), 1)
-        self.assertTrue(service.get_process('my_complex_process'))
-
-        class FakeRequest():
-            identifier = 'complex_process'
-            service='wps'
-            version='1.0.0'
-            inputs = {'complex': [{
-                    'identifier': 'complex',
-                    'mimeType': 'text/gml',
-                    'data': 'the data'
-                }]}
-        request = FakeRequest();
-
-        try:
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(service.execute('my_complex_process', request, 'fakeuuid'))
-        except InvalidParameterValue as e:
-            self.assertEqual(e.locator, 'mimeType')
-
-        request.inputs['complex'][0]['mimeType'] = 'application/gml'
-        parsed_inputs = service.create_complex_inputs(my_process.inputs[0],
-                                                      request.inputs['complex'])
-
-        # TODO parse outputs and their validators too
-
-        self.assertEqual(parsed_inputs[0].data_format.validate, emptyvalidator)
-
-        request.inputs['complex'][0]['mimeType'] = 'application/xml+gml'
-        try:
-            parsed_inputs = service.create_complex_inputs(my_process.inputs[0],
-                                                      request.inputs['complex'])
-        except InvalidParameterValue as e:
-            self.assertEqual(e.locator, 'mimeType')
-
-        try:
-            my_process.inputs[0].data_format = Format(mime_type='application/xml+gml')
-        except InvalidParameterValue as e:
-            self.assertEqual(e.locator, 'mimeType')
-
-        frmt = Format(mime_type='application/xml+gml', validate=validategml)
-        self.assertEqual(frmt.validate, validategml)
-
-        my_process.inputs[0].supported_formats = [frmt]
-        my_process.inputs[0].data_format = Format(mime_type='application/xml+gml')
-        parsed_inputs = service.create_complex_inputs(my_process.inputs[0],
-                                              request.inputs['complex'])
-
-        self.assertEqual(parsed_inputs[0].data_format.validate, validategml)
-
+    def get_processes(self):
+        return [
+            create_ultimate_question(),
+            create_greeter(),
+            create_bbox_process(),
+        ]
 
     def test_missing_process_error(self):
-        client = self.client_for(Service(processes=[create_ultimate_question()]))
-        resp = client.get('?Request=Execute&identifier=foo')
+        resp = self.client.get('?Request=Execute&identifier=foo')
         assert resp.status_code == 400
 
     def test_get_with_no_inputs(self):
-        client = self.client_for(Service(processes=[create_ultimate_question()]))
-        resp = client.get('?service=wps&version=1.0.0&Request=Execute&identifier=ultimate_question')
+        resp = self.client.get('?service=wps&version=1.0.0&Request=Execute&identifier=ultimate_question')
         assert_response_success(resp)
-
         assert get_output(resp.xml) == {'outvalue': '42'}
 
     def test_post_with_no_inputs(self):
-        client = self.client_for(Service(processes=[create_ultimate_question()]))
         request_doc = WPS.Execute(
             OWS.Identifier('ultimate_question'),
             version='1.0.0'
         )
-        resp = client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(doc=request_doc)
         assert_response_success(resp)
         assert get_output(resp.xml) == {'outvalue': '42'}
 
     def test_post_with_string_input(self):
-        client = self.client_for(Service(processes=[create_greeter()]))
         request_doc = WPS.Execute(
             OWS.Identifier('greeter'),
             WPS.DataInputs(
@@ -189,12 +135,11 @@ class ExecuteTest(HTTPTestCase):
             ),
             version='1.0.0'
         )
-        resp = client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(doc=request_doc)
         assert_response_success(resp)
         assert get_output(resp.xml) == {'message': "Hello foo!"}
 
     def test_bbox(self):
-        client = self.client_for(Service(processes=[create_bbox_process()]))
         request_doc = WPS.Execute(
             OWS.Identifier('my_bbox_process'),
             WPS.DataInputs(
@@ -208,7 +153,7 @@ class ExecuteTest(HTTPTestCase):
             ),
             version='1.0.0'
         )
-        resp = client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(doc=request_doc)
         assert_response_success(resp)
 
         [output] = xpath_ns(resp.xml, '/wps:ExecuteResponse'

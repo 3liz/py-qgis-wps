@@ -3,7 +3,6 @@ jsonschema
 lxml
 python-dateutil
 redis
-# Uncomment to prevent update of the gdal package
-#GDAL <= 2.1.2
 psutil
+pyzmq >= 17
 

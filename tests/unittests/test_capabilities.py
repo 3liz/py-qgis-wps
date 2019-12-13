@@ -4,7 +4,7 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-from pyqgiswps.app import WPSProcess, Service
+from pyqgiswps.app import WPSProcess
 from pyqgiswps.app.Common import Metadata
 from pyqgiswps import WPS, OWS
 from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
@@ -12,41 +12,36 @@ from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
 class BadRequestTest(HTTPTestCase):
 
     def test_bad_http_verb(self):
-        client = self.client_for(Service())
-        resp = client.put('')
-        assert resp.status_code == 405, "405 != %s" %  resp.status_code  # method not allowed
+        resp = self.client.put('')
+        assert resp.status_code == 405 # method not allowed
 
     def test_bad_request_type_with_get(self):
-        client = self.client_for(Service())
-        resp = client.get('?Request=foo')
-        assert resp.status_code == 400, "400 != %s" %  resp.status_code
+        resp = self.client.get('?Request=foo')
+        assert resp.status_code == 400
 
     def test_bad_service_type_with_get(self):
-        client = self.client_for(Service())
-        resp = client.get('?service=foo')
+        resp = self.client.get('?service=foo')
 
         exception = resp.xpath('/ows:ExceptionReport'
                                 '/ows:Exception')
 
-        assert resp.status_code == 400, "400 != %s" %  resp.status_code
+        assert resp.status_code == 400
         assert exception[0].attrib['exceptionCode'] == 'InvalidParameterValue'
 
     def test_bad_request_type_with_post(self):
-        client = self.client_for(Service())
         request_doc = WPS.Foo()
-        resp = client.post_xml(doc=request_doc)
-        assert resp.status_code == 400, "400 != %s" %  resp.status_code
+        resp = self.client.post_xml(doc=request_doc)
+        assert resp.status_code == 400
 
 
 class CapabilitiesTest(HTTPTestCase):
 
-    def setUp(self):
-        super().setUp()
-
+    def get_processes(self):
         def pr1(): pass
         def pr2(): pass
 
-        self.client = self.client_for(Service(processes=[WPSProcess(pr1, 'pr1', 'Process 1', metadata=[Metadata('pr1 metadata')]), WPSProcess(pr2, 'pr2', 'Process 2', metadata=[Metadata('pr2 metadata')])]))
+        return [ WPSProcess(pr1, 'pr1', 'Process 1', metadata=[Metadata('pr1 metadata')]), 
+                 WPSProcess(pr2, 'pr2', 'Process 2', metadata=[Metadata('pr2 metadata')])]
 
     def check_capabilities_response(self, resp):
         assert resp.status_code == 200, "200 != %s" %  resp.status_code
@@ -85,7 +80,7 @@ class CapabilitiesTest(HTTPTestCase):
         resp = self.client.get('?request=getcapabilities&service=wps&acceptversions=2001-123')
         exception = resp.xpath('/ows:ExceptionReport'
                                 '/ows:Exception')
-        assert resp.status_code == 400, "400 != %s" %  resp.status_code
+        assert resp.status_code == 400
         assert exception[0].attrib['exceptionCode'] == 'VersionNegotiationFailed'
 
     def test_post_bad_version(self):
@@ -96,7 +91,7 @@ class CapabilitiesTest(HTTPTestCase):
         exception = resp.xpath('/ows:ExceptionReport'
                                 '/ows:Exception')
 
-        assert resp.status_code == 400, "400 != %s" %  resp.status_code
+        assert resp.status_code == 400
         assert exception[0].attrib['exceptionCode'] == 'VersionNegotiationFailed'
 
     def test_pyqgiswps_version(self):

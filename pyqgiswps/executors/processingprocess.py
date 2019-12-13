@@ -26,7 +26,8 @@ from .processingio import (ProcessingTypeParseError,
                            input_to_processing,
                            processing_to_output)
 
-from qgis.core import (QgsApplication,
+from qgis.core import (Qgis,
+                       QgsApplication,
                        QgsMapLayer,
                        QgsVectorLayer,
                        QgsWkbTypes,
@@ -36,7 +37,9 @@ from qgis.core import (QgsApplication,
                        QgsProcessingContext,
                        QgsProcessingAlgorithm,
                        QgsProcessingUtils,
-                       QgsFeatureRequest)
+                       QgsFeatureRequest,
+                       QgsExpressionContext,
+                       QgsExpressionContextScope)
 
 from pyqgiswps.app.Process import WPSProcess
 from pyqgiswps.app.WPSResponse import WPSResponse
@@ -83,10 +86,71 @@ def _create_algorithm( algid: str, **context ) -> QgsProcessingAlgorithm:
 
 _generic_version="1.0generic"
 
+#---------------------------------
+# Post processing
+#---------------------------------
+
+def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcessingAlgorithm, 
+                             details: 'QgsProcessingContext::LayerDetails',
+                             context: QgsProcessingContext,
+                             parameters) -> None:
+    """ Set layer style 
+
+        Original code is from python/plugins/processing/gui/Postprocessing.py
+    """
+
+    '''If running a model, the execution will arrive here when an algorithm that is part of
+    that model is executed. We check if its output is a final otuput of the model, and
+    adapt the output name accordingly'''
+    outputName = details.outputName
+    if parameters:
+        expcontext = QgsExpressionContext()
+        scope = QgsExpressionContextScope()
+        expcontext.appendScope(scope)
+        for out in alg.outputDefinitions():
+            if out.name() not in parameters:
+                continue
+            outValue = parameters[out.name()]
+            if hasattr(outValue, "sink"):
+                outValue = outValue.sink.valueAsString(expcontext)[0]
+            else:
+                outValue = str(outValue)
+            if outValue == layerName:
+                outputName = out.name()
+                break
+
+    style = None
+    if outputName:
+        # If a style with the same name as the outputName exists
+        # in workdir then use it
+        style = os.path.join(context.workdir, outputName + '.qml')
+        if not os.path.exists(style):
+            style = RenderingStyles.getStyle(alg.id(), outputName)
+        LOGGER.debug("Getting style for %s: %s <%s>", alg.id(), outputName, style)
+
+    # Get defaults styles
+    if style is None:
+        if layer.type() == QgsMapLayer.RasterLayer:
+            style = ProcessingConfig.getSetting(ProcessingConfig.RASTER_STYLE)
+        else:
+            if layer.geometryType() == QgsWkbTypes.PointGeometry:
+                style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_POINT_STYLE)
+            elif layer.geometryType() == QgsWkbTypes.LineGeometry:
+                style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_LINE_STYLE)
+            else:
+                style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_POLYGON_STYLE)
+    if style:
+        LOGGER.debug("Adding style '%s' to layer %s (outputName %s)", style, details.name, outputName)
+        layer.loadNamedStyle(style)
+
+
+    LOGGER.debug("Layer name set to %s <details name: %s>", layer.name(), details.name)
+
 
 def handle_algorithm_results(alg: QgsProcessingAlgorithm, 
                              context: QgsProcessingContext, 
-                             feedback: QgsProcessingFeedback, 
+                             feedback: QgsProcessingFeedback,
+                             parameters = {},
                              **kwargs) -> bool:
     """ Handle algorithms result layeri
 
@@ -98,31 +162,16 @@ def handle_algorithm_results(alg: QgsProcessingAlgorithm,
             return False
         try:
             # Take as layer
-            layer = QgsProcessingUtils.mapLayerFromString(l, context)
+            layer = QgsProcessingUtils.mapLayerFromString(l, context, typeHint=details.layerTypeHint)
             if layer is not None:
-                if not ProcessingConfig.getSetting(ProcessingConfig.USE_FILENAME_AS_LAYER_NAME):
-                    layer.setName(details.name)
-                # Set styles
-                style = None
-                if details.outputName:
-                    # Try to load custom style from workdir
-                    style = os.path.join(context.workdir, details.outputName + '.qml')
-                    if not os.path.exists(style):
-                        style = RenderingStyles.getStyle(alg.id(), details.outputName)
-                    LOGGER.debug("Getting style for %s: %s <%s>", alg.id(), details.outputName, style)
-                if style is None:
-                    if layer.type() == QgsMapLayer.RasterLayer:
-                        style = ProcessingConfig.getSetting(ProcessingConfig.RASTER_STYLE)
-                    else:
-                        if layer.geometryType() == QgsWkbTypes.PointGeometry:
-                            style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_POINT_STYLE)
-                        elif layer.geometryType() == QgsWkbTypes.LineGeometry:
-                            style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_LINE_STYLE)
-                        else:
-                            style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_POLYGON_STYLE)
-                if style:
-                    LOGGER.debug("Adding style to layer %s (outputName %s)", details.name, details.outputName)
-                    layer.loadNamedStyle(style)
+                # Set layer name to details name
+                # This is because we enforce destination name beeing
+                # the name from the parameter
+                # see processing.io for how is handled layer destination naming
+                layer.setName(details.name)
+                LOGGER.debug("Layer name set to %s <details name: %s>", layer.name(), details.name)
+                
+                _set_output_layer_style(l, layer, alg, details, context, parameters)            
 
                 # Add layer to destination project
                 LOGGER.debug("Adding Map layer '%s' (outputName %s) to Qgs Project", l, details.outputName )
@@ -131,9 +180,8 @@ def handle_algorithm_results(alg: QgsProcessingAlgorithm,
                 # Handle post processing
                 if details.postProcessor():
                     details.postProcessor().postProcessLayer(layer, context, feedback)
-
             else:
-                LOGGER.warning("No layer found found for %s", l)
+                LOGGER.warning("No layer found for %s", l)
         except Exception:
             LOGGER.error("Processing: Error loading result layer:\n{}".format(traceback.format_exc()))
             wrongLayers.append(str(l))

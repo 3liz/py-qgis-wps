@@ -38,8 +38,8 @@ test: local
     -e FAKEREDIS=yes \
     -e PIP_CACHE_DIR=/.cache \
     -e PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
-    -e QYWPS_CACHE_ROOTDIR=/src/tests/unittests/data \
-    -e QYWPS_PROCESSING_PROVIDERS_MODULE_PATH=/src/tests/unittests \
+    -e QGSWPS_CACHE_ROOTDIR=/src/tests/unittests/data \
+    -e QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH=/src/tests/unittests \
     -e QGIS_OPTIONS_PATH=/src/tests/qgis \
     $(QGIS_IMAGE) /src/tests/run-tests.sh
 
@@ -74,4 +74,14 @@ test-async: stop local
     RUN_COMMAND=/src/tests/run-tests.sh \
     && docker-compose up     
 
+
+test-pool: local
+	docker run --rm --name qgis-wps-test-pool-$(FLAVOR)-$(COMMITID) -w /src \
+    -u $(BECOME_USER) \
+    -v $(SRCDIR):/src \
+    -v $$(pwd)/.local:/.local \
+    -v $(LOCAL_HOME)/.cache:/.cache \
+    -e PIP_CACHE_DIR=/.cache \
+    -e PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
+    $(QGIS_IMAGE) /src/tests/run-pool-tests.sh
 

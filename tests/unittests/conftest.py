@@ -5,11 +5,11 @@ import pytest
 
 from pathlib import Path
 
-from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths
+from pyqgiswps.tests import TestRuntime
 
 def pytest_addoption(parser):
-    parser.addoption("--server-log-level", choices=['debug', 'info', 'warning', 'error','critical'] , help="log level",
-                     default='warning')
+    parser.addoption("--server-log-level", choices=['all','debug', 'info', 'warning', 'error','critical'] , help="log level",
+                     default='error')
 
 server_log_level = None
 
@@ -24,62 +24,29 @@ def outputdir(request):
     os.makedirs(outdir.strpath, exist_ok=True)
     return outdir
 
-
 @pytest.fixture(scope='session')
 def data(request):
     return request.config.rootdir.join('data')
-
 
 @pytest.fixture(scope='session')
 def rootdir(request):
     return request.config.rootdir
 
-
-qgis_application = None
-
-
 def pytest_sessionstart(session):
-    setup_qgis_paths()
 
-    logging.basicConfig( stream=sys.stderr )
+    logging.basicConfig( stream=sys.stderr, level=logging.DEBUG )
 
-    log_level = getattr(logging, server_log_level.upper())
-    logging.disable(log_level)
+    if server_log_level != 'all':
+        log_level = getattr(logging, server_log_level.upper())
+        logging.disable(log_level)
 
-    logger = logging.getLogger('SRVLOG')
-    logger.setLevel(log_level)
-
-    from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
-    
-    rootdir  = Path(session.config.rootdir.strpath)
-    settings = { 
-        "Processing/Configuration/SCRIPTS_FOLDERS": str(rootdir / 'scripts'),
-        "Processing/Configuration/MODELS_FOLDER"  : str(rootdir / 'models') 
-    }
-
-    global qgis_application
-    qgis_application = start_qgis_application(enable_processing=True, cleanup=False, 
-                                   settings=settings)
-    try:
-        iface = WPSServerInterfaceImpl(str(rootdir), with_providers=['script','model'])
-        iface.initialize()
-        assert len(iface.plugins) > 0
-
-        iface.register_providers()
-        assert len(list(iface.providers)) > 0
-        
-        qgis_application.__IFACE = iface
-        
-    except Exception as e:
-        qgis_application.exitQgis()
-        pytest.exit("Failed to initialize provider %s:" %e)
-
+    rt = TestRuntime.instance()
+    rt.start()
 
 def pytest_sessionfinish(session, exitstatus):
     """
     """
-    global qgis_application
-    qgis_application.exitQgis()
-    qgis_application = None
+    rt = TestRuntime.instance()
+    rt.stop()
 
 

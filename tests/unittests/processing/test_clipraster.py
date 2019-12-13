@@ -4,7 +4,6 @@
 import pytest
 from pyqgiswps.app import WPSProcess, Service
 from pyqgiswps.tests import HTTPTestCase
-from pyqgiswps.executors.processingexecutor import ProcessingExecutor
 
 
 CLIPRASTER_EXECUTE_POST="""<?xml version="1.0" encoding="UTF-8"?>
@@ -48,8 +47,7 @@ class TestsClipRaster(HTTPTestCase):
                                'INPUT=raster_layer%3B'
                                'EXTENT=-112,20,-87,45%3B'
                                'OUTPUT=clipped_layer')
-        client = self.client_for(Service(executor=ProcessingExecutor()))
-        rv = client.get(uri, path='')
+        rv = self.client.get(uri, path='')
         # TODO FIXME error in parsing BoundingBox
         assert rv.status_code == 200
 
@@ -58,8 +56,7 @@ class TestsClipRaster(HTTPTestCase):
         """
         uri = ('/ows/?service=WPS&MAP=raster_layer')
         body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='pyqgiswps_test',INPUT='INPUT',EXTENT='EXTENT',OUTPUT='OUTPUT')
-        client = self.client_for(Service(executor=ProcessingExecutor()))
-        rv = client.post(body, path=uri)
+        rv = self.client.post(body, path=uri)
         assert rv.status_code == 200
 
     def test_script_execute_request_post(self):
@@ -67,8 +64,7 @@ class TestsClipRaster(HTTPTestCase):
         """
         uri = ('/ows/?service=WPS&MAP=raster_layer')
         body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='script',INPUT='INPUT',EXTENT='EXTENT',OUTPUT='OUTPUT')
-        client = self.client_for(Service(executor=ProcessingExecutor()))
-        rv = client.post(body, path=uri)
+        rv = self.client.post(body, path=uri)
         assert rv.status_code == 200
 
     def test_model_execute_request_post(self):
@@ -76,7 +72,6 @@ class TestsClipRaster(HTTPTestCase):
         """
         uri = ('/ows/?service=WPS&MAP=raster_layer')
         body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='model',INPUT='input',EXTENT='extent',OUTPUT='gdal:cliprasterbyextent_1:OUTPUT')
-        client = self.client_for(Service(executor=ProcessingExecutor()))
-        rv = client.post(body, path=uri)
+        rv = self.client.post(body, path=uri)
         assert rv.status_code == 200
 

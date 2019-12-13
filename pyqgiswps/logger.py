@@ -27,11 +27,16 @@ RREQ = 22
 
 FORMATSTR = '%(asctime)s\t[%(process)d]\t%(levelname)s\t%(message)s'
 
-def setup_log_handler(log_level=None):
-    """ Initialize log handler with the given log level
-    """
+
+def configure_log_levels():
     logging.addLevelName(REQ, "REQ")
     logging.addLevelName(RREQ, "RREQ")
+
+
+def setup_log_handler(log_level:str=None):
+    """ Initialize log handler with the given log level
+    """
+    configure_log_levels()
 
     logger    = LOGGER
     formatstr = FORMATSTR
@@ -46,7 +51,7 @@ def setup_log_handler(log_level=None):
 
 
 @contextmanager
-def logfile_context( workdir, basename ):
+def logfile_context( workdir:str, basename:str ):
     """ Add a temporary file handler
     """
     logfile    = os.path.join(workdir, "%s.log" % basename)

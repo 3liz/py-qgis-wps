@@ -1,0 +1,8 @@
+.git
+.cache
+.local
+.home
+
+Makefile
+tests
+
