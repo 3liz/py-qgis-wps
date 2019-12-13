@@ -17,7 +17,13 @@ import logging
 import lxml
 import signal
 
-import psutil
+try:
+    # XXX On android userland, /proc/stat is not readable
+    import psutil
+    HAVE_PSUTIL = True
+except:
+    print("WARNING: PSUtil is not available, memory stats will be disabled !")
+    HAVE_PSUTIL = False
 
 from contextlib import contextmanager
 from datetime import datetime
@@ -321,21 +327,28 @@ class ProcessingExecutor:
                 # Delete the record/response
                 logstore.delete_response(uuid_str)
 
-
-@contextmanager
-def memory_logger(response):
-    """ Log memory consumption
-    """
-    # Get the current process info
-    process = psutil.Process(os.getpid())
-    start_mem = process.memory_info().rss
-    mb = 1024*1024.0
-    try:
-        yield
-    finally:
-        # Log memory infos
-        end_mem = process.memory_info().rss
-        LOGGER.info("{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb delta={3:.3f}Mb".format(
-                str(response.uuid)[:8], start_mem/mb, end_mem/mb, (end_mem - start_mem)/mb,
-                response.process.identifier))
+if HAVE_PSUTIL:
+    @contextmanager
+    def memory_logger(response):
+        """ Log memory consumption
+        """
+        # Get the current process info
+        process = psutil.Process(os.getpid())
+        start_mem = process.memory_info().rss
+        mb = 1024*1024.0
+        try:
+            yield
+        finally:
+            # Log memory infos
+            end_mem = process.memory_info().rss
+            LOGGER.info("{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb delta={3:.3f}Mb".format(
+                    str(response.uuid)[:8], start_mem/mb, end_mem/mb, (end_mem - start_mem)/mb,
+                    response.process.identifier))
+else:
+    @contextmanager
+    def memory_logger(response):
+        try:
+            yield 
+        finally:
+            LOGGER.info("{4}:{0} memory stats not available")
 
