@@ -9,7 +9,7 @@ variables:
 .docker-build:
   stage: docker
   script:
-    - build -C docker deliver clean FLAVOR=$QGIS_FLAVOR
+    - make -C docker build deliver clean FLAVOR=$QGIS_FLAVOR
     - $FACTORY_SCRIPTS/push-to-docker-hub.sh --clean
   environment:
     name: snap
