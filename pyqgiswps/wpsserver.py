@@ -37,10 +37,7 @@ def read_configuration(args=None):
     config_file = None
     config = get_config('server')
 
-    log_level = get_config('logging')['level']
-
-    cli_parser.add_argument('--logging', choices=['debug', 'info', 'warning', 'error'],
-            default=log_level, help="set log level")
+    cli_parser.add_argument('-d','--debug', action='store_true', default=False, help="Set debug mode")
     cli_parser.add_argument('-c','--config', metavar='PATH', nargs='?', dest='config',
             default=config_file, help="Configuration file")
     cli_parser.add_argument('--version', action='store_true',
@@ -48,7 +45,6 @@ def read_configuration(args=None):
     cli_parser.add_argument('-p','--port'    , type=int, help="http port", dest='port', default=8080)
     cli_parser.add_argument('-b','--bind'    , metavar='IP',  default='0.0.0.0', help="Interface to bind to", dest='interface')
     cli_parser.add_argument('-u','--setuid'  , default=None, help="uid to switch to", dest='setuid')
-    cli_parser.add_argument('--chdir'  , metavar='DIR', default=None, help="Set the Working directory")
 
     args = cli_parser.parse_args()
 
@@ -56,22 +52,12 @@ def read_configuration(args=None):
         print_version(config)
         sys.exit(1)
 
-    if args.chdir is not None:
-        print('Changing current directory to %s' % args.chdir, file=sys.stderr)
-        os.chdir(args.chdir)
-
-    log_level = args.logging
     if args.config:
         read_config_file(args.config)
 
-    cli_config = {
-        'logging':{
-            'level': args.logging.upper()
-        }
-    }
-
-    # read configuration dict
-    read_config_dict(cli_config)
+    if args.debug:
+        # Force debug mode
+        read_config_dict({'logging':{ 'level': 'DEBUG'}})
 
     # set log level
     setup_log_handler()

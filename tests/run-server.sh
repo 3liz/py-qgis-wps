@@ -18,5 +18,6 @@ export QGIS_NO_OVERRIDE_IMPORT=1
 
 export QGSWPS_SERVER_PARALLELPROCESSES=$WORKERS
 
-exec wpsserver -p 8080 --chdir tests/unittests
+cd tests/unittests
+exec wpsserver -p 8080
 

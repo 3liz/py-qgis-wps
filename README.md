@@ -126,16 +126,14 @@ For example:
 ## Usage
 
 ```
-usage: wpsserver [-h] [--logging {debug,info,warning,error}] [-c [PATH]]
-                 [--version] [-p PORT] [-b IP] [-w NUM] [-u SETUID]
-                 [--chdir DIR]
+usage: wpsserver [-h] [-d] [-c [PATH]]
+                 [--version] [-p PORT] [-b IP] [-u SETUID]
 
 WPS server
 
 optional arguments:
   -h, --help            show this help message and exit
-  --logging {debug,info,warning,error}
-                        set log level
+  -d, --debug           Set debug mode  
   -c [PATH], --config [PATH]
                         Configuration file
   --version             Return version number and exit
@@ -143,7 +141,6 @@ optional arguments:
   -b IP, --bind IP      Interface to bind to
   -u SETUID, --setuid SETUID
                         uid to switch to
-  --chdir DIR           Set the Working directory
 ```
 
 ## Configuration
