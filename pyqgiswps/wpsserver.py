@@ -13,7 +13,7 @@ import logging
 
 from .version import __version__, __description__
 from .runtime import run_server
-from .config import get_config, load_configuration, read_config_file, read_config_dict
+from .config import get_config, set_config, load_configuration, read_config_file
 from .logger import setup_log_handler
 
 LOGGER=logging.getLogger('SRVLOG')
@@ -45,6 +45,8 @@ def read_configuration(args=None):
     cli_parser.add_argument('-p','--port'    , type=int, help="http port", dest='port', default=8080)
     cli_parser.add_argument('-b','--bind'    , metavar='IP',  default='0.0.0.0', help="Interface to bind to", dest='interface')
     cli_parser.add_argument('-u','--setuid'  , default=None, help="uid to switch to", dest='setuid')
+    cli_parser.add_argument('-w','--workers' , metavar='NUM', type=int, default=argparse.SUPPRESS, 
+            help="number of parallel processes", dest='parallelprocesses')
 
     args = cli_parser.parse_args()
 
@@ -55,9 +57,13 @@ def read_configuration(args=None):
     if args.config:
         read_config_file(args.config)
 
+    # Override config
+    if 'parallelprocesses' in args:
+        set_config('server', 'parallelprocesses', args.parallelprocesses)
+
     if args.debug:
         # Force debug mode
-        read_config_dict({'logging':{ 'level': 'DEBUG'}})
+        set_config('logging', 'level', 'DEBUG')
 
     # set log level
     setup_log_handler()

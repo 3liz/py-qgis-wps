@@ -47,6 +47,12 @@ def get_env_config(section, name, env, default=None):
     return CONFIG.get(section,name,fallback=os.getenv(env,default))
 
 
+def set_config(section, name, value):
+    """ Set configuration value
+    """
+    CONFIG.set(section, name , value)
+
+
 def load_configuration():
     """Load PyWPS configuration from configuration file.
 
