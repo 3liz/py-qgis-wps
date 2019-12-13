@@ -8,6 +8,19 @@ if [[ "$1" == "version" ]]; then
     exit 0
 fi
 
+#-------------------------------------------------------
+# Set compatibility with legacy variable naming scheme
+#-------------------------------------------------------
+echo "Checking for legacy environment"
+OLDVARS=`echo ${!QYWPS_*}`
+for var in $OLDVARS; do
+  varname=QGSWPS_`echo ${var#"QYWPS_"}`
+  value=`echo ${!var}`
+  echo "$varname=$value"
+  export $varname=$value
+done
+#-------------------------------------------------------
+
 QGSWPS_USER=${QGSWPS_USER:-"9001:9001"}
 
 # Qgis need a HOME
