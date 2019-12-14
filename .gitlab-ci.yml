@@ -14,6 +14,10 @@ stages:
     - "setup.*"
     - LICENSE.txt
 
+#-----------------
+# Tests
+#-----------------
+
 .tests:
   stage: test
   script:
@@ -36,6 +40,10 @@ test:release:
   variables:
     QGIS_FLAVOR: release
 
+#---------------
+# Build
+#---------------
+
 build:
   stage: build
   script:
@@ -48,6 +56,9 @@ build:
       - master
   tags:
     - infrav3
+  except:
+    - schedules
+    - triggers
 
 # Docker build 
 include: '/docker/.gitlab-ci.yml'
