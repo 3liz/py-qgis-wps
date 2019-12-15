@@ -5,15 +5,6 @@ stages:
 - deploy
 - release
 
-.only_changes: &changes_def
-  changes:
-    - pyqgiswps/**/*
-    - tests/**/*
-    - "*.sh"
-    - Makefile
-    - "setup.*"
-    - LICENSE.txt
-
 #-----------------
 # Tests
 #-----------------
@@ -23,7 +14,13 @@ stages:
   script:
     - make docker-test FLAVOR=$QGIS_FLAVOR
   only:
-    <<: *changes_def
+    changes:
+      - pyqgiswps/**/*
+      - tests/**/*
+      - "*.sh"
+      - Makefile
+      - "setup.*"
+      - "requirements.*"
   tags:
     - infrav3
   artifacts:
@@ -51,7 +48,11 @@ build:
   environment:
     name: snap
   only:
-    <<: *changes_def
+    changes:
+      - pyqgiswps/**/* 
+      - "setup.*"
+      - requirements.txt
+      - MANIFEST.in
     refs:
       - master
   tags:
