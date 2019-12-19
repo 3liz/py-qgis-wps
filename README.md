@@ -182,7 +182,7 @@ be retourned as WMS urls. This configuration variable set the base url for acces
 
 ### Processing configuration
 
-- QGSWPS\_PROCESSING\_EXPOSED\_PROVIDERS: List of qgis internal providers for publishing algorithms (comma separated), default to `model,scrit`.
+- QGSWPS\_PROCESSING\_EXPOSED\_PROVIDERS: List of qgis internal providers for publishing algorithms (comma separated), default to `model,script`.
 - QGSWPS\_PROCESSSING\_PROVIDERS\_MODULE\_PATH: Path to look for processing algoritms provider to publish, algorithms from providers specified heres will be runnable as WPS processes.
 
 # Exposing algorithms as WPS services
