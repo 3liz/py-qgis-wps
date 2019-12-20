@@ -59,7 +59,7 @@ def read_configuration(args=None):
 
     # Override config
     if 'parallelprocesses' in args:
-        set_config('server', 'parallelprocesses', args.parallelprocesses)
+        set_config('server', 'parallelprocesses', str(args.parallelprocesses))
 
     if args.debug:
         # Force debug mode
