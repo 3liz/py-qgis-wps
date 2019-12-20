@@ -138,7 +138,7 @@ def find_plugins(path: str) -> Generator[str,None,None]:
     """
     from qgis.core import Qgis
 
-    for plugin in glob.glob(path + "/*"):
+    for plugin in glob.glob(os.path.join(path,"*")):
         if not os.path.isdir(plugin):
             continue
         if not os.path.exists(os.path.join(plugin, '__init__.py')):
