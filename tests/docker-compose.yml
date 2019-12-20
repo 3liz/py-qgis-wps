@@ -13,6 +13,7 @@ services:
       QGIS_OPTIONS_PATH: /src/tests/qgis
       QGSWPS_LOGLEVEL: DEBUG
       QGSWPS_REDIS_HOST: redis
+      PYTEST_ADDOPTS: ${PYTEST_ADDOPTS}
     user: ${BECOME_USER}
     volumes:
       - ${SRCDIR}:/src

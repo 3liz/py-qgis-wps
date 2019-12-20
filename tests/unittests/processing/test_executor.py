@@ -40,7 +40,7 @@ class TestsExecutor(HTTPTestCase):
         assert_response_accepted(rv)
     
         # Get the status url
-        sleep(1)
+        sleep(4)
         response_element = rv.xpath('/wps:ExecuteResponse')
         assert len(response_element) > 0
 
