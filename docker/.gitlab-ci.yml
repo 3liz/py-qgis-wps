@@ -4,7 +4,7 @@ variables:
 
 .only_changes: &changes_def
   changes:
-   - pyqgisserver/**/*
+   - pyqgiswps/**/*
    - docker/**/*
    - "setup.*"
    - "requirements.txt"
