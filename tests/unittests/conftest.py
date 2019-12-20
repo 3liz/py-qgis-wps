@@ -8,14 +8,14 @@ from pathlib import Path
 from pyqgiswps.tests import TestRuntime
 
 def pytest_addoption(parser):
-    parser.addoption("--server-log-level", choices=['all','debug', 'info', 'warning', 'error','critical'] , help="log level",
-                     default='error')
+    parser.addoption("--server-debug", action='store_true' , help="set debug mode",
+                     default=False)
 
-server_log_level = None
+server_debug = False
 
 def pytest_configure(config):
-    global server_log_level
-    server_log_level = config.getoption('server_log_level')
+    global server_debug
+    server_debug = config.getoption('server_debug')
 
 
 @pytest.fixture(scope='session')
@@ -36,9 +36,8 @@ def pytest_sessionstart(session):
 
     logging.basicConfig( stream=sys.stderr, level=logging.DEBUG )
 
-    if server_log_level != 'all':
-        log_level = getattr(logging, server_log_level.upper())
-        logging.disable(log_level)
+    if not server_debug:
+        logging.disable(logging.ERROR)
 
     rt = TestRuntime.instance()
     rt.start()

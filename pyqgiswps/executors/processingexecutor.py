@@ -59,7 +59,9 @@ class StorageNotFound(ExecutorError):
 
 
 from pyqgiswps.poolserver.server import create_poolserver
-from pyqgiswps.poolserver.client import create_client, RequestBackendError
+from pyqgiswps.poolserver.client import (create_client, 
+                                         RequestBackendError, 
+                                         MaxRequestsExceeded)
 
 from .processfactory import get_process_factory
 
@@ -218,7 +220,8 @@ class ProcessingExecutor:
         # Get request defined timeout
         timeout = wps_request.timeout
 
-        future = self._pool.apply_async(self._run_process, args=(process.handler, wps_request, wps_response))
+        apply_future = self._pool.apply_async(self._run_process, args=(process.handler, wps_request, wps_response),
+                                              timeout=timeout)
 
         if wps_response.status == STATUS.STORE_AND_UPDATE_STATUS:
             # ---------------------------------
@@ -227,9 +230,11 @@ class ProcessingExecutor:
             wps_response.update_status('Task accepted')
             async def do_execute_async():
                 try:
-                    await asyncio.wait_for(future,timeout)
+                    await apply_future
                 except asyncio.TimeoutError:
                     wps_response.update_status("Timeout Error", None, STATUS.ERROR_STATUS)
+                except MaxRequestsExceeded:
+                    wps_response.update_status("Server busy, please retry later", None, STATUS.ERROR_STATUS)
                 except Exception:
                     pass
 
@@ -241,10 +246,12 @@ class ProcessingExecutor:
             # Run process and wait for response 
             # -------------------------------
             try:
-                return await asyncio.wait_for(future,timeout)
+                return await apply_future
             except asyncio.TimeoutError:
                 wps_response.update_status("Timeout Error", None, STATUS.ERROR_STATUS)
                 raise NoApplicableCode("Execute Timeout", code=424)
+            except MaxRequestsExceeded:
+                raise NoApplicableCode("Server busy, please retry later", code=509)
             except RequestBackendError as e:
                 if isinstance(e.response, ProcessException):
                     raise NoApplicableCode("Process Error", code=424)

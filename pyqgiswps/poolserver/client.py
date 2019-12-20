@@ -42,7 +42,7 @@ class RequestBackendError(Exception):
     def response(self):
         return self.args[0]
 
-class MaxRequestsExceeded():
+class MaxRequestsExceeded(Exception):
     pass
 
 
@@ -125,10 +125,7 @@ class _Client:
             raise MaxRequestExceeded()
 
         # Wait for available worker
-        try:
-            worker_id = await self._get_worker(timeout)
-        except asyncio.TimeoutError:
-            raise RequestTimeoutError()
+        worker_id = await self._get_worker(timeout)
  
         # Send request
         request = pickle.dumps((target, args, kwargs))
@@ -142,12 +139,10 @@ class _Client:
 
         handler = self._loop.create_future()
 
-        self._handlers[correlation_id] = handler
-        # Wait for response
         try:
+            self._handlers[correlation_id] = handler
+            # Wait for response
             return await asyncio.wait_for(handler, timeout)
-        except asyncio.TimeoutError:
-            raise RequestTimeoutError()
         finally:
             # Remove the handler
             self._handlers.pop(correlation_id,None)
