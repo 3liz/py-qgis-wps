@@ -118,7 +118,15 @@ class _Client:
         self._polling.cancel()
         self._socket.close()
 
-    async def apply_async( self, target: Callable[[None], None], args=(), kwargs={}, timeout: int = 5) -> Any:
+    def apply_async( self, target: Callable[[None], None], args=(), kwargs={}, timeout: int = 5 ) -> Any:
+        """ Run job asynchronously
+        """
+        # Pickle data, if it fails, then error will be raised before
+        # entering async 
+        request = pickle.dumps((target, args, kwargs))
+        return self._apply_async( request, timeout )
+
+    async def _apply_async( self, request: bytes, timeout: int = 5) -> Any:
         """ Run job asynchronously
         """
         if len(self._handlers) > self._maxqueue:
@@ -128,7 +136,6 @@ class _Client:
         worker_id = await self._get_worker(timeout)
  
         # Send request
-        request = pickle.dumps((target, args, kwargs))
         correlation_id = uuid.uuid1().bytes
         try:
             # Pick available worker

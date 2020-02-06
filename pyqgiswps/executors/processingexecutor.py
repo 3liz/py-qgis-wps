@@ -227,8 +227,8 @@ class ProcessingExecutor:
             # ---------------------------------
             # Run the processe asynchronously
             # ---------------------------------
-            wps_response.update_status('Task accepted')
             async def do_execute_async():
+                # Handle errors while we are going async
                 try:
                     await apply_future
                 except asyncio.TimeoutError:
@@ -236,10 +236,15 @@ class ProcessingExecutor:
                 except MaxRequestsExceeded:
                     wps_response.update_status("Server busy, please retry later", None, STATUS.ERROR_STATUS)
                 except Exception:
+                    # There is no point to let the error go outside
+                    LOGGER.error(traceback.format_exc())
+                    wps_response.update_status("Internal Error", None, STATUS.ERROR_STATUS)
                     pass
 
             # Fire and forget
             asyncio.ensure_future(do_execute_async())
+
+            wps_response.update_status('Task accepted')
             return wps_response.document                        
         else:
             # -------------------------------

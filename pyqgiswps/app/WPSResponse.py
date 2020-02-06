@@ -13,6 +13,8 @@
 #
 
 import os
+import logging
+
 from lxml import etree
 import time
 from pyqgiswps import WPS, OWS
@@ -20,6 +22,8 @@ from pyqgiswps.exceptions import NoApplicableCode
 from pyqgiswps.executors.logstore import STATUS, logstore
 from pyqgiswps import config
 
+
+LOGGER = logging.getLogger('SRVLOG')
 
 
 class WPSResponse():
@@ -53,6 +57,7 @@ class WPSResponse():
         :param pyqgiswps.app.WPSResponse.STATUS status: process status - user should usually
             ommit this parameter
         """
+        LOGGER.debug("*** Updating status: %s, %s, %s, %s", status, message, status_percentage, self.uuid)
 
         if message is not None:
             self.message = message
