@@ -4,9 +4,10 @@ import os
 
 from pathlib import Path
 from pyqgiswps.accesspolicy import new_access_policy, DefaultPolicy
-from pyqgiswps.filters import blockingfilter
 from pyqgiswps.app import Service
 from pyqgiswps.tests import HTTPTestCase
+
+from pyqgisservercontrib.core.filters import blockingfilter
 
 
 def test_accesspolicy(rootdir):

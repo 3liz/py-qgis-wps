@@ -17,6 +17,8 @@ import pkg_resources
 
 from tornado.web import StaticFileHandler
 
+from typing import Mapping, List
+
 from contextlib import contextmanager
 from .logger import log_request, log_rrequest
 
@@ -28,12 +30,42 @@ from .config import (get_config,
 from .handlers import (RootHandler, WPSHandler, StoreHandler, StatusHandler, 
                        DownloadHandler)
 
-from .filters import load_filters
 from .accesspolicy import init_access_policy
 
 from .version import __version__
 
 LOGGER = logging.getLogger('SRVLOG')
+
+from pyqgisservercontrib.core.filters import ServerFilter
+
+
+def load_filters( base_uri: str, appfilters: List[ServerFilter]=None ) -> Mapping[str,List[ServerFilter]]:
+    """ Load filters and return a Mapping
+    """
+    import pyqgisservercontrib.core.componentmanager as cm
+
+    filters = { base_uri: [] }
+
+    def _add_filter( afilter ):
+        uri = os.path.join(base_uri, afilter.uri)
+        fls = filters.get(uri,[])
+        fls.append(afilter)
+        filters[uri] = fls
+
+    if appfilters:
+        for flt in appfilters:
+            _add_filter(flt)
+
+    collection = []
+    cm.register_entrypoints('qgssrv_contrib_access_policy', collection, wpspolicy=True)
+
+    for flt in collection:
+        _add_filter(flt)
+
+    # Sort filters
+    for flist in filters.values():
+        flist.sort(key=lambda f: f.pri, reverse=True)
+    return filters
 
 
 def configure_handlers( appfilters ):

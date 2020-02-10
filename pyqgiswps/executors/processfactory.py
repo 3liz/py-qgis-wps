@@ -18,7 +18,6 @@ from itertools import chain
 
 from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths, init_qgis_processing
 from pyqgiswps.poolserver.server import create_poolserver
-from pyqgiswps.utils.lru import lrucache
 from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
 
 from pyqgiswps import config

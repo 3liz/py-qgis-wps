@@ -39,42 +39,13 @@ import logging
 import tornado.web
 
 from typing import Coroutine, Mapping, List, Callable, Awaitable
-
 from tornado.web import HTTPError
-
 
 LOGGER = logging.getLogger('SRVLOG')
 
+
 class ServerFilter:
     pass
-
-
-def load_filters( base_uri: str, appfilters: List[ServerFilter]=None ) -> Mapping[str,List[ServerFilter]]:
-    """ Load filters and return a Mapping
-    """
-    from pkg_resources import iter_entry_points
-   
-    filters = { base_uri: [] }
-
-    def _add_filter( afilter ):
-        uri = os.path.join(base_uri, afilter.uri)
-        fls = filters.get(uri,[])
-        fls.append(afilter)
-        filters[uri] = fls
-
-    if appfilters:
-        for flt in appfilters:
-            _add_filter(flt)
-
-    for ep in iter_entry_points("pywpsserver_filters"):
-        LOGGER.info("Loading filters from %s", ep.name)
-        for flt in ep.load()():
-            _add_filter(flt)
-
-    # Sort filters
-    for flist in filters.values():
-        flist.sort(key=lambda f: f.pri, reverse=True)
-    return filters
 
 
 class asyncfilter(ServerFilter):

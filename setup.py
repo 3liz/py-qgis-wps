@@ -3,7 +3,7 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-from setuptools import setup, find_packages, Extension
+from setuptools import setup, find_namespace_packages, Extension
 
 
 def parse_requirements( filename ):
@@ -50,7 +50,8 @@ setup(
         'Topic :: Scientific/Engineering :: GIS'
     ],
     install_requires=INSTALL_REQUIRES,
-    packages=find_packages(include=['pyqgiswps','pyqgiswps.*']),
+    packages=find_namespace_packages(include=['pyqgiswps','pyqgiswps.*',
+                                              'pyqgisservercontrib.*']),
     include_package_data = True,
     entry_points={
         'console_scripts': ['wpsserver = pyqgiswps.wpsserver:main'],

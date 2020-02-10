@@ -35,7 +35,6 @@ def read_configuration(args=None):
     cli_parser = argparse.ArgumentParser(description=__description__)
 
     config_file = None
-    config = get_config('server')
 
     cli_parser.add_argument('-d','--debug', action='store_true', default=False, help="Set debug mode")
     cli_parser.add_argument('-c','--config', metavar='PATH', nargs='?', dest='config',
@@ -53,6 +52,8 @@ def read_configuration(args=None):
     if args.version:
         print_version(config)
         sys.exit(1)
+
+    load_configuration()
 
     if args.config:
         read_config_file(args.config)

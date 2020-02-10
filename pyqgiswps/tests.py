@@ -27,6 +27,7 @@ import logging
 from pyqgiswps.runtime import Application
 from pyqgiswps.logger import configure_log_levels
 from pyqgiswps.executors import processfactory
+from pyqgiswps.config import load_configuration
 
 @contextmanager
 def temp_dir():
@@ -55,6 +56,7 @@ class TestRuntime:
             return
 
         configure_log_levels()
+        load_configuration()
         self.factory = processfactory.get_process_factory()
         self.factory.initialize()
         # Ensure Qgis is initialized

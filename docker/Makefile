@@ -12,11 +12,10 @@ COMMITID=$(shell git rev-parse --short HEAD)
 FLAVOR:=ltr
 
 ifdef PYPISERVER
-BUILD_ARGS=--build-arg pypi_server=$(PYPISERVER)
+PYPISERVER_SCHEME ?= https
+PIP_OPTIONS="--extra-index-url=$(PYPISERVER_SCHEME)://$(PYPISERVER) --trusted-host=$(PYPISERVER) --pre"
 DOCKERFILE=-f Dockerfile.pypi
-ifdef PYPISCHEME
-BUILD_ARGS+=--build-arg pypi_scheme=$(PYPISCHEME)
-endif
+BUILD_ARGS=--build-arg PIP_OPTIONS=$(PIP_OPTIONS)
 endif
 
 BUILD_ARGS += --build-arg QGIS_VERSION=$(FLAVOR)
@@ -39,7 +38,8 @@ WPS_VERSION=$(shell cd .. && python3 setup.py --version)
 BUILD_ARGS += --build-arg WPS_VERSION=$(WPS_VERSION)
 
 _build:
-	docker build --rm --force-rm --no-cache $(BUILD_ARGS) -t $(BUILDIMAGE) $(DOCKERFILE) .
+	docker build --rm --force-rm --no-cache $(DOCKER_BUILD_ARGS) \
+		$(BUILD_ARGS) -t $(BUILDIMAGE) $(DOCKERFILE) .
 
 manifest:
 	{ \
