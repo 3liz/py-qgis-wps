@@ -170,5 +170,22 @@ def test_map_raster_context(outputdir, data):
     assert allowed_values == layers
 
 
+def test_multilayer_context(outputdir, data):
+    """ Test map context return allowed layers
+    """
+    alg = _find_algorithm('pyqgiswps_test:testinputmultilayer')
+    context = MapContext('france_parts.qgs')
+    inputs  = { p.name(): [parse_input_definition(p,alg,context)] for p in  alg.parameterDefinitions() }
+
+    layers = { l.name() for l in context.project().mapLayers().values() }
+    
+    allowed_values = { v.value for v in inputs['INPUT'][0].allowed_values }
+
+    assert len(allowed_values) == len(layers)
+    assert allowed_values == layers
+
+
+
+
 
 

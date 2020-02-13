@@ -101,8 +101,9 @@ OUTPUT_LAYER_TYPES = ( QgsProcessingOutputVectorLayer, QgsProcessingOutputRaster
 
 INPUT_VECTOR_LAYER_TYPES = (QgsProcessingParameterVectorLayer, QgsProcessingParameterFeatureSource)
 INPUT_RASTER_LAYER_TYPES = (QgsProcessingParameterRasterLayer,)
+INPUT_OTHER_LAYER_TYPES  = (QgsProcessingParameterMapLayer, QgsProcessingParameterMultipleLayers)
 
-INPUT_LAYER_TYPES = INPUT_VECTOR_LAYER_TYPES + INPUT_RASTER_LAYER_TYPES + (QgsProcessingParameterMapLayer,)
+INPUT_LAYER_TYPES = INPUT_VECTOR_LAYER_TYPES + INPUT_RASTER_LAYER_TYPES + INPUT_OTHER_LAYER_TYPES
 
 # Map processing source types to string
 SourceTypes = {
@@ -212,8 +213,12 @@ def parse_metadata( param: QgsProcessingParameterDefinition, kwargs ) -> None:
 def parse_allowed_layers(param: QgsProcessingParameterDefinition, kwargs, context: MapContext) -> None:
     """ Find candidate layers according to datatypes
     """
-    if context is None:
-        return
+    typ = param.type()
+
+    if typ == 'multilayer':
+        num_inputs = param.minimumNumberInputs();
+        kwargs['min_occurs'] = num_inputs if num_inputs >= 1 else 0
+        kwargs['max_occurs'] = 20 # XXX arbitrary number
 
     datatypes = []
     if isinstance(param, QgsProcessingParameterLimitedDataTypes):
@@ -224,8 +229,16 @@ def parse_allowed_layers(param: QgsProcessingParameterDefinition, kwargs, contex
             datatypes = [QgsProcessing.TypeVector]
         elif isinstance(param, INPUT_RASTER_LAYER_TYPES):
             datatypes = [QgsProcessing.TypeRaster]
+        elif isinstance( param, QgsProcessingParameterMultipleLayers):
+            datatypes = [param.layerType()]
         else:
             datatypes = [QgsProcessing.TypeMapLayer]
+
+    kwargs['metadata'].append(Metadata('processing:dataTypes', ','.join(SourceTypes[dtyp] for dtyp in datatypes)))
+
+    # Nothing to do is there is no context
+    if context is None:
+        return
 
     project = context.project()
     def _is_allowed(lyr):
@@ -243,16 +256,19 @@ def parse_allowed_layers(param: QgsProcessingParameterDefinition, kwargs, contex
         return False
         
     kwargs['allowed_values'] = [lyr.name() for lyr in project.mapLayers().values() if _is_allowed(lyr)]
-    
+  
+    # Set max occurs accordingly to 
+    if typ == 'multilayer':
+        kwargs['max_occurs'] = len(kwargs['allowed_values'])
+
 
 def parse_layer_input(param: QgsProcessingParameterDefinition, kwargs,
                       context: MapContext = None) -> LiteralInput:
-    """ Layers input are passe as layer name
+    """ Layers input are passed as layer name
 
         We treat layer destination the same as input since they refer to
         layers ids in qgisProject
     """
-    typ = param.type()
     if isinstance(param, INPUT_LAYER_TYPES):
         kwargs['data_type'] = 'string'
         parse_allowed_layers(param, kwargs, context)
@@ -263,16 +279,8 @@ def parse_layer_input(param: QgsProcessingParameterDefinition, kwargs,
         kwargs['data_type'] = 'string'
         kwargs['metadata'].append(Metadata('processing:dataType' , str(param.dataType())))
         kwargs['metadata'].append(Metadata('processing:extension', param.defaultFileExtension()))
-    elif typ == 'multilayer':
-        kwargs['data_type']  = 'string'
-        kwargs['min_occurs'] = param.minimumNumberInputs()
-        kwargs['max_occurs'] = 20
-        kwargs['metadata'].append(Metadata('processing:layerType' , str(param.layerType())))
     else:
         return None
-
-    if isinstance(param, QgsProcessingParameterLimitedDataTypes):
-        kwargs['metadata'].append(Metadata('processing:dataTypes', ','.join(SourceTypes[typ] for typ in param.dataTypes())))
 
     return LiteralInput(**kwargs)
 
@@ -500,13 +508,10 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
         value = QgsProcessingFeatureSourceDefinition(value, selectedFeaturesOnly=has_selection)
 
     elif isinstance(param, INPUT_LAYER_TYPES):
-        value, _ = parse_layer_spec(inp[0].data, context)
-
-    elif typ == 'multilayer':
         if len(inp) > 1:
-           value = [parse_layer_spec(i.data, context)[0] for i in inp]
+            value = [parse_layer_spec(i.data, context)[0] for i in inp]
         else:
-           value, _ = parse_layer_spec(inp[0].data, context)
+            value, _ = parse_layer_spec(inp[0].data, context)
 
     elif typ == 'enum':
         # XXX Processing wants the index of the value in option list

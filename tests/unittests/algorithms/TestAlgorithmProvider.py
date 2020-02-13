@@ -15,6 +15,7 @@ from .TestSimpleBuffer import TestSimpleBuffer
 from .TestInputRasterLayer import TestInputRasterLayer
 from .TestRaiseError import TestRaiseError
 from .TestClipRasterLayer import TestClipRasterLayer
+from .TestInputMultiLayer import TestInputMultiLayer
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -33,6 +34,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestInputRasterLayer(),
                  TestRaiseError(),
                  TestClipRasterLayer(),
+                 TestInputMultiLayer(),
             ]
         except:
             traceback.print_exc()
