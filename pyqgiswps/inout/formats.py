@@ -25,7 +25,7 @@ import mimetypes
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.validator.base import emptyvalidator
 
-_FORMAT = namedtuple('FormatDefintion', 'mime_type,'
+_FORMAT = namedtuple('FormatDefinition', 'mime_type,'
                      'extension, schema')
 _FORMATS = namedtuple('FORMATS', 'GEOJSON, JSON, SHP, GML, GEOTIFF, WCS,'
                                  'WCS100, WCS110, WCS20, WFS, WFS100,'
@@ -66,7 +66,7 @@ def _get_mimetypes():
 _get_mimetypes()
 
 
-class Format(object):
+class Format:
     """Input/output format specification
 
     Predefined Formats are stored in :class:`pyqgiswps.inout.formats.FORMATS`
@@ -78,6 +78,11 @@ class Format(object):
     :param number mode: validation mode
     :param str extension: file extension
     """
+
+    @staticmethod
+    def from_definition(formatdef):          
+        return Format(**formatdef._asdict())
+
 
     def __init__(self, mime_type,
                  schema=None, encoding=None,

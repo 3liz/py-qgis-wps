@@ -14,6 +14,8 @@ from pyqgiswps.inout import (LiteralInput,
                         ComplexOutput,
                         BoundingBoxOutput)
 
+from pyqgiswps.inout.formats import FORMATS, Format
+
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 from pyqgiswps.executors.processingio import(
             parse_literal_input,
@@ -23,8 +25,10 @@ from pyqgiswps.executors.processingio import(
             parse_literal_output,
             parse_layer_output,
             parse_output_definition,
+            parse_point_input,
             parse_file_input,
             input_to_processing,
+            input_to_point,
             processing_to_output,
             input_to_extent,
             input_to_file,
@@ -55,11 +59,14 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterExtent,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterField,
+                       QgsProcessingParameterPoint,
                        QgsProcessingUtils,
                        QgsProcessingFeedback,
                        QgsProcessingContext,
                        QgsReferencedRectangle,
                        QgsRectangle,
+                       QgsReferencedPointXY,
+                       QgsGeometry,
                        QgsCoordinateReferenceSystem,
                        QgsProject)
 
@@ -277,6 +284,44 @@ def test_file_input( outputdir ):
     
     with outputpath.open('r') as f:
         assert f.read() == inp.data
+
+
+def test_point_input_gml():
+    """ Test input point from gml
+    """
+    param = QgsProcessingParameterPoint("POINT")
+
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp,ComplexInput)
+    assert inp.as_reference == False
+
+    inp.data_format = Format.from_definition(FORMATS.GML)
+    inp.data = '<gml:Point srsName="EPSG:4326"><gml:coordinates>4,42</gml:coordinates></gml:Point>'
+
+    assert inp.data_format.mime_type == FORMATS.GML.mime_type
+
+    value = input_to_point( inp )
+    assert isinstance( value, (QgsGeometry, QgsReferencedPointXY))
+
+
+def test_point_input_json():
+    """ Test input point from json
+    """
+    param = QgsProcessingParameterPoint("POINT")
+
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp,ComplexInput)
+    assert inp.as_reference == False
+
+    inp.data_format = Format.from_definition(FORMATS.GEOJSON)
+    inp.data = '{"coordinates":[4.0,42.0],"type":"Point"}'
+
+    assert inp.data_format.mime_type == FORMATS.GEOJSON.mime_type
+
+    value = input_to_point( inp )
+    assert isinstance( value, (QgsGeometry, QgsReferencedPointXY))
 
 
 

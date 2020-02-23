@@ -24,7 +24,7 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                               MissingParameterValue,
                               ProcessException)
 
-from pyqgiswps.inout.formats import Format
+from pyqgiswps.inout.formats import Format, FORMATS
 from pyqgiswps.inout import (LiteralInput,
                         ComplexInput,
                         BoundingBoxInput,
@@ -39,6 +39,8 @@ from pyqgiswps import config
 
 from pyqgiswps.app.WPSResponse import WPSResponse
 from pyqgiswps.app.WPSRequest  import WPSRequest
+
+from osgeo import ogr
 
 from qgis.PyQt.QtCore import QVariant
 
@@ -71,7 +73,9 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingUtils,
                        QgsProcessingFeedback,
                        QgsReferencedRectangle,
+                       QgsReferencedPointXY,
                        QgsRectangle,
+                       QgsGeometry,
                        QgsMapLayer,
                        QgsVectorLayer,
                        QgsWkbTypes,
@@ -295,10 +299,17 @@ def parse_extent_input( param: QgsProcessingParameterDefinition, kwargs ) -> Bou
        # XXX This is the default, do not presume anything
        # about effective crs at compute time
        kwargs['crss'] = ['EPSG:4326']
-    else:
-       return None
+       return BoundingBoxInput(**kwargs)
 
-    return BoundingBoxInput(**kwargs)
+
+def parse_point_input( param: QgsProcessingParameterDefinition, kwargs) -> ComplexInput:
+    """ Input point
+    """
+    if isinstance(param, QgsProcessingParameterPoint):
+        kwargs['supported_formats'] = [Format.from_definition(FORMATS.GEOJSON),
+                                       Format.from_definition(FORMATS.GML)]
+        return ComplexInput(**kwargs)
+       
 
 
 def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsProcessingAlgorithm=None,  
@@ -334,7 +345,8 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsPro
     inp = parse_literal_input(param,kwargs) \
             or parse_layer_input(param,kwargs, context) \
             or parse_extent_input(param, kwargs) \
-            or parse_file_input(param, kwargs)
+            or parse_file_input(param, kwargs) \
+            or parse_point_input(param, kwargs)
     if inp is None:
         raise ProcessingInputTypeNotSupported("%s:'%s'" %(type(param),param.type()))
 
@@ -500,6 +512,29 @@ def input_to_file( inp: WPSInput, param: QgsProcessingParameterFile,
     return outputfile.name
 
 
+def input_to_point( inp: WPSInput ):
+    """ Handle point from complex input
+    """
+    data_format = inp.data_format
+    geom = None
+    if data_format.mime_type == FORMATS.GEOJSON.mime_type:
+        geom = ogr.CreateGeometryFromJson(inp.data)
+    elif data_format.mime_type == FORMATS.GML.mime_type:
+        geom = ogr.CreateGeometryFromGML(inp.data)
+ 
+    if geom:
+        srs  = geom.GetSpatialReference()
+        geom = QgsGeometry.fromWkt(geom.ExportToWkt())
+        if srs:
+            srs = QgsCoordinateReferenceSystem.fromWkt(srs.ExportToWkt())
+        if srs and srs.isValid():
+            geom = QgsReferencedPointXY( geom.centroid().asPoint(), srs )
+            
+        return geom
+
+    raise NoApplicableCode("Unsupported data format: %s" % data_format)
+
+
 def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgorithm, 
                          context: ProcessingContext ) -> Tuple[str, Any]:
     """ Convert wps input to processing param
@@ -533,6 +568,9 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
             value = [parse_layer_spec(i.data, context)[0] for i in inp]
         else:
             value, _ = parse_layer_spec(inp[0].data, context)
+
+    elif isinstance(param, QgsProcessingParameterPoint):
+        value = input_to_point( inp[0] )
 
     elif typ == 'enum':
         # XXX Processing wants the index of the value in option list
