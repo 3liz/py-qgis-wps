@@ -44,13 +44,6 @@ def get_config(section=None):
     return CONFIG[section] if section else CONFIG
     
 
-def get_env_config(section, name, env, default=None):
-    """ Get configuration value from environment
-        if not found in loaded config
-    """
-    return CONFIG.get(section,name,fallback=os.getenv(env,default))
-
-
 def set_config(section, name, value):
     """ Set configuration value
     """
@@ -78,7 +71,7 @@ def load_configuration():
     CONFIG.set('server', 'encoding', 'utf-8')
     CONFIG.set('server', 'language', 'en-US')
     CONFIG.set('server', 'url', '{host_url}')
-    CONFIG.set('server', 'maxsingleinputsize', '1mb')
+    CONFIG.set('server', 'maxsingleinputsize', '1m')
     CONFIG.set('server', 'store_url'            , '{host_url}store/{uuid}/{file}?service=WPS')
     CONFIG.set('server', 'status_url'           , '{host_url}ows/?service=WPS&request=GetResults&uuid={uuid}') 
     CONFIG.set('server', 'workdir'              , getenv('QGSWPS_SERVER_WORKDIR',tempfile.gettempdir()))
@@ -205,11 +198,11 @@ def validate_config_path(confname, confid, optional=False):
     CONFIG.set(confname, confid, confvalue)
 
 
-def get_size_mb(mbsize):
+def get_size_bytes(size):
     """Get real size of given obeject
 
     """
-    size = mbsize.lower()
+    size = size.lower()
 
     import re
 
@@ -217,11 +210,11 @@ def get_size_mb(mbsize):
     newsize = float(re.sub(units, '', size))
 
     if size.find("g") > -1:
-        newsize *= 1024
+        newsize *= 1024 * 1024 * 1024
     elif size.find("m") > -1:
-        newsize *= 1
+        newsize *= 1024 * 1024
     elif size.find("k") > -1:
-        newsize /= 1024
+        newsize *= 1024
     else:
         newsize *= 1
     return newsize

@@ -1,9 +1,7 @@
 """ Test parsing processing itputs to WPS inputs
 """
 import os
-
-#from pyqgiswps.utils.qgis import setup_qgis_paths
-#setup_qgis_paths()
+from pathlib import Path
 
 from pyqgiswps.utils.contexts import chdir 
 
@@ -25,9 +23,11 @@ from pyqgiswps.executors.processingio import(
             parse_literal_output,
             parse_layer_output,
             parse_output_definition,
+            parse_file_input,
             input_to_processing,
             processing_to_output,
             input_to_extent,
+            input_to_file,
             _is_optional,
         ) 
 
@@ -252,6 +252,32 @@ def test_bbox_input():
     value = input_to_extent( [inp] ) 
 
     assert isinstance(value,QgsReferencedRectangle)
+
+
+def test_file_input( outputdir ):
+    """ Test file parameter
+    """
+    param = QgsProcessingParameterFile("FILE", extension=".txt")
+
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp,ComplexInput)
+    assert inp.as_reference == False
+
+    inp.data = "Hello world"
+
+    context = QgsProcessingContext()
+    context.workdir = outputdir.strpath
+
+    value = input_to_file( [inp], param, context)
+
+    outputpath = (Path(context.workdir)/param.name()).with_suffix(param.extension())
+    assert value == outputpath.name
+    assert outputpath.exists()
+    
+    with outputpath.open('r') as f:
+        assert f.read() == inp.data
+
 
 
 

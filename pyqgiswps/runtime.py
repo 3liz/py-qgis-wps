@@ -22,10 +22,7 @@ from typing import Mapping, List
 from contextlib import contextmanager
 from .logger import log_request, log_rrequest
 
-from .config import (get_config, 
-                     load_configuration, 
-                     read_config_file, 
-                     read_config_dict)
+from .config import confservice, get_size_bytes
 
 from .handlers import (RootHandler, WPSHandler, StoreHandler, StatusHandler, 
                        DownloadHandler)
@@ -73,7 +70,7 @@ def configure_handlers( appfilters ):
     """
     staticpath = docpath = pkg_resources.resource_filename("pyqgiswps", "webui")
 
-    cfg = get_config('server')
+    cfg = confservice['server']
 
     workdir = cfg['workdir']
     dnl_ttl = cfg.getint('download_ttl')
@@ -115,7 +112,7 @@ class Application(tornado.web.Application):
     def __init__(self, processes=[], filters=None):
         from pyqgiswps.app.Service import Service
         self.wpsservice = Service(processes=processes)
-        self.config     = get_config('server')
+        self.config     = confservice['server']
         super().__init__(configure_handlers( filters ))
 
     def log_request(self, handler):
@@ -153,8 +150,10 @@ def run_server( port, address=None, user=None ):
     pr_factory = processfactory.get_process_factory() 
     pr_factory.initialize()
 
+    max_buffer_size = get_size_bytes(confservice.get('server', 'maxsingleinputsize'))
+
     application = Application()
-    server = HTTPServer(application)
+    server = HTTPServer(application, max_buffer_size=max_buffer_size)
     server.listen(port, address=address)
 
     # Setup the supervisor timeout killer

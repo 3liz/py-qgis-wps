@@ -152,7 +152,7 @@ class ComplexInput(basic.ComplexInput):
         :return: maximum file size bytes
         """
         max_size = config.get_config('server').get('maxsingleinputsize')
-        self.max_size = config.get_size_mb(max_size)
+        self.max_size = config.get_size_bytes(max_size)
 
     def describe_xml(self):
         """Return Describe process element

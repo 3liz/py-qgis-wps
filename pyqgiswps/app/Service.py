@@ -425,7 +425,7 @@ class Service():
 
             # check if input file size was not exceeded
             complexinput.calculate_max_input_size()
-            byte_size = complexinput.max_size * 1024 * 1024
+            byte_size = complexinput.max_size
             if int(data_size) > int(byte_size):
                 raise FileSizeExceeded('File size for input exceeded.'
                                        ' Maximum allowed: %i megabytes' %

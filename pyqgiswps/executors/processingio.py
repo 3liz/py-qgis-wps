@@ -16,6 +16,7 @@ import traceback
 from functools import partial
 from os.path import normpath, basename
 from urllib.parse import urlparse, urlencode, parse_qs
+from pathlib import Path
 
 from pyqgiswps.app.Common import Metadata
 from pyqgiswps.exceptions import (NoApplicableCode,
@@ -66,6 +67,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterField,
                        QgsProcessingParameterMultipleLayers,
+                       QgsProcessingParameterPoint,
                        QgsProcessingUtils,
                        QgsProcessingFeedback,
                        QgsReferencedRectangle,
@@ -479,6 +481,25 @@ def input_to_extent( inp: WPSInput ) -> QgsReferencedRectangle:
     return QgsReferencedRectangle(rect, ref)
 
 
+def input_to_file( inp: WPSInput, param: QgsProcessingParameterFile, 
+                   context: ProcessingContext ) -> str:
+    """ Save input data to file
+    """
+    # Handle file
+    if inp[0].as_reference:
+        raise NoApplicableCode("File input not allowed as reference", code=424)
+    outputfile = (Path(context.workdir)/param.name()).with_suffix(param.extension())
+    # Save data
+    LOGGER.debug("Saving input data as %s", outputfile.as_posix())
+    with outputfile.open('wb') as f:
+        data = inp[0].data
+        if isinstance(data,str):
+            data = data.encode()
+        f.write(data)
+    # Return base name as input file in located in workdir
+    return outputfile.name
+
+
 def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgorithm, 
                          context: ProcessingContext ) -> Tuple[str, Any]:
     """ Convert wps input to processing param
@@ -534,6 +555,10 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
         if value != inp[0].data:
             LOGGER.warning("Value for file or folder destination '%s' has been truncated from '%s' to '%s'",
                     identifier, inp[0].data, value )
+
+    elif typ == 'file':
+        # Handle file input
+        value = input_to_file( inp, param, context )
 
     elif len(inp):
         # Return raw value
