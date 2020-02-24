@@ -117,9 +117,7 @@ class MapContext:
         context = dict(self._create_context)
         context['rootdir'] = self.rootdir.as_posix()
         if self.map_uri is not None:
-            project_path = _Cache().resolve_path(self.map_uri)
-            context['project_path'] = project_path.as_posix()
-            context['project_dir' ] = project_path.parent.as_posix()
+            context['project_uri'] = _Cache().resolve_path(self.map_uri).as_posix()
         return context
 
     def project(self) -> QgsProject:

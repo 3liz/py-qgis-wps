@@ -300,8 +300,8 @@ class QgsProcess(WPSProcess):
     def createInstance( ident: str, map_uri=None, **context ) -> 'QgsProcess':
         """ Create a contextualized instance
         """
-        LOGGER.debug("Creating contextualized process for %s: %s", ident, context)
         mapcontext = MapContext(map_uri=map_uri, **context)
+        LOGGER.debug("Creating contextualized process for %s: %s", ident, mapcontext.create_context)
         alg = _create_algorithm(ident, **mapcontext.create_context)
         return QgsProcess(alg, mapcontext)
 

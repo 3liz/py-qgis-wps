@@ -1,5 +1,6 @@
 """ Test just returning simple value
 """
+from pathlib import Path
 
 from qgis.core import (QgsProcessingParameterNumber,
                        QgsProcessingParameterString,
@@ -13,9 +14,9 @@ class TestMapContext(QgsProcessingAlgorithm):
     INPUT = 'INPUT'
     OUTPUT = 'OUTPUT'
 
-    def __init__(self, map_uri='not_set'):
+    def __init__(self, project_uri='not_set'):
         super().__init__()
-        self.map_uri = map_uri
+        self.project_uri = project_uri
 
     def name(self):
         return 'testmapcontext'
@@ -28,21 +29,23 @@ class TestMapContext(QgsProcessingAlgorithm):
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        return self.__class__(self.map_uri)
+        return self.__class__(self.project_uri)
 
     def initAlgorithm( self, config={} ):
         """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        self.map_uri = config.get('map_uri',self.map_uri)
+        self.project_uri = config.get('project_uri',self.project_uri)
+        project_name = Path(self.project_uri).stem
         self.addParameter(QgsProcessingParameterString(self.INPUT, 'Input string', 
-                          defaultValue=self.map_uri))
+                          defaultValue=project_name))
 
         self.addOutput(QgsProcessingOutputString(self.OUTPUT,"Output"))
 
     def processAlgorithm(self, parameters, context, feedback):
 
         value = self.parameterAsString(parameters, self.INPUT, context)
-        return {self.OUTPUT: "%s" %  self.map_uri}
+        outval = Path(self.project_uri).stem
+        return {self.OUTPUT: "%s" %  outval}
         

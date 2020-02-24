@@ -105,12 +105,15 @@ class _Client:
                     else:
                         handler.set_result(response)
                 except KeyError:
-                    LOGGER.warning("%s: No pending future found for message %s",self.identity, correlation_id)
+                    LOGGER.warning("No pending future found for message %s", correlation_id)
             except zmq.ZMQError as err:
-                LOGGER.error("%s error:  zmq error: %s (%s)", self.identity, zmq.strerror(err.errno),err.errno)
+                LOGGER.error("zmq error: %s (%s)", zmq.strerror(err.errno),err.errno)
             except asyncio.CancelledError:
                 LOGGER.debug("polling stopped")
                 cancelled = True
+            except:
+                LOGGER.error("polling error")
+                traceback.print_exc()                
 
 
     def close(self):
@@ -133,12 +136,14 @@ class _Client:
             raise MaxRequestExceeded()
 
         # Wait for available worker
+        LOGGER.debug("*** Waiting worker")
         worker_id = await self._get_worker(timeout)
  
         # Send request
         correlation_id = uuid.uuid1().bytes
         try:
-            # Pick available worker
+            # Send request
+            LOGGER.debug("*** Sending request")
             await self._socket.send_multipart([worker_id, correlation_id, request], flags=zmq.DONTWAIT)
         except zmq.ZMQError as err:
             LOGGER.error("%s (%s)", zmq.strerror(err.errno), err.errno)
@@ -149,6 +154,7 @@ class _Client:
         try:
             self._handlers[correlation_id] = handler
             # Wait for response
+            LOGGER.debug("*** Waiting for response")
             return await asyncio.wait_for(handler, timeout)
         finally:
             # Remove the handler

@@ -45,3 +45,6 @@ FLAVOR:=ltr
 docker-%:
 	$(MAKE) -C tests $* FLAVOR=$(FLAVOR)
 
+client-tests:
+	pytest -v tests/clienttests $(PYTEST_ADDOPTS)
+

@@ -16,6 +16,8 @@ from .TestInputRasterLayer import TestInputRasterLayer
 from .TestRaiseError import TestRaiseError
 from .TestClipRasterLayer import TestClipRasterLayer
 from .TestInputMultiLayer import TestInputMultiLayer
+from .TestMapContext import TestMapContext
+from .TestLongProcess import TestLongProcess
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -35,6 +37,8 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestRaiseError(),
                  TestClipRasterLayer(),
                  TestInputMultiLayer(),
+                 TestMapContext(),
+                 TestLongProcess(),
             ]
         except:
             traceback.print_exc()
