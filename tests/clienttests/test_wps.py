@@ -216,6 +216,20 @@ def test_unknownprocess( host ):
     assert rv.status_code == 400
     resp = Response(rv)
 
+
+def test_enum_parameters( host ):
+    """ Test parameter enums
+    """
+    rv = requests.get(host+("/ows/?SERVICE=WPS&Request=Execute&Identifier=pyqgiswps_test:testmultioptionvalue&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=INPUT=value2"))
+    assert rv.status_code == 200
+
+    # Get result 
+    resp = Response(rv)    
+    assert resp.xpath_text('//wps:ProcessOutputs/wps:Output/wps:Data/wps:LiteralData') == 'selection is 1'
+
+
+
 #def test_slowprogress( host, data ):
 #    """  Test execute timeout """
 #    rv = requests.get(host+("?SERVICE=WPS&Request=Execute&Identifier=pyqgiswps_test:testlongprocess&Version=1.0.0"

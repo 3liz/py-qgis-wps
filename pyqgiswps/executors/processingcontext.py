@@ -18,10 +18,9 @@ from urllib.parse import urlparse, ParseResult
 
 from qgis.core import (QgsProcessingContext, QgsProject)
 
-from pyqgiswps.utils.filecache import FileCache
-from pyqgiswps.utils.decorators import singleton
+from pyqgiswps.qgscache.cachemanager import cacheservice
 
-from pyqgiswps import config
+from pyqgiswps.config import confservice
 from pyqgiswps.exceptions import InvalidParameterValue
 
 from qgis.core import (QgsProject, QgsMapLayer)
@@ -31,82 +30,11 @@ LOGGER = logging.getLogger('SRVLOG')
 from typing import Tuple, Union, Mapping, Any
 
 
-def _get_protocol_path(scheme: str) -> Path:
-    """ Resolve path with protocol 'scheme'
-    """
-    LOGGER.error('Unsupported protocol %s' % scheme)
-    raise FileNotFoundError(scheme)
-
-
-def _resolve_path( key: str, rootdir: Path ) -> Path:
-    """ Resolve path from key uri
-    """
-    key = urlparse(key)
-    if not key.scheme or key.scheme == 'file':
-        rootpath = rootdir
-    else:
-        rootpath = _get_protocol_path(key.scheme)
-
-    # XXX Resolve do not support 'strict' with python 3.5
-    # see https://docs.python.org/3/library/pathlib.html#pathlib.Path.resolve
-    #path = Path('/'+key.path).resolve(strict=False).relative_to('/')
-    path = Path(os.path.normpath('/'+key.path)).relative_to('/')
-    path = rootpath / path
-    for sfx in ('.qgs','.qgz'):
-        path = path.with_suffix(sfx)
-        if path.exists():
-            break
-    else:
-        raise FileNotFoundError(str(path))
-
-    return path
-
-
-
-@singleton
-class _Cache(FileCache):
-
-    def __init__(self) -> None:
-        cfg       = config.get_config('cache')
-        cachesize = cfg.getint('size')
-        rootdir   = Path(cfg['rootdir'])
-
-        if not rootdir.exists():
-            raise FileNotFoundError(str(rootdir))
-        if not rootdir.is_absolute():
-            raise ValueError("cache rootdir must be an absolute path: found %s" % rootdir)
-
-        class _Store:
-            def getpath(self, key: str) -> Tuple[str, datetime]:
-                path = _resolve_path(key, rootdir)
-                timestamp = datetime.fromtimestamp(path.stat().st_mtime)
-                return str(path), timestamp
-
-        self.rootdir = rootdir
-
-        # Init FileCache
-        super().__init__(size=cachesize, store=_Store())
-
-    def on_cache_update(self, key: str, path: str ):
-        """ Called when cache is updated
-        """
-        LOGGER.debug("Updated project cache key=%s path=%s", key, path)
-
-    def resolve_path(self, key: str ) -> Path:
-        return _resolve_path(key, self.rootdir)
-
-
-def cache_lookup( uri: str ) -> QgsProject:
-    c = _Cache()
-    return c.lookup(uri)
-
-
 class MapContext:
     """ Hold context regarding the MAP parameter
     """
     def __init__(self, map_uri: str=None, **create_context):
-        c = _Cache()
-        self.rootdir = c.rootdir
+        self.rootdir = Path(confservice.get('cache','rootdir'))
         self.map_uri = map_uri
         self._create_context = create_context
 
@@ -117,12 +45,12 @@ class MapContext:
         context = dict(self._create_context)
         context['rootdir'] = self.rootdir.as_posix()
         if self.map_uri is not None:
-            context['project_uri'] = _Cache().resolve_path(self.map_uri).as_posix()
+            context['project_uri'] = self.map_uri
         return context
 
     def project(self) -> QgsProject:
         if self.map_uri is not None:
-            return cache_lookup(self.map_uri)
+            return cacheservice.lookup(self.map_uri)[0]
         else:
             raise RuntimeError('No map defined')
 
@@ -132,22 +60,17 @@ class ProcessingContext(QgsProcessingContext):
     def __init__(self, workdir: str, map_uri: str=None) -> None:
         super().__init__()
         self.workdir = workdir
+        self.rootdir = Path(confservice.get('cache','rootdir'))
 
         if map_uri is not None:
             self.map_uri = map_uri
-            self.setProject(cache_lookup(map_uri))
+            self.setProject(cacheservice.lookup(map_uri)[0])
         else:
             LOGGER.warning("No map url defined, inputs may be incorrect !")
             self.map_uri = None
 
         # Create the destination project
         self.destination_project = QgsProject()
-
-    @property
-    def rootdir(self) -> Path:
-        """ Return the rootdir for all projects
-        """
-        return _Cache().rootdir
 
     def resolve_path( self, path: str ) -> str:
         """ Return the full path of a file if that file

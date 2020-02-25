@@ -42,7 +42,7 @@ from lxml import etree
 from pyqgiswps.exceptions import (StorageNotSupported, OperationNotSupported,
                                   NoApplicableCode, ProcessException)
 
-from pyqgiswps import config
+from pyqgiswps.config import confservice
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -73,8 +73,7 @@ class ProcessingExecutor:
         self.processes = {}
         self._context_processes = lrucache(50)
 
-        cfg = config.get_config('server')
-        maxqueuesize = cfg.getint('maxqueuesize')
+        maxqueuesize = confservice.getint('server','maxqueuesize')
 
         self._pool = create_client( maxqueuesize )
         self._factory = get_process_factory()
@@ -112,12 +111,11 @@ class ProcessingExecutor:
             # Handle legacy status
             pass
 
-        cfg = config.get_config('server')
-        rootdir = os.path.abspath(cfg['workdir'])
+        workdir = os.path.abspath(confservice.get('server','workdir'))
 
         # Delete the working directory
         uuid_str = rec['uuid']
-        workdir = os.path.join(rootdir, uuid_str)
+        workdir = os.path.join(workdir, uuid_str)
         LOGGER.info("Cleaning response status: %s", uuid_str)
         try:
             if os.path.isdir(workdir):
@@ -189,7 +187,7 @@ class ProcessingExecutor:
     def schedule_cleanup( self ):
         """ Schedule a periodic cleanup
         """
-        interval = config.get_config('server').getint('cleanup_interval')
+        interval = confservice.getint('server','cleanup_interval')
         loop     = asyncio.get_event_loop()
         async def _run_cleanup():
             while True:
@@ -302,13 +300,13 @@ class ProcessingExecutor:
             as died (memory exhaustion, segfault....)
         """
         # Iterate over done processes
-        cfg = config.get_config('server')
-        rootdir = os.path.abspath(cfg['workdir'])
+        cfg = confservice['server']
+        workdir_base = os.path.abspath(cfg.get('workdir'))
 
         # The response expiration in seconds
         expire_default = cfg.getint('response_expiration')
 
-        now_ts   = datetime.utcnow().timestamp()
+        now_ts = datetime.utcnow().timestamp()
 
         for _, rec in list(logstore.records):
             timestamp = rec.get('timestamp')
@@ -329,7 +327,7 @@ class ProcessingExecutor:
             if notpinned and (dangling or (now_ts - int(timestamp)) >= expiration):
                 # Delete the working directory
                 uuid_str = rec['uuid']
-                workdir = os.path.join(rootdir, uuid_str)
+                workdir = os.path.join(workdir_base, uuid_str)
                 LOGGER.info("Cleaning response status: %s", uuid_str)
                 try:
                     if os.path.isdir(workdir):
