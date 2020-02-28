@@ -22,7 +22,6 @@ RUN pip3 install plotly  \
     Jinja2 \
     && pip3 install $PIP_OPTIONS \
     py-qgis-wps \
-    lizmap-api \
     pyqgiservercontrib-lizmap-access-policy \
     && rm -rf /root/.cache /root/.ccache
 
