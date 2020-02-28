@@ -13,14 +13,6 @@ stages:
   stage: test
   script:
     - make docker-test FLAVOR=$QGIS_FLAVOR
-  only:
-    changes:
-      - pyqgiswps/**/*
-      - tests/**/*
-      - "*.sh"
-      - Makefile
-      - "setup.*"
-      - "requirements.*"
   tags:
     - infrav3
   artifacts:
