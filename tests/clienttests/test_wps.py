@@ -5,7 +5,7 @@ import os
 import requests
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
-
+from time import sleep
 from client_utils import * 
 
 
@@ -176,10 +176,37 @@ def test_proxy_status_url( host ):
 
 
 def test_handleprocesserror( host, data ):
-    """  Test execute timeout """
+    """  Test execute error """
     rv = requests.get(host+("/ows/?SERVICE=WPS&Request=Execute&Identifier=pyqgiswps_test:testraiseerror&Version=1.0.0"
                                "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"))
     assert rv.status_code == 424
+
+
+def test_handleprocesserror_async( host, data ):
+    """  Test execute error """
+    rv = requests.get(host+("/ows/?SERVICE=WPS&Request=Execute&Identifier=pyqgiswps_test:testraiseerror&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"
+                               "&StoreExecuteResponse=true"))
+    resp = Response(rv)
+    assert resp.status_code == 200 
+
+    # Get the status url
+    status_url = resp.xpath_attr('/wps:ExecuteResponse','statusLocation')
+    # Get the uuid
+    q = parse_qs(urlparse(status_url).query)
+    assert 'uuid' in q 
+    uuid = q['uuid'][0]
+
+    sleep(3)
+ 
+    # Get the status and make sure is 200
+    rv = requests.get(host+"/status/{}".format(uuid))
+    assert rv.status_code == 200
+  
+    data = rv.json()
+    assert data['status']['status'] == 'ERROR_STATUS'
+    
+ 
 
 
 def test_mapcontext_describe( host, data ):

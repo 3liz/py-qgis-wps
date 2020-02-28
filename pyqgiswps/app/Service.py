@@ -452,11 +452,11 @@ class Service():
             return data_handler
 
     def create_complex_inputs(self, source, inputs):
-        """Create new ComplexInput as clone of original ComplexInput
-        because of inputs can be more then one, take it just as Prototype
-        :return collections.deque:
-        """
+        """ Create new ComplexInput as clone of original ComplexInput
 
+            because of inputs can be more then one, take it just as Prototype
+            :return collections.deque:
+        """
         outinputs = deque(maxlen=source.max_occurs)
 
         for inpt in inputs:
