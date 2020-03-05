@@ -16,13 +16,11 @@ import logging
 import tempfile
 import traceback
 from pyqgiswps import WPS, OWS
-from urllib.request import urlopen
 from pyqgiswps.app.WPSRequest import WPSRequest
 from pyqgiswps.app.WPSResponse import WPSResponse
 from pyqgiswps.executors.logstore import logstore, STATUS
-from pyqgiswps import config
-from pyqgiswps.exceptions import (MissingParameterValue, NoApplicableCode, InvalidParameterValue, 
-                              FileSizeExceeded, StorageNotSupported, OperationNotSupported)
+from pyqgiswps.config import confservice
+from pyqgiswps.exceptions import (MissingParameterValue, NoApplicableCode, InvalidParameterValue, OperationNotSupported)
 from pyqgiswps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
 from pyqgiswps.executors.processingexecutor import ProcessingExecutor, UnknownProcessError
 
@@ -97,7 +95,7 @@ class Service():
         # TODO: check Table 7 in OGC 05-007r7
         doc.attrib['updateSequence'] = '1'
 
-        metadata = config.get_config('metadata:main')
+        metadata = confservice['metadata:main']
 
         # Service Identification
         service_ident_doc = OWS.ServiceIdentification(
@@ -217,7 +215,7 @@ class Service():
 
         doc.append(service_prov_doc)
 
-        server_href = {'{http://www.w3.org/1999/xlink}href': config.get_config('server').get('url').format(host_url=wps_request.host_url)}
+        server_href = {'{http://www.w3.org/1999/xlink}href': confservice.get('server','url').format(host_url=wps_request.host_url)}
 
         # Operations Metadata
         operations_metadata_doc = OWS.OperationsMetadata(
@@ -253,7 +251,7 @@ class Service():
 
         doc.append(WPS.ProcessOfferings(*process_elements))
 
-        languages = config.get_config('server').get('language').split(',')
+        languages = confservice.get('server','language').split(',')
         languages_doc = WPS.Languages(
             WPS.Default(
                 OWS.Language(languages[0])
@@ -298,7 +296,7 @@ class Service():
     def _status_url(self, uuid, request):
         """ Return the status_url for the process <uuid>
         """
-        cfg = config.get_config('server') 
+        cfg = confservice['server']
         status_url = cfg['status_url']
         proxy_host = cfg['host_proxy'] 
         if not proxy_host:
@@ -326,8 +324,12 @@ class Service():
 
         self._parse( process, wps_request )
 
-        workdir = os.path.abspath(config.get_config('server').get('workdir'))
+        workdir = os.path.abspath(confservice.get('server','workdir'))
         workdir = os.path.join(workdir, str(uuid))
+
+        # Create working directory if it does not exists
+        os.makedirs(workdir, exist_ok=True)
+        
         process.set_workdir(workdir)
    
         # Get status url
@@ -369,9 +371,7 @@ class Service():
                     raise MissingParameterValue(
                         inpt.identifier, inpt.identifier)
                 else:
-                    # inputs = deque(maxlen=inpt.max_occurs)
-                    # inputs.append(inpt.clone())
-                    # data_inputs[inpt.identifier] = inputs
+                    # Do not add the input 
                     pass
             else:
                 # Replace the dicts with the dict of Literal/Complex inputs
@@ -400,56 +400,6 @@ class Service():
                     if outpt.identifier == wps_outpt:
                         outpt.as_reference = is_reference
 
-    # FIXME Use async stream reader for computing size
-    def _get_complex_input_handler(self, href):
-        """Return function for parsing and storing complexdata
-        :param href: href object yes or not
- 
-        """
-        def href_handler(complexinput, datain):
-            """<wps:Reference /> handler"""
-            # save the reference input in workdir
-            tmp_file = tempfile.mkstemp(dir=complexinput.workdir)[1]
-
-            try:
-                (reference_file, reference_file_data) = _openurl(datain)
-                data_size = reference_file.headers.get('Content-Length', 0)
-            except Exception as e:
-                raise NoApplicableCode('File reference error: %s' % e)
-
-            # if the response did not return a 'Content-Length' header then
-            # calculate the size
-            if data_size == 0:
-                LOGGER.debug('no Content-Length, calculating size')
-                data_size = _get_datasize(reference_file_data)
-
-            # check if input file size was not exceeded
-            complexinput.calculate_max_input_size()
-            byte_size = complexinput.max_size
-            if int(data_size) > int(byte_size):
-                raise FileSizeExceeded('File size for input exceeded.'
-                                       ' Maximum allowed: %i megabytes' %
-                                       complexinput.max_size, complexinput.get('identifier'))
-
-            try:
-                with open(tmp_file, 'w') as f:
-                    f.write(reference_file_data)
-            except Exception as e:
-                raise NoApplicableCode(e)
-
-            complexinput.file = tmp_file
-            complexinput.url = datain.get('href')
-            complexinput.as_reference = True
-
-        def data_handler(complexinput, datain):
-            """<wps:Data> ... </wps:Data> handler"""
-
-            complexinput.data = datain.get('data')
-
-        if href:
-            return href_handler
-        else:
-            return data_handler
 
     def create_complex_inputs(self, source, inputs):
         """ Create new ComplexInput as clone of original ComplexInput
@@ -476,13 +426,15 @@ class Service():
                     (inpt.get('mimeType'), source.identifier),
                     'mimeType')
 
-            data_input.method = inpt.get('method', 'GET')
-
             # get the referenced input otherwise get the value of the field
             href = inpt.get('href', None)
-
-            complex_data_handler = self._get_complex_input_handler(href)
-            complex_data_handler(data_input, inpt)
+            if href:
+                data_input.method = inpt.get('method', 'GET')
+                data_input.url = href
+                data_input.as_reference = True
+                data_input.body = inpt.get('body',None)
+            else:
+                data_input.data = inpt.get('data')
 
             outinputs.append(data_input)
         if len(outinputs) < source.min_occurs:
@@ -558,13 +510,4 @@ def _openurl(inpt):
     return (reference_file, reference_file_data)
 
 
-def _get_datasize(reference_file_data):
 
-    tmp_sio = None
-    data_size = 0
-
-    tmp_sio = StringIO()
-    data_size = tmp_sio.write(reference_file_data)
-    tmp_sio.close()
-
-    return data_size

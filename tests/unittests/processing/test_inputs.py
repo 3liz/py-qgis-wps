@@ -133,8 +133,8 @@ def test_field_input():
     inp = parse_input_definition(param)
     assert isinstance(inp, LiteralInput)
     assert inp.data_type == 'string'
-    assert get_metadata(inp,'processing:dataType')[0].href == 'Any'
-    assert get_metadata(inp,'processing:parentLayerParameterName')[0].href == 'INPUT'
+    assert get_metadata(inp,'processing:input:dataType')[0].href == 'Any'
+    assert get_metadata(inp,'processing:input:parentLayerParameterName')[0].href == 'INPUT'
     
 
 def test_optional_input():
@@ -159,7 +159,7 @@ def test_source_types_metadata():
 
     inp = parse_input_definition(param)
     assert isinstance(inp, LiteralInput)
-    assert get_metadata(inp,'processing:dataTypes')[0].href == 'TypeVectorLine,TypeVectorPoint'
+    assert get_metadata(inp,'processing:input:dataTypes')[0].href == 'TypeVectorLine,TypeVectorPoint'
  
 
 def test_freeform_metadata():
@@ -256,7 +256,7 @@ def test_bbox_input():
 
     # see create_bbox_inputs at L532 app/Service.py
     inp.data = ['15', '50', '16', '51']
-    value = input_to_extent( [inp] ) 
+    value = input_to_extent( inp ) 
 
     assert isinstance(value,QgsReferencedRectangle)
 
@@ -276,7 +276,7 @@ def test_file_input( outputdir ):
     context = QgsProcessingContext()
     context.workdir = outputdir.strpath
 
-    value = input_to_file( [inp], param, context)
+    value = input_to_file( inp, param, context)
 
     outputpath = (Path(context.workdir)/param.name()).with_suffix(param.extension())
     assert value == outputpath.name
@@ -322,7 +322,5 @@ def test_point_input_json():
 
     value = input_to_point( inp )
     assert isinstance( value, (QgsGeometry, QgsReferencedPointXY))
-
-
 
 

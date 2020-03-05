@@ -373,7 +373,6 @@ class WPSRequest:
                         identifier=inpt_def['identifier'],
                         title=inpt_def.get('title'),
                         abstract=inpt_def.get('abstract'),
-                        workdir=inpt_def.get('workdir'),
                         data_format=Format(
                             schema=inpt_def['data_format'].get('schema'),
                             extension=inpt_def['data_format'].get('extension'),
@@ -416,7 +415,6 @@ class WPSRequest:
                         title=inpt_def.get('title'),
                         abstract=inpt_def.get('abstract'),
                         data_type=inpt_def.get('data_type'),
-                        workdir=inpt_def.get('workdir'),
                         allowed_values=AnyValue,
                         uoms=inpt_def.get('uoms'),
                         mode=inpt_def.get('mode')
@@ -431,7 +429,6 @@ class WPSRequest:
                         abstract=inpt_def['abstract'],
                         crss=inpt_def['crs'],
                         dimensions=inpt_def['dimensions'],
-                        workdir=inpt_def['workdir'],
                         mode=inpt_def['mode']
                     )
                     inpt.ll = inpt_def['bbox'][0]

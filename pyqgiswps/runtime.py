@@ -150,7 +150,7 @@ def run_server( port, address=None, user=None ):
     pr_factory = processfactory.get_process_factory() 
     pr_factory.initialize()
 
-    max_buffer_size = get_size_bytes(confservice.get('server', 'maxsingleinputsize'))
+    max_buffer_size = get_size_bytes(confservice.get('server', 'maxbuffersize'))
 
     application = Application()
     server = HTTPServer(application, max_buffer_size=max_buffer_size)

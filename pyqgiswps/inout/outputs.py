@@ -14,11 +14,9 @@
 
 from pyqgiswps import E, WPS, OWS, OGCTYPE, NAMESPACES
 from pyqgiswps.inout import basic
-from pyqgiswps.inout.storage import FileStorage
 from pyqgiswps.inout.formats import Format
 from pyqgiswps.validator.mode import MODE
 import lxml.etree as etree
-import six
 
 
 class BoundingBoxOutput(basic.BBoxInput):
@@ -34,11 +32,9 @@ class BoundingBoxOutput(basic.BBoxInput):
     :param metadata: List of metadata advertised by this process. They
                      should be :class:`pyqgiswps.app.Common.Metadata` objects.
     """
-
     def __init__(self, identifier, title, crss, abstract='',
                  dimensions=2, metadata=[], min_occurs='1',
-                 max_occurs='1', as_reference=False,
-                 mode=MODE.NONE):
+                 max_occurs='1', mode=MODE.NONE):
         basic.BBoxInput.__init__(self, identifier, title=title,
                                  abstract=abstract, crss=crss,
                                  dimensions=dimensions, mode=mode)
@@ -46,7 +42,6 @@ class BoundingBoxOutput(basic.BBoxInput):
         self.metadata = metadata
         self.min_occurs = min_occurs
         self.max_occurs = max_occurs
-        self.as_reference = as_reference
 
     def describe_xml(self):
         doc = E.Output(
@@ -122,7 +117,6 @@ class ComplexOutput(basic.ComplexOutput):
         self.metadata = metadata
         self.as_reference = as_reference
         self.url = None
-        self.storage = None
 
     def describe_xml(self):
         """Generate DescribeProcess element
@@ -189,16 +183,12 @@ class ComplexOutput(basic.ComplexOutput):
     def _execute_xml_reference(self):
         """Return Reference node
         """
+        if self.url is None:
+            raise ValueError("Missing url")
+
         doc = WPS.Reference()
 
-        # An url is already defined, use it as reference, do nothing with file
-        if self.url is not None:
-            doc.attrib['href'] = self.url
-        else:
-            # get_url will create the file and return the url for it
-            self.storage = FileStorage()
-            doc.attrib['href'] = self.get_url()
-
+        doc.attrib['href'] = self.url
         if self.data_format:
             if self.data_format.mime_type:
                 doc.attrib['mimeType'] = self.data_format.mime_type
@@ -213,16 +203,14 @@ class ComplexOutput(basic.ComplexOutput):
         """
         doc = WPS.Data()
 
-        if self.data is None:
-            complex_doc = WPS.ComplexData()
-        else:
-            complex_doc = WPS.ComplexData()
+        complex_doc = WPS.ComplexData()
+
+        if self.data is not None:
             try:
                 data_doc = etree.parse(self.file)
                 complex_doc.append(data_doc.getroot())
             except:
-
-                if isinstance(self.data, six.string_types):
+                if isinstance(self.data, str):
                     complex_doc.text = self.data
                 else:
                     complex_doc.text = etree.CDATA(self.base64)

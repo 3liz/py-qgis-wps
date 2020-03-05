@@ -13,7 +13,8 @@
 #
 
 
-from io import StringIO
+from io import StringIO, FileIO, BytesIO
+from enum import Enum
 
 import os
 import tempfile
@@ -29,68 +30,23 @@ from pyqgiswps.exceptions import InvalidParameterValue
 import base64
 from collections import namedtuple
 
-_SOURCE_TYPE = namedtuple('SOURCE_TYPE', 'MEMORY, FILE, STREAM, DATA')
-SOURCE_TYPE = _SOURCE_TYPE(0, 1, 2, 3)
+
+class SOURCE_TYPE(Enum):
+    FILE = 1
+    STREAM = 2
+    DATA = 3
 
 
 class IOHandler:
     """Basic IO class. Provides functions, to accept input data in file,
-    memory object and stream object and give them out in all three types
+       and stream object and give them out in all three types
 
-    >>> # setting up
-    >>> import os
-    >>> from io import RawIOBase
-    >>> from io import FileIO
-    >>> import types
-    >>>
-    >>> ioh_file = IOHandler(workdir=tmp)
-    >>> assert isinstance(ioh_file, IOHandler)
-    >>>
-    >>> # Create test file input
-    >>> fileobj = open(os.path.join(tmp, 'myfile.txt'), 'w')
-    >>> fileobj.write('ASDF ASFADSF ASF ASF ASDF ASFASF')
-    >>> fileobj.close()
-    >>>
-    >>> # testing file object on input
-    >>> ioh_file.file = fileobj.name
-    >>> assert ioh_file.source_type == SOURCE_TYPE.FILE
-    >>> file = ioh_file.file
-    >>> stream = ioh_file.stream
-    >>>
-    >>> assert file == fileobj.name
-    >>> assert isinstance(stream, RawIOBase)
-    >>> # skipped assert isinstance(ioh_file.memory_object, POSH)
-    >>>
-    >>> # testing stream object on input
-    >>> ioh_stream = IOHandler(workdir=tmp)
-    >>> assert ioh_stream.workdir == tmp
-    >>> ioh_stream.stream = FileIO(fileobj.name,'r')
-    >>> assert ioh_stream.source_type == SOURCE_TYPE.STREAM
-    >>> file = ioh_stream.file
-    >>> stream = ioh_stream.stream
-    >>>
-    >>> assert open(file).read() == ioh_file.stream.read()
-    >>> assert isinstance(stream, RawIOBase)
-    >>> # skipped assert isinstance(ioh_stream.memory_object, POSH)
-    >>>
-    >>> # testing in memory object object on input
-    >>> # skipped ioh_mo = IOHandler(workdir=tmp)
-    >>> # skipped ioh_mo.memory_object = POSH
-    >>> # skipped assert ioh_mo.source_type == SOURCE_TYPE.MEMORY
-    >>> # skipped file = ioh_mo.file
-    >>> # skipped stream = ioh_mo.stream
-    >>> # skipped posh = ioh_mo.memory_object
-    >>> #
-    >>> # skipped assert open(file).read() == ioh_file.stream.read()
-    >>> # skipped assert isinstance(ioh_mo.stream, RawIOBase)
-    >>> # skipped assert isinstance(ioh_mo.memory_object, POSH)
     """
 
-    def __init__(self, workdir=None, mode=MODE.NONE):
+    def __init__(self, mode=MODE.NONE):
         self.source_type = None
         self.source = None
         self._tempfile = None
-        self.workdir = workdir
         self._stream = None
 
         self.valid_mode = mode
@@ -98,7 +54,6 @@ class IOHandler:
     def _check_valid(self):
         """Validate this input usig given validator
         """
-
         validate = self.validator
         _valid = validate(self, self.valid_mode)
         if not _valid:
@@ -111,24 +66,35 @@ class IOHandler:
         self.source = os.path.abspath(filename)
         self._check_valid()
 
-    def set_workdir(self, workdirpath):
-        """Set working temporary directory for files to be stored in"""
-
-        if workdirpath is not None and not os.path.exists(workdirpath):
-            os.makedirs(workdirpath)
-
-        self._workdir = workdirpath
-
-    def set_memory_object(self, memory_object):
-        """Set source as in memory object"""
-        self.source_type = SOURCE_TYPE.MEMORY
-        self._check_valid()
+    def get_file(self):
+        """ Get file if source is file type
+        """
+        if self.source_type == SOURCE_TYPE.FILE:
+            return self.source
 
     def set_stream(self, stream):
         """Set source as stream object"""
         self.source_type = SOURCE_TYPE.STREAM
         self.source = stream
         self._check_valid()
+
+    def get_stream(self):
+        """Get source as stream object"""
+        if self.source_type == SOURCE_TYPE.FILE:
+            if self._stream and not self._stream.closed:
+                self._stream.close()
+            self._stream = FileIO(self.source, mode='r', closefd=True)
+            return self._stream
+        elif self.source_type == SOURCE_TYPE.STREAM:
+            return self.source
+        elif self.source_type == SOURCE_TYPE.DATA:
+            if isinstance(self.source, bytes):
+                return BytesIO(self.source)
+            elif isinstance(self.source, str):
+                return StringIO(self.source)
+            else:
+                LOGGER.warn("Converting %s to stream", type(self.source))
+                return StringIO(str(self.source))
 
     def set_data(self, data):
         """Set source as simple datatype e.g. string, number"""
@@ -142,56 +108,11 @@ class IOHandler:
         self.data = base64.b64decode(data)
         self._check_valid()
 
-    def get_file(self):
-        """Get source as file name"""
-        if self.source_type == SOURCE_TYPE.FILE:
-            return self.source
-
-        elif self.source_type == SOURCE_TYPE.STREAM or self.source_type == SOURCE_TYPE.DATA:
-            if self._tempfile:
-                return self._tempfile
-            else:
-                (opening, stream_file_name) = tempfile.mkstemp(dir=self.workdir)
-                stream_file = open(stream_file_name, 'w')
-
-                if self.source_type == SOURCE_TYPE.STREAM:
-                    stream_file.write(self.source.read())
-                else:
-                    stream_file.write(self.source)
-
-                stream_file.close()
-                self._tempfile = str(stream_file_name)
-                return self._tempfile
-
-    def get_workdir(self):
-        """Return working directory name
-        """
-        return self._workdir
-
-    def get_memory_object(self):
-        """Get source as memory object"""
-        # TODO: Soeren promissed to implement at WPS Workshop on 23rd of January 2014
-        raise NotImplementedError("setmemory_object not implemented")
-
-    def get_stream(self):
-        """Get source as stream object"""
-        if self.source_type == SOURCE_TYPE.FILE:
-            if self._stream and not self._stream.closed:
-                self._stream.close()
-            from io import FileIO
-            self._stream = FileIO(self.source, mode='r', closefd=True)
-            return self._stream
-        elif self.source_type == SOURCE_TYPE.STREAM:
-            return self.source
-        elif self.source_type == SOURCE_TYPE.DATA:
-            return StringIO(str(self.source))
-
     def get_data(self):
         """Get source as simple data object"""
         if self.source_type == SOURCE_TYPE.FILE:
-            file_handler = open(self.source, mode='r')
-            content = file_handler.read()
-            file_handler.close()
+            with open(self.source, mode='r') as fh:
+                content = fh.read()
             return content
         elif self.source_type == SOURCE_TYPE.STREAM:
             return self.source.read()
@@ -212,12 +133,10 @@ class IOHandler:
         return base64.b64encode(self.data)
 
     # Properties
-    file = property(fget=get_file, fset=set_file)
-    memory_object = property(fget=get_memory_object, fset=set_memory_object)
-    stream = property(fget=get_stream, fset=set_stream)
-    data = property(fget=get_data, fset=set_data)
-    base64 = property(fget=get_base64, fset=set_base64)
-    workdir = property(fget=get_workdir, fset=set_workdir)
+    file    = property(fget=get_file, fset=set_file)
+    stream  = property(fget=get_stream, fset=set_stream)
+    data    = property(fget=get_data, fset=set_data)
+    base64  = property(fget=get_base64, fset=set_base64)
 
 
 class SimpleHandler(IOHandler):
@@ -242,8 +161,8 @@ class SimpleHandler(IOHandler):
     False
     """
 
-    def __init__(self, workdir=None, data_type=None, mode=MODE.NONE):
-        IOHandler.__init__(self, workdir=workdir, mode=mode)
+    def __init__(self, data_type=None, mode=MODE.NONE):
+        IOHandler.__init__(self, mode=mode)
         self.data_type = data_type
 
     def get_data(self):
@@ -252,7 +171,6 @@ class SimpleHandler(IOHandler):
     def set_data(self, data):
         """Set data value. input data are converted into target format
         """
-
         if self.data_type:
             data = convert(self.data_type, data)
 
@@ -262,7 +180,7 @@ class SimpleHandler(IOHandler):
 
 
 class BasicIO:
-    """Basic Input or Ouput class
+    """Basic Input or Output class
     """
     def __init__(self, identifier, title=None, abstract=None):
         self.identifier = identifier
@@ -400,11 +318,11 @@ class LiteralInput(BasicIO, BasicLiteral, SimpleHandler):
     """
 
     def __init__(self, identifier, title=None, abstract=None,
-                 data_type="integer", workdir=None, allowed_values=None,
+                 data_type="integer", allowed_values=None,
                  uoms=None, mode=MODE.NONE):
         BasicIO.__init__(self, identifier, title, abstract)
         BasicLiteral.__init__(self, data_type, uoms)
-        SimpleHandler.__init__(self, workdir, data_type, mode=mode)
+        SimpleHandler.__init__(self, data_type, mode=mode)
 
         self.any_value = is_anyvalue(allowed_values)
         self.allowed_values = []
@@ -432,7 +350,6 @@ class LiteralInput(BasicIO, BasicLiteral, SimpleHandler):
             'abstract': self.abstract,
             'type': 'literal',
             'data_type': self.data_type,
-            'workdir': self.workdir,
             'allowed_values': [value.json for value in self.allowed_values],
             'uoms': self.uoms,
             'uom': self.uom,
@@ -446,22 +363,12 @@ class LiteralOutput(BasicIO, BasicLiteral, SimpleHandler):
     """
 
     def __init__(self, identifier, title=None, abstract=None,
-                 data_type=None, workdir=None, uoms=None, validate=None,
+                 data_type=None, uoms=None, validate=None,
                  mode=MODE.NONE):
         BasicIO.__init__(self, identifier, title, abstract)
         BasicLiteral.__init__(self, data_type, uoms)
-        SimpleHandler.__init__(self, workdir=None, data_type=data_type,
+        SimpleHandler.__init__(self, data_type=data_type,
                                mode=mode)
-
-        self._storage = None
-
-    @property
-    def storage(self):
-        return self._storage
-
-    @storage.setter
-    def storage(self, storage):
-        self._storage = storage
 
     @property
     def validator(self):
@@ -476,10 +383,10 @@ class BBoxInput(BasicIO, BasicBoundingBox, IOHandler):
     """
 
     def __init__(self, identifier, title=None, abstract=None, crss=None,
-                 dimensions=None, workdir=None, mode=MODE.NONE):
+                 dimensions=None, mode=MODE.NONE):
         BasicIO.__init__(self, identifier, title, abstract)
         BasicBoundingBox.__init__(self, crss, dimensions)
-        IOHandler.__init__(self, workdir=None, mode=mode)
+        IOHandler.__init__(self, mode=mode)
 
     @property
     def json(self):
@@ -493,7 +400,6 @@ class BBoxInput(BasicIO, BasicBoundingBox, IOHandler):
             * crs
             * bbox
             * dimensions
-            * workdir
             * mode
         """
         return {
@@ -504,7 +410,6 @@ class BBoxInput(BasicIO, BasicBoundingBox, IOHandler):
             'crs': self.crss,
             'bbox': (self.ll, self.ur),
             'dimensions': self.dimensions,
-            'workdir': self.workdir,
             'mode': self.valid_mode
         }
 
@@ -514,35 +419,22 @@ class BBoxOutput(BasicIO, BasicBoundingBox, SimpleHandler):
     """
 
     def __init__(self, identifier, title=None, abstract=None, crss=None,
-                 dimensions=None, workdir=None, mode=MODE.NONE):
+                 dimensions=None, mode=MODE.NONE):
         BasicIO.__init__(self, identifier, title, abstract)
         BasicBoundingBox.__init__(self, crss, dimensions)
-        SimpleHandler.__init__(self, workdir=None, mode=mode)
-        self._storage = None
+        SimpleHandler.__init__(self, mode=mode)
 
-    @property
-    def storage(self):
-        return self._storage
-
-    @storage.setter
-    def storage(self, storage):
-        self._storage = storage
 
 
 class ComplexInput(BasicIO, BasicComplex, IOHandler):
     """Complex input abstract class
-
-    >>> ci = ComplexInput()
-    >>> ci.validator = 1
-    >>> ci.validator
-    1
     """
 
     def __init__(self, identifier, title=None, abstract=None,
-                 workdir=None, data_format=None, supported_formats=None,
+                 data_format=None, supported_formats=None,
                  mode=MODE.NONE):
         BasicIO.__init__(self, identifier, title, abstract)
-        IOHandler.__init__(self, workdir=workdir, mode=mode)
+        IOHandler.__init__(self, mode=mode)
         BasicComplex.__init__(self, data_format, supported_formats)
 
     @property
@@ -557,61 +449,20 @@ class ComplexInput(BasicIO, BasicComplex, IOHandler):
             'data_format': self.data_format.json,
             'supported_formats': [frmt.json for frmt in self.supported_formats],
             'file': self.file,
-            'workdir': self.workdir,
             'mode': self.valid_mode
         }
 
 
 class ComplexOutput(BasicIO, BasicComplex, IOHandler):
     """Complex output abstract class
-
-    >>> # temporary configuration
-    >>> import ConfigParser
-    >>> from pyqgiswps.storage import *
-    >>> config = ConfigParser.RawConfigParser()
-    >>> config.add_section('FileStorage')
-    >>> config.set('FileStorage', 'target', './')
-    >>> config.add_section('server')
-    >>> config.set('server', 'outputurl', 'http://foo/bar/filestorage')
-    >>>
-    >>> # create temporary file
-    >>> tiff_file = open('file.tiff', 'w')
-    >>> tiff_file.write("AA")
-    >>> tiff_file.close()
-    >>>
-    >>> co = ComplexOutput()
-    >>> co.set_file('file.tiff')
-    >>> fs = FileStorage(config)
-    >>> co.storage = fs
-    >>>
-    >>> url = co.get_url() # get url, data are stored
-    >>>
-    >>> co.get_stream().read() # get data - nothing is stored
-    'AA'
     """
 
     def __init__(self, identifier, title=None, abstract=None,
-                 workdir=None, data_format=None, supported_formats=None,
+                 data_format=None, supported_formats=None,
                  mode=MODE.NONE):
         BasicIO.__init__(self, identifier, title, abstract)
-        IOHandler.__init__(self, workdir=workdir, mode=mode)
+        IOHandler.__init__(self, mode=mode)
         BasicComplex.__init__(self, data_format, supported_formats)
-
-        self._storage = None
-
-    @property
-    def storage(self):
-        return self._storage
-
-    @storage.setter
-    def storage(self, storage):
-        self._storage = storage
-
-    def get_url(self):
-        """Return URL pointing to data
-        """
-        (outtype, storage, url) = self.storage.store(self)
-        return url
 
 
 class UOM:
@@ -635,10 +486,3 @@ class UOM:
         return OGCUNIT[self.uom]
 
 
-if __name__ == "__main__":
-    import doctest
-    from pyqgiswps.tests import temp_dir
-
-    with temp_dir() as tmp:
-        os.chdir(tmp)
-        doctest.testmod()

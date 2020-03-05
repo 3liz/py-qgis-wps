@@ -34,13 +34,8 @@ class TestIOHandler:
     """IOHandler test cases"""
 
     def setup_method(self, me):
-        tmp_dir = tempfile.mkdtemp()
-        self.iohandler = IOHandler(workdir=tmp_dir)
+        self.iohandler = IOHandler()
         self._value = 'lalala'
-
-    def test_basic_IOHandler(self):
-        """Test basic IOHandler"""
-        assert os.path.isdir(self.iohandler.workdir)
 
     def test_validator(self):
         """Test available validation function
@@ -50,16 +45,18 @@ class TestIOHandler:
     def _test_outout(self, source_type):
         """Test all outputs"""
 
-        assert source_type == self.iohandler.source_type, 'Source type properly set'
-        assert self._value == self.iohandler.data, 'Data obtained'
+        assert source_type == self.iohandler.source_type
+        assert self._value == self.iohandler.data
 
         if self.iohandler.source_type == SOURCE_TYPE.STREAM:
             source = StringIO(str(self._value))
             self.iohandler.stream = source
 
-        file_handler = open(self.iohandler.file)
-        assert self._value == file_handler.read(), 'File obtained'
-        file_handler.close()
+        if self.iohandler.source_type == SOURCE_TYPE.FILE:
+            assert self.iohandler.file is not None
+            file_handler = open(self.iohandler.file)
+            assert self._value == file_handler.read()
+            file_handler.close()
 
         if self.iohandler.source_type == SOURCE_TYPE.STREAM:
             source = StringIO(str(self._value))
@@ -69,9 +66,9 @@ class TestIOHandler:
         self.iohandler.stream.close()
 
         if type(stream_val) == type(b''):
-            assert str.encode(self._value) == stream_val,'Stream obtained'
+            assert str.encode(self._value) == stream_val
         else:
-            assert self._value == stream_val,'Stream obtained'
+            assert self._value == stream_val
 
         if self.iohandler.source_type == SOURCE_TYPE.STREAM:
             source = StringIO(str(self._value))
@@ -98,17 +95,6 @@ class TestIOHandler:
         self.iohandler.file = source
         self._test_outout(SOURCE_TYPE.FILE)
 
-    def test_workdir(self):
-        """Test workdir"""
-        workdir = tempfile.mkdtemp()
-        self.iohandler.workdir = workdir
-        assert os.path.isdir(self.iohandler.workdir)
-
-        # make another
-        workdir = tempfile.mkdtemp()
-        self.iohandler.workdir = workdir
-        assert os.path.isdir(self.iohandler.workdir)
-
 
 class TestComplexInput:
     """ComplexInput test cases"""
@@ -119,7 +105,6 @@ class TestComplexInput:
         self.complex_in = ComplexInput(identifier="complexinput",
                                        title='MyComplex',
                                        abstract='My complex input',
-                                       workdir=self.tmp_dir,
                                        supported_formats=[data_format])
 
         self.complex_in.data = "Hallo world!"
@@ -142,8 +127,7 @@ class TestComplexInput:
     def test_json_out(self):
         out = self.complex_in.json
 
-        assert out['workdir'] == self.tmp_dir, 'Workdir defined'
-        assert out['file'], 'There is no file'
+        assert out['file'] is None
         assert out['supported_formats'], 'There are some formats'
         assert len(out['supported_formats']) == 1, 'There is one formats'
         assert out['title'] == 'MyComplex', 'Title not set but existing'
@@ -160,7 +144,7 @@ class TestComplexOutput:
     def setup_method(self, me):
         tmp_dir = tempfile.mkdtemp()
         data_format = get_data_format('application/json')
-        self.complex_out = ComplexOutput(identifier="complexinput", workdir=tmp_dir,
+        self.complex_out = ComplexOutput(identifier="complexinput",
                                          data_format=data_format,
                                          supported_formats=[data_format])
 
@@ -234,7 +218,6 @@ class TestLiteralInput:
         out = self.literal_input.json
 
         assert not out['uoms'], 'UOMs exist'
-        assert not out['workdir'], 'Workdir exist'
         assert out['data_type'] == 'integer', 'Data type is integer'
         assert not out['abstract'], 'abstract exist'
         assert not out['title'], 'title exist'

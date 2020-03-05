@@ -92,9 +92,11 @@ class BaseHandler(tornado.web.RequestHandler):
             exception = kwargs['exc_info'][1]
             # Error was caused by a exception
             if  not isinstance(exception, NoApplicableCode ):
-               exception = NoApplicableCode(message or str(e), code=status_code)
+                exception = NoApplicableCode(message or str(exception), code=status_code)
         else:
             exception = NoApplicableCode(message, code=status_code)
+
+        LOGGER.debug('Request failed wint message: %s %s', message, str(exception))
 
         self.write_xml(exception.get_body())
         self.finish()

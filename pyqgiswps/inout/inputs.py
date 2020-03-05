@@ -13,13 +13,16 @@
 #
 
 
+import os
 
-from pyqgiswps import config, E, OWS, WPS, OGCTYPE, NAMESPACES
-from pyqgiswps.inout import basic
+from pyqgiswps import E, OWS, WPS, OGCTYPE, NAMESPACES
+from pyqgiswps.config import confservice, get_size_bytes
+from pyqgiswps.inout import basic, httpclient
 from copy import deepcopy
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.inout.literaltypes import AnyValue
 
+from typing import Union
 
 class BoundingBoxInput(basic.BBoxInput):
 
@@ -46,7 +49,6 @@ class BoundingBoxInput(basic.BBoxInput):
         self.metadata = metadata
         self.min_occurs = int(min_occurs)
         self.max_occurs = int(max_occurs)
-        self.as_reference = False
 
     def describe_xml(self):
         """
@@ -141,18 +143,37 @@ class ComplexInput(basic.ComplexInput):
         self.min_occurs = int(min_occurs)
         self.max_occurs = int(max_occurs)
         self.as_reference = False
-        self.url = ''
+        self.url  = None
+        self.body = None
         self.method = ''
         self.max_size = int(0)
 
-    def calculate_max_input_size(self):
+    def download_ref(self, filename: os.PathLike ) -> None: 
+        """ Download reference/data as filename
+        """
+        if self.source_type is basic.SOURCE_TYPE.FILE:
+            return
+        
+        if self.as_reference:
+            openurl(self.url, filename=filename,  method=self.method, body=self.body)
+        else:
+            with open(filename,'wb') as fh:
+                data = self.data
+                if isinstance(data, str):
+                    data = data.encode()
+                fh.write(data)
+
+        self.file = filename
+
+    def calculate_max_input_size(self) -> int:
         """Calculates maximal size for input file based on configuration
         and units
 
         :return: maximum file size bytes
         """
-        max_size = config.get_config('server').get('maxsingleinputsize')
-        self.max_size = config.get_size_bytes(max_size)
+        max_size = confservice.get('server','maxinputsize')
+        self.max_size = get_size_bytes(max_size)
+        return self.max_size
 
     def describe_xml(self):
         """Return Describe process element
@@ -276,7 +297,6 @@ class LiteralInput(basic.LiteralInput):
         self.default = default
         self.min_occurs = int(min_occurs)
         self.max_occurs = int(max_occurs)
-        self.as_reference = False
 
     def describe_xml(self):
         """Return DescribeProcess Output element
@@ -333,11 +353,7 @@ class LiteralInput(basic.LiteralInput):
         :return: node
         :rtype: ElementMaker
         """
-        node = None
-        if self.as_reference:
-            node = self._execute_xml_reference()
-        else:
-            node = self._execute_xml_data()
+        node = self._execute_xml_data()
 
         doc = WPS.Input(
             OWS.Identifier(self.identifier),
@@ -355,15 +371,6 @@ class LiteralInput(basic.LiteralInput):
         doc = OWS.AllowedValues()
         for value in self.allowed_values:
             doc.append(value.describe_xml())
-        return doc
-
-    def _execute_xml_reference(self):
-        """Return Reference node
-        """
-        doc = WPS.Reference()
-        doc.attrib['{http://www.w3.org/1999/xlink}href'] = self.stream
-        if self.method.upper() == 'POST' or self.method.upper() == 'GET':
-            doc.attrib['method'] = self.method.upper()
         return doc
 
     def _execute_xml_data(self):

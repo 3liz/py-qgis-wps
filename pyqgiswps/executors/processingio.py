@@ -136,9 +136,12 @@ class ProcessingOutputTypeNotSupported(ProcessingTypeParseError):
 def _is_optional( param: QgsProcessingParameterDefinition ) -> bool:
     return (int(param.flags()) & QgsProcessingParameterDefinition.FlagOptional) !=0
 
+# ==================
+# Inputs converters
+# ==================
 
 def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> LiteralInput:
-    """
+    """ Convert processing input to Literal Input 
     """
     typ = param.type()
 
@@ -167,9 +170,9 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
         kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
     elif typ =='field':
         kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:parentLayerParameterName',
+        kwargs['metadata'].append(Metadata('processing:input:parentLayerParameterName',
                 param.parentLayerParameterName()))
-        kwargs['metadata'].append(Metadata('processing:dataType',{
+        kwargs['metadata'].append(Metadata('processing:input:dataType',{
                 QgsProcessingParameterField.Any: 'Any',
                 QgsProcessingParameterField.Numeric: 'Numeric',
                 QgsProcessingParameterField.String: 'String',
@@ -186,7 +189,7 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
 
 
 def parse_file_input( param: QgsProcessingParameterDefinition, kwargs) -> Union[LiteralInput,ComplexInput]:
-    """ Input is file
+    """ Convert processing input to File Input 
     """
     typ = param.type()
     if typ == 'file':
@@ -198,12 +201,12 @@ def parse_file_input( param: QgsProcessingParameterDefinition, kwargs) -> Union[
             mime = mimetypes.types_map.get(param.extension())
             if mime is not None:
                 kwargs['supported_formats'] = [Format(mime)]
-            kwargs['metadata'].append(Metadata('processing:extension',param.extension()))
+            kwargs['metadata'].append(Metadata('processing:input:extension',param.extension()))
         return ComplexInput(**kwargs)
     elif typ == 'fileDestination':
         extension = '.'+param.defaultFileExtension()
         kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:format', mimetypes.types_map.get(extension,'')))
+        kwargs['metadata'].append(Metadata('processing:input:format', mimetypes.types_map.get(extension,'')))
         return LiteralInput(**kwargs)
     elif typ == 'folderDestination':
         kwargs['data_type'] = 'string'
@@ -240,7 +243,7 @@ def parse_allowed_layers(param: QgsProcessingParameterDefinition, kwargs, contex
         else:
             datatypes = [QgsProcessing.TypeMapLayer]
 
-    kwargs['metadata'].append(Metadata('processing:dataTypes', ','.join(SourceTypes[dtyp] for dtyp in datatypes)))
+    kwargs['metadata'].append(Metadata('processing:input:dataTypes', ','.join(SourceTypes[dtyp] for dtyp in datatypes)))
 
     # Nothing to do is there is no context
     if context is None:
@@ -280,11 +283,11 @@ def parse_layer_input(param: QgsProcessingParameterDefinition, kwargs,
         parse_allowed_layers(param, kwargs, context)
     elif isinstance(param, QgsProcessingParameterRasterDestination):
         kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:extension',param.defaultFileExtension()))
+        kwargs['metadata'].append(Metadata('processing:input:extension',param.defaultFileExtension()))
     elif isinstance(param, (QgsProcessingParameterVectorDestination, QgsProcessingParameterFeatureSink)):
         kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:dataType' , str(param.dataType())))
-        kwargs['metadata'].append(Metadata('processing:extension', param.defaultFileExtension()))
+        kwargs['metadata'].append(Metadata('processing:input:dataType' , str(param.dataType())))
+        kwargs['metadata'].append(Metadata('processing:input:extension', param.defaultFileExtension()))
     else:
         return None
 
@@ -292,7 +295,7 @@ def parse_layer_input(param: QgsProcessingParameterDefinition, kwargs,
 
 
 def parse_extent_input( param: QgsProcessingParameterDefinition, kwargs ) -> BoundingBoxInput:
-    """
+    """ Convert extent processing input to bounding box input"
     """
     typ = param.type()
     if typ == "extent":
@@ -303,14 +306,13 @@ def parse_extent_input( param: QgsProcessingParameterDefinition, kwargs ) -> Bou
 
 
 def parse_point_input( param: QgsProcessingParameterDefinition, kwargs) -> ComplexInput:
-    """ Input point
+    """ Convert processing point input to complex input
     """
     if isinstance(param, QgsProcessingParameterPoint):
         kwargs['supported_formats'] = [Format.from_definition(FORMATS.GEOJSON),
                                        Format.from_definition(FORMATS.GML)]
         return ComplexInput(**kwargs)
        
-
 
 def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsProcessingAlgorithm=None,  
                             context: MapContext=None ) -> WPSInput:
@@ -323,7 +325,7 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsPro
         'title'     : param.name().replace('_',' '),
         'abstract'  : param.description(),
         'metadata'  : [
-            Metadata('processing:type',param.type()),
+            Metadata('processing:input:type',param.type()),
         ]
     }
 
@@ -354,6 +356,10 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsPro
 
     return inp
 
+
+# ==================
+# Output converters
+# ==================
 
 def parse_literal_output( outdef: QgsProcessingOutputDefinition, kwargs ) -> LiteralOutput:
     """
@@ -394,17 +400,25 @@ def parse_layer_output( outdef: QgsProcessingOutputDefinition, kwargs ) -> Compl
 def parse_file_output( outdef: QgsProcessingOutputDefinition, kwargs, 
                        alg: QgsProcessingAlgorithm=None ) -> ComplexOutput:
     """ Parse file output definition
+
+        QgsProcessingOutputDefinition metadata will be checked to get 
+        wps parameter settings:
+
+            - 'wps:as_reference': boolean, True if the file will be sent as reference. If
+            false, the file will included in the body of the response. Default is True.
     """
     if isinstance(outdef, QgsProcessingOutputHtml):
         mime = mimetypes.types_map.get('.html')
         return ComplexOutput(supported_formats=[Format(mime)],**kwargs)
     elif isinstance(outdef, QgsProcessingOutputFile):
         # Try to get a corresponding inputFileDefinition
+        # See https://qgis.org/pyqgis/master/core/QgsProcessingParameterFileDestination.html
         mime = None
         if alg:
             inputdef = alg.parameterDefinition(outdef.name())
             if isinstance(inputdef, QgsProcessingParameterFileDestination):
                 mime = mimetypes.types_map.get("."+inputdef.defaultFileExtension())
+                kwargs['as_reference'] = inputdef.metadata().get('wps:as_reference',True)
         if mime is None:
             LOGGER.warning("Cannot set file type for output %s", outdef.name())
             mime = "application/octet-stream"
@@ -433,6 +447,10 @@ def parse_output_definition( outdef: QgsProcessingOutputDefinition, alg: QgsProc
 
     return output
 
+
+# ==================================================
+# Convert input WPS values to processing inputs data
+# ==================================================
 
 def parse_layer_spec( layerspec: str, context: ProcessingContext, allow_selection: bool=False ) -> Tuple[str,bool]:
     """ Parse a layer specification
@@ -487,24 +505,24 @@ def parse_layer_spec( layerspec: str, context: ProcessingContext, allow_selectio
 def input_to_extent( inp: WPSInput ) -> QgsReferencedRectangle:
     """ Convert input to processing extent data
     """
-    r = inp[0].data
+    r = inp.data
     rect  = QgsRectangle(float(r[0]),float(r[2]),float(r[1]),float(r[3]))
-    ref   = QgsCoordinateReferenceSystem(inp[0].crs)
+    ref   = QgsCoordinateReferenceSystem(inp.crs)
     return QgsReferencedRectangle(rect, ref)
 
 
-def input_to_file( inp: WPSInput, param: QgsProcessingParameterFile, 
+def input_to_file( inp: ComplexInput, param: QgsProcessingParameterFile, 
                    context: ProcessingContext ) -> str:
     """ Save input data to file
     """
-    # Handle file
-    if inp[0].as_reference:
-        raise NoApplicableCode("File input not allowed as reference", code=424)
+    # Handle file reference
     outputfile = (Path(context.workdir)/param.name()).with_suffix(param.extension())
+    inp.download_ref(outputfile)
+
     # Save data
     LOGGER.debug("Saving input data as %s", outputfile.as_posix())
     with outputfile.open('wb') as f:
-        data = inp[0].data
+        data = inp.data
         if isinstance(data,str):
             data = data.encode()
         f.write(data)
@@ -581,7 +599,7 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
             value = param.options().index(inp[0].data)
 
     elif typ == 'extent':
-        value = input_to_extent( inp )
+        value = input_to_extent( inp[0] )
 
     elif typ == 'crs':
         # XXX CRS may be expressed as EPSG (or QgsProperty ?)
@@ -596,7 +614,7 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
 
     elif typ == 'file':
         # Handle file input
-        value = input_to_file( inp, param, context )
+        value = input_to_file( inp[0], param, context )
 
     elif len(inp):
         # Return raw value
@@ -609,11 +627,14 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
 
     return param.name(), value
 
+# ==================================================
+# Convert processing outputs to WPS output responses
+# ==================================================
 
 def format_output_url( response: WPSResponse, file_name:str ) -> str:
     """ Build output/store url for output file name
     """
-    outputurl = config.get_config('server')['outputurl']
+    outputurl = config.get_config('server')['store_url']
     return outputurl.format(
                 host_url = response.wps_request.host_url,
                 uuid     = response.uuid,

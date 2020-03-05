@@ -98,7 +98,7 @@ def worker_handler( router: str, broadcastaddr: str, maxcycles: int = None,
                 if broadcastaddr and sub.recv(flags=zmq.NOBLOCK)==b'RESTART':
                    # There is no really way to restart
                    # so exit and let the framework restart a wew worker
-                   LOGGER.debug("RESTART notification received")
+                   LOGGER.info("RESTART notification received")
                    break
             except zmq.error.Again:
                 pass

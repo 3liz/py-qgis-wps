@@ -71,7 +71,8 @@ def load_configuration():
     CONFIG.set('server', 'encoding', 'utf-8')
     CONFIG.set('server', 'language', 'en-US')
     CONFIG.set('server', 'url', '{host_url}')
-    CONFIG.set('server', 'maxsingleinputsize', '1m')
+    CONFIG.set('server', 'maxinputsize'         , getenv('QGSWPS_SERVER_MAXINPUTSIZE' ,'100m'))
+    CONFIG.set('server', 'maxbuffersize'        , getenv('QGSWPS_SERVER_MAXBUFFERSIZE','1m'))
     CONFIG.set('server', 'store_url'            , '{host_url}store/{uuid}/{file}?service=WPS')
     CONFIG.set('server', 'status_url'           , '{host_url}ows/?service=WPS&request=GetResults&uuid={uuid}') 
     CONFIG.set('server', 'workdir'              , getenv('QGSWPS_SERVER_WORKDIR',tempfile.gettempdir()))
@@ -87,7 +88,6 @@ def load_configuration():
     CONFIG.set('server', 'wms_response_uri'     , '${wms_service_url}?MAP=${wps_result_map_uri}{uuid}/{name}.qgs&service=WMS&request=GetCapabilities')
     CONFIG.set('server', 'cleanup_interval'     ,'600')
 
-    CONFIG.set('server', 'outputurl'            , '${store_url}')
     CONFIG.set('server', 'download_ttl'         , getenv('QGSWPS_DOWNLOAD_TTL','30'))
     CONFIG.set('server', 'enable_filters'       , getenv('QGSWPS_SERVER_ENABLE_FILTERS', 'yes'))
 
