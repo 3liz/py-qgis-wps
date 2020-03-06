@@ -61,8 +61,6 @@ class QgsProcessFactory:
         processlifecycle = cfg.getint('processlifecycle')
         response_timeout = cfg.getint('response_timeout')
  
-        maxqueuesize = cfg.getint('maxqueuesize')
- 
         # Initialize logstore (redis)
         logstore.init_session()
  

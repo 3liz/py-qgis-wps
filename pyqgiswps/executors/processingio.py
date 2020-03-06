@@ -35,10 +35,10 @@ from pyqgiswps.inout import (LiteralInput,
 from pyqgiswps.inout.literaltypes import AnyValue, NoValue, ValuesReference, AllowedValue
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 
-from pyqgiswps import config
-
 from pyqgiswps.app.WPSResponse import WPSResponse
 from pyqgiswps.app.WPSRequest  import WPSRequest
+
+from pyqgiswps.config import confservice
 
 from osgeo import ogr
 
@@ -170,9 +170,9 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
         kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
     elif typ =='field':
         kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:input:parentLayerParameterName',
+        kwargs['metadata'].append(Metadata('processing:parentLayerParameterName',
                 param.parentLayerParameterName()))
-        kwargs['metadata'].append(Metadata('processing:input:dataType',{
+        kwargs['metadata'].append(Metadata('processing:dataType',{
                 QgsProcessingParameterField.Any: 'Any',
                 QgsProcessingParameterField.Numeric: 'Numeric',
                 QgsProcessingParameterField.String: 'String',
@@ -201,12 +201,12 @@ def parse_file_input( param: QgsProcessingParameterDefinition, kwargs) -> Union[
             mime = mimetypes.types_map.get(param.extension())
             if mime is not None:
                 kwargs['supported_formats'] = [Format(mime)]
-            kwargs['metadata'].append(Metadata('processing:input:extension',param.extension()))
+            kwargs['metadata'].append(Metadata('processing:extension',param.extension()))
         return ComplexInput(**kwargs)
     elif typ == 'fileDestination':
         extension = '.'+param.defaultFileExtension()
         kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:input:format', mimetypes.types_map.get(extension,'')))
+        kwargs['metadata'].append(Metadata('processing:format', mimetypes.types_map.get(extension,'')))
         return LiteralInput(**kwargs)
     elif typ == 'folderDestination':
         kwargs['data_type'] = 'string'
@@ -243,7 +243,7 @@ def parse_allowed_layers(param: QgsProcessingParameterDefinition, kwargs, contex
         else:
             datatypes = [QgsProcessing.TypeMapLayer]
 
-    kwargs['metadata'].append(Metadata('processing:input:dataTypes', ','.join(SourceTypes[dtyp] for dtyp in datatypes)))
+    kwargs['metadata'].append(Metadata('processing:dataTypes', ','.join(SourceTypes[dtyp] for dtyp in datatypes)))
 
     # Nothing to do is there is no context
     if context is None:
@@ -283,11 +283,11 @@ def parse_layer_input(param: QgsProcessingParameterDefinition, kwargs,
         parse_allowed_layers(param, kwargs, context)
     elif isinstance(param, QgsProcessingParameterRasterDestination):
         kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:input:extension',param.defaultFileExtension()))
+        kwargs['metadata'].append(Metadata('processing:extension',param.defaultFileExtension()))
     elif isinstance(param, (QgsProcessingParameterVectorDestination, QgsProcessingParameterFeatureSink)):
         kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:input:dataType' , str(param.dataType())))
-        kwargs['metadata'].append(Metadata('processing:input:extension', param.defaultFileExtension()))
+        kwargs['metadata'].append(Metadata('processing:dataType' , str(param.dataType())))
+        kwargs['metadata'].append(Metadata('processing:extension', param.defaultFileExtension()))
     else:
         return None
 
@@ -325,7 +325,7 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsPro
         'title'     : param.name().replace('_',' '),
         'abstract'  : param.description(),
         'metadata'  : [
-            Metadata('processing:input:type',param.type()),
+            Metadata('processing:type',param.type()),
         ]
     }
 
@@ -407,6 +407,7 @@ def parse_file_output( outdef: QgsProcessingOutputDefinition, kwargs,
             - 'wps:as_reference': boolean, True if the file will be sent as reference. If
             false, the file will included in the body of the response. Default is True.
     """
+    as_reference = confservice.getboolean('server','outputfile_as_reference')
     if isinstance(outdef, QgsProcessingOutputHtml):
         mime = mimetypes.types_map.get('.html')
         return ComplexOutput(supported_formats=[Format(mime)],**kwargs)
@@ -418,11 +419,11 @@ def parse_file_output( outdef: QgsProcessingOutputDefinition, kwargs,
             inputdef = alg.parameterDefinition(outdef.name())
             if isinstance(inputdef, QgsProcessingParameterFileDestination):
                 mime = mimetypes.types_map.get("."+inputdef.defaultFileExtension())
-                kwargs['as_reference'] = inputdef.metadata().get('wps:as_reference',True)
+                as_reference = inputdef.metadata().get('wps:as_reference',as_reference)
         if mime is None:
             LOGGER.warning("Cannot set file type for output %s", outdef.name())
             mime = "application/octet-stream"
-        return ComplexOutput(supported_formats=[Format(mime)], **kwargs)
+        return ComplexOutput(supported_formats=[Format(mime)], as_reference=as_reference, **kwargs)
 
 
 def parse_output_definition( outdef: QgsProcessingOutputDefinition, alg: QgsProcessingAlgorithm=None, 
@@ -631,21 +632,12 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
 # Convert processing outputs to WPS output responses
 # ==================================================
 
-def format_output_url( response: WPSResponse, file_name:str ) -> str:
-    """ Build output/store url for output file name
-    """
-    outputurl = config.get_config('server')['store_url']
-    return outputurl.format(
-                host_url = response.wps_request.host_url,
-                uuid     = response.uuid,
-                file     = file_name)
-
 
 def to_output_file( file_name: str, out: ComplexOutput, context: ProcessingContext ) -> ComplexOutput:
     """ Output file
     """
     if out.as_reference:
-        out.url = format_output_url(context.response, file_name)
+        out.url = context.store_url.format(file=file_name)
     else:
         out.file = os.path.join(context.workdir,file_name)
 

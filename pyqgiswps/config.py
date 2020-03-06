@@ -71,24 +71,41 @@ def load_configuration():
     CONFIG.set('server', 'encoding', 'utf-8')
     CONFIG.set('server', 'language', 'en-US')
     CONFIG.set('server', 'url', '{host_url}')
+    # Select if output files are returned by reference or in response body
+    CONFIG.set('server', 'outputfile_as_reference', getenv('QGSWPS_SERVER_OUTPUTFILE_AS_REFERENCE', 'yes'))
+    # Max input file fetched as remote reference
     CONFIG.set('server', 'maxinputsize'         , getenv('QGSWPS_SERVER_MAXINPUTSIZE' ,'100m'))
+    # Max request size 
     CONFIG.set('server', 'maxbuffersize'        , getenv('QGSWPS_SERVER_MAXBUFFERSIZE','1m'))
+    # Storage url for retrieving reference files
     CONFIG.set('server', 'store_url'            , '{host_url}store/{uuid}/{file}?service=WPS')
+    # URL for retrieving status
     CONFIG.set('server', 'status_url'           , '{host_url}ows/?service=WPS&request=GetResults&uuid={uuid}') 
+    # Path to workdir where process are executed"
     CONFIG.set('server', 'workdir'              , getenv('QGSWPS_SERVER_WORKDIR',tempfile.gettempdir()))
-    CONFIG.set('server', 'http_proxy'           , getenv('QGSWPS_SERVER_HTTP_PROXY', 'no'))
+    # Configure host if the server is behind a proxy
     CONFIG.set('server', 'host_proxy'           , getenv('QGSWPS_SERVER_HOST_PROXY',''))
+    # Number of parallel processes that are allowed to run algorithms
     CONFIG.set('server', 'parallelprocesses'    , getenv('QGSWPS_SERVER_PARALLELPROCESSES','1'))
+    # Maximal number of executions can run in the same worker before beeing restarted
     CONFIG.set('server', 'processlifecycle'     , getenv('QGSWPS_SERVER_PROCESSLIFECYCLE','1'))
+    # Maximal number of waiting tasks - extra tasks will return a 509 in synchronous execution
     CONFIG.set('server', 'maxqueuesize'         , getenv('QGSWPS_SERVER_MAXQUEUESIZE','100'))
+    # Timeout for tasks execution
     CONFIG.set('server', 'response_timeout'     , getenv('QGSWPS_SERVER_RESPONSE_TIMEOUT','1800'))
+    # Expiration time in Redis cache for task responses
     CONFIG.set('server', 'response_expiration'  , getenv('QGSWPS_SERVER_RESPONSE_EXPIRATION','86400'))
+    # Base url used for return WMS references (Qgis projects holding layers created by WPS tasks)
     CONFIG.set('server', 'wms_service_url'      , getenv('QGSWPS_SERVER_WMS_SERVICE_URL','{host_url}'))
+    # Base uri used for the MAP argument in WMS references
     CONFIG.set('server', 'wps_result_map_uri'   , getenv('QGSWPS_SERVER_RESULTS_MAP_URI','wps-results:'))
+    # Full URL used for returning  WPS references
     CONFIG.set('server', 'wms_response_uri'     , '${wms_service_url}?MAP=${wps_result_map_uri}{uuid}/{name}.qgs&service=WMS&request=GetCapabilities')
+    # Cleanup interval in seconds
     CONFIG.set('server', 'cleanup_interval'     ,'600')
-
+    # Download API expiration ttl for a download URL
     CONFIG.set('server', 'download_ttl'         , getenv('QGSWPS_DOWNLOAD_TTL','30'))
+    # Enable middleware filters from extensions
     CONFIG.set('server', 'enable_filters'       , getenv('QGSWPS_SERVER_ENABLE_FILTERS', 'yes'))
 
     #

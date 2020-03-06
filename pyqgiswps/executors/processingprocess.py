@@ -344,7 +344,7 @@ class QgsProcess(WPSProcess):
                             uuid=response.uuid,
                             name=alg.name())
 
-        context.response = response
+        context.store_url = response.store_url
         write_outputs( alg, results, response.outputs, output_uri, context)
 
         return response

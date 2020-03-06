@@ -20,7 +20,7 @@ import time
 from pyqgiswps import WPS, OWS
 from pyqgiswps.exceptions import NoApplicableCode
 from pyqgiswps.executors.logstore import STATUS, logstore
-from pyqgiswps import config
+from pyqgiswps.config import confservice
 
 
 LOGGER = logging.getLogger('SRVLOG')
@@ -37,6 +37,10 @@ class WPSResponse():
         :param status_url: url to retrieve the status from
         """
 
+        store_url = confservice.get('server','store_url')
+        store_url.format(host_url = wps_request.host_url, uuid = uuid,
+                         file = '{file}')
+
         self.process = process
         self.wps_request = wps_request
         self.outputs = {o.identifier: o for o in process.outputs}
@@ -44,6 +48,7 @@ class WPSResponse():
         self.status = STATUS.NO_STATUS
         self.status_percentage = -1
         self.status_url = status_url
+        self.store_url  = store_url
         self.uuid = uuid
         self.document = None
         self.store = False
@@ -145,7 +150,7 @@ class WPSResponse():
         doc.attrib['version'] = '1.0.0'
         doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
         doc.attrib['serviceInstance'] = '%s%s' % (
-            config.get_config('server').get('url').format(host_url=self.wps_request.host_url),
+            confservice.get('server','url').format(host_url=self.wps_request.host_url),
             '?service=WPS&request=GetCapabilities'
         )
 

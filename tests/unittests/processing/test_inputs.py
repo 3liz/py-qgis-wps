@@ -133,8 +133,8 @@ def test_field_input():
     inp = parse_input_definition(param)
     assert isinstance(inp, LiteralInput)
     assert inp.data_type == 'string'
-    assert get_metadata(inp,'processing:input:dataType')[0].href == 'Any'
-    assert get_metadata(inp,'processing:input:parentLayerParameterName')[0].href == 'INPUT'
+    assert get_metadata(inp,'processing:dataType')[0].href == 'Any'
+    assert get_metadata(inp,'processing:parentLayerParameterName')[0].href == 'INPUT'
     
 
 def test_optional_input():
@@ -159,7 +159,7 @@ def test_source_types_metadata():
 
     inp = parse_input_definition(param)
     assert isinstance(inp, LiteralInput)
-    assert get_metadata(inp,'processing:input:dataTypes')[0].href == 'TypeVectorLine,TypeVectorPoint'
+    assert get_metadata(inp,'processing:dataTypes')[0].href == 'TypeVectorLine,TypeVectorPoint'
  
 
 def test_freeform_metadata():
@@ -212,14 +212,18 @@ def test_file_output_mimetypes():
     """
     outdef  = QgsProcessingOutputFile("OUTPUT","test output file") 
     context = QgsProcessingContext()
-    context.workdir = "/path/to/workdir"
+    context.store_url = "store:{file}"
+    context.workdir   = "/path/to/workdir"
 
     out = parse_output_definition(outdef)
 
-    output = processing_to_output('file.png', outdef, out, output_uri=None, context=context)  
+    output = processing_to_output('file.png', outdef, out, output_uri=None, context=context)
+    assert isinstance(output, ComplexOutput)
+    assert output.as_reference
+    assert output.url == "store:file.png"
     assert output.output_format == 'image/png'
 
-    output = processing_to_output('binaryfile', outdef, out, output_uri=None, context=context)  
+    output = processing_to_output('binaryfile', outdef, out, output_uri=None, context=context) 
     assert output.output_format == 'application/octet-stream'
 
 
