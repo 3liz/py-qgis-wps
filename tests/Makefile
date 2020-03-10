@@ -4,9 +4,8 @@ SHELL:=bash
 #
 COMMITID=$(shell git rev-parse --short HEAD)
 
-ifdef REGISTRY_URL
+REGISTRY_URL ?= 3liz
 REGISTRY_PREFIX=$(REGISTRY_URL)/
-endif
 
 FLAVOR:=ltr
 
