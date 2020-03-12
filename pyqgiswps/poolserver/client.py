@@ -105,7 +105,7 @@ class _Client:
                     else:
                         handler.set_result(response)
                 except KeyError:
-                    LOGGER.warning("No pending future found for message %s", correlation_id)
+                    LOGGER.warning("No pending future found for message %s", msgid)
             except zmq.ZMQError as err:
                 LOGGER.error("zmq error: %s (%s)", zmq.strerror(err.errno),err.errno)
             except asyncio.CancelledError:

@@ -46,5 +46,5 @@ docker-%:
 	$(MAKE) -C tests $* FLAVOR=$(FLAVOR)
 
 client-tests:
-	pytest -v tests/clienttests $(PYTEST_ADDOPTS)
+	cd tests/clienttests && pytest -v $(PYTEST_ADDOPTS)
 

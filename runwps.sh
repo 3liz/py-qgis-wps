@@ -10,7 +10,7 @@ export QGSWPS_SERVER_WORKDIR=$PWD/__outputdata___
 export QGIS_OPTIONS_PATH=$PWD/tests/qgis
 export QGSWPS_LOGLEVEL=DEBUG
 export QGSWPS_REDIS_HOST=localhost
+export QGSWPS_SERVER_PROCESSLIFECYCLE=10
 
-
-wpsserver -p 8080
+exec wpsserver -p 8080
 
