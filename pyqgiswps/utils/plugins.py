@@ -34,6 +34,7 @@ def _register_provider(reg: 'QgsProcessingRegistry', provider_id: str, providers
         LOGGER.error("Processing provider '%s' not found", provider_id)
         return
 
+    LOGGER.debug("= Registering provider '%s'", provider_id)
     providers.append(_ProviderItem(p,True))
 
 
