@@ -38,7 +38,7 @@ class WPSResponse():
         """
 
         store_url = confservice.get('server','store_url')
-        store_url.format(host_url = wps_request.host_url, uuid = uuid,
+        store_url = store_url.format(host_url = wps_request.host_url, uuid = uuid,
                          file = '{file}')
 
         self.process = process

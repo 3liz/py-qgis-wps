@@ -42,5 +42,10 @@ class TestFileDestination(QgsProcessingAlgorithm):
     def processAlgorithm(self, parameters, context, feedback):
         
         value = parameters[self.OUTPUT]
+
+        # Create the output file
+        with open(value,'w') as fp:
+            fp.write('{ "title": "hello json" }')
+
         return {self.OUTPUT: value}
         
