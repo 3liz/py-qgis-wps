@@ -142,7 +142,7 @@ def load_configuration():
     # XXX Legacy section
     CONFIG.add_section('cache')
     CONFIG.set('cache', 'size'    , '${projects.cache:size}')
-    CONFIG.set('cache', 'rootdir' , '${project.cache:rootdir}')
+    CONFIG.set('cache', 'rootdir' , '${projects.cache:rootdir}')
     CONFIG.set('cache', 'strict_check' , '${projects.cache:strict_check}')
 
     #
