@@ -539,8 +539,9 @@ def input_to_point( inp: WPSInput ):
     if data_format.mime_type == FORMATS.GEOJSON.mime_type:
         geom = ogr.CreateGeometryFromJson(inp.data)
     elif data_format.mime_type == FORMATS.GML.mime_type:
+        # XXX Check that we do not get CRS  from GML
+        # with ogr data
         geom = ogr.CreateGeometryFromGML(inp.data)
- 
     if geom:
         srs  = geom.GetSpatialReference()
         geom = QgsGeometry.fromWkt(geom.ExportToWkt())

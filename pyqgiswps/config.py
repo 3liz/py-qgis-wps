@@ -129,9 +129,21 @@ def load_configuration():
     # Projects cache
     #
 
+    CONFIG.add_section('projects.cache')
+    # Maximun number of projects in cache
+    CONFIG.set('projects.cache', 'size'    , getenv('QGSWPS_CACHE_SIZE','10' ))
+    # Root directory for projects file
+    CONFIG.set('projects.cache', 'rootdir' , getenv('QGSWPS_CACHE_ROOTDIR',''))
+    # Ensure that loaded project is valid before loading in cache
+    CONFIG.set('projects.cache', 'strict_check' , getenv('QGSWPS_CACHE_STRICT_CHECK','yes'))
+
+    CONFIG.add_section('projects.schemes')
+
+    # XXX Legacy section
     CONFIG.add_section('cache')
-    CONFIG.set('cache', 'size' , '10' )
-    CONFIG.set('cache', 'rootdir' , getenv('QGSWPS_CACHE_ROOTDIR',''))
+    CONFIG.set('cache', 'size'    , '${projects.cache:size}')
+    CONFIG.set('cache', 'rootdir' , '${project.cache:rootdir}')
+    CONFIG.set('cache', 'strict_check' , '${projects.cache:strict_check}')
 
     #
     # Processing

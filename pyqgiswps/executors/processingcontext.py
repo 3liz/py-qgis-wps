@@ -34,7 +34,7 @@ class MapContext:
     """ Hold context regarding the MAP parameter
     """
     def __init__(self, map_uri: str=None, **create_context):
-        self.rootdir = Path(confservice.get('cache','rootdir'))
+        self.rootdir = Path(confservice.get('projects.cache','rootdir'))
         self.map_uri = map_uri
         self._create_context = create_context
 
@@ -60,7 +60,7 @@ class ProcessingContext(QgsProcessingContext):
     def __init__(self, workdir: str, map_uri: str=None) -> None:
         super().__init__()
         self.workdir = workdir
-        self.rootdir = Path(confservice.get('cache','rootdir'))
+        self.rootdir = Path(confservice.get('projects.cache','rootdir'))
 
         if map_uri is not None:
             self.map_uri = map_uri
