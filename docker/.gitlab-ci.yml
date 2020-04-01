@@ -26,6 +26,7 @@ variables:
   only:
     <<: *changes_def
     refs:
+      - tags
       - master
   tags:
     - infrav3
@@ -58,6 +59,7 @@ deploy:snap:
   only:
     <<: *changes_def
     refs:
+      - tags
       - master
   tags:
     - infrav3
