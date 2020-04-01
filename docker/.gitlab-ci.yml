@@ -75,6 +75,7 @@ deploy:snap:
   when: manual
   only:
     refs:
+      - tags
       - master
   tags:
     - infrav3

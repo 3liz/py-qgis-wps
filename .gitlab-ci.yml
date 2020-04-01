@@ -17,6 +17,9 @@ tests:
     - make docker-test FLAVOR=3.4
   tags:
     - infrav3
+  only:
+    refs:
+      - master 
   artifacts:
     reports:
         junit: tests/unittests/__output__/junit.xml
