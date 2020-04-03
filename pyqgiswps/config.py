@@ -28,6 +28,7 @@ import configparser
 
 from typing import Any
 
+
 CONFIG = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
 CONFIG.optionxform = lambda opt: opt
 
@@ -256,6 +257,9 @@ from pyqgisservercontrib.core import componentmanager
 
 NO_DEFAULT=object()
 
+# Chars that are to be replaced in env variable name
+ENV_REPLACE_CHARS=':.-@#$%&*'
+
 @componentmanager.register_factory('@3liz.org/config-service;1')
 class ConfigService:
     """ Act as a proxy
@@ -267,13 +271,22 @@ class ConfigService:
     def __get_impl( self, _get_fun, section:str, option:str, fallback:Any = NO_DEFAULT ) -> Any:
         """
         """
-        if self.allow_env:
-            varname  = 'QGSWPS_%s_%s' % (section.upper(),option.upper())
-            value = _get_fun(section, option, fallback=os.getenv(varname, fallback))
-        else:
-            value = _get_fun(section, option, fallback=fallback)
+        value = _get_fun(section, option, fallback=NO_DEFAULT)
         if value is NO_DEFAULT:
-            raise KeyError('%s:%s' % (section,option))
+            # Look in environment
+            # Note that the section must exists
+            if self.allow_env:
+                varname  = 'QGSWPS_%s_%s' % (section.upper(), option.upper())
+                varname  = functools.reduce( lambda s,c: s.replace(c,'_'), ENV_REPLACE_CHARS, varname)
+                varvalue = os.getenv(varname)
+                if varvalue is not None:
+                    CONFIG.set(section, option, varvalue)
+                # Let config parser translate the value for us
+                value = _get_fun(section, option, fallback=fallback)
+            else:
+                value = fallback
+        if value is NO_DEFAULT:
+            raise KeyError('[%s] %s' % (section,option))
         return value
 
 
@@ -290,6 +303,13 @@ class ConfigService:
 
     def set( self, section:str, option:str, value: Any ) -> None:
         CONFIG.set( section, option, value )
+
+    def add_section( self, sectionname: str ) -> None:
+        # We do not care if the section already exists
+        try:
+            CONFIG.add_section( sectionname )
+        except configparser.DuplicateSectionError:
+            pass 
 
 
 confservice = ConfigService()
