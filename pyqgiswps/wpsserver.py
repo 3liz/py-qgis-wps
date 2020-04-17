@@ -11,6 +11,8 @@ import os
 import sys
 import logging
 
+from pkg_resources import resource_stream
+
 from .version import __version__, __description__
 from .runtime import run_server
 from .config import get_config, set_config, load_configuration, read_config_file
@@ -18,10 +20,21 @@ from .logger import setup_log_handler
 
 LOGGER=logging.getLogger('SRVLOG')
 
-def print_version(config):
-    from .version import __version__
+
+def print_version() -> None:
+
+    manifest = { 'commitid':'n/a', 'buildid':'n/a', 'version':__version__ }
+
+    # Read build manifest
+    try:
+      manifest.update(l.decode().strip().split('=')[:2] for l in resource_stream('pyqgiswps',
+                                                        'build.manifest').readlines())
+    except Exception as e:
+      print("Failed to read manifest !: %s " % e, file=sys.stderr)
+
     program = os.path.basename(sys.argv[0])
-    print("{name} {version}".format(name=program, version=__version__))
+    print("{program} {version} (build {buildid},commit {commitid})".format(program=program,**manifest),
+          file=sys.stderr)
 
 
 def read_configuration(args=None):
@@ -49,8 +62,8 @@ def read_configuration(args=None):
 
     args = cli_parser.parse_args()
 
+    print_version()
     if args.version:
-        print_version(config)
         sys.exit(1)
 
     load_configuration()

@@ -8,7 +8,7 @@ COMMITID=$(shell git rev-parse --short HEAD)
 
 DIST=docker/dist
 
-MANIFEST=build.manifest
+MANIFEST=pyqgiswps/build.manifest
 
 PYTHON:=python3
 
@@ -33,6 +33,7 @@ deliver:
 	twine upload -r storage $(DIST)/*
 
 dist: dirs manifest
+	rm -rf *.egg-info
 	$(PYTHON) setup.py sdist --dist-dir=$(DIST)
 
 clean:

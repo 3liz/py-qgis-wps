@@ -29,8 +29,6 @@ from .handlers import (RootHandler, WPSHandler, StoreHandler, StatusHandler,
 
 from .accesspolicy import init_access_policy
 
-from .version import __version__
-
 LOGGER = logging.getLogger('SRVLOG')
 
 from pyqgisservercontrib.core.filters import ServerFilter
@@ -143,7 +141,7 @@ def run_server( port, address=None, user=None ):
        setuid(user)
 
     # Run
-    LOGGER.info("Running WPS server %s on port %s:%s", __version__, address, port)
+    LOGGER.info("Running WPS server on port %s:%s", address, port)
 
     from pyqgiswps.executors import processfactory
 

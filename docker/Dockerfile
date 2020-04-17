@@ -6,7 +6,7 @@ FROM  ${REGISTRY_PREFIX}qgis-platform:${QGIS_VERSION}
 MAINTAINER David Marteau <david.marteau@3liz.com>
 LABEL Description="QGIS3 WPS service" Vendor="3liz.org" Version="1."
 
-ARG WPS_VERSION
+ARG BUILD_VERSION
 
 RUN pip3 install \
     scipy \
@@ -18,8 +18,8 @@ RUN pip3 install \
 COPY docker-entrypoint.sh /
 RUN  chmod 0755 /docker-entrypoint.sh
 
-COPY dist/py-qgis-wps-$WPS_VERSION.tar.gz /
-RUN pip3 install --no-cache-dir /py-qgis-wps-$WPS_VERSION.tar.gz
+COPY dist/py-qgis-wps-$BUILD_VERSION.tar.gz /
+RUN pip3 install --no-cache-dir /py-qgis-wps-$BUILD_VERSION.tar.gz
 
 # && rm -rf /root/.cache /root/.ccache
 
