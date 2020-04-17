@@ -17,7 +17,6 @@ variables:
   stage: docker
   script:
     - make -C docker build deliver clean FLAVOR=$QGIS_FLAVOR
-    - $FACTORY_SCRIPTS/push-to-docker-hub.sh --clean
   environment:
     name: snap
   artifacts:
@@ -72,6 +71,7 @@ deploy:snap:
   stage: release
   script:
     - $FACTORY_SCRIPTS/release-image.sh qgis-wps-server-$QGIS_FLAVOR
+    - $FACTORY_SCRIPTS/push-to-docker-hub.sh --clean
   environment:
     name: production
   when: manual
