@@ -1,27 +1,31 @@
-# Py-Qgis-WPS 
+# Py-QGIS-WPS 
 
-Py-Qgis-WPS is an implementation of the Web Processing Service standard from
-the Open Geospatial Consortium based on the Qgis processing API.
+Py-QGIS-WPS is an implementation of the [Web Processing Service](https://www.ogc.org/standards/wps)
+standard from the Open Geospatial Consortium based on the QGIS Processing API.
 
-Py-Qgis-WPS will enable you to use Qgis processing algorithms written for Qgis desktop directy on server side.
+This implementation allows you to expose and run on a server:
+* QGIS Processing algorithms available on Desktop
+* QGIS Processing models
+* QGIS plugins having a Processing provider according to their `metadata.txt`file
 
-Py-Qgis-WPS is written in Python.
-
-Py-Qgis-WPS is a fork of PyWPS 
+It's is written in Python and is a fork of [PyWPS](https://pywps.org/).
 
 Requirements and limitations:
 
 - Python 3.5+ only
 - Windows not officially supported
 
-# Why Py-Qgis-WPS ?
+Any WPS client work with this implementation. For instance QGIS Processing algorithms are available
+in a web interface using [Lizmap WPS module](https://github.com/3liz/lizmap-wps-web-client-module).
 
-Py-Qgis-WPS differs from PyWPS in the following: 
+# Why Py-QGIS-WPS ?
 
-* Qgis centric
+Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following: 
+
+* QGIS centric
 * Handle all request in asynchronous way: all jobs should run in a non blocking way,  even
   with `storeExecuteResponse=true`
-* Use multiprocessing Pool to handle task queue instead instanciating a new process each time.
+* Use multiprocessing Pool to handle task queue instead instantiating a new process each time.
 * Uniform Logging with the 'logging' module
 * Serve response status
 * Support python3 asyncio (and thus drop python2 supports)
@@ -69,16 +73,16 @@ In POST requests, set the `expire=<seconds>` attribut int the `<ResponseDocument
 The server may configure maximum expiration value.
 
 
-### status API
+### Status API
 
 The status REST api will return the list of the stored status for all running and terminated wps processes.
 
-Exemple for returning all stored status:
+Example for returning all stored status:
 ```
 http://localhost:8080/ows/status/?SERVICE=WPS
 ```
 
-Exemple for returning status for one given process from its uuid:
+Example for returning status for one given process from its uuid:
 ```
 http://localhost:8080/ows/status/<uuid>?SERVICE=WPS
 ```
@@ -196,7 +200,7 @@ Processing providers following the same rules as  Qgis regular plugin with a spe
 
 ### The `metadata.txt` file
 
-As regular Qgis plugin, a metadata.txt file must be present with a special entry `wps=True` indicating that
+As regular QGIS plugin, a metadata.txt file must be present with a special entry `wps=True` indicating that
 the plugin is available as a WPS service provider.
 
 ### Registering providers
