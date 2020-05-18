@@ -52,7 +52,7 @@ from processing.core.Processing import (Processing,
 
 from .processingcontext import ProcessingContext, MapContext
 
-from pyqgiswps import config
+from pyqgiswps.config import confservice
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -339,7 +339,7 @@ class QgsProcess(WPSProcess):
         handle_layer_outputs(results, context)
 
         # Get WMS output uri
-        output_uri = config.get_config('server')['wms_response_uri'].format(
+        output_uri = confservice.get('server','wms_response_uri').format(
                             host_url=request.host_url,
                             uuid=response.uuid,
                             name=alg.name())

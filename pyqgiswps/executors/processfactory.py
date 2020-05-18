@@ -20,7 +20,7 @@ from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths, init_
 from pyqgiswps.poolserver.server import create_poolserver
 from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
 
-from pyqgiswps import config
+from pyqgiswps.config import confservice
 
 from .logstore import logstore
 
@@ -40,10 +40,10 @@ class QgsProcessFactory:
         """
         assert not self._initialized
 
-        self._config = config.get_config('processing')
+        self._config = confservice['processing']
 
         plugin_path       = self._config.get('providers_module_path')
-        exposed_providers = self._config.get('exposed_providers','').split(',')
+        exposed_providers = self._config.get('exposed_providers',fallback='').split(',')
 
         setup_qgis_paths()
 
@@ -55,7 +55,7 @@ class QgsProcessFactory:
     def _create_pool(self):
         """ Initialize the worker pool
         """
-        cfg = config.get_config('server')
+        cfg = confservice['server']
         
         maxparallel      = cfg.getint('parallelprocesses')
         processlifecycle = cfg.getint('processlifecycle')
@@ -138,13 +138,15 @@ class QgsProcessFactory:
 
         # Set up folder settings
         # XXX  Note that if scripts folder is not set then ScriptAlgorithmProvider will crash !
-        for setting, value in config.get_config().items('qgis.settings.folders'):
+        for setting, value in confservice.items('qgis.settings.folders'):
             LOGGER.debug("*** Folder settings: %s = %s", setting, value) 
             _folders_setting(setting, value)
 
+        # Load other settings from configuration file
+
         # Init qgis application
         self.qgisapp = start_qgis_application( enable_processing=True,
-                                verbose=config.get_config('logging').get('level')=='DEBUG',
+                                verbose=confservice.get('logging','level')=='DEBUG',
                                 logger=LOGGER, logprefix=logprefix,
                                 settings=settings)
 

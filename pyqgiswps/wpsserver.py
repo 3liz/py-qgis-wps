@@ -15,7 +15,7 @@ from pkg_resources import resource_stream
 
 from .version import __version__, __description__
 from .runtime import run_server
-from .config import get_config, set_config, load_configuration, read_config_file
+from .config import load_configuration, read_config_file
 from .logger import setup_log_handler
 
 LOGGER=logging.getLogger('SRVLOG')
@@ -73,11 +73,11 @@ def read_configuration(args=None):
 
     # Override config
     if 'parallelprocesses' in args:
-        set_config('server', 'parallelprocesses', str(args.parallelprocesses))
+        confservice.set('server', 'parallelprocesses', str(args.parallelprocesses))
 
     if args.debug:
         # Force debug mode
-        set_config('logging', 'level', 'DEBUG')
+        confservice.set('logging', 'level', 'DEBUG')
 
     # set log level
     setup_log_handler()

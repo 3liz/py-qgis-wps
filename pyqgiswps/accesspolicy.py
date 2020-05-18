@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import List, Union
 from itertools import chain
 
-from pyqgiswps.config import get_config
+from pyqgiswps.config import confservice
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -59,7 +59,7 @@ class DefaultPolicy:
         """ Load policy file
         """
         if not isinstance(filepath,Path):
-            filepath = Path(filepath or get_config('processing')['accesspolicy'])
+            filepath = Path(filepath or confservice.get('processing','accesspolicy'))
         if not filepath.exists():
             return
 

@@ -15,7 +15,7 @@ from collections import namedtuple
 from enum import IntEnum
 
 from pyqgiswps.utils.decorators import singleton
-from pyqgiswps import config
+from pyqgiswps.config import confservice
 
 
 LOGGER = logging.getLogger('SRVLOG')
@@ -208,9 +208,9 @@ class LogStore:
             see https://redis-py.readthedocs.io/en/latest/ for redis options
         """
         LOGGER.debug("LOGSTORE: Initializing REDIS session")
-        cfg = config.get_config('logstorage:redis')
+        cfg = confservice['logstorage:redis']
         self._config  = cfg
-        self._prefix  = cfg.get('prefix','pyggiswps')
+        self._prefix  = cfg.get('prefix',fallback='pyggiswps')
         self._hstatus = "%s:status"  % self._prefix
 
         if use_fakeredis:
@@ -218,7 +218,7 @@ class LogStore:
             self._db  = fakeredis.FakeStrictRedis()
         else:
             self._db  = redis.StrictRedis(
-                host = cfg.get('host','localhost'),
+                host = cfg.get('host',fallback='localhost'),
                 port = cfg.getint('port' , fallback=6379),
                 db   = cfg.getint('dbnum', fallback=0))
 
