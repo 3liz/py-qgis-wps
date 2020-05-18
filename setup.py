@@ -3,24 +3,16 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-from setuptools import setup, find_namespace_packages, Extension
+from setuptools import setup, find_namespace_packages
 
 
 def parse_requirements( filename ):
     with open( filename ) as fp:
         return list(filter(None, (r.strip('\n ').partition('#')[0] for r in fp.readlines())))
 
-
-def load_source(name, path):
-    from importlib.util import spec_from_file_location, module_from_spec
-    spec = spec_from_file_location(name, path)
-    mod  = module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
 kwargs = {}
 
-VERSION = load_source("version", 'pyqgiswps/version.py').__version__
+VERSION = "1.3.4"
 DESCRIPTION = ('Qgis-wps is an implementation of the Web Processing Service '
                'standard from the Open Geospatial Consortium. qgis-wps is '
                'written in Python and is a fork of PyWPS 4.0.')
@@ -46,6 +38,8 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3',
         'Topic :: Scientific/Engineering :: GIS'
     ],

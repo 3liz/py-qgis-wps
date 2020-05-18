@@ -6,7 +6,8 @@
 BUILDID=$(shell date +"%Y%m%d%H%M")
 COMMITID=$(shell git rev-parse --short HEAD)
 
-DIST=docker/dist
+BUILDDIR:=build
+DIST:=${BUILDDIR}/dist
 
 MANIFEST=pyqgiswps/build.manifest
 

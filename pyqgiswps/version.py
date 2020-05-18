@@ -7,8 +7,22 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-__version_info__ = (1, 3, 3)
-__version__ = "{0}.{1}.{2}".format(*__version_info__)
-__description__="WPS server"
+def read_manifest() -> None:
+    from pkg_resources import resource_stream
+
+    # Read build manifest
+    manifest = { 'commitid':'n/a', 'buildid':'n/a', 'version':'n/a' }
+    try:
+      manifest.update(l.decode().strip().split('=')[:2] for l in resource_stream('pyqgiswps',
+                                                        'build.manifest').readlines())
+    except Exception as e:
+      print("Failed to read manifest !: %s " % e, file=sys.stderr)
+
+    return manifest
+
+__manifest__ = read_manifest()
+
+__version__    = __manifest__['version'] 
+__description__="QGIS/Processing WPS server"
 
 
