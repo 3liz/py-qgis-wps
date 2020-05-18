@@ -22,6 +22,8 @@ PYPISERVER_SCHEME ?= https
 PIP_OPTIONS="--extra-index-url=$(PYPISERVER_SCHEME)://$(PYPISERVER) --trusted-host=$(PYPISERVER) --pre"
 DOCKERFILE=-f Dockerfile.pypi
 BUILD_ARGS=--build-arg PIP_OPTIONS=$(PIP_OPTIONS)
+else
+BUILD_PACKAGE=build_package
 endif
 
 BUILD_ARGS += --build-arg BUILD_VERSION=$(BUILD_VERSION)
@@ -40,9 +42,13 @@ all:
 
 build: _build manifest
 
-_build:
+_build: $(BUILD_PACKAGE)
 	docker build --rm --force-rm --no-cache $(DOCKER_BUILD_ARGS) \
 		$(BUILD_ARGS) -t $(BUILDIMAGE) $(DOCKERFILE) .
+
+build_package:
+	rm -rf dist && mkdir -p dist
+	$(MAKE) -C .. dist DIST=$$PWD/dist
 
 manifest:
 	{ \
