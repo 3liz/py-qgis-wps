@@ -8,32 +8,30 @@ from pyqgiswps.utils.contexts import chdir
 from pyqgiswps import WPS, OWS
 from pyqgiswps.owsutils.ows import BoundingBox
 from pyqgiswps.inout import (LiteralInput, 
-                        ComplexInput,
-                        BoundingBoxInput, 
-                        LiteralOutput, 
-                        ComplexOutput,
-                        BoundingBoxOutput)
+                             ComplexInput,
+                             BoundingBoxInput, 
+                             LiteralOutput, 
+                             ComplexOutput,
+                             BoundingBoxOutput)
 
 from pyqgiswps.inout.formats import FORMATS, Format
 
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 from pyqgiswps.executors.processingio import(
             parse_literal_input,
-            parse_layer_input,
             parse_extent_input,
             parse_input_definition,
             parse_literal_output,
-            parse_layer_output,
             parse_output_definition,
             parse_point_input,
-            parse_file_input,
             input_to_processing,
             input_to_point,
             processing_to_output,
             input_to_extent,
-            input_to_file,
             _is_optional,
         ) 
+
+from pyqgiswps.executors.io import filesio
 
 from pyqgiswps.executors.processingprocess import(
         handle_algorithm_results,
@@ -280,7 +278,7 @@ def test_file_input( outputdir ):
     context = QgsProcessingContext()
     context.workdir = outputdir.strpath
 
-    value = input_to_file( inp, param, context)
+    value = filesio.get_processing_value( param, [inp], context)
 
     outputpath = (Path(context.workdir)/param.name()).with_suffix(param.extension())
     assert value == outputpath.name
