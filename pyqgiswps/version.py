@@ -7,6 +7,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+import sys
+
 def read_manifest() -> None:
     from pkg_resources import resource_stream
 
