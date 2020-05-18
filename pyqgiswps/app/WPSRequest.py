@@ -28,7 +28,7 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                               VersionNegotiationFailed,
                               InvalidParameterValue, 
                               FileSizeExceeded)
-from pyqgiswps import config
+from pyqgiswps.config import confservice
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.inout.literaltypes import AnyValue, NoValue, ValuesReference, AllowedValue
 
@@ -59,7 +59,7 @@ class WPSRequest:
         self.map_uri = None
         self.host_url = None
 
-        cfg = config.get_config('server')
+        cfg = confservice['server']
 
         self.timeout    = cfg.getint('response_timeout')
         self.expiration = cfg.getint('response_expiration')

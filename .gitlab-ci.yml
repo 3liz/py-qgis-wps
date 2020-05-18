@@ -19,11 +19,8 @@ tests:
     - infrav3
   only:
     refs:
+      - tags
       - master 
-  artifacts:
-    reports:
-        junit: tests/unittests/__output__/junit.xml
-
 
 #---------------
 # Build

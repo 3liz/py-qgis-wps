@@ -13,7 +13,7 @@ import logging
 import traceback
 from contextlib import contextmanager
 
-from .config import get_config
+from .config import confservice
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -42,7 +42,7 @@ def setup_log_handler(log_level:str=None):
     formatstr = FORMATSTR
 #   formatstr = '%(asctime)s] [%(levelname)s] file=%(pathname)s line=%(lineno)s module=%(module)s function=%(funcName)s %(message)s'
 
-    log_level = log_level or get_config('logging').get('level','debug')
+    log_level = log_level or confservice.get('logging','level', fallback='debug')
     logger.setLevel(getattr(logging, log_level.upper()))
     channel = logging.StreamHandler(sys.stderr)
     formatter = logging.Formatter(formatstr)
@@ -54,7 +54,7 @@ def setup_log_handler(log_level:str=None):
 def logfile_context( workdir:str, basename:str ):
     """ Add a temporary file handler
     """
-    logfile    = os.path.join(workdir, "%s.log" % basename)
+    logfile   = os.path.join(workdir, "%s.log" % basename)
     channel   = logging.FileHandler(logfile)
     formatter = logging.Formatter(FORMATSTR)
     channel.setFormatter(formatter)

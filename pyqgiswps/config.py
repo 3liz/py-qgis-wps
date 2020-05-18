@@ -36,21 +36,6 @@ def _log( *args ):
     print( *args, file=sys.stderr, flush=True)
 
 
-def get_config(section=None):
-    """ Return the configuration section
-    """
-    if CONFIG is None:
-        load_configuration()
-
-    return CONFIG[section] if section else CONFIG
-    
-
-def set_config(section, name, value):
-    """ Set configuration value
-    """
-    CONFIG.set(section, name , value)
-
-
 def load_configuration():
     """Load PyWPS configuration from configuration file.
 
@@ -165,6 +150,12 @@ def load_configuration():
     CONFIG.set('qgis.settings.folders', 'Processing/Configuration/SCRIPTS_FOLDERS', '${processing:providers_module_path}/scripts')
     CONFIG.set('qgis.settings.folders', 'Processing/Configuration/MODELS_FOLDER'  , '${processing:providers_module_path}/models')
 
+    # Qgis settings
+    #
+    # Add other Qgis settings
+    #
+    CONFIG.add_section('qgis.settings')
+
     #
     # Metadata
     #
@@ -211,7 +202,7 @@ def config_to_dict():
 def validate_config_path(confname, confid, optional=False):
     """ Validate directory path
     """
-    confvalue = get_config(confname).get(confid,'')
+    confvalue = CONFIG.get(confname,confid,fallback='')
 
     if not confvalue and optional:
         return
@@ -294,6 +285,9 @@ class ConfigService:
     getint     = functools.partialmethod(__get_impl,CONFIG.getint)
     getboolean = functools.partialmethod(__get_impl,CONFIG.getboolean)
     getfloat   = functools.partialmethod(__get_impl,CONFIG.getfloat)
+
+    def items( self, section: str ):
+        return CONFIG.items(section)
 
     def __getitem__(self, section):
         return CONFIG[section]
