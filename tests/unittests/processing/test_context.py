@@ -26,8 +26,7 @@ from pyqgiswps.executors.processingio import(
         )
 
 from pyqgiswps.executors.processingprocess import(
-            handle_algorithm_results,
-            handle_layer_outputs,
+            run_algorithm,
             write_outputs,
             _find_algorithm,
         )
@@ -80,12 +79,9 @@ def test_context(outputdir, data):
 
     # Run algorithm
     with chdir(outputdir.strpath):
-        results = Processing.runAlgorithm(alg, parameters=parameters, onFinish=handle_algorithm_results,
-                                          feedback=feedback, context=context)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context)
 
     assert context.destination_project.count() == 1
-
-    handle_layer_outputs(results, context)
     assert results['OUTPUT'] == parameters['OUTPUT'].destinationName
 
     output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=alg.name())

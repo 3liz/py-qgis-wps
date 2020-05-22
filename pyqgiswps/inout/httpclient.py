@@ -34,7 +34,7 @@ def openurl( url: str, filename: os.PathLike, max_bytes: int=0, **kwargs ) -> No
     try:
         with open(filename,'wb') as fh:
 
-            def _callback( chunk: bytes) -> None:
+            def _callback( chunk: bytes ) -> None:
                 num_bytes += len(chunk)
                 if num_bytes > max_bytes:
                     raise FileSizeExceeded('File size for input exceeded for ref %s', url)

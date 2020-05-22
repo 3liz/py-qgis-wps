@@ -45,6 +45,7 @@ from pyqgiswps.app.Process import WPSProcess
 from pyqgiswps.app.WPSResponse import WPSResponse
 from pyqgiswps.app.WPSRequest  import WPSRequest
 from pyqgiswps.exceptions import ProcessException
+from pyqgiswps.config import confservice
 
 from processing.core.Processing import (Processing,
                                         ProcessingConfig,
@@ -52,7 +53,7 @@ from processing.core.Processing import (Processing,
 
 from .processingcontext import ProcessingContext, MapContext
 
-from pyqgiswps.config import confservice
+from .io import layersio
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -100,7 +101,7 @@ def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcess
     """
 
     '''If running a model, the execution will arrive here when an algorithm that is part of
-    that model is executed. We check if its output is a final otuput of the model, and
+    that model is executed. We check if its output is a final output of the model, and
     adapt the output name accordingly'''
     outputName = details.outputName
     if parameters:
@@ -125,6 +126,7 @@ def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcess
         # in workdir then use it
         style = os.path.join(context.workdir, outputName + '.qml')
         if not os.path.exists(style):
+            # Fallback to defined rendering styles
             style = RenderingStyles.getStyle(alg.id(), outputName)
         LOGGER.debug("Getting style for %s: %s <%s>", alg.id(), outputName, style)
 
@@ -147,15 +149,17 @@ def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcess
     LOGGER.debug("Layer name set to %s <details name: %s>", layer.name(), details.name)
 
 
-def handle_algorithm_results(alg: QgsProcessingAlgorithm, 
-                             context: QgsProcessingContext, 
-                             feedback: QgsProcessingFeedback,
-                             parameters = {},
-                             **kwargs) -> bool:
-    """ Handle algorithms result layeri
+def handle_layer_outputs(alg: QgsProcessingAlgorithm, 
+                         context: QgsProcessingContext, 
+                         feedback: QgsProcessingFeedback,
+                         parameters, results) -> bool:
+    """ Handle algorithms result layers
 
         Insert result layers into destination project
     """
+    # Add output to destination projects
+    layersio.handle_output_layers(alg, context, parameters, results)
+
     wrongLayers = []
     for l, details in context.layersToLoadOnCompletion().items():
         if feedback.isCanceled():
@@ -164,14 +168,23 @@ def handle_algorithm_results(alg: QgsProcessingAlgorithm,
             # Take as layer
             layer = QgsProcessingUtils.mapLayerFromString(l, context, typeHint=details.layerTypeHint)
             if layer is not None:
-                # Set layer name to details name
-                # This is because we enforce destination name beeing
-                # the name from the parameter
-                # see processing.io for how is handled layer destination naming
-                layer.setName(details.name)
-                LOGGER.debug("Layer name set to %s <details name: %s>", layer.name(), details.name)
-                
+                # Fix layer name
+                # If details name is empty it well be set to the file name 
+                # see https://qgis.org/api/qgsprocessingcontext_8cpp_source.html#l00128
+                # XXX Make sure that Processing/Configuration/PREFER_FILENAME_AS_LAYER_NAME 
+                # setting is set to false (see processfactory.py:129)
+                details.setOutputLayerName(layer)
+                LOGGER.debug("Layer name set to %s <details name was: %s>", layer.name(), details.name)
+                # If project is not defined, set the default destination
+                # project
+                if not details.project and hasattr(context, 'destination_project'):
+                    details.project = context.destination_project
+
                 _set_output_layer_style(l, layer, alg, details, context, parameters)            
+
+                # Replace output values by the layer name
+                if details.outputName in results:
+                    results[details.outputName] = layer.name()
 
                 # Add layer to destination project
                 LOGGER.debug("Adding Map layer '%s' (outputName %s) to Qgs Project", l, details.outputName )
@@ -233,14 +246,6 @@ class Feedback(QgsProcessingFeedback):
         LOGGER.debug("%s:%s %s",self.name, self.uuid, info)
 
 
-def handle_layer_outputs(results: Mapping[str,Any], context: QgsProcessingContext ) -> None:
-    """ Replace output values by the layer names
-    """
-    for l, details in context.layersToLoadOnCompletion().items():
-        if details.outputName in results:
-            results[details.outputName] = details.name
-
-
 def write_outputs( alg: QgsProcessingAlgorithm, results: Mapping[str,Any], outputs: Mapping[str, WPSOutput], 
                    output_uri: str=None,  context: QgsProcessingContext=None ) -> None:
     """ Set wps outputs and write project
@@ -252,6 +257,36 @@ def write_outputs( alg: QgsProcessingAlgorithm, results: Mapping[str,Any], outpu
 
     if context is not None:
         context.write_result(context.workdir, alg.name())
+
+
+def onFinishHandler(alg: QgsProcessingAlgorithm,
+                    context: QgsProcessingContext,
+                    feedback: QgsProcessingFeedback,
+                    parameters = {},
+                    **kwargs):
+    """ This is a dummy function 
+        Results will be handler after run()
+    """
+    return True
+
+
+
+def run_algorithm( alg: QgsProcessingAlgorithm, parameters, 
+                   feedback: QgsProcessingFeedback,
+                   context: QgsProcessingContext ):
+
+    # XXX Warning, a new instance of the algorithm without create_context will be created at the 'run' call
+    # see https://qgis.org/api/qgsprocessingalgorithm_8cpp_source.html#l00434
+    # We can deal with that because we will have a QgsProcessingContext and we should not 
+    # rely on the create_context at this time.
+    results = Processing.runAlgorithm(alg, parameters=parameters, onFinish=onFinishHandler,
+                                      feedback=feedback, context=context)
+    #
+    # Handle results, we do not use onFinish callback because
+    # we want to deal with the results
+    #
+    handle_layer_outputs(alg, context, feedback,  parameters, results)
+    return results
 
 
 class QgsProcess(WPSProcess):
@@ -325,18 +360,11 @@ class QgsProcess(WPSProcess):
         parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in request.inputs.items() )
 
         try:
-            # XXX Warning, a new instance of the algorithm without create_context will be created at the 'run' call
-            # see https://qgis.org/api/qgsprocessingalgorithm_8cpp_source.html#l00414
-            # We can deal with that because we will have a QgsProcessingContext and we should not 
-            # rely on the create_context at this time.
-            results = Processing.runAlgorithm(alg, parameters=parameters, onFinish=handle_algorithm_results,
-                                              feedback=feedback, context=context)
+            results = run_algorithm(alg, parameters, feedback=feedback, context=context)
         except QgsProcessingException as e:
             raise ProcessException("%s" % e)
 
         LOGGER.info("Task finished %s:%s", request.identifier, uuid_str )
-
-        handle_layer_outputs(results, context)
 
         # Get WMS output uri
         output_uri = confservice.get('server','wms_response_uri').format(

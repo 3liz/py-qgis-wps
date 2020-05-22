@@ -21,6 +21,7 @@ from pyqgiswps.inout import basic, httpclient
 from copy import deepcopy
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.inout.literaltypes import AnyValue
+from pyqgiswps.inout.httpclient import openurl
 
 from typing import Union
 
@@ -148,7 +149,7 @@ class ComplexInput(basic.ComplexInput):
         self.method = ''
         self.max_size = int(0)
 
-    def download_ref(self, filename: os.PathLike ) -> None: 
+    def download_ref( self, filename: os.PathLike ) -> None: 
         """ Download reference/data as filename
         """
         if self.source_type is basic.SOURCE_TYPE.FILE:

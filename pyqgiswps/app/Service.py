@@ -487,27 +487,3 @@ class Service():
         return outinputs
 
 
-def _openurl(inpt):
-    """use urllib to open given href
-    """
-    data = None
-    reference_file = None
-    href = inpt.get('href')
-
-    LOGGER.debug('Fetching URL %s', href)
-    if inpt.get('method') == 'POST':
-        if 'body' in inpt:
-            data = inpt.get('body')
-        elif 'bodyreference' in inpt:
-            data = urlopen(url=inpt.get('bodyreference')).read()
-
-        reference_file = urlopen(url=href, data=data)
-    else:
-        reference_file = urlopen(url=href)
-
-    reference_file_data = reference_file.read().decode('utf-8')
-
-    return (reference_file, reference_file_data)
-
-
-

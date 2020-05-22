@@ -87,6 +87,30 @@ Example for returning status for one given process from its uuid:
 http://localhost:8080/ows/status/<uuid>?SERVICE=WPS
 ```
 
+# Running QGIS processing.
+
+## WPS input/output layer mapping
+
+With Qgis desktop , Qgis processing algorithms usually apply on a Qgis  source project and computed layers are displayed in the same context as the source project. 
+
+Py-qgis-wps works the same way: a qgis project will be used as a source of input layers. 
+The difference is that, when an algorithm runs, it creates a qgis project file associated to the current task and register computed layers to it.  
+
+The created project may be used as OWS source with Qgis Server. Output layers are returned as complex objects
+holding a reference to a WMS/WFS uri that can be used directly with Qgis server. The uri template is configurable 
+using the `server/wms_response_uri` configuration setting.
+
+## Contextualized input parameters
+
+Tasks parameters are contextualized using the `MAP` query param. If a `MAP` parameters is given when
+doinc a `DescripProcess` requests, allowed values for input layers will be taken from the qgis source project
+according the type of the input layers.  
+
+The best practice is to always provide a `MAP` parameters and include the possible input layer in a qgs project. This way you
+may connect whatever data source supported by qgis and use them as input data in a safe way.
+
+If you need to pass data to your algorithm from client-side, prefer inputs file parameter and small payloads.
+
 
 # Dependencies
 

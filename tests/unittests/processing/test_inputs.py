@@ -32,13 +32,7 @@ from pyqgiswps.executors.processingio import(
         ) 
 
 from pyqgiswps.executors.io import filesio
-
-from pyqgiswps.executors.processingprocess import(
-        handle_algorithm_results,
-        handle_layer_outputs,
-        write_outputs,
-        _find_algorithm)
-
+from pyqgiswps.executors.processingprocess import _find_algorithm
 
 from qgis.core import QgsApplication
 from qgis.core import (QgsProcessing,
@@ -156,7 +150,6 @@ def test_source_types_metadata():
              QgsProcessing.TypeVectorPoint])
 
     inp = parse_input_definition(param)
-    assert isinstance(inp, LiteralInput)
     assert get_metadata(inp,'processing:dataTypes')[0].href == 'TypeVectorLine,TypeVectorPoint'
  
 
