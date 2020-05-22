@@ -32,11 +32,6 @@ build:
   environment:
     name: snap
   only:
-    changes:
-      - pyqgiswps/**/* 
-      - "setup.*"
-      - requirements.txt
-      - MANIFEST.in
     refs:
       - master
   tags:
