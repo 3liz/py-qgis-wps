@@ -17,10 +17,6 @@ tests:
     - make docker-test FLAVOR=3.4
   tags:
     - infrav3
-  only:
-    refs:
-      - tags
-      - master 
 
 #---------------
 # Build
@@ -38,14 +34,10 @@ build:
       - "setup.*"
       - requirements.txt
       - MANIFEST.in
-    refs:
-      - master
   tags:
     - infrav3
   except:
     - schedules
     - triggers
 
-# Docker build 
-include: '/docker/.gitlab-ci.yml'
 
