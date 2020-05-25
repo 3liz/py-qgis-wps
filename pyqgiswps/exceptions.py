@@ -44,7 +44,7 @@ class NoApplicableCode(HTTPException):
     code = 400
     locator = ""
 
-    def __init__(self, description, locator="", code=400, log_message=None, *args, **kwargs):
+    def __init__(self, description="", locator="", code=400, log_message=None, *args, **kwargs):
         self.code = code
         self.description = description
         self.locator = locator

@@ -17,7 +17,7 @@ from io import StringIO, FileIO, BytesIO
 from enum import Enum
 
 import os
-import tempfile
+import logging
 from pyqgiswps.inout.literaltypes import (LITERAL_DATA_TYPES, convert,
                                       make_allowedvalues, is_anyvalue)
 from pyqgiswps import OWS, OGCUNIT, NAMESPACES
@@ -30,6 +30,8 @@ from pyqgiswps.exceptions import InvalidParameterValue
 import base64
 from collections import namedtuple
 
+
+LOGGER = logging.getLogger('SRVLOG')
 
 class SOURCE_TYPE(Enum):
     FILE = 1
@@ -292,13 +294,16 @@ class BasicComplex:
                                         'mimeType')
 
     def _is_supported(self, data_format):
-
+        """ Always return True if 
+            no supported formats are defined
+        """
         if self.supported_formats:
             for frmt in self.supported_formats:
                 if frmt.same_as(data_format):
                     return True
+            return False
 
-        return False
+        return True
 
 
 class BasicBoundingBox:

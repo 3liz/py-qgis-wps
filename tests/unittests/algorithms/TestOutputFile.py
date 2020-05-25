@@ -1,15 +1,11 @@
 """ Test file destination parsing
 """
 
-from qgis.core import (QgsProcessingParameterNumber,
-                       QgsProcessingParameterString,
-                       QgsProcessingOutputNumber,
-                       QgsProcessingOutputString,
-                       QgsProcessingParameterFileDestination,
+from qgis.core import (QgsProcessingOutputFile,
                        QgsProcessingAlgorithm)
 
 
-class TestFileDestination(QgsProcessingAlgorithm):
+class TestOutputFile(QgsProcessingAlgorithm):
 
     OUTPUT = 'OUTPUT'
 
@@ -17,10 +13,10 @@ class TestFileDestination(QgsProcessingAlgorithm):
         super().__init__()
 
     def name(self):
-        return 'testfiledestination'
+        return 'testoutputfile'
 
     def displayName(self):
-        return 'Test input file destination'
+        return 'Test output file'
 
     def createInstance(self, config={}):
         """ Virtual override 
@@ -34,17 +30,13 @@ class TestFileDestination(QgsProcessingAlgorithm):
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        param = QgsProcessingParameterFileDestination(self.OUTPUT,
-            'JSON file',
-            'JSON Files (*.json)'
-        )
-        param.setMetadata({ 'wps:as_reference': True })
-
-        self.addParameter(param)
+        self.addOutput(QgsProcessingOutputFile(self.OUTPUT,
+            'JSON output file',
+        ))
 
     def processAlgorithm(self, parameters, context, feedback):
         
-        value = parameters[self.OUTPUT]
+        value = 'output.json'
 
         # Create the output file
         with open(value,'w') as fp:

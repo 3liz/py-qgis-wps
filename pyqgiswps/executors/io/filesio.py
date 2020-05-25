@@ -106,6 +106,9 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput
         if value != inp[0].data:
             LOGGER.warning("Value for file or folder destination '%s' has been truncated from '%s' to '%s'",
                     param.name(), inp[0].data, value )
+        if typ == 'fileDestination':
+            value = Path(value).with_suffix('.'+param.defaultFileExtension()).as_posix()
+            
     elif typ == 'file':
         # Handle file reference
         outputfile = (Path(context.workdir)/param.name()).with_suffix(param.extension())
@@ -143,7 +146,7 @@ def parse_output_definition( outdef: QgsProcessingOutputDefinition, kwargs,
     as_reference = confservice.getboolean('server','outputfile_as_reference')
     if isinstance(outdef, QgsProcessingOutputHtml):
         mime = mimetypes.types_map.get('.html')
-        return ComplexOutput(supported_formats=[Format(mime)],**kwargs)
+        return ComplexOutput(supported_formats=[Format(mime)], as_reference=as_reference, **kwargs)
     elif isinstance(outdef, QgsProcessingOutputFile):
         # Try to get a corresponding inputFileDefinition
         # See https://qgis.org/pyqgis/master/core/QgsProcessingParameterFileDestination.html
@@ -155,8 +158,9 @@ def parse_output_definition( outdef: QgsProcessingOutputDefinition, kwargs,
                 as_reference = inputdef.metadata().get('wps:as_reference',as_reference)
         if mime is None:
             LOGGER.warning("Cannot set file type for output %s", outdef.name())
-            mime = "application/octet-stream"
-        return ComplexOutput(supported_formats=[Format(mime)], as_reference=as_reference, **kwargs)
+        else:
+            kwargs['supported_formats'] = [Format(mime)]
+        return ComplexOutput(as_reference=as_reference, **kwargs)
 
 
 def to_output_file( file_name: str, out: ComplexOutput, context: ProcessingContext ) -> ComplexOutput:
@@ -179,9 +183,9 @@ def parse_response( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSO
     elif isinstance(outdef, QgsProcessingOutputFile):
         _, sfx = os.path.splitext(value)
         mime = mimetypes.types_map.get(sfx.lower())
+        LOGGER.debug("Return output file '%s' with mime type '%s'", value, mime)
         if mime is None:
-            LOGGER.warning("Cannot get file type for output %s: %s", outdef.name(), value)
-            mime = "application/octet-stream"    
-        out.output_format = mime
+            mime = "application/octet-stream"
+        out.data_format = Format(mime)
         return to_output_file( value, out, context)
 

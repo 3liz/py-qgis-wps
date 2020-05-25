@@ -20,6 +20,7 @@ from .TestMapContext import TestMapContext
 from .TestLongProcess import TestLongProcess
 from .TestInputFile import TestInputFile
 from .TestOutputVectorLayer import TestOutputVectorLayer
+from .TestOutputFile import TestOutputFile
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -43,6 +44,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestLongProcess(),
                  TestInputFile(),
                  TestOutputVectorLayer(),
+                 TestOutputFile(),
             ]
         except:
             traceback.print_exc()

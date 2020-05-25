@@ -195,7 +195,7 @@ def test_file_destination():
     context  = QgsProcessingContext()
     parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
-    assert parameters['OUTPUT'] == 'file'
+    assert parameters['OUTPUT'] == 'file.json'
 
 
 def test_file_output_mimetypes():
@@ -212,10 +212,10 @@ def test_file_output_mimetypes():
     assert isinstance(output, ComplexOutput)
     assert output.as_reference
     assert output.url == "store:file.png"
-    assert output.output_format == 'image/png'
+    assert output.data_format.mime_type == 'image/png'
 
     output = processing_to_output('binaryfile', outdef, out, output_uri=None, context=context) 
-    assert output.output_format == 'application/octet-stream'
+    assert output.data_format.mime_type == 'application/octet-stream'
 
 
 def test_input_title():
