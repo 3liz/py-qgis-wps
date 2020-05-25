@@ -2,13 +2,6 @@
 variables:
     FACTORY_MANIFEST: "docker/factory.manifest"
 
-.only_changes: &changes_def
-  changes:
-   - pyqgiswps/**/*
-   - docker/**/*
-   - "setup.*"
-   - "requirements.txt"
-
 #-------------
 # Build
 #-------------
@@ -23,7 +16,6 @@ variables:
     paths:
       - "docker/factory.manifest"
   only:
-    <<: *changes_def
     refs:
       - tags
       - master
@@ -56,7 +48,6 @@ deploy:snap:
   environment:
     name: snap
   only:
-    <<: *changes_def
     refs:
       - tags
       - master
@@ -78,6 +69,7 @@ deploy:snap:
   only:
     refs:
       - tags
+      - master
   tags:
     - infrav3
 
