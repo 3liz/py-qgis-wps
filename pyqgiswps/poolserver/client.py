@@ -94,17 +94,23 @@ class _Client:
                     self._put_worker(worker_id)
                     continue
 
-                msgid, (success, response) = (rest[0],pickle.loads(rest[1]))
-                LOGGER.debug("Receveid %s, success %s", msgid, success)
+                msgid = rest[0]
                 # Get if there is a future pending for that message
-                try:
-                    handler = self._handlers.pop(msgid)
+                handler = self._handlers.pop(msgid,None)
+                if handler is not None:
+                    try:
+                        success, response = pickle.loads(rest[1])
+                    except Exception as exc:
+                        LOGGER.error(traceback.format_exc())
+                        handler.set_exception(exc)
+                        continue
+                    LOGGER.debug("Receveid %s, success %s", msgid, success)
                     if not success:
                         response = RequestBackendError(response)
                         handler.set_exception(response)
                     else:
                         handler.set_result(response)
-                except KeyError:
+                else:
                     LOGGER.warning("No pending future found for message %s", msgid)
             except zmq.ZMQError as err:
                 LOGGER.error("zmq error: %s (%s)", zmq.strerror(err.errno),err.errno)
@@ -112,8 +118,7 @@ class _Client:
                 LOGGER.debug("polling stopped")
                 cancelled = True
             except:
-                LOGGER.error("polling error")
-                traceback.print_exc()                
+                LOGGER.error("Polling error\n%s", traceback.format_exc())
 
 
     def close(self):
