@@ -11,8 +11,7 @@ def parse_requirements( filename ):
         return list(filter(None, (r.strip('\n ').partition('#')[0] for r in fp.readlines())))
 
 kwargs = {}
-
-VERSION = "1.4.1"
+VERSION = "1.5.0"
 DESCRIPTION = ('Py-Qgis-WPS is an implementation of the Web Processing Service '
                'standard from the Open Geospatial Consortium. qgis-wps is '
                'written in Python and is a fork of PyWPS 4.0.')

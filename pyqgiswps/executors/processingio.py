@@ -70,7 +70,7 @@ from .processingcontext import MapContext, ProcessingContext
 
 from typing import Mapping, Any, TypeVar, Union, Tuple, Generator
 
-from .io import filesio, layersio
+from .io import filesio, layersio, datetimeio
 
 WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
 WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
@@ -207,9 +207,10 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsPro
         kwargs['min_occurs'] = 0
 
     inp = parse_literal_input(param,kwargs) \
-            or layersio.parse_input_definition(param,kwargs, context) \
+            or layersio.parse_input_definition(param,kwargs,context) \
             or parse_extent_input(param, kwargs) \
             or filesio.parse_input_definition(param, kwargs) \
+            or datetimeio.parse_input_definition(param, kwargs) \
             or parse_point_input(param, kwargs)
     if inp is None:
         raise ProcessingInputTypeNotSupported("%s:'%s'" %(type(param),param.type()))
@@ -375,6 +376,7 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
 
     value = layersio.get_processing_value(param, inp, context) or \
             filesio.get_processing_value(param, inp, context)  or \
+            datetimeio.get_processing_value(param, inp, context) or \
             get_processing_value(param, inp, context)
             
     return param.name(), value

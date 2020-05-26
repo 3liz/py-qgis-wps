@@ -41,7 +41,7 @@ clean:
 	rm -rf $(DIST)
 
 
-FLAVOR:=ltr
+FLAVOR:=release
 
 # Run tests with docker-test
 docker-%:
