@@ -21,8 +21,8 @@ from urllib.parse import urlparse, urlencode, parse_qs
 from functools import partial
 
 from .processingio import (ProcessingTypeParseError,
-                           parse_input_definition,
-                           parse_output_definition,
+                           parse_input_definitions,
+                           parse_output_definitions,
                            input_to_processing,
                            processing_to_output)
 
@@ -307,18 +307,11 @@ class QgsProcess(WPSProcess):
 
         alg = _find_algorithm( algorithm ) if isinstance(algorithm, str) else algorithm
 
-        def _parse( parser, alg, defs ):
-            for param in defs:
-                try:
-                    yield parser(param, alg, context=context)
-                except ProcessingTypeParseError as e:
-                    LOGGER.error("%s: unsupported param %s",alg.id(),e)
-
         # Create input/output
-        inputs  = list(_parse(parse_input_definition, alg, alg.parameterDefinitions()))
-        outputs = list(_parse(parse_output_definition, alg, alg.outputDefinitions()))
+        inputs  = list(parse_input_definitions( alg, context=context ))
+        outputs = list(parse_output_definitions( alg, context=context ))
 
-        version = alg.version() if hasattr(alg,'versions') else _generic_version
+        version = alg.version() if hasattr(alg,'version') else _generic_version
 
         handler = partial(QgsProcess._handler, create_context=self._create_context)
 

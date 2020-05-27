@@ -68,7 +68,7 @@ from qgis.core import (QgsProcessing,
 
 from .processingcontext import MapContext, ProcessingContext
 
-from typing import Mapping, Any, TypeVar, Union, Tuple
+from typing import Mapping, Any, TypeVar, Union, Tuple, Generator
 
 from .io import filesio, layersio
 
@@ -89,6 +89,10 @@ class ProcessingOutputTypeNotSupported(ProcessingTypeParseError):
 
 def _is_optional( param: QgsProcessingParameterDefinition ) -> bool:
     return (int(param.flags()) & QgsProcessingParameterDefinition.FlagOptional) !=0
+
+def _is_hidden( param: QgsProcessingParameterDefinition ) -> bool:
+    return (int(param.flags()) & QgsProcessingParameterDefinition.FlagHidden) !=0
+
 
 # ==================
 # Inputs converters
@@ -211,6 +215,19 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsPro
     return inp
 
 
+def parse_input_definitions( alg: QgsProcessingAlgorithm, context: MapContext  ) -> Generator[WPSInput,None,None]:
+    """ Parse algorithm inputs definitions 
+    """
+    for param in alg.parameterDefinitions():
+        try:
+            if not _is_hidden(param):
+                yield parse_input_definition(param, alg, context=context)
+            else:
+                LOGGER.info("%s: dropping hidden param: %s", alg.id(),param.name())
+        except ProcessingTypeParseError as e:
+            LOGGER.error("%s: unsupported param %s",alg.id(),e)
+
+
 # ==================
 # Output converters
 # ==================
@@ -250,6 +267,17 @@ def parse_output_definition( outdef: QgsProcessingOutputDefinition, alg: QgsProc
         raise ProcessingOutputTypeNotSupported(outdef.type())
 
     return output
+
+
+def parse_output_definitions( alg: QgsProcessingAlgorithm, context: MapContext  ) -> Generator[WPSOutput,None,None]:
+    """ Parse algorithm inputs definitions 
+    """
+    for param in alg.outputDefinitions():
+        try:
+            yield parse_output_definition(param, alg, context=context)
+        except ProcessingTypeParseError as e:
+            LOGGER.error("%s: unsupported output param %s",alg.id(),e)
+
 
 
 # ==================================================
