@@ -92,16 +92,19 @@ class QgsProcessFactory:
 
         # Install processes from processing providers
         from pyqgiswps.executors.processingprocess import QgsProcess
-        from qgis.core import QgsApplication
+        from qgis.core import QgsApplication,QgsProcessingAlgorithm
 
         processingRegistry = QgsApplication.processingRegistry()
         processes = {}
 
         iface = self._wps_interface
 
+        # Do not publish hidden algorithm from toolbox
+        _is_hidden = lambda a: (int(a.flags()) & QgsProcessingAlgorithm.FlagHideFromToolbox) !=0
+
         for provider in iface.providers:
             LOGGER.debug("Loading processing algorithms from provider '%s'", provider.id())
-            processes.update({ alg.id():QgsProcess( alg ) for alg in provider.algorithms()})
+            processes.update({ alg.id():QgsProcess( alg ) for alg in provider.algorithms() if not _is_hidden(alg) })
 
         if processes:
             LOGGER.info("Published processes:\n * %s", "\n * ".join(sorted(processes.keys())))
