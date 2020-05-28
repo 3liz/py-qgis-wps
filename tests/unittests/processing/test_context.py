@@ -27,7 +27,6 @@ from pyqgiswps.executors.processingio import(
 
 from pyqgiswps.executors.processingprocess import(
             run_algorithm,
-            write_outputs,
             _find_algorithm,
         )
 
@@ -77,17 +76,15 @@ def test_context(outputdir, data):
 
     assert isinstance( parameters['OUTPUT'], QgsProcessingOutputLayerDefinition)
 
+    output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=alg.name())
     # Run algorithm
     with chdir(outputdir.strpath):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)
 
     assert context.destination_project.count() == 1
-    assert results['OUTPUT'] == parameters['OUTPUT'].destinationName
 
-    output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=alg.name())
-
-    write_outputs( alg, results, outputs, output_uri, context )
-    assert outputs
+    # Save destination project
+    context.write_result(context.workdir, alg.name())
 
     assert context.destination_project.fileName() == outputdir.join(alg.name()+'.qgs').strpath
 

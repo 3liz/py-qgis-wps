@@ -174,7 +174,7 @@ def to_output_file( file_name: str, out: ComplexOutput, context: ProcessingConte
 
 
 def parse_response( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOutput, 
-                    output_uri: str, context: ProcessingContext ) -> None:
+                    output_uri: str, context: ProcessingContext ) -> WPSOutput:
     """ Map processing output to WPS
     """
     if isinstance(outdef, QgsProcessingOutputHtml):

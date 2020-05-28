@@ -24,7 +24,6 @@ from pyqgiswps.executors.processingio import(
 
 from pyqgiswps.executors.processingprocess import(
             run_algorithm,
-            write_outputs,
             _find_algorithm)
 
 from qgis.core import QgsApplication
@@ -96,14 +95,11 @@ def test_simple_algorithms():
     assert parameters['PARAM2'] == 'stuff'
 
     # Run algorithm
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context)   
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri="")   
 
     assert results['OUTPUT'] == "1 stuff"
-
-    write_outputs( alg, results, outputs )
-
     assert outputs['OUTPUT'].data == "1 stuff"
-
+    
 
 def test_option_algorithms():
     """ Execute a simple choice  algorithm
@@ -123,12 +119,9 @@ def test_option_algorithms():
     assert parameters['INPUT'] == 0
 
     # Run algorithm
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context)   
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri="")   
     
     assert results['OUTPUT'] == 'selection is 0'
-
-    write_outputs( alg, results, outputs )
-
     assert outputs['OUTPUT'].data == "selection is 0"
 
 
@@ -153,12 +146,9 @@ def test_option_multi_algorithms():
     assert parameters['INPUT'] == [0,2]
 
     # Run algorithm
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context)   
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri="")   
 
     assert results['OUTPUT'] == 'selection is 0,2'
-
-    write_outputs( alg, results, outputs )
-
     assert outputs['OUTPUT'].data == "selection is 0,2"
 
 
@@ -187,18 +177,14 @@ def test_layer_algorithm(outputdir, data):
 
     assert isinstance( parameters['OUTPUT'], QgsProcessingOutputLayerDefinition)
 
-    # Run algorithm
-    with chdir(outputdir.strpath):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context)   
-    
-    assert context.destination_project.count() == 1
-    assert results['OUTPUT'] == parameters['OUTPUT'].destinationName
-
     output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=alg.name())
 
-    write_outputs( alg, results, outputs, output_uri, context )
-    assert outputs 
-
+    # Run algorithm
+    with chdir(outputdir.strpath):
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)   
+   
+    destination_name = parameters['OUTPUT'].destinationName
+    assert context.destination_project.count() == 1
 
 def test_buffer_algorithm(outputdir, data):
     """ Test simple layer output 
@@ -227,28 +213,26 @@ def test_buffer_algorithm(outputdir, data):
     assert isinstance( parameters['OUTPUT_VECTOR'], QgsProcessingOutputLayerDefinition)
     assert isinstance( parameters['DISTANCE'], float)
 
+    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
     # Run algorithm
     with chdir(outputdir.strpath):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context)   
-    
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)   
+   
+    destination_name = parameters['OUTPUT_VECTOR'].destinationName
+
     assert context.destination_project.count() == 1
-    assert results['OUTPUT_VECTOR'] == parameters['OUTPUT_VECTOR'].destinationName
-
-    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
-
-    write_outputs( alg, results, outputs, output_uri, context )
 
     out = outputs.get('OUTPUT_VECTOR')
-    assert out.output_format == "application/x-ogc-wms"
+    assert out.data_format.mime_type == "application/x-ogc-wms"
 
     query = parse_qs(urlparse(out.url).query)
-    assert query['layer'][0] == parameters['OUTPUT_VECTOR'].destinationName
+    assert query['layers'][0] == destination_name
 
     # Get the layer 
     srclayer = QgsProcessingUtils.mapLayerFromString('france_parts', context)
     assert srclayer is not None
 
-    layers  = context.destination_project.mapLayersByName(results['OUTPUT_VECTOR'])
+    layers  = context.destination_project.mapLayersByName(destination_name)
     assert len(layers) == 1
     assert layers[0].featureCount() == srclayer.featureCount()
 
@@ -278,26 +262,26 @@ def test_output_vector_algorithm(outputdir, data):
 
     assert isinstance( parameters['DISTANCE'], float)
 
+    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
     # Run algorithm
     with chdir(outputdir.strpath):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context)   
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,outputs=outputs, output_uri=output_uri)   
     
     assert context.destination_project.count() == 1
 
-    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
-    write_outputs( alg, results, outputs, output_uri, context )
-
     out = outputs.get('OUTPUT')
-    assert out.output_format == "application/x-ogc-wms"
+    assert out.data_format.mime_type == "application/x-ogc-wms"
 
+    output_name = 'my_output_vector'
+    
     query = parse_qs(urlparse(out.url).query)
-    assert query['layer'][0] == 'my_output_vector'
+    assert query['layers'][0] == output_name
 
     # Get the layer 
     srclayer = QgsProcessingUtils.mapLayerFromString('france_parts', context)
     assert srclayer is not None
 
-    layers  = context.destination_project.mapLayersByName(results['OUTPUT'])
+    layers  = context.destination_project.mapLayersByName(output_name)
     assert len(layers) == 1
     assert layers[0].name() == 'my_output_vector'
     assert layers[0].featureCount() == srclayer.featureCount()
@@ -331,25 +315,23 @@ def test_selectfeatures_algorithm(outputdir, data):
     assert isinstance( parameters['OUTPUT_VECTOR'], QgsProcessingOutputLayerDefinition)
     assert isinstance( parameters['DISTANCE'], float)
 
+    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
     # Run algorithm
     with chdir(outputdir.strpath):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context)   
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)   
     
     assert context.destination_project.count() == 1
-    assert results['OUTPUT_VECTOR'] == parameters['OUTPUT_VECTOR'].destinationName
-
-    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
-
-    write_outputs( alg, results, outputs, output_uri, context )
 
     out = outputs.get('OUTPUT_VECTOR')
-    assert out.output_format == "application/x-ogc-wms"
+    assert out.data_format.mime_type == "application/x-ogc-wms"
+
+    destination_name = parameters['OUTPUT_VECTOR'].destinationName
 
     query = parse_qs(urlparse(out.url).query)
-    assert query['layer'][0] == parameters['OUTPUT_VECTOR'].destinationName
+    assert query['layers'][0] == destination_name
 
     # Get the layer 
-    layers = context.destination_project.mapLayersByName(results['OUTPUT_VECTOR'])
+    layers = context.destination_project.mapLayersByName(destination_name)
     assert len(layers) == 1
     assert layers[0].featureCount() == 2
 

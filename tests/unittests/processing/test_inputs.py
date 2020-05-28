@@ -2,6 +2,7 @@
 """
 import os
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs, urlencode
 
 from pyqgiswps.utils.contexts import chdir 
 
@@ -34,6 +35,8 @@ from pyqgiswps.executors.processingio import(
 from pyqgiswps.executors.io import filesio
 from pyqgiswps.executors.processingprocess import _find_algorithm
 
+from pyqgiswps.utils.qgis import version_info as qgis_version_info
+
 from qgis.core import QgsApplication
 from qgis.core import (QgsProcessing,
                        QgsProcessingParameterDefinition,
@@ -44,6 +47,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingOutputFile,
                        QgsProcessingOutputRasterLayer,
                        QgsProcessingOutputVectorLayer,
+                       QgsProcessingOutputMultipleLayers,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink,
                        QgsProcessingParameterVectorDestination,
@@ -317,5 +321,36 @@ def test_point_input_json():
 
     value = input_to_point( inp )
     assert isinstance( value, (QgsGeometry, QgsReferencedPointXY))
+
+
+def test_output_multiple_layers(outputdir, data):
+    """ Test QgsProcessingOutputMultipleLayers
+    """
+    outdef = QgsProcessingOutputMultipleLayers("LAYERS")
+
+    # Load source project
+    layer1 = data.join('france_parts/france_parts.shp').strpath
+    layer2 = data.join('raster_layer.tiff').strpath
+
+    context = QgsProcessingContext()
+
+    output_uri='test:multilayer?service=WMS'
+
+    outp = parse_output_definition(outdef)
+    output = processing_to_output([layer1,layer2], outdef, outp, output_uri,
+                                  context=context)
+
+    assert isinstance(output, ComplexOutput)
+    assert output.as_reference
+    assert output.data_format.mime_type == 'application/x-ogc-wms'
+
+    query = parse_qs(urlparse(output.url).query)
+    assert query['layers'][0] == 'france_parts,raster_layer'
+
+
+
+
+
+
 
 

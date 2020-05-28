@@ -24,6 +24,8 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingOutputLayerDefinition,
                        QgsProcessingOutputRasterLayer,
                        QgsProcessingOutputVectorLayer,
+                       QgsProcessingOutputMapLayer,
+                       QgsProcessingOutputMultipleLayers,
                        QgsProcessingParameterLimitedDataTypes,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink,
@@ -62,8 +64,10 @@ DESTINATION_LAYER_TYPES = (QgsProcessingParameterFeatureSink,
                            QgsProcessingParameterVectorDestination,
                            QgsProcessingParameterRasterDestination)
 
-OUTPUT_LITERAL_TYPES = ("string","number","enum","number")
-OUTPUT_LAYER_TYPES = ( QgsProcessingOutputVectorLayer, QgsProcessingOutputRasterLayer )
+OUTPUT_LAYER_TYPES = ( QgsProcessingOutputVectorLayer, 
+                       QgsProcessingOutputRasterLayer,
+                       QgsProcessingOutputMapLayer,
+                       QgsProcessingOutputMultipleLayers)
 
 INPUT_VECTOR_LAYER_TYPES = (QgsProcessingParameterVectorLayer, QgsProcessingParameterFeatureSource)
 INPUT_RASTER_LAYER_TYPES = (QgsProcessingParameterRasterLayer,)
@@ -302,60 +306,106 @@ def parse_output_definition( outdef: QgsProcessingOutputDefinition, kwargs ) -> 
         A layer output is merged to a qgis project, we return
         the wms uri associated to the project
     """
-    if isinstance(outdef, OUTPUT_LAYER_TYPES ):
-        if isinstance(outdef, QgsProcessingOutputVectorLayer):
-            return ComplexOutput(supported_formats=[
-                        Format("application/x-ogc-wms"),
-                        Format("application/x-ogc-wfs")
-                    ], as_reference=True, **kwargs)
-        elif isinstance(outdef, QgsProcessingOutputRasterLayer):
-            return ComplexOutput(supported_formats=[
-                        Format("application/x-ogc-wms"),
-                        Format("application/x-ogc-wcs")
-                    ], as_reference=True, **kwargs)
-        else:
-            return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")], 
-                                 as_reference=True, **kwargs)
+    if isinstance(outdef, QgsProcessingOutputVectorLayer):
+        return ComplexOutput(supported_formats=[
+                    Format("application/x-ogc-wms"),
+                    Format("application/x-ogc-wfs")
+                ], as_reference=True, **kwargs)
+    elif isinstance(outdef, QgsProcessingOutputRasterLayer):
+        return ComplexOutput(supported_formats=[
+                    Format("application/x-ogc-wms"),
+                    Format("application/x-ogc-wcs")
+                ], as_reference=True, **kwargs)
+    elif isinstance(outdef, (QgsProcessingOutputMapLayer, QgsProcessingOutputMultipleLayers)):
+        return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")], 
+                             as_reference=True, **kwargs)
+         
 
+def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefinition,
+                                     context: ProcessingContext ) -> None:
+    """ Add layer to load on completion
+
+        The layer will be added to the destination project
+    """
+
+    multilayers = isinstance(outdef, QgsProcessingOutputMultipleLayers)
+    outputName  = outdef.name()    
+
+    if not multilayers and context.willLoadLayerOnCompletion( value ):
+        # Do not add the layer twice: may be already added
+        # an layer destination parameter
+        details = context.layerToLoadOnCompletionDetails( value )
+        if details.name:
+            return (details.name,)
+        else:
+            try:
+                layer = QgsProcessingUtils.mapLayerFromString(value, context, typeHint=details.layerTypeHint)
+                if layer is not None:
+                    details.setOutputLayerName(layer)
+                    LOGGER.debug("Layer name for '%s' set to '%s'", outputName, layer.name())
+                    return (layer.name(),)
+            except Exception:
+                LOGGER.error("Processing: Error loading result layer {}:\n{}".format(l,traceback.format_exc()))
+        return ()
+
+    if isinstance(outdef, QgsProcessingOutputVectorLayer):
+        layerTypeHint = QgsProcessingUtils.LayerHint.Vector
+    elif isinstance(outdef, QgsProcessingOutputRasterLayer):
+        layerTypeHint = QgsProcessingUtils.LayerHint.Raster
+    else:
+        layerTypeHint = QgsProcessingUtils.LayerHint.UnknownType
+
+    if hasattr(context, 'destination_project'):
+        destination_project = context.destination_project
+    else:
+        destination_project = None
+
+    def add_layer_details( l ):
+
+        # Set empty name as we are calling setOutputLayerName
+        details = QgsProcessingContext.LayerDetails("",
+                        destination_project,
+                        outputName,
+                        layerTypeHint)
+        try:
+            layer = QgsProcessingUtils.mapLayerFromString(l, context, typeHint=details.layerTypeHint)
+            if layer is not None:
+                # Fix layer name
+                # If details name is empty it well be set to the file name 
+                # see https://qgis.org/api/qgsprocessingcontext_8cpp_source.html#l00128
+                # XXX Make sure that Processing/Configuration/PREFER_FILENAME_AS_LAYER_NAME 
+                # setting is set to false (see processfactory.py:129)
+                details.setOutputLayerName(layer)
+                LOGGER.debug("Layer name for '%s' set to '%s'", outputName, layer.name())
+                context.addLayerToLoadOnCompletion(l,details)
+                return layer.name()
+            else:
+               LOGGER.warning("No layer found for %s", l)
+        except Exception:
+            LOGGER.error("Processing: Error loading result layer {}:\n{}".format(l,traceback.format_exc()))
+
+        return ()
+
+    if multilayers:
+        return tuple(name for name in (add_layer_details(l) for l in value) if name is not None)
+    else:
+        return (add_layer_details(value),)
+    
 
 def parse_response( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOutput, 
-                    output_uri: str, context: ProcessingContext ) -> None:
+                    output_uri: str, context: QgsProcessingContext ) -> WPSOutput:
     """ Process processing response to WPS output 
     """
-    if isinstance(outdef, OUTPUT_LAYER_TYPES):
-       out.output_format = "application/x-ogc-wms"
-       out.url = output_uri + '&' + urlencode((('layer',value),))
-       return out
+    if not isinstance(outdef, OUTPUT_LAYER_TYPES):
+       return
 
+    out.data_format = Format("application/x-ogc-wms")
 
-def handle_output_layers( alg: QgsProcessingAlgorithm, context: ProcessingContext,
-                          parameters, results):
-    """ Add layers to load on completion
-    """
-    # Make sure that layer is not a destination layer
-    for outdef in alg.outputDefinitions():
-        if not isinstance(outdef, OUTPUT_LAYER_TYPES):
-            continue
+    result = add_layer_to_load_on_completion( value, outdef, context )
+    if result:
+        result = ','.join(result)
+        out.url = output_uri + '&' + urlencode((('layers',result),))
+    else:
+        out.url = output_uri
 
-        # Drop destination parameters
-        outputName = outdef.name()
-        if outputName in parameters:
-            continue
-
-        if isinstance(outdef, QgsProcessingOutputVectorLayer):
-            layerTypeHint = QgsProcessingUtils.LayerHint.Vector
-        elif isinstance(outdef, QgsProcessingOutputRasterLayer):
-            layerTypeHint = QgsProcessingUtils.LayerHint.Raster
-        else:
-            layerTypeHint = QgsProcessingUtils.LayerHint.UnknownType
-
-        # Set empty name as we let the post processing set
-        # the appropriate name
-        value = results[outputName]
-        context.addLayerToLoadOnCompletion(value, 
-            QgsProcessingContext.LayerDetails(
-                "",
-                context.destination_project,
-                outputName,
-                layerTypeHint))
 

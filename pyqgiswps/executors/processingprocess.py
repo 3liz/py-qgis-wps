@@ -151,19 +151,14 @@ def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcess
 
 def handle_layer_outputs(alg: QgsProcessingAlgorithm, 
                          context: QgsProcessingContext, 
-                         feedback: QgsProcessingFeedback,
                          parameters, results) -> bool:
     """ Handle algorithms result layers
 
         Insert result layers into destination project
     """
-    # Add output to destination projects
-    layersio.handle_output_layers(alg, context, parameters, results)
-
+    # Transfer layers ownership to destination project
     wrongLayers = []
     for l, details in context.layersToLoadOnCompletion().items():
-        if feedback.isCanceled():
-            return False
         try:
             # Take as layer
             layer = QgsProcessingUtils.mapLayerFromString(l, context, typeHint=details.layerTypeHint)
@@ -180,15 +175,13 @@ def handle_layer_outputs(alg: QgsProcessingAlgorithm,
                 if not details.project and hasattr(context, 'destination_project'):
                     details.project = context.destination_project
 
+                # Seek style for layer
                 _set_output_layer_style(l, layer, alg, details, context, parameters)            
 
-                # Replace output values by the layer name
-                if details.outputName in results:
-                    results[details.outputName] = layer.name()
-
                 # Add layer to destination project
-                LOGGER.debug("Adding Map layer '%s' (outputName %s) to Qgs Project", l, details.outputName )
-                details.project.addMapLayer(context.temporaryLayerStore().takeMapLayer(layer))
+                if details.project:
+                    LOGGER.debug("Adding Map layer '%s' (outputName %s) to Qgs Project", l, details.outputName )
+                    details.project.addMapLayer(context.temporaryLayerStore().takeMapLayer(layer))
 
                 # Handle post processing
                 if details.postProcessor():
@@ -203,7 +196,7 @@ def handle_layer_outputs(alg: QgsProcessingAlgorithm,
         msg = "The following layers were not correctly generated:"
         msg += "\n".join("%s" % lay for lay in wrongLayers)
         msg += "You can check the log messages to find more information about the execution of the algorithm"
-        feedback.reportError(msg)
+        LOGGER.error(msg)
 
     return len(wrongLayers) == 0
 
@@ -246,19 +239,6 @@ class Feedback(QgsProcessingFeedback):
         LOGGER.debug("%s:%s %s",self.name, self.uuid, info)
 
 
-def write_outputs( alg: QgsProcessingAlgorithm, results: Mapping[str,Any], outputs: Mapping[str, WPSOutput], 
-                   output_uri: str=None,  context: QgsProcessingContext=None ) -> None:
-    """ Set wps outputs and write project
-    """
-    for outdef in alg.outputDefinitions():
-        out = outputs.get(outdef.name())
-        if out:
-            processing_to_output(results[outdef.name()], outdef, out, output_uri, context)
-
-    if context is not None:
-        context.write_result(context.workdir, alg.name())
-
-
 def onFinishHandler(alg: QgsProcessingAlgorithm,
                     context: QgsProcessingContext,
                     feedback: QgsProcessingFeedback,
@@ -267,13 +247,17 @@ def onFinishHandler(alg: QgsProcessingAlgorithm,
     """ This is a dummy function 
         Results will be handler after run()
     """
-    return True
+    if feedback.isCanceled():
+        return False
 
+    return True
 
 
 def run_algorithm( alg: QgsProcessingAlgorithm, parameters, 
                    feedback: QgsProcessingFeedback,
-                   context: QgsProcessingContext ):
+                   context: QgsProcessingContext,
+                   outputs: Mapping[str, WPSOutput],
+                   output_uri:str):
 
     # XXX Warning, a new instance of the algorithm without create_context will be created at the 'run' call
     # see https://qgis.org/api/qgsprocessingalgorithm_8cpp_source.html#l00434
@@ -281,11 +265,17 @@ def run_algorithm( alg: QgsProcessingAlgorithm, parameters,
     # rely on the create_context at this time.
     results = Processing.runAlgorithm(alg, parameters=parameters, onFinish=onFinishHandler,
                                       feedback=feedback, context=context)
+
+    for outdef in alg.outputDefinitions():
+        out = outputs.get(outdef.name())
+        if out:
+            processing_to_output(results[outdef.name()], outdef, out, output_uri, context)
     #
     # Handle results, we do not use onFinish callback because
     # we want to deal with the results
     #
-    handle_layer_outputs(alg, context, feedback,  parameters, results)
+    handle_layer_outputs(alg, context, parameters, results)
+
     return results
 
 
@@ -342,6 +332,12 @@ class QgsProcess(WPSProcess):
 
         alg = QgsApplication.processingRegistry().createAlgorithmById(request.identifier, create_context)
 
+        # Get WMS output uri
+        output_uri = confservice.get('server','wms_response_uri').format(
+                            host_url=request.host_url,
+                            uuid=response.uuid,
+                            name=alg.name())
+
         workdir  = response.process.workdir
         context  = ProcessingContext(workdir, map_uri=request.map_uri)
         feedback = Feedback(response, alg.id(), uuid_str=uuid_str)
@@ -352,21 +348,18 @@ class QgsProcess(WPSProcess):
         # Convert parameters from WPS inputs
         parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in request.inputs.items() )
 
+        context.store_url = response.store_url
+
         try:
-            results = run_algorithm(alg, parameters, feedback=feedback, context=context)
+            results = run_algorithm(alg, parameters, feedback=feedback, context=context, 
+                                    outputs=response.outputs,
+                                    output_uri=output_uri)
         except QgsProcessingException as e:
             raise ProcessException("%s" % e)
 
+        context.write_result(context.workdir, alg.name())
+
         LOGGER.info("Task finished %s:%s", request.identifier, uuid_str )
-
-        # Get WMS output uri
-        output_uri = confservice.get('server','wms_response_uri').format(
-                            host_url=request.host_url,
-                            uuid=response.uuid,
-                            name=alg.name())
-
-        context.store_url = response.store_url
-        write_outputs( alg, results, response.outputs, output_uri, context)
 
         return response
 
