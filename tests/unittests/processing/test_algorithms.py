@@ -4,6 +4,8 @@ import os
 from urllib.parse import urlparse, parse_qs, urlencode
 
 from pyqgiswps.utils.contexts import chdir 
+from pyqgiswps.utils.filecache import get_valid_filename
+
 from pyqgiswps.inout import (LiteralInput, 
                         ComplexInput,
                         BoundingBoxInput, 
@@ -175,9 +177,11 @@ def test_layer_algorithm(outputdir, data):
 
     parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
 
+    destination = get_valid_filename(alg.id())
+
     assert isinstance( parameters['OUTPUT'], QgsProcessingOutputLayerDefinition)
 
-    output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=alg.name())
+    output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=destination)
 
     # Run algorithm
     with chdir(outputdir.strpath):

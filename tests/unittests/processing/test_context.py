@@ -6,6 +6,7 @@ from urllib.parse import urlparse, parse_qs, urlencode
 #setup_qgis_paths()
 
 from pyqgiswps.utils.contexts import chdir
+from pyqgiswps.utils.filecache import get_valid_filename
 
 from pyqgiswps.inout import (LiteralInput,
                         ComplexInput,
@@ -76,7 +77,9 @@ def test_context(outputdir, data):
 
     assert isinstance( parameters['OUTPUT'], QgsProcessingOutputLayerDefinition)
 
-    output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=alg.name())
+    destination = get_valid_filename(alg.id())
+
+    output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=destination)
     # Run algorithm
     with chdir(outputdir.strpath):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)
@@ -84,9 +87,10 @@ def test_context(outputdir, data):
     assert context.destination_project.count() == 1
 
     # Save destination project
-    context.write_result(context.workdir, alg.name())
+    ok = context.write_result(context.workdir, destination)
 
-    assert context.destination_project.fileName() == outputdir.join(alg.name()+'.qgs').strpath
+    assert ok
+    assert context.destination_project.fileName() == outputdir.join(destination+'.qgs').strpath
 
     # WFS configuration inserted
     WFSLayers = context.destination_project.readListEntry('WFSLayers', '/')[0]

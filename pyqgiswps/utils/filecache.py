@@ -10,11 +10,22 @@
 """
 
 import os.path
+import re
 
 from collections import namedtuple
 from .lru import lrucache
 
 CacheDetails=namedtuple("CacheDetails",('value','timestamp'))
+
+
+def get_valid_filename(s: str) -> str:
+    """ Return a valid filename from input str
+    
+        Removes all characters which are not letters, not numbers (0-9), not the underscore ('_'), not the dash ('-'), and not the period ('.'). 
+    """
+    s = str(s).strip().replace(' ', '_')
+    return re.sub(r'(?u)[^-\w.]', '_', s)    
+
 
 class FileCache():
     def __init__(self, size, store):

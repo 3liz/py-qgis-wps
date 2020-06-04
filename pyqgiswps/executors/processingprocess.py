@@ -36,16 +36,20 @@ from qgis.core import (Qgis,
                        QgsProcessingFeedback,
                        QgsProcessingContext,
                        QgsProcessingAlgorithm,
+                       QgsProcessingModelAlgorithm,
                        QgsProcessingUtils,
                        QgsFeatureRequest,
                        QgsExpressionContext,
-                       QgsExpressionContextScope)
+                       QgsExpressionContextScope,
+                       QgsProcessingOutputLayerDefinition)
 
 from pyqgiswps.app.Process import WPSProcess
 from pyqgiswps.app.WPSResponse import WPSResponse
 from pyqgiswps.app.WPSRequest  import WPSRequest
 from pyqgiswps.exceptions import ProcessException
 from pyqgiswps.config import confservice
+
+from pyqgiswps.utils.filecache import get_valid_filename
 
 from processing.core.Processing import (Processing,
                                         ProcessingConfig,
@@ -92,7 +96,7 @@ _generic_version="1.0generic"
 #---------------------------------
 
 def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcessingAlgorithm, 
-                             details: 'QgsProcessingContext::LayerDetails',
+                             details: QgsProcessingContext.LayerDetails,
                              context: QgsProcessingContext,
                              parameters) -> None:
     """ Set layer style 
@@ -120,6 +124,7 @@ def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcess
                 outputName = out.name()
                 break
 
+
     style = None
     if outputName:
         # If a style with the same name as the outputName exists
@@ -144,9 +149,6 @@ def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcess
     if style:
         LOGGER.debug("Adding style '%s' to layer %s (outputName %s)", style, details.name, outputName)
         layer.loadNamedStyle(style)
-
-
-    LOGGER.debug("Layer name set to %s <details name: %s>", layer.name(), details.name)
 
 
 def handle_layer_outputs(alg: QgsProcessingAlgorithm, 
@@ -259,6 +261,11 @@ def run_algorithm( alg: QgsProcessingAlgorithm, parameters,
                    outputs: Mapping[str, WPSOutput],
                    output_uri:str):
 
+    # XXX Fix destination names for models
+    # Collect destination names for destination parameters for restoring
+    # them later
+    destinations = { p:v.destinationName for p,v in parameters.items() if isinstance(v,QgsProcessingOutputLayerDefinition) }
+
     # XXX Warning, a new instance of the algorithm without create_context will be created at the 'run' call
     # see https://qgis.org/api/qgsprocessingalgorithm_8cpp_source.html#l00434
     # We can deal with that because we will have a QgsProcessingContext and we should not 
@@ -267,9 +274,18 @@ def run_algorithm( alg: QgsProcessingAlgorithm, parameters,
                                       feedback=feedback, context=context)
 
     for outdef in alg.outputDefinitions():
-        out = outputs.get(outdef.name())
+        outputName = outdef.name()
+        out = outputs.get(outputName)
         if out:
-            processing_to_output(results[outdef.name()], outdef, out, output_uri, context)
+            value = results[outputName]
+            #
+            # Replace the Load On Completion Details name by the original input so
+            # that we ensure that layer names will be correct - This is needed
+            # for models as they enforce destination name to the output name
+            #
+            if outputName in destinations and context.willLoadLayerOnCompletion( value ):
+                context.layerToLoadOnCompletionDetails( value ).name = destinations[outputName]
+            processing_to_output(value, outdef, out, output_uri, context)
     #
     # Handle results, we do not use onFinish callback because
     # we want to deal with the results
@@ -333,10 +349,12 @@ class QgsProcess(WPSProcess):
         alg = QgsApplication.processingRegistry().createAlgorithmById(request.identifier, create_context)
 
         # Get WMS output uri
+        destination = get_valid_filename(alg.id())
+
         output_uri = confservice.get('server','wms_response_uri').format(
                             host_url=request.host_url,
                             uuid=response.uuid,
-                            name=alg.name())
+                            name=destination)
 
         workdir  = response.process.workdir
         context  = ProcessingContext(workdir, map_uri=request.map_uri)
@@ -357,7 +375,9 @@ class QgsProcess(WPSProcess):
         except QgsProcessingException as e:
             raise ProcessException("%s" % e)
 
-        context.write_result(context.workdir, alg.name())
+        ok = context.write_result(context.workdir, destination)
+        if not ok:
+            raise ProcessException("Failed to write %s" % destination)
 
         LOGGER.info("Task finished %s:%s", request.identifier, uuid_str )
 

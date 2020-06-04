@@ -52,6 +52,8 @@ from pyqgiswps.inout import (LiteralInput,
                              ComplexOutput,
                              BoundingBoxOutput)
 
+from pyqgiswps.utils.filecache import get_valid_filename
+
 from typing import Mapping, Any, TypeVar, Union, Tuple
 
 WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
@@ -275,9 +277,13 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput
         # Enforce pushing created layers to layersToLoadOnCompletion list
         # i.e layer will be stored in the destination project
         #
-        sink = "./%s.%s" % (param.name(), param.defaultFileExtension())
+        # Canonize the output_name
+         
+        # Use canonical file name
+        sink = "./%s.%s" % (get_valid_filename(param.name()), param.defaultFileExtension())
         value = QgsProcessingOutputLayerDefinition(sink, context.destination_project)
         value.destinationName = inp[0].data
+        LOGGER.debug("Handling destination layer: %s, details name: %s", param.name(), value.destinationName)
 
     elif isinstance(param, QgsProcessingParameterFeatureSource):
         #
@@ -319,7 +325,7 @@ def parse_output_definition( outdef: QgsProcessingOutputDefinition, kwargs ) -> 
     elif isinstance(outdef, (QgsProcessingOutputMapLayer, QgsProcessingOutputMultipleLayers)):
         return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")], 
                              as_reference=True, **kwargs)
-         
+
 
 def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefinition,
                                      context: ProcessingContext ) -> None:
@@ -336,6 +342,7 @@ def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefi
         # an layer destination parameter
         details = context.layerToLoadOnCompletionDetails( value )
         if details.name:
+            LOGGER.debug("Skipping already added layer for %s (details name: %s)", outputName, details.name)
             return (details.name,)
         else:
             try:

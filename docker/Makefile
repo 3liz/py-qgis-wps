@@ -88,8 +88,21 @@ clean:
 	docker rmi $(BUILDIMAGE)
 
 export BECOME_USER=$(shell id -u):$(shell id -g)
+export SRCDIR:=$(shell realpath ..)
+export RUNDIR:=$(SRCDIR)/tests/unittests
 
-run: stop
+env:
+	@@{\
+		echo "Creating environment file for docker-compose";\
+		echo "BECOME_USER=${BECOME_USER}" > .env;\
+		echo "SRCDIR=${SRCDIR}" >> .env;\
+		echo "RUNDIR=${RUNDIR}" >> .env;\
+	}
+
+
+run: stop env
+	@echo "NOTE: Pour redémarrer un service, considérez plutôt:"
+	@echo "  > docker-compose restart <service>"
 	docker-compose up
 
 stop:

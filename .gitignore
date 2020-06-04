@@ -45,4 +45,7 @@ factory.manifest
 # Qgis files
 
 qgis.db
+.env
+
+*.aux.xml
 
