@@ -103,27 +103,7 @@ def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcess
 
         Original code is from python/plugins/processing/gui/Postprocessing.py
     """
-
-    '''If running a model, the execution will arrive here when an algorithm that is part of
-    that model is executed. We check if its output is a final output of the model, and
-    adapt the output name accordingly'''
     outputName = details.outputName
-    if parameters:
-        expcontext = QgsExpressionContext()
-        scope = QgsExpressionContextScope()
-        expcontext.appendScope(scope)
-        for out in alg.outputDefinitions():
-            if out.name() not in parameters:
-                continue
-            outValue = parameters[out.name()]
-            if hasattr(outValue, "sink"):
-                outValue = outValue.sink.valueAsString(expcontext)[0]
-            else:
-                outValue = str(outValue)
-            if outValue == layerName:
-                outputName = out.name()
-                break
-
 
     style = None
     if outputName:
