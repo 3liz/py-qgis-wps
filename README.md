@@ -5,8 +5,9 @@ standard from the Open Geospatial Consortium based on the QGIS Processing API.
 
 This implementation allows you to expose and run on a server:
 * QGIS Processing algorithms available on Desktop
-* QGIS Processing models
+* QGIS Processing models and scripts
 * QGIS plugins having a Processing provider according to their `metadata.txt`file
+
 
 It's is written in Python and is a fork of [PyWPS](https://pywps.org/).
 
@@ -14,6 +15,7 @@ Requirements and limitations:
 
 - Python 3.5+ only
 - Windows not officially supported
+- Redis server 
 
 Any WPS client work with this implementation. For instance QGIS Processing algorithms are available
 in a web interface using [Lizmap WPS module](https://github.com/3liz/lizmap-wps-web-client-module).
@@ -27,9 +29,9 @@ Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following:
   with `storeExecuteResponse=true`
 * Use multiprocessing Pool to handle task queue instead instantiating a new process each time.
 * Uniform Logging with the 'logging' module
-* Serve response status
+* Serve response statu
+* Use Redis for asynchronous status storage.
 * Support python3 asyncio (and thus drop python2 supports)
-* Support alternative 'Log' module like Redis which is more suited for scalability.
 * Support streamed/chunked requests 
 * Add extensions to WPS: TIMEOUT and EXPIRE
 * Drop MS Windows specifics
@@ -105,6 +107,8 @@ using the `server/wms_response_uri` configuration setting.
 Tasks parameters are contextualized using the `MAP` query param. If a `MAP` parameters is given when
 doinc a `DescripProcess` requests, allowed values for input layers will be taken from the qgis source project
 according the type of the input layers.  
+
+Qgis project (.qgs) files and project stored in Postgres databases are both supported.
 
 The best practice is to always provide a `MAP` parameters and include the possible input layer in a qgs project. This way you
 may connect whatever data source supported by qgis and use them as input data in a safe way.
@@ -197,7 +201,7 @@ be retourned as WMS urls. This configuration variable set the base url for acces
 
 - QGSWPS\_LOGLEVEL: the log level, should be `INFO` in production mode, `DEBUG` for debug output. 
 
-### REDIS logstorage configuration
+### REDIS storage configuration
 
 - QGSWPS\_REDIS\_HOST: The redis host
 - QGSWPS\_REDIS\_PORT: The redis port. Default to 6379
@@ -206,19 +210,15 @@ be retourned as WMS urls. This configuration variable set the base url for acces
 
 ### Qgis project Cache configuration
 
-- QGSWPS\_CACHE\_ROOTDIR: Absolute path to the qgis projects root directory, projects referenges with the MAP parameter will be searched at this location
+- QGSWPS\_CACHE\_ROOTDIR: Absolute path to the qgis projects root directory, projects referenced with the MAP parameter will be searched at this location
 
 ### Processing configuration
 
-- QGSWPS\_PROCESSING\_EXPOSED\_PROVIDERS: List of qgis internal providers for publishing algorithms (comma separated), default to `model,script`.
 - QGSWPS\_PROCESSSING\_PROVIDERS\_MODULE\_PATH: Path to look for processing algoritms provider to publish, algorithms from providers specified heres will be runnable as WPS processes.
 
 # Exposing algorithms as WPS services
 
-*IMPORTANT CHANGES* 
-
-
-Since 1.1 , the `__algorithms__.py` method for declaring providers is no longer supported.
+Note that since 1.1 , the `__algorithms__.py` method for declaring providers is no longer supported.
 
 Processing providers following the same rules as  Qgis regular plugin with a special factory entrypoint: `WPSClassFactory(iface)` in the `__init__.py` file.
 
@@ -247,4 +247,9 @@ def WPSClassFactory(iface: WPSServerInterface) -> Any:
 
 ``` 
 
+## Controlling what is exposed:
+
+Processing algorithm with the flag [FlagHideFromToolbox](https://qgis.org/pyqgis/3.0/core/Processing/QgsProcessingAlgorithm.html#qgis.core.QgsProcessingAlgorithm.FlagHideFromToolbox) set will not be exposed as WPS process.  
+
+Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden) set wont be exposed in a `DescribeProcess` request.
 
