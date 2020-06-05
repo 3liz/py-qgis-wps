@@ -184,6 +184,12 @@ def read_config_dict( userdict ):
     CONFIG.read_dict( userdict )
 
 
+def write_config( fh ):
+    """ Dump configuration to file
+    """
+    CONFIG.write(fh)
+
+
 def read_config_file( cfgfile ):
     """ Read configuration from file
     """

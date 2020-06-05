@@ -34,3 +34,11 @@ class RootHandler(BaseHandler):
                         config=config_to_dict())
 
         self.write_json(response)
+
+    def head(self):
+        from qgis.core import Qgis
+        QGIS_VERSION="{} ({})".format(Qgis.QGIS_VERSION_INT,Qgis.QGIS_RELEASE_NAME)
+        
+        self.set_header("X-Qgis-version", QGIS_VERSION)
+    
+

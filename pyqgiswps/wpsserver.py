@@ -48,8 +48,9 @@ def read_configuration(args=None):
     cli_parser.add_argument('-p','--port'    , type=int, help="http port", dest='port', default=8080)
     cli_parser.add_argument('-b','--bind'    , metavar='IP',  default='0.0.0.0', help="Interface to bind to", dest='interface')
     cli_parser.add_argument('-u','--setuid'  , default=None, help="uid to switch to", dest='setuid')
-    cli_parser.add_argument('-w','--workers' , metavar='NUM', type=int, default=argparse.SUPPRESS, 
+    cli_parser.add_argument('-w','--workers' , metavar='NUM', type=int, default=argparse.SUPPRESS,
             help="number of parallel processes", dest='parallelprocesses')
+    cli_parser.add_argument('--dump-config'  , action='store_true', help="Dump the configuration and exit")
 
     args = cli_parser.parse_args()
 
@@ -69,6 +70,11 @@ def read_configuration(args=None):
     if args.debug:
         # Force debug mode
         confservice.set('logging', 'level', 'DEBUG')
+
+    if args.dump_config:
+       from .config import write_config
+       write_config(sys.stdout)
+       sys.exit(0)
 
     # set log level
     setup_log_handler()

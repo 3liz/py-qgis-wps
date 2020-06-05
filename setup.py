@@ -48,7 +48,8 @@ setup(
                                               'pyqgisservercontrib.*']),
     include_package_data = True,
     entry_points={
-        'console_scripts': ['wpsserver = pyqgiswps.wpsserver:main'],
+        'console_scripts': ['wpsserver = pyqgiswps.wpsserver:main',
+                            'wpsserver-check = pyqgiswps.healthcheck:main'],
     },
 
     **kwargs
