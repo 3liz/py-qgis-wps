@@ -115,12 +115,16 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
         default_value = param.defaultValue()
         if default_value is not None:
             # XXX Values for processing enum are indices
-            if isinstance(default_value, int): 
-                kwargs['default'] = options[default_value]
-            elif isinstance(default_value, list):
-                kwargs['default'] = options[default_value[0]]
-            else:
-                raise InvalidParameterValue('Unsupported default value: %s' % default_value)
+            if isinstance(default_value, list):
+                default_value = default_value[0]
+            if not isinstance(default_value, int):
+                raise InvalidParameterValue('Unsupported default value for parameter %s: %s' % (param.name(), default_value))
+            if default_value < 0 or default_value >= len(options):
+                LOGGER.error("Out of range default value for enum parameter %s: %s",param.name(),default_value)
+                default_value = 0
+ 
+            kwargs['default'] = options[default_value]
+
     elif typ == 'number':
         kwargs['data_type'] = { QgsProcessingParameterNumber.Double :'float',
                                 QgsProcessingParameterNumber.Integer:'integer'

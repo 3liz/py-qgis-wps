@@ -118,6 +118,22 @@ def test_multi_options_input():
     assert inp.max_occurs == len(options)
 
 
+def test_bad_options_default_value():
+    """ Test with an invalid default value
+
+        This should not invalidate the input but log a warning and
+        reset the option default value to 0
+    """
+    options = ["opt0","opt1","opt2"]
+    param   = QgsProcessingParameterEnum("OPTION","Option",
+                    options=options, defaultValue=450)
+
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp, LiteralInput)
+    assert inp.default == options[0]
+
+
 def test_field_input():
     param = QgsProcessingParameterField(
                 "XFIELD",
