@@ -27,6 +27,8 @@ from pyqgiswps.validator import get_validator
 from pyqgiswps.validator.literalvalidator import (validate_anyvalue,
                                               validate_allowed_values)
 from pyqgiswps.exceptions import InvalidParameterValue
+from pyqgiswps.inout.formats import Format
+
 import base64
 from collections import namedtuple
 
@@ -298,6 +300,9 @@ class BasicComplex:
             no supported formats are defined
         """
         if self.supported_formats:
+            # Catch all format is defined
+            if self.supported_formats[0].same_as(Format.ANY):
+                return True
             for frmt in self.supported_formats:
                 if frmt.same_as(data_format):
                     return True

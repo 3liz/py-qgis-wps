@@ -73,7 +73,7 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs) -> 
             return LiteralInput(**kwargs)
         ext = param.extension()
         if ext:
-            mime = mimetypes.types_map.get(param.extension())
+            mime = mimetypes.types_map.get(ext)
             if mime is not None:
                 kwargs['supported_formats'] = [Format(mime)]
             kwargs['metadata'].append(Metadata('processing:extension',param.extension()))
@@ -157,9 +157,11 @@ def parse_output_definition( outdef: QgsProcessingOutputDefinition, kwargs,
                 mime = mimetypes.types_map.get("."+inputdef.defaultFileExtension())
                 as_reference = inputdef.metadata().get('wps:as_reference',as_reference)
         if mime is None:
-            LOGGER.warning("Cannot set file type for output %s", outdef.name())
-        else:
-            kwargs['supported_formats'] = [Format(mime)]
+            # We cannot guess the mimetype of the outputfile
+            # Set generic type
+            mime = "application/octet-stream"
+    
+        kwargs['supported_formats'] = [Format(mime)]
         return ComplexOutput(as_reference=as_reference, **kwargs)
 
 

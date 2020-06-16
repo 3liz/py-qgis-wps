@@ -19,6 +19,15 @@ class TestsFileIO(HTTPTestCase):
         rv = self.client.get(uri, path='')
         assert rv.status_code == 200
 
+
+    def test_output_file_describeprocess(self):
+        """ Test output file
+        """
+        uri = ('/ows/?service=WPS&request=DescribeProcess&Identifier=pyqgiswps_test:testoutputfile&Version=1.0.0')
+        rv = self.client.get(uri, path='')
+        assert rv.status_code == 200
+
+
     def test_output_file(self):
         """ Test output file
         """

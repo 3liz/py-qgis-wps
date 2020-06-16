@@ -31,7 +31,7 @@ _FORMATS = namedtuple('FORMATS', 'GEOJSON, JSON, SHP, GML, GEOTIFF, WCS,'
                                  'WCS100, WCS110, WCS20, WFS, WFS100,'
                                  'WFS110, WFS20, WMS, WMS130, WMS110,'
                                  'WMS100,'
-                                 'TEXT, NETCDF,')
+                                 'TEXT, NETCDF, ANY')
 
 FORMATS = _FORMATS(
     GEOJSON = _FORMAT('application/vnd.geo+json', '.geojson', None),
@@ -53,6 +53,7 @@ FORMATS = _FORMATS(
     WMS100  = _FORMAT('application/x-ogc-wms; version=1.0.0', '.xml', None),
     TEXT    = _FORMAT('text/plain', '.txt', None),
     NETCDF  = _FORMAT('application/x-netcdf', '.nc', None),
+    ANY     = _FORMAT('application/octet-stream', '.nc', None),
 )
 
 
@@ -203,6 +204,8 @@ class Format:
         self.schema = jsonin['schema']
         self.extension = jsonin['extension']
 
+# Define catch all format
+Format.ANY = Format.from_definition(FORMATS.ANY)
 
 def get_format(frmt, validator=None):
     """Return Format instance based on given pyqgiswps.inout.FORMATS keyword
