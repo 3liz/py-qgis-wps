@@ -8,6 +8,16 @@ from pyqgiswps.tests import HTTPTestCase, assert_response_accepted
 from time import sleep
 from test_common import async_test
 
+from qgis.core import (QgsProcessingContext,
+                       QgsProcessingParameterFileDestination)
+
+
+from pyqgiswps.executors.io import filesio
+from pyqgiswps.executors.processingio import(
+            parse_input_definition,
+            parse_output_definition,
+        )
+
 
 class TestsFileIO(HTTPTestCase):
 
@@ -42,5 +52,21 @@ class TestsFileIO(HTTPTestCase):
 
         assert len(output) == 1
         assert output[0].get('mimeType') == "application/json"
+
+def test_file_destination_io():
+    """
+    """
+    param = QgsProcessingParameterFileDestination("FILE", fileFilter="CSV Files (*.csv)")
+
+    assert param.defaultFileExtension() == 'csv'
+
+    inp = parse_input_definition(param)
+    inp.data = "foobar"
+
+    context = QgsProcessingContext()
+    value = filesio.get_processing_value( param, [inp], context)
+
+    assert value == 'foobar.csv'
+
 
 
