@@ -12,14 +12,9 @@ stages:
 tests:
   stage: test
   script:
-    - make docker-test FLAVOR=ltr
     - make docker-test FLAVOR=release
   tags:
     - infrav3
-  only:
-    refs:
-      - tags
-      - master 
 
 #---------------
 # Build
@@ -33,7 +28,7 @@ build:
     name: snap
   only:
     refs:
-      - master
+      - qgis_release
   tags:
     - infrav3
   except:
