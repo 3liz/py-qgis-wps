@@ -5,4 +5,5 @@ python-dateutil
 redis
 psutil
 pyzmq >= 17
+PyYAML
 
