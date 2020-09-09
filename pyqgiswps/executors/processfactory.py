@@ -26,7 +26,6 @@ from .logstore import logstore
 
 LOGGER = logging.getLogger('SRVLOG')
 
-
 class QgsProcessFactory:
 
     def __init__(self):
@@ -43,12 +42,14 @@ class QgsProcessFactory:
         self._config = confservice['processing']
 
         plugin_path       = self._config.get('providers_module_path')
+        default_path      = self._config.get('default_module_path')
         exposed_providers = self._config.get('exposed_providers',fallback='').split(',')
 
         setup_qgis_paths()
 
-        self._wps_interface = WPSServerInterfaceImpl(plugin_path, with_providers=exposed_providers)
-        self._wps_interface.initialize()
+        self._wps_interface = WPSServerInterfaceImpl(with_providers=exposed_providers)
+        self._wps_interface.initialize(default_path)
+        self._wps_interface.initialize(plugin_path)
 
         self._create_pool()
 
