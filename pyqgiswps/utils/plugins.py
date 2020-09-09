@@ -40,21 +40,23 @@ def _register_provider(reg: 'QgsProcessingRegistry', provider_id: str, providers
 
 class WPSServerInterfaceImpl:
 
-    def __init__(self, path: str, with_providers: List[str]) -> None:
-
-        self._path = path
+    def __init__(self, with_providers: List[str]) -> None:
         self._plugins = {}
+        self._paths = []
         self._providers      = None
         self._with_providers = with_providers
 
-    def initialize(self) -> None:
+    def initialize(self, path: str) -> None:
         """  Collect wps plugins
         """
-        self._plugins = { p:None for p in find_plugins(self._path) }
-        load_styles(self._path)
+        plugins = { p:None for p in find_plugins(path) }
+        if not plugins:
+            LOGGER.warning("No WPS plugin found in %s", path)
+        else:
+            self._paths.append(path)
 
-        if not self._plugins:
-            LOGGER.warning("No WPS plugin found in %s", self._path)
+        self._plugins.update(plugins)
+        load_styles(path)
 
     @property
     def plugins(self) -> Dict[str,Any]:
@@ -86,7 +88,7 @@ class WPSServerInterfaceImpl:
 
         wpsIface = _WPSServerInterface()
 
-        sys.path.append(self._path)
+        sys.path.extend(self._paths)
 
         for plugin in self._plugins:
             try:
@@ -138,6 +140,8 @@ def find_plugins(path: str) -> Generator[str,None,None]:
     """ return list of plugins in given path
     """
     from qgis.core import Qgis
+
+    LOGGER.debug("Looking for plugins in %s", path)
 
     for plugin in glob.glob(os.path.join(path,"*")):
         if not os.path.isdir(plugin):

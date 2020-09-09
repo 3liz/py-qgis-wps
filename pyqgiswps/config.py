@@ -93,6 +93,7 @@ def load_configuration():
     CONFIG.set('server', 'download_ttl'         , getenv('QGSWPS_DOWNLOAD_TTL','30'))
     # Enable middleware filters from extensions
     CONFIG.set('server', 'enable_filters'       , getenv('QGSWPS_SERVER_ENABLE_FILTERS', 'yes'))
+    CONFIG.set('server', 'sys_config_path'      , getenv('QGSWPS_SYS_CONFIG_PATH'      , '/usr/share/qgis_wps'))
 
     #
     # Logging
@@ -139,6 +140,7 @@ def load_configuration():
     CONFIG.set('processing', 'providers_module_path', getenv('QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH',''))
     CONFIG.set('processing', 'exposed_providers'    , getenv('QGSWPS_PROCESSING_EXPOSED_PROVIDERS' ,'script,model'))
     CONFIG.set('processing', 'accesspolicy'         , getenv('QGSWPS_PROCESSING_ACCESSPOLICY' ,'${providers_module_path}/accesspolicy.yml'))
+    CONFIG.set('processing', 'default_module_path'  , '${server:sys_config_path}/processing')
 
     #
     # Qgis folders settings
