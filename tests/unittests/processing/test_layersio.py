@@ -24,19 +24,31 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                                   ProcessException)
 
 
-def test_invalidparameter_value():
-    """ Test invalid layer scheme
+def test_layer_scheme():
+    """ Test arbitrary layer scheme deos not trig an error
     """
     param = QgsProcessingParameterVectorLayer("LAYER", "")
 
     inp = parse_input_definition(param)
-    inp.data = "badscheme:foobar"
+    inp.data = "layer:layername"
 
     context = QgsProcessingContext()
 
-    with pytest.raises(InvalidParameterValue):
-        value = layersio.get_processing_value( param, [inp], context)
+    value = layersio.get_processing_value( param, [inp], context)
+    assert value == "layername"
 
 
+def test_arbitrary_layer_scheme():
+    """ Test arbitrary layer scheme deos not trig an error
+    """
+    param = QgsProcessingParameterVectorLayer("LAYER", "")
+
+    inp = parse_input_definition(param)
+    inp.data = "foobar:layername"
+
+    context = QgsProcessingContext()
+
+    value = layersio.get_processing_value( param, [inp], context)
+    assert value == "foobar:layername"
 
 

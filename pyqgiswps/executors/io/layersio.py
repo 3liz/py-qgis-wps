@@ -227,11 +227,14 @@ def parse_layer_spec( layerspec: str, context: ProcessingContext, allow_selectio
         :return: A tuple (path, bool)
     """
     u = urlparse(layerspec)
-    p = u.path
     if u.scheme == 'file':
-        p = context.resolve_path(p)
-    elif u.scheme and u.scheme != 'layer':
-        raise InvalidParameterValue("Bad scheme: %s" % layerspec)
+        # Resolve as file relative to project
+        p = context.resolve_path(u.path)
+    elif u.scheme == 'layer':
+        p = u.path 
+    else:
+        # Let Qgis decide what to do with it
+        p = layerspec
 
     if not allow_selection:
         return p, False
@@ -244,7 +247,7 @@ def parse_layer_spec( layerspec: str, context: ProcessingContext, allow_selectio
         has_selection = True
         layer = context.getMapLayer(p)
         if not layer:
-            LOGGER.error("No layer path for url %s", u)
+            LOGGER.error("No layer path for %s", layerspec)
             raise InvalidParameterValue("No layer '%s' found" % u.path, )
 
         if layer.type() != QgsMapLayer.VectorLayer:
