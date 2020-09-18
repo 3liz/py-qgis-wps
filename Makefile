@@ -38,7 +38,7 @@ dist: dirs manifest
 	$(PYTHON) setup.py sdist --dist-dir=$(DIST)
 
 clean:
-	rm -rf $(DIST)
+	rm -rf $(DIST) *.egg-info
 
 
 FLAVOR:=ltr
@@ -47,8 +47,11 @@ FLAVOR:=ltr
 docker-%:
 	$(MAKE) -C tests $* FLAVOR=$(FLAVOR)
 
-test:
+test: manifest
 	$(MAKE) -C tests test FLAVOR=$(FLAVOR)
+
+run: manifest
+	$(MAKE) -C tests run FLAVOR=$(FLAVOR)
 
 client-test:
 	cd tests/clienttests && pytest -v $(PYTEST_ADDOPTS)
