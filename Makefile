@@ -47,8 +47,11 @@ FLAVOR:=release
 docker-%:
 	$(MAKE) -C tests $* FLAVOR=$(FLAVOR)
 
-test:
+test: manifest
 	$(MAKE) -C tests test FLAVOR=$(FLAVOR)
+
+run: manifest
+	$(MAKE) -C tests run FLAVOR=$(FLAVOR)
 
 client-test:
 	cd tests/clienttests && pytest -v $(PYTEST_ADDOPTS)
