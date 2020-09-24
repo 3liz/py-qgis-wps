@@ -18,6 +18,8 @@ import traceback
 import tornado.httpclient as httpclient
 from pyqgiswps.version import __version__
 
+from ..exceptions import NoApplicableCode
+
 LOGGER = logging.getLogger('SRVLOG')
 
 USER_AGENT = "QYWPS Server %s" % __version__
@@ -27,7 +29,7 @@ from pyqgiswps.exceptions import FileSizeExceeded
 def openurl( url: str, filename: os.PathLike, max_bytes: int=0, **kwargs ) -> None:
     """ Open url
     """
-    LOGGER.info("Fetching URL %s", self.url)
+    LOGGER.info("Fetching URL %s", url)
     
     num_bytes=0
     fail = False
@@ -35,6 +37,7 @@ def openurl( url: str, filename: os.PathLike, max_bytes: int=0, **kwargs ) -> No
         with open(filename,'wb') as fh:
 
             def _callback( chunk: bytes ) -> None:
+                nonlocal num_bytes
                 num_bytes += len(chunk)
                 if num_bytes > max_bytes:
                     raise FileSizeExceeded('File size for input exceeded for ref %s', url)

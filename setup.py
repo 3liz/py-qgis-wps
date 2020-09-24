@@ -12,7 +12,7 @@ def parse_requirements( filename ):
 
 kwargs = {}
 
-VERSION = "1.4.2"
+VERSION = "1.4.3"
 DESCRIPTION = ('Py-Qgis-WPS is an implementation of the Web Processing Service '
                'standard from the Open Geospatial Consortium. qgis-wps is '
                'written in Python and is a fork of PyWPS 4.0.')

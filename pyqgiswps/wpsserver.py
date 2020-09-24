@@ -15,7 +15,9 @@ from pkg_resources import resource_stream
 
 from .version import __manifest__, __description__
 from .runtime import run_server
-from .config import load_configuration, read_config_file
+from .config import (load_configuration, 
+                     read_config_file, 
+                     confservice)
 from .logger import setup_log_handler
 
 LOGGER=logging.getLogger('SRVLOG')

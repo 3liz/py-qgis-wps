@@ -66,7 +66,7 @@ class WPSServerInterfaceImpl:
         """ Register providers
         """
         if self._providers:
-            raise RuntimeException("Providers already registered")
+            raise RuntimeError("Providers already registered")
 
         from qgis.core import QgsApplication
         reg = QgsApplication.processingRegistry()

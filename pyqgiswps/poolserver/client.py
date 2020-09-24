@@ -138,7 +138,7 @@ class _Client:
         """ Run job asynchronously
         """
         if len(self._handlers) > self._maxqueue:
-            raise MaxRequestExceeded()
+            raise MaxRequestsExceeded()
 
         # Wait for available worker
         LOGGER.debug("*** Waiting worker")

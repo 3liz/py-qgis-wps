@@ -130,15 +130,15 @@ class LogStore:
         LOGGER.debug("LOGSTORE: pinning record %s", uuid_str)
         data = self._db.hget(self._hstatus, str(uuid))
         if data is not None:  
-            data   = json.loads(data.decode('utf-8'))
-            if STATUS[data['status']] != STATUS.DONE_STATUS:
+            record = json.loads(data.decode('utf-8'))
+            if STATUS[record['status']] != STATUS.DONE_STATUS:
                 return False
             if pin:
-                data['pinned']    = True
-                data['expire_at'] = None
+                record['pinned']    = True
+                record['expire_at'] = None
             else:
-                data['pinned']    = False
-                data['expire_at'] = datetime.fromtimestamp(now.timestamp()+record['expiration']).isoformat()+'Z'
+                record['pinned']    = False
+                record['expire_at'] = datetime.fromtimestamp(utcnow().timestamp()+record['expiration']).isoformat()+'Z'
             # update the record
             self._db.hset(self._hstatus, uuid_str, json.dumps(record))
             return True

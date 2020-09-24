@@ -276,8 +276,7 @@ class ProcessingExecutor:
 
             with logfile_context(workdir, 'processing'), memory_logger(wps_response):
                 handler(wps_request, wps_response)
-                wps_response.update_status('Task finished'.format(wps_response.process.title),
-                                    100, STATUS.DONE_STATUS)
+                wps_response.update_status('Task finished',100, STATUS.DONE_STATUS)
 
                 ## Return pickable response
                 return lxml.etree.tostring(wps_response.document, pretty_print=True)
