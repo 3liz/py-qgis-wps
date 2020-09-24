@@ -47,7 +47,7 @@ def setLayerVariables( alg, output_name, context, feedback=None,  **kwargs ):
         varnames.attrib['value']  = k
         varvalues.attrib['value'] = str(v)
     else:
-        for k,v in variables:
+        for k,v in variables.items():
             etree.SubElement(varnames, "value").text = k
             etree.SubElement(varvalues,"value").text = str(v)
 

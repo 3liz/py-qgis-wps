@@ -165,7 +165,7 @@ class WPSRequest:
         try:
             doc = lxml.etree.fromstring(handler.request.body)
         except Exception as e:
-            raise NoApplicableCode(e.msg)
+            raise NoApplicableCode("%s" % e)
 
         wpsrequest = WPSRequest()
 

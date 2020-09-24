@@ -133,7 +133,7 @@ def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcess
 
 def handle_layer_outputs(alg: QgsProcessingAlgorithm, 
                          context: QgsProcessingContext, 
-                         parameters, results) -> bool:
+                         parameters, results, feedback=None) -> bool:
     """ Handle algorithms result layers
 
         Insert result layers into destination project
@@ -270,7 +270,7 @@ def run_algorithm( alg: QgsProcessingAlgorithm, parameters,
     # Handle results, we do not use onFinish callback because
     # we want to deal with the results
     #
-    handle_layer_outputs(alg, context, parameters, results)
+    handle_layer_outputs(alg, context, parameters, results, feedback=feedback)
 
     return results
 

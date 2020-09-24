@@ -18,6 +18,7 @@ import zmq.asyncio
 import logging
 import signal
 import time
+import traceback
 
 from multiprocessing import Process
 from multiprocessing.util import Finalize
@@ -91,7 +92,7 @@ class _Server:
             self._sock.send(command, zmq.NOBLOCK)
         except zmq.ZMQError as err:
             if err.errno != zmq.EAGAIN:
-                LOGGER.error("Broadcast Error %s\n%s", exc, traceback.format_exc())
+                LOGGER.error("Broadcast Error %s\n%s", err, traceback.format_exc())
 
     def restart(self) -> None:
         """ Send restart command
