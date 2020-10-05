@@ -27,9 +27,14 @@ local:
 	rm -rf $$(pwd)/.local/share
 	mkdir -p  $$(pwd)/.local  $(LOCAL_HOME)/.cache
 
+TESTS_CPU_LIMITS:=2.0
+TESTS_MEMORY_LIMITS:=2g
+
 test: local
 	rm -rf unittests/__outputdir__/*
 	docker run --rm --name qgis-wps-test-$(FLAVOR)-$(COMMITID) -w /src \
+    --cpus $(TESTS_CPU_LIMITS) \
+    --memory $(TESTS_MEMORY_LIMITS) \
     -u $(BECOME_USER) \
     -v $(SRCDIR):/src \
     -v $$(pwd)/.local:/.local \
