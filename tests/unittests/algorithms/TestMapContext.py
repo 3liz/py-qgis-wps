@@ -14,9 +14,9 @@ class TestMapContext(QgsProcessingAlgorithm):
     INPUT = 'INPUT'
     OUTPUT = 'OUTPUT'
 
-    def __init__(self, project_uri='not_set'):
+    def __init__(self):
         super().__init__()
-        self.project_uri = project_uri
+        self.project_uri = None
 
     def name(self):
         return 'testmapcontext'
@@ -24,20 +24,23 @@ class TestMapContext(QgsProcessingAlgorithm):
     def displayName(self):
         return 'Test Context'
 
-    def createInstance(self, config={}):
+    def createInstance(self):
         """ Virtual override 
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        return self.__class__(self.project_uri)
+        return self.__class__()
 
     def initAlgorithm( self, config={} ):
         """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        self.project_uri = config.get('project_uri',self.project_uri)
-        project_name = Path(self.project_uri).stem
+        if config:
+            self.project_uri = config.get('project_uri',self.project_uri)
+            project_name = Path(self.project_uri).stem
+        else:
+            project_name = None
         self.addParameter(QgsProcessingParameterString(self.INPUT, 'Input string', 
                           defaultValue=project_name))
 
