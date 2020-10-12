@@ -33,17 +33,15 @@ from typing import Tuple, Union, Mapping, Any
 class MapContext:
     """ Hold context regarding the MAP parameter
     """
-    def __init__(self, map_uri: str=None, **create_context):
+    def __init__(self, map_uri: str=None):
         self.rootdir = Path(confservice.get('projects.cache','rootdir'))
         self.map_uri = map_uri
-        self._create_context = create_context
 
     @property
     def create_context(self) -> Mapping[str, Any]:
         """ Update a configuration context
         """
-        context = dict(self._create_context)
-        context['rootdir'] = self.rootdir.as_posix()
+        context = dict(rootdir = str(self.rootdir))
         if self.map_uri is not None:
             context['project_uri'] = self.map_uri
         return context

@@ -18,8 +18,6 @@ from functools import partial
 from os.path import normpath, basename
 from urllib.parse import urlparse, urlencode, parse_qs
 
-from functools import partial
-
 from .processingio import (ProcessingTypeParseError,
                            parse_input_definitions,
                            parse_output_definitions,
@@ -80,10 +78,10 @@ def _find_algorithm( algid: str ) -> QgsProcessingAlgorithm:
     return alg
 
 
-def _create_algorithm( algid: str, **context ) -> QgsProcessingAlgorithm:
+def _create_algorithm( algid: str, mapcontext: MapContext ) -> QgsProcessingAlgorithm:
     """ Fetch algoritm from its id
     """
-    alg = QgsApplication.processingRegistry().createAlgorithmById( algid, context )
+    alg = QgsApplication.processingRegistry().createAlgorithmById( algid, mapcontext.create_context )
     if not alg:
         raise ProcessingAlgorithmNotFound(algid)
     return alg
@@ -311,12 +309,12 @@ class QgsProcess(WPSProcess):
                 outputs    = outputs)
 
     @staticmethod
-    def createInstance( ident: str, map_uri=None, **context ) -> 'QgsProcess':
+    def createInstance( ident: str, map_uri: str=None ) -> 'QgsProcess':
         """ Create a contextualized instance
         """
-        mapcontext = MapContext(map_uri=map_uri, **context)
-        LOGGER.debug("Creating contextualized process for %s: %s", ident, mapcontext.create_context)
-        alg = _create_algorithm(ident, **mapcontext.create_context)
+        mapcontext = MapContext(map_uri=map_uri)
+        LOGGER.debug("Creating contextualized process for %s: %s", ident, map_uri)
+        alg = _create_algorithm(ident, mapcontext)
         return QgsProcess(alg, mapcontext)
 
     @staticmethod

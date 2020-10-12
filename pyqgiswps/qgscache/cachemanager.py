@@ -13,6 +13,7 @@ import os
 import logging
 import urllib.parse
 
+from functools import partial
 from urllib.parse import urlparse, urljoin, parse_qs
 from typing import TypeVar, Tuple, Dict
 from collections import namedtuple
@@ -115,6 +116,22 @@ class QgsCacheManager:
 
         return url
 
+
+    def get_project_factory( self, key: str ):
+        """ Return project store create function for the given key
+        """
+        url = self.resolve_alias(key)
+
+        scheme = url.scheme or self._default_scheme
+        # Retrieve the protocol-handler
+        try:
+            store = componentmanager.get_service('@3liz.org/cache/protocol-handler;1?scheme=%s' % scheme)
+        except componentmanager.FactoryNotFoundError:
+            LOGGER.error("No protocol handler found for %s", scheme)
+            raise FileNotFoundError(key)
+       
+        return partial(store.get_project,url)
+
     def update_entry(self, key: str) -> bool:
         """ Update the cache
 
@@ -123,23 +140,15 @@ class QgsCacheManager:
 
             :return: true if the entry has been updated
         """
-        url = self.resolve_alias(key)
-    
-        scheme = url.scheme or self._default_scheme
-        # Retrieve the protocol-handler
-        try:
-            store = componentmanager.get_service('@3liz.org/cache/protocol-handler;1?scheme=%s' % scheme)
-        except componentmanager.FactoryNotFoundError:
-            LOGGER.error("No protocol handler found for %s", scheme) 
-            raise FileNotFoundError(key)
+        get_project = self.get_project_factory(key)
 
         # Get details for the project
         details = self._cache.peek(key)
         if details is not None:
-            project, timestamp  = store.get_project( url, **details._asdict())
+            project, timestamp  = get_project(**details._asdict())
             updated = timestamp != details.timestamp
         else:
-            project, timestamp = store.get_project(url)
+            project, timestamp = get_project()
             updated = True
         self._cache[key] = CacheDetails(project, timestamp)
         return updated
