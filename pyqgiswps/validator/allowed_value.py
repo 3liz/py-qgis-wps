@@ -13,15 +13,17 @@
 #
 
 from collections import namedtuple
+from enum import Enum
 
-_ALLOWEDVALUETYPE = namedtuple('ALLOWEDVALUETYPE', 'VALUE, RANGE')
-_RANGELCLOSURETYPE = namedtuple('RANGECLOSURETYPE', 'OPEN, CLOSED,'
-                                'OPENCLOSED, CLOSEDOPEN')
+class ALLOWEDVALUETYPE(str, Enum):
+    VALUE = 'value'
+    RANGE = 'range'
+    LAYER = 'layer'
 
-ALLOWEDVALUETYPE = _ALLOWEDVALUETYPE('value', 'range')
-RANGECLOSURETYPE = _RANGELCLOSURETYPE(
-    'open',
-    'closed',
-    'open-closed',
-    'closed-open'
-)
+
+class RANGECLOSURETYPE(str, Enum):
+    OPEN = 'open'
+    CLOSED = 'closed'
+    OPENCLOSED = 'open-closed'
+    CLOSEDOPEN = 'closed-open'
+

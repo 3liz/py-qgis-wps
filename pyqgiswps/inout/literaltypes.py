@@ -100,15 +100,15 @@ class AllowedValue(AnyValue):
         """Return back Element for DescribeProcess response
         """
         doc = None
-        if self.allowed_type == ALLOWEDVALUETYPE.VALUE:
-            doc = OWS.Value(str(self.value))
-        else:
+        if self.allowed_type == ALLOWEDVALUETYPE.RANGE:
             doc = OWS.Range()
             doc.set('{%s}rangeClosure' % NAMESPACES['ows'], self.range_closure)
             doc.append(OWS.MinimumValue(str(self.minval)))
             doc.append(OWS.MaximumValue(str(self.maxval)))
             if self.spacing:
                 doc.append(OWS.Spacing(str(self.spacing)))
+        else:
+            doc = OWS.Value(str(self.value))
         return doc
 
     def __repr__(self):
