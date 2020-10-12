@@ -15,6 +15,7 @@
 """ Validator classes used for LiteralInputs
 """
 import logging
+from urllib.parse import urlparse
 
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE, RANGECLOSURETYPE
@@ -45,6 +46,9 @@ def validate_allowed_values(data_input, mode):
 
             if value.allowed_type == ALLOWEDVALUETYPE.VALUE:
                 passed = _validate_value(value, data)
+
+            elif value.allowed_type == ALLOWEDVALUETYPE.LAYER:
+                passed = _validate_layer(value, data)
 
             elif value.allowed_type == ALLOWEDVALUETYPE.RANGE:
                 passed = _validate_range(value, data)
@@ -100,3 +104,20 @@ def _validate_range(interval, data):
 
     LOGGER.debug('validation result: %r', passed)
     return passed
+
+
+def _validate_layer(value, data):
+    """Validate data against a layer expression directly
+
+    :param value: list or tupple with allowed data
+    :param data: the data itself (string or number)
+    """
+    passed = False
+    if data.find('layer:',0,6) == 0:
+        passed = (urlparse(data).path == value.value)
+    else:
+        passed = (data == value.value)
+
+    return passed
+
+

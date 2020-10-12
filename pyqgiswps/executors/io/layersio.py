@@ -44,7 +44,9 @@ from qgis.core import (QgsProcessing,
 from ..processingcontext import MapContext, ProcessingContext
 
 from pyqgiswps.app.Common import Metadata
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 from pyqgiswps.inout.formats import Format, FORMATS
+from pyqgiswps.inout.literaltypes import AllowedValue
 from pyqgiswps.inout import (LiteralInput,
                              ComplexInput,
                              BoundingBoxInput,
@@ -150,8 +152,10 @@ def get_layers_from_context(kwargs, context: MapContext, datatypes) -> None:
             return QgsProcessing.TypeRaster in datatypes \
                 or QgsProcessing.TypeMapLayer in datatypes
         return False
-        
-    kwargs['allowed_values'] = [lyr.name() for lyr in project.mapLayers().values() if _is_allowed(lyr)]
+            
+    _allowed_layer = lambda l: AllowedValue(value=l.name(), allowed_type=ALLOWEDVALUETYPE.LAYER)
+
+    kwargs['allowed_values'] = [_allowed_layer(lyr) for lyr in project.mapLayers().values() if _is_allowed(lyr)]
   
 
 def is_vector_type( datatypes ):
@@ -226,12 +230,12 @@ def parse_layer_spec( layerspec: str, context: ProcessingContext, allow_selectio
 
         :return: A tuple (path, bool)
     """
+    if layerspec.find('layer:',0,6) == -1:
+        # Nothing to do with it
+        return layerspec, False
+
     u = urlparse(layerspec)
     p = u.path
-    if u.scheme == 'file':
-        p = context.resolve_path(p)
-    elif u.scheme and u.scheme != 'layer':
-        raise InvalidParameterValue("Bad scheme: %s" % layerspec)
 
     if not allow_selection:
         return p, False
