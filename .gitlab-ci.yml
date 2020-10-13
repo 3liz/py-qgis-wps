@@ -28,7 +28,7 @@ build:
     name: snap
   only:
     refs:
-      - master
+      - "1.4.x"
   tags:
     - infrav3
   except:

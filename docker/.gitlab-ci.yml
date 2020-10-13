@@ -1,12 +1,18 @@
 
 variables:
     FACTORY_MANIFEST: "docker/factory.manifest"
+    QGIS_FLAVOR: ltr
+
+.only_refs: &only_refs
+  refs:
+    - tags
+    - "1.4.x"
 
 #-------------
 # Build
 #-------------
 
-.docker-build:
+build-docker:
   stage: docker
   script:
     - make -C docker build deliver clean FLAVOR=$QGIS_FLAVOR
@@ -16,16 +22,9 @@ variables:
     paths:
       - "docker/factory.manifest"
   only:
-    refs:
-      - tags
-      - master
+    <<: *only_refs 
   tags:
     - infrav3
-
-build-docker:ltr:
-  extends: .docker-build
-  variables:
-    QGIS_FLAVOR: ltr
 
 #-------------
 # deploy
@@ -38,9 +37,7 @@ deploy:snap:
   environment:
     name: snap
   only:
-    refs:
-      - tags
-      - master
+    <<: *only_refs 
   tags:
     - infrav3
 
@@ -48,7 +45,7 @@ deploy:snap:
 # Release
 #-------------
 
-.docker-release:
+release:
   stage: release
   script:
     - $FACTORY_SCRIPTS/release-image.sh qgis-wps-server-$QGIS_FLAVOR
@@ -59,15 +56,6 @@ deploy:snap:
   only:
     refs:
       - tags
-      - master
   tags:
     - infrav3
-
-release:ltr:
-  extends: .docker-release
-  dependencies:
-    - build-docker:ltr
-  variables:
-    QGIS_FLAVOR: ltr
-
 
