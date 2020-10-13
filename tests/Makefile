@@ -7,7 +7,7 @@ COMMITID=$(shell git rev-parse --short HEAD)
 REGISTRY_URL ?= 3liz
 REGISTRY_PREFIX=$(REGISTRY_URL)/
 
-FLAVOR:=ltr
+FLAVOR:=release
 
 QGIS_IMAGE:=$(REGISTRY_PREFIX)qgis-platform:$(FLAVOR)
 

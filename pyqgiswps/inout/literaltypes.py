@@ -15,7 +15,6 @@
 """
 
 from urllib.parse import urlparse
-import time
 from dateutil.parser import parse as date_parser
 import datetime
 from pyqgiswps.exceptions import InvalidParameterValue
@@ -311,10 +310,6 @@ def convert_datetime(inpt):
 
     :rtype: datetime.datetime object
     """
-    # TODO: %z directive works only with python 3
-    # time_format = '%Y-%m-%dT%H:%M:%S%z'
-    # time_format = '%Y-%m-%dT%H:%M:%S%Z'
-    # inpt = time.strptime(convert_string(inpt), time_format)
     if not isinstance(inpt, datetime.datetime):
         inpt = convert_string(inpt)
         inpt = date_parser(inpt)

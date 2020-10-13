@@ -41,7 +41,7 @@ clean:
 	rm -rf $(DIST) *.egg-info
 
 
-FLAVOR:=ltr
+FLAVOR:=release
 
 # Run tests with docker-test
 docker-%:

@@ -1,7 +1,7 @@
 
 variables:
     FACTORY_MANIFEST: "docker/factory.manifest"
-    QGIS_FLAVOR: ltr
+    QGIS_FLAVOR: release
 
 .only_refs: &only_refs
   refs:
@@ -45,7 +45,7 @@ deploy:snap:
 # Release
 #-------------
 
-release:ltr
+release:
   stage: release
   script:
     - $FACTORY_SCRIPTS/release-image.sh qgis-wps-server-$QGIS_FLAVOR
