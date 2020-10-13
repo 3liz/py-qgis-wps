@@ -28,7 +28,7 @@ build:
     name: snap
   only:
     refs:
-      - qgis_release
+      - master
   tags:
     - infrav3
   except:

@@ -12,7 +12,7 @@ variables:
 # Build
 #-------------
 
-build-docker:ltr:
+build-docker:
   stage: docker
   script:
     - make -C docker build deliver clean FLAVOR=$QGIS_FLAVOR
