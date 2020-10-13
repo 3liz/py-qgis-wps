@@ -239,15 +239,19 @@ def test_file_output_mimetypes():
 
 
 def test_input_title():
+    input_title = "This is the title"
+    input_abstract = "This is the input abstract"
     param = QgsProcessingParameterNumber("Input_title",
-                  description="A short description",
+                  description=input_title,
                   type=QgsProcessingParameterNumber.Integer,
                   minValue=1, defaultValue=10)
 
+    param.setHelp(input_abstract)
+
     inp = parse_input_definition(param)
 
-    assert inp.title == "Input title"
-    assert inp.abstract == "A short description"
+    assert inp.title == input_title
+    assert inp.abstract == input_abstract
 
 
 def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
@@ -363,6 +367,29 @@ def test_output_multiple_layers(outputdir, data):
     query = parse_qs(urlparse(output.url).query)
     assert query['layers'][0] == 'france_parts,raster_layer'
 
+
+def test_parameter_abstract():
+
+    helpstr = """
+      This is a help text.
+      It must appears in the 'abstract' field of
+      wps 
+    """
+
+    title = "Parameter with help"
+
+    param = QgsProcessingParameterNumber("TEST", title,
+                  type=QgsProcessingParameterNumber.Integer,
+                  minValue=1, defaultValue=10)
+
+    param.setHelp(helpstr)
+
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp, LiteralInput)
+    assert inp.identifier == "TEST"
+    assert inp.title      == title
+    assert inp.abstract   == helpstr
 
 
 

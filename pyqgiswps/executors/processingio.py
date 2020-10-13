@@ -179,13 +179,13 @@ def parse_point_input( param: QgsProcessingParameterDefinition, kwargs) -> Compl
 def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsProcessingAlgorithm=None,  
                             context: MapContext=None ) -> WPSInput:
     """ Create WPS input from QgsProcessingParamDefinition
-
+the description is used in QGIS UI as the title in WPS.
         see https://qgis.org/api/qgsprocessingparameters_8h_source.html#l01312
     """
     kwargs = {
         'identifier': param.name() ,
-        'title'     : param.name().replace('_',' '),
-        'abstract'  : param.description(),
+        'title'     : param.description() or param.name().replace('_',' '),
+        'abstract'  : param.help(),
         'metadata'  : [
             Metadata('processing:type',param.type()),
         ]
