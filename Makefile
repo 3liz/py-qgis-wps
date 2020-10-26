@@ -3,6 +3,14 @@
 # qypws makefile
 #
 
+VERSION:=1.4.5
+
+ifndef CI_COMMIT_TAG
+VERSION_TAG=$(VERSION)rc0
+else
+VERSION_TAG=$(VERSION)
+endif
+
 BUILDID=$(shell date +"%Y%m%d%H%M")
 COMMITID=$(shell git rev-parse --short HEAD)
 
@@ -13,10 +21,13 @@ MANIFEST=pyqgiswps/build.manifest
 
 PYTHON:=python3
 
+version:
+	echo $(VERSION_TAG) > VERSION
+
 dirs:
 	mkdir -p $(DIST)
 
-manifest:
+manifest: version
 	echo name=$(shell $(PYTHON) setup.py --name) > $(MANIFEST) && \
     echo version=$(shell $(PYTHON) setup.py --version) >> $(MANIFEST) && \
     echo buildid=$(BUILDID)   >> $(MANIFEST) && \
