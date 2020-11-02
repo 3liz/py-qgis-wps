@@ -22,6 +22,12 @@ Requirements and limitations:
 Any WPS client work with this implementation. For instance QGIS Processing algorithms are available
 in a web interface using [Lizmap WPS module](https://github.com/3liz/lizmap-wps-web-client-module).
 
+
+# Documentation:
+
+Latest documentation is available on [ReadTheDoc](https://py-qgis-wps.readthedocs.io/en/latest/index.html)
+
+
 # Why Py-QGIS-WPS ?
 
 Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following: 
