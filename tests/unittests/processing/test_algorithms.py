@@ -15,10 +15,7 @@ from pyqgiswps.inout import (LiteralInput,
 
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 from pyqgiswps.executors.processingio import(
-            parse_literal_input,
-            parse_extent_input,
             parse_input_definition,
-            parse_literal_output,
             parse_output_definition,
             input_to_processing,
             processing_to_output,

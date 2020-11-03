@@ -27,13 +27,14 @@ from pyqgiswps.validator.base import emptyvalidator
 
 _FORMAT = namedtuple('FormatDefinition', 'mime_type,'
                      'extension, schema')
-_FORMATS = namedtuple('FORMATS', 'GEOJSON, JSON, SHP, GML, GEOTIFF, WCS,'
+_FORMATS = namedtuple('FORMATS', 'WKT, GEOJSON, JSON, SHP, GML, GEOTIFF, WCS,'
                                  'WCS100, WCS110, WCS20, WFS, WFS100,'
                                  'WFS110, WFS20, WMS, WMS130, WMS110,'
                                  'WMS100,'
                                  'TEXT, NETCDF, ANY')
 
 FORMATS = _FORMATS(
+    WKT     = _FORMAT('application/wkt', '.wkt', None),
     GEOJSON = _FORMAT('application/vnd.geo+json', '.geojson', None),
     JSON    = _FORMAT('application/json', '.json', None),
     SHP     = _FORMAT('application/x-zipped-shp', '.zip', None),

@@ -40,8 +40,6 @@ from pyqgiswps.app.WPSRequest  import WPSRequest
 
 from pyqgiswps.config import confservice
 
-from osgeo import ogr
-
 from qgis.PyQt.QtCore import QVariant
 
 from qgis.core import QgsApplication
@@ -53,16 +51,9 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingOutputDefinition,
                        QgsProcessingParameterLimitedDataTypes,
                        QgsProcessingParameterField,
-                       QgsProcessingParameterPoint,
                        QgsProcessingUtils,
                        QgsProcessingFeedback,
-                       QgsReferencedRectangle,
-                       QgsReferencedPointXY,
-                       QgsRectangle,
-                       QgsGeometry,
-                       QgsWkbTypes,
                        QgsProperty,
-                       QgsCoordinateReferenceSystem,
                        QgsFeatureRequest)
 
 
@@ -70,7 +61,7 @@ from .processingcontext import MapContext, ProcessingContext
 
 from typing import Mapping, Any, TypeVar, Union, Tuple, Generator
 
-from .io import filesio, layersio, datetimeio
+from .io import filesio, layersio, datetimeio, geometryio
 
 WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
 WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
@@ -156,26 +147,6 @@ def parse_metadata( param: QgsProcessingParameterDefinition, kwargs ) -> None:
     kwargs['metadata'].extend(Metadata('processing:meta:%s' % k, str(v)) for k,v in param.metadata().items())
 
 
-def parse_extent_input( param: QgsProcessingParameterDefinition, kwargs ) -> BoundingBoxInput:
-    """ Convert extent processing input to bounding box input"
-    """
-    typ = param.type()
-    if typ == "extent":
-       # XXX This is the default, do not presume anything
-       # about effective crs at compute time
-       kwargs['crss'] = ['EPSG:4326']
-       return BoundingBoxInput(**kwargs)
-
-
-def parse_point_input( param: QgsProcessingParameterDefinition, kwargs) -> ComplexInput:
-    """ Convert processing point input to complex input
-    """
-    if isinstance(param, QgsProcessingParameterPoint):
-        kwargs['supported_formats'] = [Format.from_definition(FORMATS.GEOJSON),
-                                       Format.from_definition(FORMATS.GML)]
-        return ComplexInput(**kwargs)
-       
-
 def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsProcessingAlgorithm=None,  
                             context: MapContext=None ) -> WPSInput:
     """ Create WPS input from QgsProcessingParamDefinition
@@ -208,10 +179,9 @@ the description is used in QGIS UI as the title in WPS.
 
     inp = parse_literal_input(param,kwargs) \
             or layersio.parse_input_definition(param,kwargs,context) \
-            or parse_extent_input(param, kwargs) \
+            or geometryio.parse_input_definition(param, kwargs) \
             or filesio.parse_input_definition(param, kwargs) \
-            or datetimeio.parse_input_definition(param, kwargs) \
-            or parse_point_input(param, kwargs)
+            or datetimeio.parse_input_definition(param, kwargs)
     if inp is None:
         raise ProcessingInputTypeNotSupported("%s:'%s'" %(type(param),param.type()))
 
@@ -290,39 +260,6 @@ def parse_output_definitions( alg: QgsProcessingAlgorithm, context: MapContext  
 # ==================================================
 
 
-def input_to_extent( inp: WPSInput ) -> QgsReferencedRectangle:
-    """ Convert input to processing extent data
-    """
-    r = inp.data
-    rect  = QgsRectangle(float(r[0]),float(r[2]),float(r[1]),float(r[3]))
-    ref   = QgsCoordinateReferenceSystem(inp.crs)
-    return QgsReferencedRectangle(rect, ref)
-
-
-def input_to_point( inp: WPSInput ):
-    """ Handle point from complex input
-    """
-    data_format = inp.data_format
-    geom = None
-    if data_format.mime_type == FORMATS.GEOJSON.mime_type:
-        geom = ogr.CreateGeometryFromJson(inp.data)
-    elif data_format.mime_type == FORMATS.GML.mime_type:
-        # XXX Check that we do not get CRS  from GML
-        # with ogr data
-        geom = ogr.CreateGeometryFromGML(inp.data)
-    if geom:
-        srs  = geom.GetSpatialReference()
-        geom = QgsGeometry.fromWkt(geom.ExportToWkt())
-        if srs:
-            srs = QgsCoordinateReferenceSystem.fromWkt(srs.ExportToWkt())
-        if srs and srs.isValid():
-            geom = QgsReferencedPointXY( geom.centroid().asPoint(), srs )
-            
-        return geom
-
-    raise NoApplicableCode("Unsupported data format: %s" % data_format)
-
-
 def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput,
                                 context: ProcessingContext) -> Any:
     """ Return processing value from wps inputs
@@ -330,25 +267,13 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput
         Processes other inputs than layers
     """
     typ = param.type()
-
-    if isinstance(param, QgsProcessingParameterPoint):
-        value = input_to_point( inp[0] )
-
-    elif typ == 'enum':
+    if typ == 'enum':
         # XXX Processing wants the index of the value in option list
         if param.allowMultiple() and len(inp) > 1:
             opts  = param.options()
             value = [opts.index(d.data) for d in inp] 
         else:
             value = param.options().index(inp[0].data)
-
-    elif typ == 'extent':
-        value = input_to_extent( inp[0] )
-
-    elif typ == 'crs':
-        # XXX CRS may be expressed as EPSG (or QgsProperty ?)
-        value = inp[0].data
-
     elif len(inp):
         # Return raw value
         value = inp[0].data
@@ -377,6 +302,7 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
     value = layersio.get_processing_value(param, inp, context) or \
             filesio.get_processing_value(param, inp, context)  or \
             datetimeio.get_processing_value(param, inp, context) or \
+            geometryio.get_processing_value(param, inp, context) or \
             get_processing_value(param, inp, context)
             
     return param.name(), value

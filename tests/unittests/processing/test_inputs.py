@@ -19,20 +19,13 @@ from pyqgiswps.inout.formats import FORMATS, Format
 
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 from pyqgiswps.executors.processingio import(
-            parse_literal_input,
-            parse_extent_input,
             parse_input_definition,
-            parse_literal_output,
             parse_output_definition,
-            parse_point_input,
             input_to_processing,
-            input_to_point,
             processing_to_output,
-            input_to_extent,
             _is_optional,
         ) 
 
-from pyqgiswps.executors.io import filesio
 from pyqgiswps.executors.processingprocess import _find_algorithm
 
 from pyqgiswps.utils.qgis import version_info as qgis_version_info
@@ -52,18 +45,11 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFeatureSink,
                        QgsProcessingParameterVectorDestination,
                        QgsProcessingParameterRasterDestination,
-                       QgsProcessingParameterExtent,
                        QgsProcessingParameterFile,
                        QgsProcessingParameterField,
-                       QgsProcessingParameterPoint,
                        QgsProcessingUtils,
                        QgsProcessingFeedback,
                        QgsProcessingContext,
-                       QgsReferencedRectangle,
-                       QgsRectangle,
-                       QgsReferencedPointXY,
-                       QgsGeometry,
-                       QgsCoordinateReferenceSystem,
                        QgsProject)
 
 from processing.core.Processing import Processing
@@ -262,85 +248,6 @@ def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     assert len(m) >= minOccurence
     assert len(m) <= maxOccurence
     return m
-
-
-def test_bbox_input():
-    """ Test extent parameter
-    """ 
-    param = QgsProcessingParameterExtent("BBOX")
-    
-    inp = parse_input_definition(param)
-
-    assert isinstance(inp,BoundingBoxInput)
-
-    # see create_bbox_inputs at L532 app/Service.py
-    inp.data = ['15', '50', '16', '51']
-    value = input_to_extent( inp ) 
-
-    assert isinstance(value,QgsReferencedRectangle)
-
-
-def test_file_input( outputdir ):
-    """ Test file parameter
-    """
-    param = QgsProcessingParameterFile("FILE", extension=".txt")
-
-    inp = parse_input_definition(param)
-
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
-
-    inp.data = "Hello world"
-
-    context = QgsProcessingContext()
-    context.workdir = outputdir.strpath
-
-    value = filesio.get_processing_value( param, [inp], context)
-
-    outputpath = (Path(context.workdir)/param.name()).with_suffix(param.extension())
-    assert value == outputpath.name
-    assert outputpath.exists()
-    
-    with outputpath.open('r') as f:
-        assert f.read() == inp.data
-
-
-def test_point_input_gml():
-    """ Test input point from gml
-    """
-    param = QgsProcessingParameterPoint("POINT")
-
-    inp = parse_input_definition(param)
-
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
-
-    inp.data_format = Format.from_definition(FORMATS.GML)
-    inp.data = '<gml:Point srsName="EPSG:4326"><gml:coordinates>4,42</gml:coordinates></gml:Point>'
-
-    assert inp.data_format.mime_type == FORMATS.GML.mime_type
-
-    value = input_to_point( inp )
-    assert isinstance( value, (QgsGeometry, QgsReferencedPointXY))
-
-
-def test_point_input_json():
-    """ Test input point from json
-    """
-    param = QgsProcessingParameterPoint("POINT")
-
-    inp = parse_input_definition(param)
-
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
-
-    inp.data_format = Format.from_definition(FORMATS.GEOJSON)
-    inp.data = '{"coordinates":[4.0,42.0],"type":"Point"}'
-
-    assert inp.data_format.mime_type == FORMATS.GEOJSON.mime_type
-
-    value = input_to_point( inp )
-    assert isinstance( value, (QgsGeometry, QgsReferencedPointXY))
 
 
 def test_output_multiple_layers(outputdir, data):

@@ -56,7 +56,7 @@ class BaseHandler(tornado.web.RequestHandler):
         LOGGER.debug('Serializing XML response')
         wps_version_comment = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
-            '<!-- PyQgisWPS %s -->\n') % __version__
+            '<!-- py-qgis-wps %s -->\n') % __version__
         if isinstance(doc, str):
             xml = doc.encode('utf8')
         elif not isinstance(doc, bytes):

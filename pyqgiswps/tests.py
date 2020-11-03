@@ -181,6 +181,6 @@ def assert_pyqgiswps_version(resp):
     assert isinstance(root_firstchild, lxml.etree._Comment)
     tokens = root_firstchild.text.split()
     assert len(tokens) == 2
-    assert tokens[0] == 'PyQgisWPS'
+    assert tokens[0] == 'py-qgis-wps'
     assert tokens[1] == __version__
 

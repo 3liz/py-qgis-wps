@@ -2,13 +2,22 @@
     Test Processing file io
 """
 import pytest
+from pathlib import Path
 
 from pyqgiswps.app import WPSProcess, Service
 from pyqgiswps.tests import HTTPTestCase, assert_response_accepted
+from pyqgiswps.executors.io import filesio
+
+from pyqgiswps.inout import (LiteralInput, 
+                             ComplexInput,
+                             LiteralOutput, 
+                             ComplexOutput)
+
 from time import sleep
 from test_common import async_test
 
 from qgis.core import (QgsProcessingContext,
+                       QgsProcessingParameterFile,
                        QgsProcessingParameterFileDestination)
 
 
@@ -69,4 +78,27 @@ def test_file_destination_io():
     assert value == 'foobar.csv'
 
 
+def test_file_input( outputdir ):
+    """ Test file parameter
+    """
+    param = QgsProcessingParameterFile("FILE", extension=".txt")
+
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp,ComplexInput)
+    assert inp.as_reference == False
+
+    inp.data = "Hello world"
+
+    context = QgsProcessingContext()
+    context.workdir = outputdir.strpath
+
+    value = filesio.get_processing_value( param, [inp], context)
+
+    outputpath = (Path(context.workdir)/param.name()).with_suffix(param.extension())
+    assert value == outputpath.name
+    assert outputpath.exists()
+    
+    with outputpath.open('r') as f:
+        assert f.read() == inp.data
 
