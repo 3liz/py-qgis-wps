@@ -11,6 +11,7 @@
 import os
 import logging
 import re
+import json
 
 from osgeo import ogr
 
@@ -47,6 +48,8 @@ from typing import Mapping, Any, TypeVar, Union, Tuple
 WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
 WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
 
+Geometry = Union[QgsGeometry, QgsReferencedGeometry]
+
 LOGGER = logging.getLogger('SRVLOG')
 
 GeometryParameterTypes = (QgsProcessingParameterPoint, QgsProcessingParameterGeometry)
@@ -79,7 +82,7 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs) -> 
 
 WKT_EXPR = re.compile( r"^\s*(?:CRS=(.*);)?(.*?)$" )
 
-def wkt_to_goeometry( wkt: str ) -> QgsReferencedGeometry:
+def wkt_to_geometry( wkt: str ) -> Geometry:
     """ Convert wkt to qgis geometry
 
         Handle CRS= prefix
@@ -95,34 +98,60 @@ def wkt_to_goeometry( wkt: str ) -> QgsReferencedGeometry:
     raise InvalidParameterValue("Invalid wkt format")
 
 
-def input_to_geometry( inp: WPSInput ):
+def json_to_geometry( data: str ) -> Geometry:
+    """ Handle json to qgis geometry
+    """
+    try:
+        data = json.loads(data)
+        crs  = data.get('crs')
+        if crs:
+            crs  = QgsCoordinateReferenceSystem( crs['properties']['name'] )
+            data = data['geometry'] 
+        geom = ogr.CreateGeometryFromJson(json.dumps(data))
+        if geom:
+            geom = QgsGeometry.fromWkt(geom.ExportToWkt())
+            if crs and crs.isValid():
+                geom = QgsReferencedGeometry(geom,crs)
+            return geom
+    except (json.JSONDecodeError,KeyError) as err:
+        LOGGER.error("Error decoding json input: %s",err)
+
+    raise InvalidParameterValue("Invalid geojson format")
+
+
+SRSNAME_EXPR = re.compile( r'\bsrsname\b="([^"]+)"', re.IGNORECASE )
+
+def gml_to_geometry( gml: str ) -> Geometry:
+    """ Handle json to qgis geometry
+    """
+    # Lookup for srsName
+    geom = ogr.CreateGeometryFromGML(gml)
+    if not geom:
+        raise InvalidParameterValue("Invalid gml format")
+
+    geom = QgsGeometry.fromWkt(geom.ExportToWkt())
+    # Check for crs
+    m = SRSNAME_EXPR.search(gml)
+    if m:
+        crs = QgsCoordinateReferenceSystem( m.groups('')[0] )
+        if crs.isValid():
+            geom = QgsReferencedGeometry( geom, crs )
+    return geom
+
+
+def input_to_geometry( inp: WPSInput ) -> Geometry:
     """ Handle point from complex input
     """
     data_format = inp.data_format
+
     if data_format.mime_type == FORMATS.WKT.mime_type:
-        return wkt_to_goeometry(inp.data)
+        return wkt_to_geometry(inp.data)
 
-    geom = None
-    if data_format.mime_type == FORMATS.GEOJSON.mime_type:
-        geom = ogr.CreateGeometryFromJson(inp.data)
-        if not geom:
-            raise InvalidParameterValue("Invalid geojson format")
+    elif data_format.mime_type == FORMATS.GEOJSON.mime_type:
+        return json_to_geometry(inp.data) 
+
     elif data_format.mime_type == FORMATS.GML.mime_type:
-        # XXX Check that we do not get CRS  from GML
-        # with ogr data
-        geom = ogr.CreateGeometryFromGML(inp.data)
-        if not geom:
-            raise InvalidParameterValue("Invalid gml format")
-
-    if geom:
-        srs  = geom.GetSpatialReference()
-        geom = QgsGeometry.fromWkt(geom.ExportToWkt())
-        if srs:
-            crs  = QgsCoordinateReferenceSystem.fromWkt(srs.ExportToWkt())
-            if crs.isValid():
-                geom = QgsReferencedGeometry( geom, crs )
-
-        return geom
+        return gml_to_geometry(inp.data)
 
     raise NoApplicableCode("Unsupported data format: %s" % data_format)
 

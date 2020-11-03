@@ -72,14 +72,14 @@ def test_point_input_gml():
     assert inp.as_reference == False
 
     inp.data_format = Format.from_definition(FORMATS.GML)
-    inp.data = ('<gml:Point srsName="http://www.opengis.net/def/crs/EPSG/0/4326">'
+    inp.data = ('<gml:Point srsName="EPSG:4326">'
                 '<gml:coordinates>4,42</gml:coordinates>'
                 '</gml:Point>')
 
     assert inp.data_format.mime_type == FORMATS.GML.mime_type
 
     value = geometryio.input_to_point( inp )
-    assert isinstance( value, QgsGeometry )
+    assert isinstance( value, QgsReferencedPointXY )
 
 
 def test_point_input_json():
@@ -98,7 +98,7 @@ def test_point_input_json():
     assert inp.data_format.mime_type == FORMATS.GEOJSON.mime_type
 
     value = geometryio.input_to_point( inp )
-    assert isinstance( value, QgsReferencedPointXY )
+    assert isinstance( value, QgsGeometry )
 
 
 def test_point_input_wkt():
@@ -131,14 +131,14 @@ def test_linestring_input_gml():
     assert inp.as_reference == False
 
     inp.data_format = Format.from_definition(FORMATS.GML)
-    inp.data = ('<gml:LineString srsName="http://www.opengis.net/def/crs/EPSG/0/4326">'
+    inp.data = ('<gml:LineString srsName="EPSG:4326">'
                 '<gml:coordinates>45.67,88.56 55.56,89.44</gml:coordinates>'
                 '</gml:LineString>')
 
     assert inp.data_format.mime_type == FORMATS.GML.mime_type
 
     value = geometryio.input_to_geometry( inp )
-    assert isinstance( value, QgsGeometry )
+    assert isinstance( value, QgsReferencedGeometry )
     assert value.wkbType() == QgsWkbTypes.LineString
 
 
@@ -158,7 +158,7 @@ def test_multipoint_input_json():
     assert inp.data_format.mime_type == FORMATS.GEOJSON.mime_type
 
     value = geometryio.input_to_geometry( inp )
-    assert isinstance( value, QgsReferencedGeometry )
+    assert isinstance( value, QgsGeometry )
     assert value.wkbType() == QgsWkbTypes.MultiPoint
 
 
@@ -180,4 +180,48 @@ def test_multipoint_input_wkt():
     value = geometryio.input_to_geometry( inp )
     assert isinstance( value, QgsReferencedGeometry )
     assert value.wkbType() == QgsWkbTypes.MultiPoint
+
+
+def test_geometry_crs_json():
+    """ Test passing crs from json
+    """
+    param = QgsProcessingParameterGeometry("GEOM")
+
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp,ComplexInput)
+    assert inp.as_reference == False
+
+    inp.data_format = Format.from_definition(FORMATS.GEOJSON)
+    inp.data = ('{ "geometry": {"coordinates":[445277.96, 5160979.44],"type":"Point"},'
+                '  "crs": { '
+                '    "type": "name", '
+                '    "properties": { "name": "EPSG:3785" }'
+                '}}')
+
+    assert inp.data_format.mime_type == FORMATS.GEOJSON.mime_type
+
+    value = geometryio.input_to_geometry( inp )
+    assert isinstance( value, QgsReferencedGeometry )
+    assert value.crs().authid() == "EPSG:3785"
+    assert value.wkbType() == QgsWkbTypes.Point
+
+def test_nocrs_input_wkt():
+    """ Test input point from wkt
+    """
+    param = QgsProcessingParameterPoint("POINT")
+
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp,ComplexInput)
+    assert inp.as_reference == False
+
+    inp.data_format = Format.from_definition(FORMATS.WKT)
+    inp.data = 'POINT(6 10)'
+
+    assert inp.data_format.mime_type == FORMATS.WKT.mime_type
+
+    value = geometryio.input_to_point( inp )
+    assert isinstance( value, QgsGeometry )
+    assert value.wkbType() == QgsWkbTypes.Point
 
