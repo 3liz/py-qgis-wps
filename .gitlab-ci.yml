@@ -28,6 +28,7 @@ build:
     name: snap
   only:
     refs:
+      - tags
       - master
   tags:
     - infrav3
