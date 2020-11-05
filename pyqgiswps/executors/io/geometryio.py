@@ -58,15 +58,38 @@ GeometryParameterTypes = (QgsProcessingParameterPoint, QgsProcessingParameterGeo
 # Processing parameters ->  WPS input
 # ------------------------------------
 
-def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs) -> WPSInput:
+def parse_extent_input( param: QgsProcessingParameterDefinition, kwargs, 
+                        context: MapContext=None ) -> BoundingBoxInput:
+    """ Convert extent processing input to bounding box input"
+    """
+    if context:
+        project = context.project()
+        # Get the crs from the project
+        # Return a QgsCoordinateReferenceSystem
+        crs = project.crs()
+        if crs and crs.isValid():
+            crss = crs.authid()
+    else:
+        # Default CRS
+        crss = 'EPSG:4326'
+
+    # XXX This is the default, do not presume anything
+    # about effective crs at compute time
+    kwargs['crss'] = [crss]
+    return BoundingBoxInput(**kwargs)
+
+
+def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs,
+                            context: MapContext = None) -> WPSInput:
     """ Convert processing input to File Input 
     """
     typ = param.type()
-    if typ == "extent":
-       # XXX This is the default, do not presume anything
-       # about effective crs at compute time
-       kwargs['crss'] = ['EPSG:4326']
-       return BoundingBoxInput(**kwargs)
+
+    if typ =='crs':
+        kwargs['data_type'] = 'string'
+        return LiteralInput(**kwargs)
+    elif typ == "extent":
+        return parse_extent_input(param, kwargs, context) 
     elif isinstance(param, GeometryParameterTypes):
         kwargs['supported_formats'] = [Format.from_definition(FORMATS.GEOJSON),
                                        Format.from_definition(FORMATS.GML),
@@ -180,12 +203,17 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput
 
         Processes other inputs than layers
     """
+    typ = param.type()
+
     if isinstance(param, QgsProcessingParameterGeometry):
         value = input_to_geometry( inp[0] )
     elif isinstance(param, QgsProcessingParameterPoint):
         value = input_to_point( inp[0] )
-    elif param.type() == 'extent':
+    elif typ == 'extent':
         value = input_to_extent( inp[0] )
+    elif typ == 'crs':
+        # XXX CRS may be expressed as EPSG (or QgsProperty ?)
+        value == inp[0].data
     else:
         value = None
 

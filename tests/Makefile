@@ -24,7 +24,7 @@ endif
 SRCDIR=$(shell realpath ..)
 
 local:
-	rm -rf $$(pwd)/.local/share
+	rm -rf $$(pwd)/.local
 	mkdir -p  $$(pwd)/.local  $(LOCAL_HOME)/.cache
 
 TESTS_CPU_LIMITS:=2.0

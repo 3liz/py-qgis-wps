@@ -131,8 +131,6 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
                 QgsProcessingParameterField.String: 'String',
                 QgsProcessingParameterField.DateTime: 'DateTime'
             }[param.dataType()]))
-    elif typ =='crs':
-        kwargs['data_type'] = 'string'
     elif typ == 'band':
         kwargs['data_type'] = 'nonNegativeInteger'
     else:
@@ -178,8 +176,8 @@ the description is used in QGIS UI as the title in WPS.
         kwargs['min_occurs'] = 0
 
     inp = parse_literal_input(param,kwargs) \
-            or layersio.parse_input_definition(param,kwargs,context) \
-            or geometryio.parse_input_definition(param, kwargs) \
+            or layersio.parse_input_definition(param, kwargs, context) \
+            or geometryio.parse_input_definition(param, kwargs, context) \
             or filesio.parse_input_definition(param, kwargs) \
             or datetimeio.parse_input_definition(param, kwargs)
     if inp is None:
