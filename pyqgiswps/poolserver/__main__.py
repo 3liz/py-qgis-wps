@@ -17,8 +17,6 @@ import threading
 import asyncio
 import signal
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-
 from .server import create_poolserver
 from .client import create_client, RequestBackendError
 
@@ -72,18 +70,18 @@ if __name__ == '__main__':
         loop.add_signal_handler(signal.SIGINT ,  loop.stop)
         loop.add_signal_handler(signal.SIGTERM,  loop.stop)
         loop.run_until_complete(asyncio.wait([
-                run_test(job_ok  , client, timeout),
-                run_test(job_fail, client, timeout),
-            ]))
+            run_test(job_ok  , client, timeout),
+            run_test(job_fail, client, timeout),
+        ]))
 
         server.restart()
         loop.run_until_complete(asyncio.wait([
-                run_test(job_ok, client, timeout),
-                run_test(job_timeout, client, timeout),
-            ]))
+            run_test(job_ok, client, timeout),
+            run_test(job_timeout, client, timeout),
+        ]))
         
         client.close()
-    except (KeyboardInterrupt, SystemExit) as e:
+    except (KeyboardInterrupt, SystemExit):
         LOGGER.info("Server interrupted")
     finally:
         server.terminate()

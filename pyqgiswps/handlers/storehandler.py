@@ -7,21 +7,19 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import os
-import asyncio
 import mimetypes
 import logging
 
 from tornado.web import HTTPError
 from pathlib import Path
-from urllib.parse import urljoin
 from datetime import datetime
 
+from pyqgiswps.executors.logstore import logstore
+
 from .basehandler import BaseHandler
-from ..exceptions import NoApplicableCode, InvalidParameterValue, OperationNotSupported
 
 LOGGER = logging.getLogger('SRVLOG')
 
-from pyqgiswps.executors.logstore import logstore
 
 def _format_size( size ):
     for u in ['B','K','M','G']:
@@ -168,10 +166,10 @@ class DownloadHandler(BaseHandler, StoreShellMixIn):
         now       = datetime.utcnow().timestamp()
         path      = "dnl/_/{}".format(token)
         self.write_json({
-              'root': "/{}".format(path),
-              'link': "{}{}".format(proxy_url,path),
-              'expire_at': datetime.fromtimestamp(now+self._ttl).isoformat()+'Z',
-            })
+            'root': "/{}".format(path),
+            'link': "{}{}".format(proxy_url,path),
+            'expire_at': datetime.fromtimestamp(now+self._ttl).isoformat()+'Z',
+        })
 
     def get_dnl_params(self, token):
         """ Retrieve the download parameters
@@ -182,17 +180,16 @@ class DownloadHandler(BaseHandler, StoreShellMixIn):
         return params['uuid'],params['filename']
 
     async def get(self, uuid, resource):
-       """ Handle GET request
-       """
-       if self._query:
-           # Store the request and return 
-           # the temporary url
-           self.create_dnl_url(uuid, resource)    
-       else:
-           # Download
-           uuid,filename = self.get_dnl_params(resource)
-           await self.dnl( uuid, filename)
+        """ Handle GET request
+        """
+        if self._query:
+            # Store the request and return 
+            # the temporary url
+            self.create_dnl_url(uuid, resource)    
+        else:
+            # Download
+            uuid,filename = self.get_dnl_params(resource)
+            await self.dnl( uuid, filename)
 
-  
 
 

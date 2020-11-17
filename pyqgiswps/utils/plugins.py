@@ -11,7 +11,6 @@
 
 import os
 import sys
-import json
 import logging
 import glob
 import configparser
@@ -20,13 +19,13 @@ import traceback
 from collections import namedtuple
 from .styles import load_styles
 
-LOGGER = logging.getLogger('SRVLOG')
-
 from typing import Generator, Iterable, List, Dict, Any
+
+LOGGER = logging.getLogger('SRVLOG')
 
 _ProviderItem = namedtuple('_ProviderItem', ('provider','exposed'))
 
-def _register_provider(reg: 'QgsProcessingRegistry', provider_id: str, providers: List[_ProviderItem] ) -> None:
+def _register_provider(reg: 'QgsProcessingRegistry', provider_id: str, providers: List[_ProviderItem] ) -> None:   # noqa: F821
     """ Register scripts provider for exposition
     """
     p = reg.providerById(provider_id)
@@ -79,7 +78,7 @@ class WPSServerInterfaceImpl:
             _register_provider(reg, provider_id, providers)
 
         class _WPSServerInterface:
-            def registerProvider( self, provider: 'QgsAlgorithmProvider', expose: bool = True ) -> None:
+            def registerProvider( self, provider: 'QgsAlgorithmProvider', expose: bool = True ) -> None:   # noqa: F821
                 reg.addProvider(provider)
                 # IMPORTANT: the processingRegistry does not gain ownership and
                 # the caller must prevent garbage collection by keeping the ownership of 
@@ -98,12 +97,12 @@ class WPSServerInterfaceImpl:
                 # Initialize the plugin
                 LOGGER.info("Loaded plugin '%s'",plugin)
                 self._plugins[plugin] = package.WPSClassFactory(wpsIface)
-            except:
+            except Exception:
                 LOGGER.error("Failed to initialize plugin: %s", plugin)
                 traceback.print_exc()
 
     @property
-    def providers(self, exposed: bool=True) -> Iterable['QgsAlgorithmProvider']:
+    def providers(self, exposed: bool=True) -> Iterable['QgsAlgorithmProvider']:  # noqa: F821
         """ Return loaded  providers
 
             If exposed is True then return only exposed providers 
@@ -139,8 +138,6 @@ def checkQgisVersion(minver: str, maxver: str) -> bool:
 def find_plugins(path: str) -> Generator[str,None,None]:
     """ return list of plugins in given path
     """
-    from qgis.core import Qgis
-
     LOGGER.debug("Looking for plugins in %s", path)
 
     for plugin in glob.glob(os.path.join(path,"*")):

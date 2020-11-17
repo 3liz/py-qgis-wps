@@ -12,8 +12,6 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-import os
-import logging
 
 class Metadata:
     """

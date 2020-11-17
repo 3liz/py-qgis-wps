@@ -67,13 +67,13 @@ class PostgresProtocolHandler:
             raise FileNotFoundError(url.geturl())
 
         connexion_params = dict(
-           host=url.hostname,
-           port=url.port,
-           user=url.username,
-           password=url.password,
-           database=database,
-           # Treats remaining params as supported psql client options
-           **params 
+            host=url.hostname,
+            port=url.port,
+            user=url.username,
+            password=url.password,
+            database=database,
+            # Treats remaining params as supported psql client options
+            **params 
         )
 
         # Connect to database and check modification time

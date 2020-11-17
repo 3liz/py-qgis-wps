@@ -13,21 +13,17 @@ import logging
 import traceback
 
 from pathlib import Path
-from datetime import datetime
-from urllib.parse import urlparse, ParseResult
 
-from qgis.core import (QgsProcessingContext, QgsProject)
+from qgis.core import (QgsProcessingContext, 
+                       QgsProject, 
+                       QgsMapLayer)
 
 from pyqgiswps.qgscache.cachemanager import cacheservice
-
 from pyqgiswps.config import confservice
-from pyqgiswps.exceptions import InvalidParameterValue
 
-from qgis.core import (QgsProject, QgsMapLayer)
+from typing import Mapping, Any
 
 LOGGER = logging.getLogger('SRVLOG')
-
-from typing import Tuple, Union, Mapping, Any
 
 
 class MapContext:
@@ -85,7 +81,7 @@ class ProcessingContext(QgsProcessingContext):
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())
             return path
-        except:
+        except Exception:
             LOGGER.error(traceback.format_exc())
             raise
 

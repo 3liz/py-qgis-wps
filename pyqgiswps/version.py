@@ -15,10 +15,10 @@ def read_manifest() -> None:
     # Read build manifest
     manifest = { 'commitid':'n/a', 'buildid':'n/a', 'version':'n/a' }
     try:
-      manifest.update(l.decode().strip().split('=')[:2] for l in resource_stream('pyqgiswps',
-                                                        'build.manifest').readlines())
+        manifest.update(line.decode().strip().split('=')[:2] for line in resource_stream('pyqgiswps',
+                                                                                         'build.manifest').readlines())
     except Exception as e:
-      print("Failed to read manifest !: %s " % e, file=sys.stderr)
+        print("Failed to read manifest !: %s " % e, file=sys.stderr)
 
     return manifest
 

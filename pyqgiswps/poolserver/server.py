@@ -12,7 +12,6 @@ occurs from [almost] the same state.
 """
 import sys
 import os
-import asyncio
 import zmq
 import zmq.asyncio
 import logging

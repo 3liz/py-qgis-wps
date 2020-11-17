@@ -11,8 +11,6 @@ import os
 import sys
 import logging
 
-from pkg_resources import resource_stream
-
 from .version import __manifest__, __description__
 from .runtime import run_server
 from .config import (load_configuration, 
@@ -44,15 +42,16 @@ def read_configuration(args=None):
 
     cli_parser.add_argument('-d','--debug', action='store_true', default=False, help="Set debug mode")
     cli_parser.add_argument('-c','--config', metavar='PATH', nargs='?', dest='config',
-            default=config_file, help="Configuration file")
+                            default=config_file, help="Configuration file")
     cli_parser.add_argument('--version', action='store_true',
-            default=False, help="Return version number and exit")
-    cli_parser.add_argument('-p','--port'    , type=int, help="http port", dest='port', default=argparse.SUPPRESS)
+                            default=False, help="Return version number and exit")
+    cli_parser.add_argument('-p','--port'    , type=int, help="http port", dest='port', 
+                            default=argparse.SUPPRESS)
     cli_parser.add_argument('-b','--bind'    , metavar='IP',  default=argparse.SUPPRESS, 
-            help="Interfaces to bind to", dest='interfaces')
+                            help="Interfaces to bind to", dest='interfaces')
     cli_parser.add_argument('-u','--setuid'  , default=None, help="uid to switch to", dest='setuid')
     cli_parser.add_argument('-w','--workers' , metavar='NUM', type=int, default=argparse.SUPPRESS,
-            help="number of parallel processes", dest='parallelprocesses')
+                            help="number of parallel processes", dest='parallelprocesses')
     cli_parser.add_argument('--dump-config'  , action='store_true', help="Dump the configuration and exit")
 
     args = cli_parser.parse_args()
@@ -80,9 +79,9 @@ def read_configuration(args=None):
         confservice.set('logging', 'level', 'DEBUG')
 
     if args.dump_config:
-       from .config import write_config
-       write_config(sys.stdout)
-       sys.exit(0)
+        from .config import write_config
+        write_config(sys.stdout)
+        sys.exit(0)
 
     # set log level
     setup_log_handler()

@@ -19,21 +19,20 @@ from enum import Enum
 import os
 import logging
 from pyqgiswps.inout.literaltypes import (LITERAL_DATA_TYPES, convert,
-                                      make_allowedvalues, is_anyvalue)
+                                          make_allowedvalues, is_anyvalue)
 from pyqgiswps import OWS, OGCUNIT, NAMESPACES
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.validator.base import emptyvalidator
 from pyqgiswps.validator import get_validator
 from pyqgiswps.validator.literalvalidator import (validate_anyvalue,
-                                              validate_allowed_values)
+                                                  validate_allowed_values)
 from pyqgiswps.exceptions import InvalidParameterValue
 from pyqgiswps.inout.formats import Format
 
 import base64
-from collections import namedtuple
-
 
 LOGGER = logging.getLogger('SRVLOG')
+
 
 class SOURCE_TYPE(Enum):
     FILE = 1

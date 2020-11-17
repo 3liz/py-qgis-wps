@@ -12,7 +12,6 @@ import os
 import sys
 import logging
 
-from collections import namedtuple
 from typing import Dict
 
 version_info = (0,0,0)
@@ -35,7 +34,7 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
                            cleanup: bool=True,
                            logger: logging.Logger=None, 
                            logprefix: str='Qgis:',
-                           settings: Dict=None) -> 'qgis.core.QgsApplication':
+                           settings: Dict=None) -> 'qgis.core.QgsApplication':   # noqa: F821
     """ Start qgis application
 
         :param boolean enable_gui: Enable graphical interface, default to False
@@ -76,9 +75,9 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
 
     # From qgis server
     # Will enable us to read qgis setting file
-    QCoreApplication.setOrganizationName( QgsApplication.QGIS_ORGANIZATION_NAME );
-    QCoreApplication.setOrganizationDomain( QgsApplication.QGIS_ORGANIZATION_DOMAIN );
-    QCoreApplication.setApplicationName( QgsApplication.QGIS_APPLICATION_NAME );
+    QCoreApplication.setOrganizationName( QgsApplication.QGIS_ORGANIZATION_NAME )
+    QCoreApplication.setOrganizationDomain( QgsApplication.QGIS_ORGANIZATION_DOMAIN )
+    QCoreApplication.setApplicationName( QgsApplication.QGIS_APPLICATION_NAME )
 
     qgis_application.initQgis()
 
@@ -138,7 +137,7 @@ def init_qgis_processing() -> None:
 def install_logger_hook( logger: logging.Logger, logprefix: str, verbose: bool=False ) -> None:
     """ Install message log hook
     """
-    from qgis.core import Qgis, QgsApplication, QgsMessageLog
+    from qgis.core import Qgis, QgsApplication
     # Add a hook to qgis  message log 
     def writelogmessage(message, tag, level):
         arg = '{} {}: {}'.format( logprefix, tag, message )
@@ -159,7 +158,7 @@ def load_qgis_settings( optpath, logger, verbose=False ):
     """ Load qgis settings
     """
     from qgis.PyQt.QtCore import QSettings
-    from qgis.core import QgsSettings, QgsApplication
+    from qgis.core import QgsSettings
 
     QSettings.setDefaultFormat( QSettings.IniFormat )
     QSettings.setPath( QSettings.IniFormat, QSettings.UserScope, optpath )

@@ -19,13 +19,12 @@ import zmq
 import zmq.asyncio
 import traceback
 import logging
-import signal
 
 from typing import Callable
 
-LOGGER=logging.getLogger('SRVLOG')
-
 from .utils import _get_ipc
+
+LOGGER=logging.getLogger('SRVLOG')
 
 
 class Client:

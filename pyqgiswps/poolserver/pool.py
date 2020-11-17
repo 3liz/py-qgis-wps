@@ -9,7 +9,6 @@
 """ Pool server 
 """
 import os
-import sys
 import logging
 import time
 import signal
@@ -88,9 +87,9 @@ class Pool:
         """
         for _ in range(self._num_workers - len(self._pool)):
             w = Process(target=worker_handler, args=(self._router, self._broadcastaddr),
-                                      kwargs=dict( maxcycles   = self._maxcycles,
-                                                   initializer = self._initializer,
-                                                   initargs    = self._initargs))
+                        kwargs=dict( maxcycles   = self._maxcycles,
+                                     initializer = self._initializer,
+                                     initargs    = self._initargs))
             self._pool.append(w)
             w.name = w.name.replace('Process', 'PoolWorker')
             w.start()

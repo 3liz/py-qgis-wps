@@ -8,8 +8,6 @@
 #
 """ Handle caching projects from files
 """
-
-import os.path
 import re
 
 from collections import namedtuple

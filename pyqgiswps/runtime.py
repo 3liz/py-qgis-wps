@@ -7,7 +7,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import os
-import sys
 import asyncio
 import logging
 import tornado.web
@@ -19,8 +18,7 @@ from tornado.web import StaticFileHandler
 
 from typing import Mapping, List
 
-from contextlib import contextmanager
-from .logger import log_request, log_rrequest
+from .logger import log_request
 
 from .config import confservice, get_size_bytes
 
@@ -29,9 +27,9 @@ from .handlers import (RootHandler, WPSHandler, StoreHandler, StatusHandler,
 
 from .accesspolicy import init_access_policy
 
-LOGGER = logging.getLogger('SRVLOG')
-
 from pyqgisservercontrib.core.filters import ServerFilter
+
+LOGGER = logging.getLogger('SRVLOG')
 
 
 def load_filters( base_uri: str, appfilters: List[ServerFilter]=None ) -> Mapping[str,List[ServerFilter]]:
@@ -66,7 +64,7 @@ def load_filters( base_uri: str, appfilters: List[ServerFilter]=None ) -> Mappin
 def configure_handlers( appfilters ):
     """ Set up request handlers
     """
-    staticpath = docpath = pkg_resources.resource_filename("pyqgiswps", "webui")
+    staticpath = pkg_resources.resource_filename("pyqgiswps", "webui")
 
     cfg = confservice['server']
 
@@ -134,11 +132,10 @@ def setuid(username):
 def run_server( port, address=None, user=None ):
     """ Run the server
     """
-    import traceback
     from tornado.httpserver import HTTPServer
 
     if user:
-       setuid(user)
+        setuid(user)
 
     # Run
     LOGGER.info("Running WPS server on port %s:%s", address, port)
@@ -163,7 +160,7 @@ def run_server( port, address=None, user=None ):
         loop.add_signal_handler(signal.SIGTERM, loop.stop)
         LOGGER.info("WPS Server ready")
         loop.run_forever()
-    except (KeyboardInterrupt, SystemExit) as e:
+    except (KeyboardInterrupt, SystemExit):
         LOGGER.info("Server interrupted")
     finally:
         application.terminate()

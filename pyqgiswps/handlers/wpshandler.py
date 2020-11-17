@@ -7,22 +7,14 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import os
-import asyncio
-import mimetypes
 import logging
 import uuid
 
-
-
-from urllib.parse import urljoin
-
 from .basehandler import HTTPError, BaseHandler
-from ..exceptions import NoApplicableCode, InvalidParameterValue, OperationNotSupported
-from ..accesspolicy import new_access_policy
 
-from ..app.WPSRequest import WPSRequest
-
+from pyqgiswps.exceptions import InvalidParameterValue, OperationNotSupported
+from pyqgiswps.accesspolicy import new_access_policy
+from pyqgiswps.app.WPSRequest import WPSRequest
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -44,8 +36,7 @@ class WPSHandler(BaseHandler):
     async def handle_wps_request(self, method_parser):
         """ Handle a wps request
         """
-        http_request = self.request
-        wpsrequest   = method_parser(self)
+        wpsrequest = method_parser(self)
 
         wpsrequest.map_uri  = self.get_argument('MAP', default=None)
         wpsrequest.host_url = self.proxy_url()
@@ -68,9 +59,8 @@ class WPSHandler(BaseHandler):
             if not self.accesspolicy.allow(wpsrequest.identifier):
                 raise HTTPError(403,reason="Unauthorized operation")
             response = await service.execute(wpsrequest.identifier, wpsrequest, uuid.uuid1(),
-                # Context
-                map_uri=wpsrequest.map_uri,
-            )
+                                             # Context
+                                             map_uri=wpsrequest.map_uri)
         else:
             raise OperationNotSupported("Unknown operation %r" % wpsrequest.operation)
 
@@ -155,7 +145,6 @@ class StatusHandler(BaseHandler):
     def delete( self, uuid=None ):
         """ Delete results
         """
-        data = None
         if uuid is None:
             self.set_status(400)
             self.write_json({ 'error': 'Missing uuid' })
@@ -165,7 +154,5 @@ class StatusHandler(BaseHandler):
             if not success:
                 self.set_status(409) # 409 == Conflict
         except FileNotFoundError:
-             self.set_status(404)
-
-        
+            self.set_status(404)
 

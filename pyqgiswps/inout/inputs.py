@@ -17,13 +17,11 @@ import os
 
 from pyqgiswps import E, OWS, WPS, OGCTYPE, NAMESPACES
 from pyqgiswps.config import confservice, get_size_bytes
-from pyqgiswps.inout import basic, httpclient
+from pyqgiswps.inout import basic
 from copy import deepcopy
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.inout.literaltypes import AnyValue
 from pyqgiswps.inout.httpclient import openurl
-
-from typing import Union
 
 class BoundingBoxInput(basic.BBoxInput):
 

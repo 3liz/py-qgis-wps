@@ -8,23 +8,19 @@
 #
 """ Handle datetime 
 """
-import os
 import logging
 
 from pyqgiswps.inout import LiteralInput
-from pyqgiswps.config import confservice
 from pyqgiswps.inout.literaltypes import convert_time
 
 from qgis.PyQt.QtCore import Qt, QDateTime, QDate, QTime
-from qgis.core import (QgsProcessing,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingParameterDefinition,
+from qgis.core import (QgsProcessingParameterDefinition,
                        QgsProcessingParameterDateTime)
 
-from ..processingcontext import MapContext, ProcessingContext
+from ..processingcontext import ProcessingContext
 
 from datetime import datetime
-from typing import Mapping, Any, TypeVar, Union, Tuple
+from typing import Any
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -40,7 +36,8 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs) -> 
     if typ != 'datetime':
         return None
 
-    to_value = lambda qdt: qdt.toPyDateTime() if qdt.isValid() else None
+    def to_value( qdt ): 
+        return qdt.toPyDateTime() if qdt.isValid() else None
 
     defval = kwargs['default']
 
@@ -49,17 +46,20 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs) -> 
         kwargs['data_type'] = 'date'
         maxval = (to_value( param.maximum() ) or datetime.max).date()
         minval = (to_value( param.minimum() ) or datetime.min).date()
-        if defval: defval = QDateTime(defval).toPyDateTime().date()
+        if defval: 
+            defval = QDateTime(defval).toPyDateTime().date()
     elif dtype == QgsProcessingParameterDateTime.Time:
         kwargs['data_type'] = 'time'
         maxval = (to_value( param.maximum() ) or datetime.max).time()
         minval = (to_value( param.minimum() ) or datetime.min).time()
-        if defval: defval = convert_time(defval.toString(Qt.ISODate))
+        if defval: 
+            defval = convert_time(defval.toString(Qt.ISODate))
     else:
         kwargs['data_type'] = 'dateTime'
         maxval = to_value( param.maximum() ) or datetime.max
         minval = to_value( param.minimum() ) or datetime.min
-        if defval: defval = defval.toPyDateTime()
+        if defval: 
+            defval = defval.toPyDateTime()
 
     kwargs['default'] = defval
 

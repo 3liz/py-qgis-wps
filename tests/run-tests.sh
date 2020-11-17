@@ -19,14 +19,7 @@ export QGIS_NO_OVERRIDE_IMPORT=1
 # Do no resart workers on each run
 export QGSWPS_SERVER_PROCESSLIFECYCLE=0
 
-# Minimal check with pylint because pylint choke on dynamic
-# variables and members
-# Disabled: 
-#  * no-member (E1101)
-#  * no-name-in-module (E0611)
-#
-PYTHONPATH=/usr/share/qgis/python/plugins/ \
-    pylint -E -d E1101,E0611 /src/pyqgiswps
+flake8 --ignore=E123,E2,E3,E5,W2,W3  pyqgiswps pyqgisservercontrib
 
 cd tests/unittests && pytest -v $@
 

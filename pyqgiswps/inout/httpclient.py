@@ -14,17 +14,15 @@
 
 import os
 import logging
-import traceback
 import tornado.httpclient as httpclient
-from pyqgiswps.version import __version__
 
-from ..exceptions import NoApplicableCode
+from pyqgiswps.version import __version__
+from pyqgiswps.exceptions import FileSizeExceeded, NoApplicableCode
 
 LOGGER = logging.getLogger('SRVLOG')
 
 USER_AGENT = "QYWPS Server %s" % __version__
 
-from pyqgiswps.exceptions import FileSizeExceeded
 
 def openurl( url: str, filename: os.PathLike, max_bytes: int=0, **kwargs ) -> None:
     """ Open url

@@ -162,7 +162,7 @@ def get_converter(convertor):
                 convert = convert_positiveInteger
             else:
                 raise InvalidParameterValue(
-                    "Invalid data_type value of LiteralInput " +
+                    "Invalid data_type value of LiteralInput " + \
                     "set to '{}'".format(data_type))
         try:
             return convert(data)
@@ -207,7 +207,7 @@ def convert_boolean(inpt):
                 val = False
             else:
                 val = True
-        except:
+        except Exception:
             val = True
     return val
 

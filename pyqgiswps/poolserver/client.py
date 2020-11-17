@@ -19,9 +19,6 @@ import uuid
 import pickle
 import traceback
 
-from time import time
-from collections import deque
-
 from typing import Callable, Any
 
 from .utils import _get_ipc, WORKER_READY
@@ -71,7 +68,7 @@ class _Client:
         self._polling = asyncio.ensure_future(self._poll())
 
     def _put_worker(self, worker_id) -> None:
-        if not worker_id in self._worker_s:
+        if worker_id not in self._worker_s:
             LOGGER.debug("WORKER READY %s", worker_id)
             self._worker_s.append(worker_id)
             self._worker_q.put_nowait(worker_id)
@@ -117,11 +114,11 @@ class _Client:
             except asyncio.CancelledError:
                 LOGGER.debug("polling stopped")
                 cancelled = True
-            except:
+            except Exception:
                 LOGGER.error("Polling error\n%s", traceback.format_exc())
 
 
-    def close(self):
+    def close(self) -> None:
         LOGGER.debug("Closing pool client")
         self._polling.cancel()
         self._socket.close()

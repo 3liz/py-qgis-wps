@@ -70,8 +70,8 @@ class NoApplicableCode(HTTPException):
 
     def get_body(self):
         """Get the XML body."""
-        return (
-            '<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsExceptionReport.xsd" version="1.0.0">\n'  # noqa
+        return (  # noqa
+            '<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsExceptionReport.xsd" version="1.0.0">\n'
             '  <ows:Exception exceptionCode="%(name)s" locator="%(locator)s" >\n'
             '      %(description)s\n'
             '  </ows:Exception>\n'

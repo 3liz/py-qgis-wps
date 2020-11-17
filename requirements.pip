@@ -2,5 +2,5 @@ setuptools
 coverage
 pytest
 fakeredis
-pylint
+flake8
 

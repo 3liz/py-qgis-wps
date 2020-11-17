@@ -17,16 +17,15 @@
 Reads the PyWPS configuration file
 """
 
-import logging
 import sys
 import os
 import tempfile
 import functools
-import pyqgiswps
 
 import configparser
 
 from typing import Any
+from pyqgisservercontrib.core import componentmanager
 
 
 CONFIG = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
@@ -256,7 +255,6 @@ def get_size_bytes(size):
 #
 # Published services
 #
-from pyqgisservercontrib.core import componentmanager
 
 NO_DEFAULT=object()
 

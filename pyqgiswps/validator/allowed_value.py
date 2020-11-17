@@ -12,7 +12,6 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-from collections import namedtuple
 from enum import Enum
 
 class ALLOWEDVALUETYPE(str, Enum):

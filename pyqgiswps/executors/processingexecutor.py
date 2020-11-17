@@ -8,45 +8,37 @@
 #
 import asyncio
 import os
-import sys
 import traceback
-import json
 import shutil
-import tempfile
 import logging
 import lxml
-import signal
 
 try:
     # XXX On android userland, /proc/stat is not readable
     import psutil
     HAVE_PSUTIL = True
-except:
+except Exception:
     print("WARNING: PSUtil is not available, memory stats will be disabled !")
     HAVE_PSUTIL = False
 
 from contextlib import contextmanager
 from datetime import datetime
 
-from abc import ABCMeta, abstractmethod
-from pyqgiswps import WPS, OWS
-
-from pyqgiswps.app.WPSResponse import WPSResponse
 from pyqgiswps.app.WPSResponse import STATUS
-from pyqgiswps.app.WPSRequest import WPSRequest
 from pyqgiswps.logger import logfile_context
-
 from pyqgiswps.utils.lru import lrucache
-
-from lxml import etree
-from pyqgiswps.exceptions import (StorageNotSupported, OperationNotSupported,
-                                  NoApplicableCode, ProcessException)
-
+from pyqgiswps.exceptions import (NoApplicableCode, ProcessException)
 from pyqgiswps.config import confservice
+
+from pyqgiswps.poolserver.client import (create_client, 
+                                         RequestBackendError, 
+                                         MaxRequestsExceeded)
+
+from .processfactory import get_process_factory
+from .logstore import logstore
 
 LOGGER = logging.getLogger('SRVLOG')
 
-from .logstore import logstore
 
 class ExecutorError(Exception):
     pass
@@ -56,14 +48,6 @@ class UnknownProcessError(ExecutorError):
 
 class StorageNotFound(ExecutorError): 
     pass
-
-
-from pyqgiswps.poolserver.server import create_poolserver
-from pyqgiswps.poolserver.client import (create_client, 
-                                         RequestBackendError, 
-                                         MaxRequestsExceeded)
-
-from .processfactory import get_process_factory
 
 class ProcessingExecutor:
     """ Progessing executor
@@ -170,7 +154,8 @@ class ProcessingExecutor:
 
         # Create a new instance of a process for the given context
         # Contextualized processes are stored in lru cache
-        _test = lambda p: (map_uri,p.identifier) not in self._context_processes
+        def _test(p):
+            return (map_uri,p.identifier) not in self._context_processes
 
         # TODO Allow create contextualized processes from non-processing processes
         if not self._qgis_disabled and map_uri is not None:
@@ -188,7 +173,6 @@ class ProcessingExecutor:
         """ Schedule a periodic cleanup
         """
         interval = confservice.getint('server','cleanup_interval')
-        loop     = asyncio.get_event_loop()
         async def _run_cleanup():
             while True:
                 await asyncio.sleep(interval)
@@ -350,9 +334,12 @@ if HAVE_PSUTIL:
         finally:
             # Log memory infos
             end_mem = process.memory_info().rss
-            LOGGER.info("{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb delta={3:.3f}Mb".format(
-                    str(response.uuid)[:8], start_mem/mb, end_mem/mb, (end_mem - start_mem)/mb,
-                    response.process.identifier))
+            LOGGER.info(("{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb "
+                         "delta={3:.3f}Mb").format(str(response.uuid)[:8], 
+                                                   start_mem/mb, 
+                                                   end_mem/mb, 
+                                                   (end_mem - start_mem)/mb,
+                                                   response.process.identifier))
 else:
     @contextmanager
     def memory_logger(response):

@@ -8,13 +8,12 @@
 #
 """ Wrap qgis processing algorithms in WPS process
 """
-import os
 import logging
+import traceback
 
 from urllib.parse import urlparse, urlencode, parse_qs
 
 from qgis.core import (QgsProcessing,
-                       QgsProcessingAlgorithm,
                        QgsProcessingParameterDefinition,
                        QgsProcessingParameterMapLayer,
                        QgsProcessingParameterRasterLayer,
@@ -37,9 +36,7 @@ from qgis.core import (QgsProcessing,
                        QgsMapLayer,
                        QgsVectorLayer,
                        QgsWkbTypes,
-                       QgsProperty,
-                       QgsCoordinateReferenceSystem,
-                       QgsFeatureRequest)
+                       QgsRectangle)
 
 from ..processingcontext import MapContext, ProcessingContext
 
@@ -55,13 +52,11 @@ from pyqgiswps.inout import (LiteralInput,
                              BoundingBoxOutput)
 
 from pyqgiswps.exceptions import (NoApplicableCode,
-                                  InvalidParameterValue,
-                                  MissingParameterValue,
-                                  ProcessException)
+                                  InvalidParameterValue)
 
 from pyqgiswps.utils.filecache import get_valid_filename
 
-from typing import Mapping, Any, TypeVar, Union, Tuple
+from typing import Any, Union, Tuple
 
 WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
 WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
@@ -143,17 +138,18 @@ def get_layers_from_context(kwargs, context: MapContext, datatypes) -> None:
         if lyr.type() == QgsMapLayer.VectorLayer:
             geomtype = lyr.geometryType()
             return (geomtype == QgsWkbTypes.PointGeometry and QgsProcessing.TypeVectorPoint in datatypes) \
-            or (geomtype == QgsWkbTypes.LineGeometry      and QgsProcessing.TypeVectorLine in datatypes)  \
-            or (geomtype == QgsWkbTypes.PolygonGeometry   and QgsProcessing.TypeVectorPolygon in datatypes) \
-            or QgsProcessing.TypeVectorAnyGeometry in datatypes \
-            or QgsProcessing.TypeVector in datatypes \
-            or QgsProcessing.TypeMapLayer in datatypes
+                or (geomtype == QgsWkbTypes.LineGeometry      and QgsProcessing.TypeVectorLine in datatypes)  \
+                or (geomtype == QgsWkbTypes.PolygonGeometry   and QgsProcessing.TypeVectorPolygon in datatypes) \
+                or QgsProcessing.TypeVectorAnyGeometry in datatypes \
+                or QgsProcessing.TypeVector in datatypes \
+                or QgsProcessing.TypeMapLayer in datatypes
         elif lyr.type() == QgsMapLayer.RasterLayer: 
             return QgsProcessing.TypeRaster in datatypes \
                 or QgsProcessing.TypeMapLayer in datatypes
         return False
             
-    _allowed_layer = lambda l: AllowedValue(value=l.name(), allowed_type=ALLOWEDVALUETYPE.LAYER)
+    def _allowed_layer( lyr: QgsMapLayer ) -> bool: 
+        return AllowedValue(value=lyr.name(), allowed_type=ALLOWEDVALUETYPE.LAYER)
 
     kwargs['allowed_values'] = [_allowed_layer(lyr) for lyr in project.mapLayers().values() if _is_allowed(lyr)]
   
@@ -185,7 +181,7 @@ def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs,
         typ = param.type()
 
         if typ == 'multilayer':
-            num_inputs = param.minimumNumberInputs();
+            num_inputs = param.minimumNumberInputs()
             kwargs['min_occurs'] = num_inputs if num_inputs >= 1 else 0
             kwargs['max_occurs'] = kwargs['min_occurs']
 
@@ -266,7 +262,7 @@ def parse_layer_spec( layerspec: str, context: ProcessingContext, allow_selectio
                 if feat_requests:
                     ftreq = feat_requests[-1]
                     layer.selectByExpression(ftreq, behavior=behavior )
-            except:
+            except Exception:
                 LOGGER.error(traceback.format_exc())
                 raise NoApplicableCode("Feature selection failed")
     return p, has_selection
@@ -323,14 +319,14 @@ def parse_output_definition( outdef: QgsProcessingOutputDefinition, kwargs ) -> 
     """
     if isinstance(outdef, QgsProcessingOutputVectorLayer):
         return ComplexOutput(supported_formats=[
-                    Format("application/x-ogc-wms"),
-                    Format("application/x-ogc-wfs")
-                ], as_reference=True, **kwargs)
+            Format("application/x-ogc-wms"),
+            Format("application/x-ogc-wfs")
+        ], as_reference=True, **kwargs)
     elif isinstance(outdef, QgsProcessingOutputRasterLayer):
         return ComplexOutput(supported_formats=[
-                    Format("application/x-ogc-wms"),
-                    Format("application/x-ogc-wcs")
-                ], as_reference=True, **kwargs)
+            Format("application/x-ogc-wms"),
+            Format("application/x-ogc-wcs")
+        ], as_reference=True, **kwargs)
     elif isinstance(outdef, (QgsProcessingOutputMapLayer, QgsProcessingOutputMultipleLayers)):
         return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")], 
                              as_reference=True, **kwargs)
@@ -361,7 +357,7 @@ def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefi
                     LOGGER.debug("Layer name for '%s' set to '%s'", outputName, layer.name())
                     return (layer.name(),)
             except Exception:
-                LOGGER.error("Processing: Error loading result layer {}:\n{}".format(l,traceback.format_exc()))
+                LOGGER.error("Processing: Error loading result layer {}:\n{}".format(layer.name(),traceback.format_exc()))
         return ()
 
     if isinstance(outdef, QgsProcessingOutputVectorLayer):
@@ -376,15 +372,12 @@ def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefi
     else:
         destination_project = None
 
-    def add_layer_details( l ):
+    def add_layer_details( lyrname ):
 
         # Set empty name as we are calling setOutputLayerName
-        details = QgsProcessingContext.LayerDetails("",
-                        destination_project,
-                        outputName,
-                        layerTypeHint)
+        details = QgsProcessingContext.LayerDetails("", destination_project, outputName, layerTypeHint) 
         try:
-            layer = QgsProcessingUtils.mapLayerFromString(l, context, typeHint=details.layerTypeHint)
+            layer = QgsProcessingUtils.mapLayerFromString(lyrname, context, typeHint=details.layerTypeHint)
             if layer is not None:
                 # Fix layer name
                 # If details name is empty it well be set to the file name 
@@ -393,17 +386,17 @@ def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefi
                 # setting is set to false (see processfactory.py:129)
                 details.setOutputLayerName(layer)
                 LOGGER.debug("Layer name for '%s' set to '%s'", outputName, layer.name())
-                context.addLayerToLoadOnCompletion(l,details)
+                context.addLayerToLoadOnCompletion(lyrname, details)
                 return layer.name()
             else:
-               LOGGER.warning("No layer found for %s", l)
+                LOGGER.warning("No layer found for %s", lyrname)
         except Exception:
-            LOGGER.error("Processing: Error loading result layer {}:\n{}".format(l,traceback.format_exc()))
+            LOGGER.error("Processing: Error loading result layer {}:\n{}".format(lyrname,traceback.format_exc()))
 
         return ()
 
     if multilayers:
-        return tuple(name for name in (add_layer_details(l) for l in value) if name is not None)
+        return tuple(name for name in (add_layer_details(lyrname) for lyrname in value) if name is not None)
     else:
         return (add_layer_details(value),)
     
@@ -413,7 +406,7 @@ def parse_response( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSO
     """ Process processing response to WPS output 
     """
     if not isinstance(outdef, OUTPUT_LAYER_TYPES):
-       return
+        return
 
     out.data_format = Format("application/x-ogc-wms")
 

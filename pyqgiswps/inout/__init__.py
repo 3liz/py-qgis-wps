@@ -13,7 +13,7 @@
 #
 
 
-from pyqgiswps.inout.inputs import LiteralInput, ComplexInput, BoundingBoxInput
-from pyqgiswps.inout.outputs import LiteralOutput, ComplexOutput, BoundingBoxOutput
-from pyqgiswps.inout.formats import Format, FORMATS, get_format
-from pyqgiswps.inout.basic import UOM
+from pyqgiswps.inout.inputs import LiteralInput, ComplexInput, BoundingBoxInput     # noqa F401
+from pyqgiswps.inout.outputs import LiteralOutput, ComplexOutput, BoundingBoxOutput # noqa F401
+from pyqgiswps.inout.formats import Format, FORMATS, get_format                     # noqa F401  
+from pyqgiswps.inout.basic import UOM  # noqa F401

@@ -16,7 +16,7 @@ import traceback
 from glob import glob
 from itertools import chain
 
-from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths, init_qgis_processing
+from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths
 from pyqgiswps.poolserver.server import create_poolserver
 from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
 
@@ -81,7 +81,7 @@ class QgsProcessFactory:
         try:
             from pyqgiswps.executors.processingprocess import QgsProcess
             return [QgsProcess.createInstance(ident,map_uri=map_uri, **context) for ident in identifiers]
-        except:
+        except Exception:
             traceback.print_exc()
             raise
 
@@ -93,15 +93,15 @@ class QgsProcessFactory:
 
         # Install processes from processing providers
         from pyqgiswps.executors.processingprocess import QgsProcess
-        from qgis.core import QgsApplication,QgsProcessingAlgorithm
+        from qgis.core import QgsProcessingAlgorithm
 
-        processingRegistry = QgsApplication.processingRegistry()
         processes = {}
 
         iface = self._wps_interface
 
         # Do not publish hidden algorithm from toolbox
-        _is_hidden = lambda a: (int(a.flags()) & QgsProcessingAlgorithm.FlagHideFromToolbox) !=0
+        def _is_hidden( a: QgsProcessingAlgorithm ) -> bool: 
+            return (int(a.flags()) & QgsProcessingAlgorithm.FlagHideFromToolbox) !=0
 
         for provider in iface.providers:
             LOGGER.debug("Loading processing algorithms from provider '%s'", provider.id())
@@ -151,10 +151,12 @@ class QgsProcessFactory:
         # Load other settings from configuration file
 
         # Init qgis application
-        self.qgisapp = start_qgis_application( enable_processing=True,
-                                verbose=confservice.get('logging','level')=='DEBUG',
-                                logger=LOGGER, logprefix=logprefix,
-                                settings=settings)
+        self.qgisapp = start_qgis_application( 
+            enable_processing=True,
+            verbose=confservice.get('logging','level')=='DEBUG',
+            logger=LOGGER, logprefix=logprefix,
+            settings=settings
+        )
 
         # Load plugins
         self._wps_interface.register_providers()

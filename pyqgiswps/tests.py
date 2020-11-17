@@ -11,18 +11,14 @@
 # and released under MIT license.                                
 # 
 
-import asyncio
-import tornado.platform.asyncio
 from tornado.testing import AsyncHTTPTestCase
 from contextlib import contextmanager
 import shutil
 import tempfile
-import time
 
 import lxml.etree
 from pyqgiswps import __version__, NAMESPACES
 
-import logging
 
 from pyqgiswps.runtime import Application
 from pyqgiswps.logger import configure_log_levels
@@ -110,14 +106,16 @@ class WpsClient:
         self._testcase = testcase
 
     def post(self, data, headers=None, path='/ows/'):
-        return WpsTestResponse(self._testcase.fetch(path, method='POST', body=data, raise_error=False, headers=headers))
+        return WpsTestResponse(self._testcase.fetch(path, method='POST', 
+                               body=data, raise_error=False, headers=headers))
 
     def get(self, query, headers=None, path='/ows/'):
         return WpsTestResponse(self._testcase.fetch(path + query, raise_error=False,
-               headers=headers))
+                               headers=headers))
 
     def put(self, data, headers=None, path='/ows/'):
-        return WpsTestResponse(self._testcase.fetch(path, method='PUT', body=data, raise_error=False, headers=headers))
+        return WpsTestResponse(self._testcase.fetch(path, method='PUT', 
+                               body=data, raise_error=False, headers=headers))
 
     def post_xml(self, doc):
         return self.post(data=lxml.etree.tostring(doc, pretty_print=True))

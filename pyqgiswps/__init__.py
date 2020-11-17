@@ -11,12 +11,8 @@
 # and released under MIT license.                                
 # Please consult PYWPS_LICENCE.txt for details
 #
-import logging
-
-import os
-
 from lxml.builder import ElementMaker
-from .version import __version__ 
+from .version import __version__  # noqa F401
 
 NAMESPACES = {
     'xlink': "http://www.w3.org/1999/xlink",
@@ -61,12 +57,12 @@ OGCUNIT = {
     'unity': 'urn:ogc:def:uom:OGC:1.0:unity'
 }
 
-from pyqgiswps.app import WPSProcess, Service, WPSRequest
-from pyqgiswps.app.WPSRequest import get_inputs_from_xml, get_output_from_xml
-from pyqgiswps.inout.inputs import LiteralInput, ComplexInput, BoundingBoxInput
-from pyqgiswps.inout.outputs import LiteralOutput, ComplexOutput, BoundingBoxOutput
-from pyqgiswps.inout.formats import Format, FORMATS, get_format
-from pyqgiswps.inout import UOM
+from pyqgiswps.app import WPSProcess, Service, WPSRequest                           # noqa E402,F401
+from pyqgiswps.app.WPSRequest import get_inputs_from_xml, get_output_from_xml       # noqa E402,F401
+from pyqgiswps.inout.inputs import LiteralInput, ComplexInput, BoundingBoxInput     # noqa E402,F401
+from pyqgiswps.inout.outputs import LiteralOutput, ComplexOutput, BoundingBoxOutput # noqa E402,F401
+from pyqgiswps.inout.formats import Format, FORMATS, get_format # noqa E402,F401
+from pyqgiswps.inout import UOM # noqa E402,F401
 
 if __name__ == "__main__":
     pass

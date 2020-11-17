@@ -12,9 +12,7 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-import os
 import logging
-import shutil
 
 from pyqgiswps import E, WPS, OWS
 

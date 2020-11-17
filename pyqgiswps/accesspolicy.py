@@ -32,8 +32,8 @@ def _validate_policy( rules: Union[str,List[str]] ) -> List[str]:
 class AccessPolicy:
 
     def __init__(self):
-       self._allow = []
-       self._deny  = []
+        self._allow = []
+        self._deny  = []
 
     def add_policy( self, deny: List[str]=None, allow: List[str]=None ) -> None:
         """ Add custom policy

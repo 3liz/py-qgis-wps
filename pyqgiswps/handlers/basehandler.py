@@ -8,13 +8,11 @@
 #
 """ Base Request handler
 """
-import os
 import tornado.web
 import logging
 import json
-import traceback
 import lxml
-from tornado.web import HTTPError
+from tornado.web import HTTPError  # noqa F401
 
 from ..exceptions import NoApplicableCode
 
@@ -107,8 +105,8 @@ class BaseHandler(tornado.web.RequestHandler):
         # Replace the status url with the proxy_url if any
         req = self.request
         proxy_url = self.application.config['host_proxy'] or \
-                    req.headers.get('X-Proxy-Location') or  \
-                    "{0.protocol}://{0.host}/".format(req)
+            req.headers.get('X-Proxy-Location') or \
+            "{0.protocol}://{0.host}/".format(req)
         return proxy_url
 
 

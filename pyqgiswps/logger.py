@@ -10,7 +10,6 @@
 import os
 import sys
 import logging
-import traceback
 from contextlib import contextmanager
 
 from .config import confservice

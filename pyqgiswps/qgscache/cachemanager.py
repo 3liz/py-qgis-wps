@@ -9,13 +9,12 @@
 """ Cache manager for Qgis Projects
 """
 
-import os
 import logging
 import urllib.parse
 
 from functools import partial
 from urllib.parse import urlparse, urljoin, parse_qs
-from typing import TypeVar, Tuple, Dict
+from typing import Tuple
 from collections import namedtuple
 
 from ..utils.lru import lrucache
@@ -26,8 +25,8 @@ from qgis.server import QgsServerProjectUtils
 
 from pyqgisservercontrib.core import componentmanager
 
-# Import default handlers
-from .handlers import *
+# Import default handlers for auto-registration
+from .handlers import * # noqa: F403,F401
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -193,7 +192,7 @@ class BadLayerHandler(QgsProjectBadLayerHandler):
         """
         super().handleBadLayers( layers )
 
-        nameElements = (l.firstChildElement("layername") for l in layers if l)
+        nameElements = (lyr.firstChildElement("layername") for lyr in layers if lyr)
         self.badLayerNames = set(elem.text() for elem in nameElements if elem)
 
     def validatLayers( self, project: QgsProject ) -> bool:

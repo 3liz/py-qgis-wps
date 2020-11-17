@@ -8,7 +8,6 @@
 #
 """ Handle geometry
 """
-import os
 import logging
 import re
 import json
@@ -17,33 +16,28 @@ from osgeo import ogr
 
 from pyqgiswps.inout.formats import Format, FORMATS
 from pyqgiswps.inout import (LiteralInput,
-                        ComplexInput,
-                        BoundingBoxInput,
-                        LiteralOutput,
-                        ComplexOutput,
-                        BoundingBoxOutput)
+                             ComplexInput,
+                             BoundingBoxInput,
+                             LiteralOutput,
+                             ComplexOutput,
+                             BoundingBoxOutput)
 
 from pyqgiswps.exceptions import (NoApplicableCode,
-                              InvalidParameterValue,
-                              MissingParameterValue,
-                              ProcessException)
+                                  InvalidParameterValue)
 
-from qgis.core import (QgsProcessing,
-                       QgsCoordinateReferenceSystem,
+from qgis.core import (QgsCoordinateReferenceSystem,
                        QgsGeometry,
                        QgsReferencedGeometry,
                        QgsRectangle,
                        QgsReferencedRectangle,
                        QgsReferencedPointXY,
-                       QgsWkbTypes,
-                       QgsProcessingAlgorithm,
                        QgsProcessingParameterDefinition,
                        QgsProcessingParameterGeometry,
                        QgsProcessingParameterPoint)
 
 from ..processingcontext import MapContext, ProcessingContext
 
-from typing import Mapping, Any, TypeVar, Union, Tuple
+from typing import Any, Union
 
 WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
 WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]

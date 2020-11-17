@@ -8,58 +8,29 @@
 #
 """ Wrap qgis processing algorithms in WPS process
 """
-import os
 import logging
-import mimetypes
-import traceback
-
-from functools import partial
-from os.path import normpath, basename
-from urllib.parse import urlparse, urlencode, parse_qs
-from pathlib import Path
 
 from pyqgiswps.app.Common import Metadata
-from pyqgiswps.exceptions import (NoApplicableCode,
-                              InvalidParameterValue,
-                              MissingParameterValue,
-                              ProcessException)
+from pyqgiswps.exceptions import InvalidParameterValue
 
-from pyqgiswps.inout.formats import Format, FORMATS
 from pyqgiswps.inout import (LiteralInput,
-                        ComplexInput,
-                        BoundingBoxInput,
-                        LiteralOutput,
-                        ComplexOutput,
-                        BoundingBoxOutput)
-
-from pyqgiswps.inout.literaltypes import AnyValue, NoValue, ValuesReference, AllowedValue
-from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
-
-from pyqgiswps.app.WPSResponse import WPSResponse
-from pyqgiswps.app.WPSRequest  import WPSRequest
-
-from pyqgiswps.config import confservice
+                             ComplexInput,
+                             BoundingBoxInput,
+                             LiteralOutput,
+                             ComplexOutput,
+                             BoundingBoxOutput)
 
 from qgis.PyQt.QtCore import QVariant
 
-from qgis.core import QgsApplication
-from qgis.core import (QgsProcessing,
-                       QgsProcessingException,
-                       QgsProcessingAlgorithm,
+from qgis.core import (QgsProcessingAlgorithm,
                        QgsProcessingParameterDefinition,
                        QgsProcessingParameterNumber,
                        QgsProcessingOutputDefinition,
-                       QgsProcessingParameterLimitedDataTypes,
-                       QgsProcessingParameterField,
-                       QgsProcessingUtils,
-                       QgsProcessingFeedback,
-                       QgsProperty,
-                       QgsFeatureRequest)
-
+                       QgsProcessingParameterField)
 
 from .processingcontext import MapContext, ProcessingContext
 
-from typing import Mapping, Any, TypeVar, Union, Tuple, Generator
+from typing import Any, Union, Tuple, Generator
 
 from .io import filesio, layersio, datetimeio, geometryio
 
@@ -117,20 +88,21 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
             kwargs['default'] = options[default_value]
 
     elif typ == 'number':
-        kwargs['data_type'] = { QgsProcessingParameterNumber.Double :'float',
-                                QgsProcessingParameterNumber.Integer:'integer'
-                               }[param.dataType()]
+        kwargs['data_type'] = { 
+            QgsProcessingParameterNumber.Double :'float',
+            QgsProcessingParameterNumber.Integer:'integer',
+        }[param.dataType()]
         kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
     elif typ =='field':
         kwargs['data_type'] = 'string'
         kwargs['metadata'].append(Metadata('processing:parentLayerParameterName',
-                param.parentLayerParameterName()))
-        kwargs['metadata'].append(Metadata('processing:dataType',{
-                QgsProcessingParameterField.Any: 'Any',
-                QgsProcessingParameterField.Numeric: 'Numeric',
-                QgsProcessingParameterField.String: 'String',
-                QgsProcessingParameterField.DateTime: 'DateTime'
-            }[param.dataType()]))
+                                  param.parentLayerParameterName()))
+        kwargs['metadata'].append(Metadata('processing:dataType', { 
+            QgsProcessingParameterField.Any: 'Any',
+            QgsProcessingParameterField.Numeric: 'Numeric',
+            QgsProcessingParameterField.String: 'String',
+            QgsProcessingParameterField.DateTime: 'DateTime',
+        }[param.dataType()]))
     elif typ == 'band':
         kwargs['data_type'] = 'nonNegativeInteger'
     else:
@@ -176,10 +148,10 @@ the description is used in QGIS UI as the title in WPS.
         kwargs['min_occurs'] = 0
 
     inp = parse_literal_input(param,kwargs) \
-            or layersio.parse_input_definition(param, kwargs, context) \
-            or geometryio.parse_input_definition(param, kwargs, context) \
-            or filesio.parse_input_definition(param, kwargs) \
-            or datetimeio.parse_input_definition(param, kwargs)
+        or layersio.parse_input_definition(param, kwargs, context) \
+        or geometryio.parse_input_definition(param, kwargs, context) \
+        or filesio.parse_input_definition(param, kwargs) \
+        or datetimeio.parse_input_definition(param, kwargs)
     if inp is None:
         raise ProcessingInputTypeNotSupported("%s:'%s'" %(type(param),param.type()))
 
@@ -213,6 +185,8 @@ def parse_literal_output( outdef: QgsProcessingOutputDefinition, kwargs ) -> Lit
         kwargs['data_type'] = 'string'
     elif typ == 'outputNumber':
         kwargs['data_type'] = 'float'
+    elif typ == 'outputBoolean':
+        kwargs['data_type'] = 'boolean'
     else:
         return None
 
@@ -227,15 +201,15 @@ def parse_output_definition( outdef: QgsProcessingOutputDefinition, alg: QgsProc
             - output matrix
             - output json vector
     """
-    kwargs = {
+    kwargs = { 
         'identifier': outdef.name() ,
         'title'     : outdef.description(),
-        'abstract'  : outdef.description(),
+        'abstract'  : outdef.description() 
     }
 
     output = parse_literal_output( outdef, kwargs) \
-             or layersio.parse_output_definition( outdef, kwargs ) \
-             or filesio.parse_output_definition( outdef, kwargs, alg )
+        or layersio.parse_output_definition( outdef, kwargs ) \
+        or filesio.parse_output_definition( outdef, kwargs, alg )
     if output is None:
         raise ProcessingOutputTypeNotSupported(outdef.type())
 
@@ -259,7 +233,7 @@ def parse_output_definitions( alg: QgsProcessingAlgorithm, context: MapContext  
 
 
 def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput,
-                                context: ProcessingContext) -> Any:
+                          context: ProcessingContext) -> Any:
     """ Return processing value from wps inputs
 
         Processes other inputs than layers
@@ -298,10 +272,10 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
     param = alg.parameterDefinition(identifier)
 
     value = layersio.get_processing_value(param, inp, context) or \
-            filesio.get_processing_value(param, inp, context)  or \
-            datetimeio.get_processing_value(param, inp, context) or \
-            geometryio.get_processing_value(param, inp, context) or \
-            get_processing_value(param, inp, context)
+        filesio.get_processing_value(param, inp, context) or \
+        datetimeio.get_processing_value(param, inp, context) or \
+        geometryio.get_processing_value(param, inp, context) or \
+        get_processing_value(param, inp, context)
             
     return param.name(), value
 
@@ -322,6 +296,6 @@ def processing_to_output( value: Any, outdef: QgsProcessingOutputDefinition, out
     """ Map processing output to WPS
     """
     return layersio.parse_response(value, outdef, out, output_uri,  context) or \
-           filesio.parse_response(value, outdef, out, output_uri, context)   or \
-           raw_response(value, out)
+        filesio.parse_response(value, outdef, out, output_uri, context) or \
+        raw_response(value, out)
 

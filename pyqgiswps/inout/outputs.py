@@ -14,7 +14,6 @@
 
 from pyqgiswps import E, WPS, OWS, OGCTYPE, NAMESPACES
 from pyqgiswps.inout import basic
-from pyqgiswps.inout.formats import Format
 from pyqgiswps.validator.mode import MODE
 import lxml.etree as etree
 
@@ -209,7 +208,7 @@ class ComplexOutput(basic.ComplexOutput):
             try:
                 data_doc = etree.parse(self.file)
                 complex_doc.append(data_doc.getroot())
-            except:
+            except Exception:
                 if isinstance(self.data, str):
                     complex_doc.text = self.data
                 else:

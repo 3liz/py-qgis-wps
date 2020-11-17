@@ -11,18 +11,13 @@
 import os
 import logging
 import mimetypes
-import traceback
 
 from os.path import normpath, basename
 from pathlib import Path
 
 from pyqgiswps.app.Common import Metadata
-from pyqgiswps.exceptions import (NoApplicableCode,
-                              InvalidParameterValue,
-                              MissingParameterValue,
-                              ProcessException)
 
-from pyqgiswps.inout.formats import Format, FORMATS
+from pyqgiswps.inout.formats import Format
 from pyqgiswps.inout import (LiteralInput,
                              ComplexInput,
                              BoundingBoxInput,
@@ -30,29 +25,19 @@ from pyqgiswps.inout import (LiteralInput,
                              ComplexOutput,
                              BoundingBoxOutput)
 
-from pyqgiswps.inout.literaltypes import AnyValue, NoValue, ValuesReference, AllowedValue
-from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
-
-from pyqgiswps.app.WPSResponse import WPSResponse
-from pyqgiswps.app.WPSRequest  import WPSRequest
-
 from pyqgiswps.config import confservice
 
-from qgis.core import QgsApplication
-from qgis.core import (QgsProcessing,
-                       QgsProcessingException,
-                       QgsProcessingAlgorithm,
+from qgis.core import (QgsProcessingAlgorithm,
                        QgsProcessingParameterDefinition,
                        QgsProcessingOutputDefinition,
                        QgsProcessingOutputHtml,
                        QgsProcessingOutputFile,
                        QgsProcessingParameterFileDestination,
-                       QgsProcessingParameterFile,
-                       QgsProcessingUtils)
+                       QgsProcessingParameterFile)
 
-from ..processingcontext import MapContext, ProcessingContext
+from ..processingcontext import ProcessingContext
 
-from typing import Mapping, Any, TypeVar, Union, Tuple
+from typing import Any, Union
 
 WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
 WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
@@ -105,7 +90,7 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput
         value = basename(normpath(inp[0].data))
         if value != inp[0].data:
             LOGGER.warning("Value for file or folder destination '%s' has been truncated from '%s' to '%s'",
-                    param.name(), inp[0].data, value )
+                           param.name(), inp[0].data, value )
         if typ == 'fileDestination':
             value = Path(value).with_suffix('.'+param.defaultFileExtension()).as_posix()
             

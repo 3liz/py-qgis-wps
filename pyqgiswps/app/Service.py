@@ -13,22 +13,17 @@
 #
 
 import logging
-import tempfile
 import traceback
 from pyqgiswps import WPS, OWS
-from pyqgiswps.app.WPSRequest import WPSRequest
 from pyqgiswps.app.WPSResponse import WPSResponse
-from pyqgiswps.executors.logstore import logstore, STATUS
 from pyqgiswps.config import confservice
-from pyqgiswps.exceptions import (MissingParameterValue, NoApplicableCode, InvalidParameterValue, OperationNotSupported)
+from pyqgiswps.exceptions import (MissingParameterValue, NoApplicableCode, InvalidParameterValue)
 from pyqgiswps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
+from pyqgiswps.executors.logstore import STATUS
 from pyqgiswps.executors.processingexecutor import ProcessingExecutor, UnknownProcessError
-
-from io import StringIO
 
 from collections import deque
 import os
-import sys
 import copy
 
 
@@ -149,65 +144,49 @@ class Service():
 
         # Add Contact information only if a name is set
         if metadata.get('contact_name'):
-            service_contact_doc.append(
-                OWS.IndividualName(metadata.get('contact_name')))
+            service_contact_doc.append(OWS.IndividualName(metadata.get('contact_name')))
             if metadata.get('contact_position'):
-                service_contact_doc.append(
-                    OWS.PositionName(metadata.get('contact_position')))
+                service_contact_doc.append(OWS.PositionName(metadata.get('contact_position')))
 
             contact_info_doc = OWS.ContactInfo()
 
             phone_doc = OWS.Phone()
             if metadata.get('contact_phone'):
-                phone_doc.append(
-                    OWS.Voice(metadata.get('contact_phone')))
-           # Add Phone if not empty
+                phone_doc.append(OWS.Voice(metadata.get('contact_phone')))
+            # Add Phone if not empty
             if len(phone_doc):
                 contact_info_doc.append(phone_doc)
 
             address_doc = OWS.Address()
             if metadata.get('deliveryPoint'):
-                address_doc.append(
-                    OWS.DeliveryPoint(metadata.get('contact_address')))
+                address_doc.append(OWS.DeliveryPoint(metadata.get('contact_address')))
             if metadata.get('city'):
-                address_doc.append(
-                    OWS.City(metadata.get('contact_city')))
+                address_doc.append(OWS.City(metadata.get('contact_city')))
             if metadata.get('contact_stateorprovince'):
-                address_doc.append(
-                    OWS.AdministrativeArea(metadata.get('contact_stateorprovince')))
+                address_doc.append(OWS.AdministrativeArea(metadata.get('contact_stateorprovince')))
             if metadata.get('contact_postalcode'):
-                address_doc.append(
-                    OWS.PostalCode(metadata.get('contact_postalcode')))
+                address_doc.append(OWS.PostalCode(metadata.get('contact_postalcode')))
             if metadata.get('contact_country'):
-                address_doc.append(
-                    OWS.Country(metadata.get('contact_country')))
+                address_doc.append(OWS.Country(metadata.get('contact_country')))
             if metadata.get('contact_email'):
-                address_doc.append(
-                    OWS.ElectronicMailAddress(
-                        metadata.get('contact_email'))
-                )
+                address_doc.append(OWS.ElectronicMailAddress(metadata.get('contact_email')))
             # Add Address if not empty
             if len(address_doc):
                 contact_info_doc.append(address_doc)
 
             if metadata.get('contact_url'):
-                contact_info_doc.append(OWS.OnlineResource(
-                    {'{http://www.w3.org/1999/xlink}href': metadata.get('contact_url')})
-                )
+                contact_info_doc.append(OWS.OnlineResource({'{http://www.w3.org/1999/xlink}href': metadata.get('contact_url')}))
             if metadata.get('contact_hours'):
-                contact_info_doc.append(
-                    OWS.HoursOfService(metadata.get('contact_hours')))
+                contact_info_doc.append(OWS.HoursOfService(metadata.get('contact_hours')))
             if metadata.get('contact_instructions'):
-                contact_info_doc.append(OWS.ContactInstructions(
-                    metadata.get('contact_instructions')))
+                contact_info_doc.append(OWS.ContactInstructions(metadata.get('contact_instructions')))
 
             # Add Contact information if not empty
             if len(contact_info_doc):
                 service_contact_doc.append(contact_info_doc)
 
             if metadata.get('contact_role'):
-                service_contact_doc.append(
-                    OWS.Role(metadata.get('contact_role')))
+                service_contact_doc.append(OWS.Role(metadata.get('contact_role')))
 
         # Add Service Contact only if ProviderName and PositionName are set
         if len(service_contact_doc):
@@ -258,8 +237,8 @@ class Service():
             )
         )
         lang_supported_doc = WPS.Supported()
-        for l in languages:
-            lang_supported_doc.append(OWS.Language(l))
+        for lang in languages:
+            lang_supported_doc.append(OWS.Language(lang))
         languages_doc.append(lang_supported_doc)
 
         doc.append(languages_doc)
@@ -354,8 +333,6 @@ class Service():
     def _parse(self, process, wps_request):
         """Parse request
         """
-
-
         LOGGER.debug('Checking if datainputs is required and has been passed')
         if process.inputs:
             if wps_request.inputs is None:

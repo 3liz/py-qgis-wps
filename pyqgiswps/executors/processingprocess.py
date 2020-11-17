@@ -10,35 +10,24 @@
 """
 import os
 import logging
-import mimetypes
 import traceback
 
 from functools import partial
 
-from os.path import normpath, basename
-from urllib.parse import urlparse, urlencode, parse_qs
-
-from .processingio import (ProcessingTypeParseError,
-                           parse_input_definitions,
+from .processingio import (parse_input_definitions,
                            parse_output_definitions,
                            input_to_processing,
                            processing_to_output)
 
-from qgis.core import (Qgis,
-                       QgsApplication,
+from qgis.core import (QgsApplication,
                        QgsMapLayer,
-                       QgsVectorLayer,
                        QgsWkbTypes,
                        QgsProcessingException, 
-                       QgsProcessing,
                        QgsProcessingFeedback,
                        QgsProcessingContext,
                        QgsProcessingAlgorithm,
-                       QgsProcessingModelAlgorithm,
                        QgsProcessingUtils,
                        QgsFeatureRequest,
-                       QgsExpressionContext,
-                       QgsExpressionContextScope,
                        QgsProcessingOutputLayerDefinition)
 
 from pyqgiswps.app.Process import WPSProcess
@@ -55,11 +44,10 @@ from processing.core.Processing import (Processing,
 
 from .processingcontext import ProcessingContext, MapContext
 
-from .io import layersio
+from typing import Union, Mapping, TypeVar, Any
 
 LOGGER = logging.getLogger('SRVLOG')
 
-from typing import Union, Mapping, TypeVar, Any
 
 WPSInput  = TypeVar('WPSInput')
 WPSOutput = TypeVar('WPSOutput')
@@ -138,10 +126,10 @@ def handle_layer_outputs(alg: QgsProcessingAlgorithm,
     """
     # Transfer layers ownership to destination project
     wrongLayers = []
-    for l, details in context.layersToLoadOnCompletion().items():
+    for lyrname, details in context.layersToLoadOnCompletion().items():
         try:
             # Take as layer
-            layer = QgsProcessingUtils.mapLayerFromString(l, context, typeHint=details.layerTypeHint)
+            layer = QgsProcessingUtils.mapLayerFromString(lyrname, context, typeHint=details.layerTypeHint)
             if layer is not None:
                 # Fix layer name
                 # If details name is empty it well be set to the file name 
@@ -156,21 +144,21 @@ def handle_layer_outputs(alg: QgsProcessingAlgorithm,
                     details.project = context.destination_project
 
                 # Seek style for layer
-                _set_output_layer_style(l, layer, alg, details, context, parameters)            
+                _set_output_layer_style(lyrname, layer, alg, details, context, parameters)            
 
                 # Add layer to destination project
                 if details.project:
-                    LOGGER.debug("Adding Map layer '%s' (outputName %s) to Qgs Project", l, details.outputName )
+                    LOGGER.debug("Adding Map layer '%s' (outputName %s) to Qgs Project", lyrname, details.outputName )
                     details.project.addMapLayer(context.temporaryLayerStore().takeMapLayer(layer))
 
                 # Handle post processing
                 if details.postProcessor():
                     details.postProcessor().postProcessLayer(layer, context, feedback)
             else:
-                LOGGER.warning("No layer found for %s", l)
+                LOGGER.warning("No layer found for %s", lyrname)
         except Exception:
             LOGGER.error("Processing: Error loading result layer:\n{}".format(traceback.format_exc()))
-            wrongLayers.append(str(l))
+            wrongLayers.append(str(lyrname))
 
     if wrongLayers:
         msg = "The following layers were not correctly generated:"
@@ -300,13 +288,13 @@ class QgsProcess(WPSProcess):
         handler = partial(QgsProcess._handler, create_context=self._create_context)
 
         super().__init__(handler,
-                identifier = alg.id(),
-                version    = version,
-                title      = alg.displayName(),
-                # XXX Scripts do not provide description string
-                abstract   = alg.shortDescription() or alg.shortHelpString(),
-                inputs     = inputs,
-                outputs    = outputs)
+                         identifier = alg.id(),
+                         version    = version,
+                         title      = alg.displayName(),
+                         # XXX Scripts do not provide description string
+                         abstract   = alg.shortDescription() or alg.shortHelpString(),
+                         inputs     = inputs,
+                         outputs    = outputs)
 
     @staticmethod
     def createInstance( ident: str, map_uri: str=None ) -> 'QgsProcess':
@@ -330,9 +318,9 @@ class QgsProcess(WPSProcess):
         destination = get_valid_filename(alg.id())
 
         output_uri = confservice.get('server','wms_response_uri').format(
-                            host_url=request.host_url,
-                            uuid=response.uuid,
-                            name=destination)
+            host_url=request.host_url,
+            uuid=response.uuid,
+            name=destination)
 
         workdir  = response.process.workdir
         context  = ProcessingContext(workdir, map_uri=request.map_uri)
@@ -347,9 +335,9 @@ class QgsProcess(WPSProcess):
         context.store_url = response.store_url
 
         try:
-            results = run_algorithm(alg, parameters, feedback=feedback, context=context, 
-                                    outputs=response.outputs,
-                                    output_uri=output_uri)
+            run_algorithm(alg, parameters, feedback=feedback, context=context, 
+                          outputs=response.outputs,
+                          output_uri=output_uri)
         except QgsProcessingException as e:
             raise ProcessException("%s" % e)
 

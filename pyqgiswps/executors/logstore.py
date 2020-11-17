@@ -11,10 +11,8 @@ import uuid
 
 from datetime import datetime
 from lxml import etree
-from collections import namedtuple
 from enum import IntEnum
 
-from pyqgiswps.utils.decorators import singleton
 from pyqgiswps.config import confservice
 
 
@@ -53,19 +51,19 @@ class LogStore:
 
         LOGGER.debug("LOGSTORE: logging request %s", uuid_str)
         record = {
-          'uuid': uuid_str,
-          'version': wps_request.version,
-          'identifier': wps_request.identifier,
-          'store_execute': wps_request.store_execute,
-          'status': STATUS.NO_STATUS.name,
-          'percent_done': 0,
-          'message': '',
-          'map': wps_request.map_uri,
-          'expiration': wps_request.expiration,
-          'time_start': utcnow().isoformat()+'Z',
-          'time_end': None,
-          'pinned': False,
-          'timeout': wps_request.timeout
+            'uuid': uuid_str,
+            'version': wps_request.version,
+            'identifier': wps_request.identifier,
+            'store_execute': wps_request.store_execute,
+            'status': STATUS.NO_STATUS.name,
+            'percent_done': 0,
+            'message': '',
+            'map': wps_request.map_uri,
+            'expiration': wps_request.expiration,
+            'time_start': utcnow().isoformat()+'Z',
+            'time_end': None,
+            'pinned': False,
+            'timeout': wps_request.timeout
         }
 
         # Record status

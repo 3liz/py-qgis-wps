@@ -12,10 +12,8 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-import os
 import logging
 
-from lxml import etree
 import time
 from pyqgiswps import WPS, OWS
 from pyqgiswps.exceptions import NoApplicableCode
@@ -39,7 +37,7 @@ class WPSResponse():
 
         store_url = confservice.get('server','store_url')
         store_url = store_url.format(host_url = wps_request.host_url, uuid = uuid,
-                         file = '{file}')
+                                     file = '{file}')
 
         self.process = process
         self.wps_request = wps_request

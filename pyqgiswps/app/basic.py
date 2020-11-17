@@ -11,9 +11,7 @@
 # and released under MIT license.                                
 #
 
-import logging
-import lxml
-from pyqgiswps import __version__, NAMESPACES
+from pyqgiswps import NAMESPACES
 
 
 def xpath_ns(el, path):

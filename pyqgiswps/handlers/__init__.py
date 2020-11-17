@@ -7,7 +7,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-from .roothandler import RootHandler
-from .wpshandler import WPSHandler, StatusHandler
-from .storehandler import StoreHandler, DownloadHandler
+from .roothandler import RootHandler                     # noqa F401
+from .wpshandler import WPSHandler, StatusHandler        # noqa F401
+from .storehandler import StoreHandler, DownloadHandler  # noqa F401
 

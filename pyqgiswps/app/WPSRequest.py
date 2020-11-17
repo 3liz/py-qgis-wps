@@ -13,7 +13,6 @@
 #
 
 
-import os
 import logging
 import lxml
 import lxml.etree
@@ -23,11 +22,10 @@ from pyqgiswps import WPS
 from pyqgiswps.app.basic import xpath_ns
 from pyqgiswps.inout.basic import LiteralInput, ComplexInput, BBoxInput
 from pyqgiswps.exceptions import (NoApplicableCode, 
-                              OperationNotSupported, 
-                              MissingParameterValue, 
-                              VersionNegotiationFailed,
-                              InvalidParameterValue, 
-                              FileSizeExceeded)
+                                  OperationNotSupported, 
+                                  MissingParameterValue, 
+                                  VersionNegotiationFailed,
+                                  InvalidParameterValue)
 from pyqgiswps.config import confservice
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.inout.literaltypes import AnyValue, NoValue, ValuesReference, AllowedValue
@@ -36,8 +34,6 @@ from pyqgiswps.inout.formats import Format
 from pyqgiswps.owsutils.ows import BoundingBox
 
 import json
-
-from urllib.parse import urlparse
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -611,7 +607,7 @@ def _get_rawvalue_value(data, encoding=None):
         elif encoding == 'base64':
             return base64.b64decode(data)
         return base64.b64decode(data)
-    except:
+    except Exception:
         return data
 
 
