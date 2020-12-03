@@ -13,19 +13,19 @@ from pyqgiswps.inout import (LiteralInput,
                              ComplexOutput,
                              BoundingBoxOutput)
 
+
 from pyqgiswps.inout.formats import FORMATS, Format
 
-from pyqgiswps.executors.processingio import(
-            parse_input_definition,
-            parse_output_definition,
-        ) 
+from pyqgiswps.executors.processingcontext import ProcessingContext
+from pyqgiswps.executors.processingio import(parse_input_definition,
+                                             parse_output_definition) 
 
 from pyqgiswps.executors.io import geometryio
 
 from pyqgiswps.exceptions import (NoApplicableCode,
-                              InvalidParameterValue,
-                              MissingParameterValue,
-                              ProcessException)
+                                  InvalidParameterValue,
+                                  MissingParameterValue,
+                                  ProcessException)
 
 
 from qgis.core import QgsApplication
@@ -53,12 +53,46 @@ def test_bbox_input():
     inp = parse_input_definition(param)
 
     assert isinstance(inp,BoundingBoxInput)
+    assert inp.crss[0] == "EPSG:4326"
 
     # see create_bbox_inputs at L532 app/Service.py
     inp.data = ['15', '50', '16', '51']
     value = geometryio.input_to_extent( inp ) 
 
     assert isinstance(value,QgsReferencedRectangle)
+
+    # Test CRS
+    crs = value.crs()
+    assert crs.isValid()
+    assert crs.authid() == 'EPSG:4326'
+
+
+def test_bbox_input_with_context(outputdir):
+    """ Test extent parameter with context
+    """
+    context  = ProcessingContext(outputdir.strpath, 'france_parts_3857.qgs')
+
+    project = context.project()
+    project_crs = project.crs()
+    assert project_crs.isValid()
+    assert project_crs.authid() == 'EPSG:3857'
+
+    param = QgsProcessingParameterExtent("BBOX")
+    inp = parse_input_definition(param, context=context)
+
+    assert isinstance(inp,BoundingBoxInput)
+    assert inp.crss[0] == "EPSG:3857"
+
+    # see create_bbox_inputs at L532 app/Service.py
+    inp.data = ['15', '50', '16', '51']
+    value = geometryio.input_to_extent( inp )
+
+    assert isinstance(value,QgsReferencedRectangle)
+
+    # Test CRS
+    crs = value.crs()
+    assert crs.isValid()
+    assert crs.authid() == 'EPSG:3857'
 
 
 def test_point_input_gml():
@@ -205,6 +239,7 @@ def test_geometry_crs_json():
     assert isinstance( value, QgsReferencedGeometry )
     assert value.crs().authid() == "EPSG:3785"
     assert value.wkbType() == QgsWkbTypes.Point
+
 
 def test_nocrs_input_wkt():
     """ Test input point from wkt
