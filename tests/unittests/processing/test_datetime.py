@@ -22,11 +22,16 @@ from pyqgiswps.executors.io import datetimeio
 from pyqgiswps.inout import (LiteralInput,
                              LiteralOutput)
 
+from pyqgiswps import OGCTYPE
+
 from qgis.PyQt.QtCore import Qt, QDateTime, QDate, QTime
 from qgis.core import (QgsProcessingContext,
                        QgsProcessingParameterDateTime)
 
 def test_datetime_input():
+
+    assert 'dateTime' in OGCTYPE
+
     param = QgsProcessingParameterDateTime("TEST", "DateTime",
                   type=QgsProcessingParameterDateTime.DateTime,
                   defaultValue=QDateTime.currentDateTime())
