@@ -28,6 +28,7 @@ build:
     name: snap
   only:
     refs:
+      - tags
       - "1.4.x"
   tags:
     - infrav3
