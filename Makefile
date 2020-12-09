@@ -3,7 +3,7 @@
 # qypws makefile
 #
 
-VERSION:=1.5.1
+VERSION:=1.5.2
 
 ifndef CI_COMMIT_TAG
 VERSION_TAG=$(VERSION)rc0
