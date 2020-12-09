@@ -27,6 +27,7 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                                   MissingParameterValue,
                                   ProcessException)
 
+from pyqgiswps.app.basic import xpath_ns
 
 from qgis.core import QgsApplication
 from qgis.core import (QgsProcessing,
@@ -44,6 +45,15 @@ from qgis.core import (QgsProcessing,
 
 from processing.core.Processing import Processing
 
+def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
+    if maxOccurence is None:
+        maxOccurence = minOccurence
+    assert minOccurence <= maxOccurence
+    m = list(filter(lambda m: m.title == name, inp.metadata))
+    assert len(m) >= minOccurence
+    assert len(m) <= maxOccurence
+    return m
+ 
 
 def test_bbox_input():
     """ Test extent parameter
@@ -259,4 +269,40 @@ def test_nocrs_input_wkt():
     value = geometryio.input_to_point( inp )
     assert isinstance( value, QgsGeometry )
     assert value.wkbType() == QgsWkbTypes.Point
+
+
+def test_geometry_geometrytypes():
+    """ Test geometryTypes Metadata
+    """
+    # Single geometry
+    param = QgsProcessingParameterGeometry("GEOM", geometryTypes=[QgsWkbTypes.LineGeometry])
+
+    inp = parse_input_definition(param)
+    
+    assert get_metadata(inp,'processing:geometryType')[0].href == "Line" 
+
+    # Multi Geometry
+    param = QgsProcessingParameterGeometry("GEOM", 
+            geometryTypes=[QgsWkbTypes.LineGeometry,QgsWkbTypes.PointGeometry]
+    )
+
+    inp = parse_input_definition(param)
+    
+    assert get_metadata(inp,'processing:geometryType',2)[0].href == "Line" 
+    assert get_metadata(inp,'processing:geometryType',2)[1].href == "Point" 
+
+    # Test output XML
+    xml = inp.describe_xml()
+
+    def _get_geometryTypes(el):
+        for metadata_el in xpath_ns(el, './ows:Metadata'):
+            if metadata_el.attrib['{http://www.w3.org/1999/xlink}title'] == 'processing:geometryType':
+                yield metadata_el.attrib['{http://www.w3.org/1999/xlink}href']
+    
+    geomtypes = tuple(_get_geometryTypes(xml))
+    assert len(geomtypes) == 2
+    for type_ in geomtypes:
+        assert type_ in ("Line","Point")
+    
+
 

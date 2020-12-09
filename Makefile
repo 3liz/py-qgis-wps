@@ -58,7 +58,10 @@ FLAVOR:=release
 docker-%:
 	$(MAKE) -C tests $* FLAVOR=$(FLAVOR)
 
-test: manifest
+lint:
+	@flake8 --ignore=E123,E2,E3,E5,W2,W3  pyqgiswps pyqgisservercontrib
+
+test: lint manifest
 	$(MAKE) -C tests test FLAVOR=$(FLAVOR)
 
 run: manifest

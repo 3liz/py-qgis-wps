@@ -19,7 +19,5 @@ export QGIS_NO_OVERRIDE_IMPORT=1
 # Do no resart workers on each run
 export QGSWPS_SERVER_PROCESSLIFECYCLE=0
 
-flake8 --ignore=E123,E2,E3,E5,W2,W3  pyqgiswps pyqgisservercontrib
-
 cd tests/unittests && pytest -v $@
 

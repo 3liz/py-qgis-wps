@@ -14,6 +14,7 @@ import json
 
 from osgeo import ogr
 
+from pyqgiswps.app.Common import Metadata
 from pyqgiswps.inout.formats import Format, FORMATS
 from pyqgiswps.inout import (LiteralInput,
                              ComplexInput,
@@ -26,6 +27,7 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                                   InvalidParameterValue)
 
 from qgis.core import (QgsCoordinateReferenceSystem,
+                       QgsWkbTypes,
                        QgsGeometry,
                        QgsReferencedGeometry,
                        QgsRectangle,
@@ -88,6 +90,12 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs,
         kwargs['supported_formats'] = [Format.from_definition(FORMATS.GEOJSON),
                                        Format.from_definition(FORMATS.GML),
                                        Format.from_definition(FORMATS.WKT)]
+        if isinstance(param, QgsProcessingParameterGeometry):
+            # Add metadata from requiered geometryTypes
+            kwargs['metadata'].extend(
+                Metadata('processing:geometryType', QgsWkbTypes.geometryDisplayString(geomtype)) \
+                for geomtype in param.geometryTypes()
+            )
         return ComplexInput(**kwargs)
 
     return None
