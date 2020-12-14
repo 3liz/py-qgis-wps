@@ -14,6 +14,12 @@
 from lxml.builder import ElementMaker
 from .version import __version__  # noqa F401
 
+from typing import TypeVar
+
+# Type returned by ElementMaker.value()
+XMLElement = TypeVar('XMLElement')
+
+
 NAMESPACES = {
     'xlink': "http://www.w3.org/1999/xlink",
     'wps': "http://www.opengis.net/wps/1.0.0",

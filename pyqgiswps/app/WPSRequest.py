@@ -333,12 +333,15 @@ class WPSRequest:
             'store_execute': self.store_execute,
             'status': self.store_execute,
             'lineage': self.lineage,
-            'inputs': dict((i, [inpt.json for inpt in self.inputs[i]]) for i in self.inputs),
+            'inputs': { i:[inpt.json for inpt in self.inputs[i]] for i in self.inputs },
             'outputs': self.outputs,
             'raw': self.raw
         }
 
-        return json.dumps(obj, allow_nan=False)
+        return obj
+
+    def dumps( self ):
+        return json.dumps(self.json, allow_nan=False)
 
     @json.setter
     def json(self, value):
@@ -458,7 +461,6 @@ def get_inputs_from_xml(doc):
 
         complex_data = xpath_ns(input_el, './wps:Data/wps:ComplexData')
         if complex_data:
-
             complex_data_el = complex_data[0]
             inpt = {}
             inpt['identifier'] = identifier_el.text

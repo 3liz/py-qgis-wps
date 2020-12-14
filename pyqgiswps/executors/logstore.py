@@ -72,7 +72,7 @@ class LogStore:
             LOGGER.error("Failed to record request %s", uuid_str) 
 
         # Record the request
-        self._db.set("{}:request:{}".format(self._prefix, uuid_str), wps_request.json)
+        self._db.set("{}:request:{}".format(self._prefix, uuid_str), wps_request.dumps())
 
         return record
 

@@ -24,6 +24,8 @@ from pyqgiswps.inout import (LiteralInput,
 
 from pyqgiswps import OGCTYPE
 
+from pyqgiswps.app import WPSRequest
+
 from qgis.PyQt.QtCore import Qt, QDateTime, QDate, QTime
 from qgis.core import (QgsProcessingContext,
                        QgsProcessingParameterDateTime)
@@ -109,5 +111,25 @@ def test_date_input():
     context = QgsProcessingContext()
     value = datetimeio.get_processing_value( param, [inp], context)
     assert isinstance( value, QDate ) 
+
+
+def test_datetime_json():
+
+    param = QgsProcessingParameterDateTime("TEST", "Date",
+                  type=QgsProcessingParameterDateTime.DateTime,
+                  defaultValue=QDateTime.currentDateTime())
+
+    inp = parse_input_definition(param)
+    assert isinstance(inp.default, datetime.datetime)
+
+    inp.data = inp.default.isoformat()
+    assert isinstance(inp.data, datetime.datetime)
+
+    request = WPSRequest()
+    request.inputs = { 'datetime': [inp] }
+
+    json = request.json
+    assert json['inputs']['datetime'][0]['data'] == inp.default.replace(microsecond=0).isoformat()
+
 
 

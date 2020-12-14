@@ -20,15 +20,33 @@ import datetime
 from pyqgiswps.exceptions import InvalidParameterValue
 from pyqgiswps.validator.allowed_value import RANGECLOSURETYPE
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
-from pyqgiswps import OWS, NAMESPACES
+from pyqgiswps import XMLElement, OWS, NAMESPACES
+
+from typing import Optional, List, Dict, Union, Any, TypeVar
 
 import logging
 LOGGER = logging.getLogger('SRVLOG')
 
+
+# JsonValue type definition
+JsonValue = Union[str,List['JsonValue'],Dict[str,'JsonValue'],int,float,bool,None]
+
+# Literal value type definition
+LiteralInputValue = TypeVar('LiteralInputValue')
+
+# Comparable type for value range
+LiteralNumeric = TypeVar('LiteralNumeric',int,float)
+
+
+# Literal data types
 LITERAL_DATA_TYPES = ('float', 'boolean', 'integer', 'string',
                       'positiveInteger', 'anyURI', 'time', 'date', 'dateTime',
                       'scale', 'angle',
                       'nonNegativeInteger')
+
+
+
+
 
 # currently we are supporting just ^^^ data types, feel free to add support for
 # more
@@ -41,32 +59,31 @@ LITERAL_DATA_TYPES = ('float', 'boolean', 'integer', 'string',
 # 'nonNegativeInteger', 'length'
 
 
-class AnyValue(object):
+class AnyValue:
     """Any value for literal input
     """
-
     @property
-    def json(self):
+    def json(self) -> JsonValue:
         return {'type': 'anyvalue'}
 
 
-class NoValue(object):
+class NoValue:
     """No value allowed
     NOTE: not really implemented
     """
 
     @property
-    def json(self):
+    def json(self) -> JsonValue:
         return {'type': 'novalue'}
 
 
-class ValuesReference(object):
+class ValuesReference:
     """Any value for literal input
     NOTE: not really implemented
     """
 
     @property
-    def json(self):
+    def json(self) -> JsonValue:
         return {'type': 'valuesreference'}
 
 
@@ -82,9 +99,12 @@ class AllowedValue(AnyValue):
     :param pyqgiswps.input.literaltypes.RANGECLOSURETYPE range_closure:
     """
 
-    def __init__(self, allowed_type=ALLOWEDVALUETYPE.VALUE, value=None,
-                 minval=None, maxval=None, spacing=None,
-                 range_closure=RANGECLOSURETYPE.CLOSED):
+    def __init__(self, allowed_type: ALLOWEDVALUETYPE = ALLOWEDVALUETYPE.VALUE, 
+                 value: Optional[Any]=None,
+                 minval: Optional[LiteralNumeric]=None, 
+                 maxval: Optional[LiteralNumeric]=None, 
+                 spacing: Optional[LiteralNumeric]=None,
+                 range_closure: RANGECLOSURETYPE = RANGECLOSURETYPE.CLOSED) -> None:
 
         AnyValue.__init__(self)
 
@@ -95,94 +115,82 @@ class AllowedValue(AnyValue):
         self.spacing = spacing
         self.range_closure = range_closure
 
-    def describe_xml(self):
+    def describe_xml(self) -> XMLElement:
         """Return back Element for DescribeProcess response
         """
         doc = None
         if self.allowed_type == ALLOWEDVALUETYPE.RANGE:
             doc = OWS.Range()
             doc.set('{%s}rangeClosure' % NAMESPACES['ows'], self.range_closure)
-            doc.append(OWS.MinimumValue(str(self.minval)))
-            doc.append(OWS.MaximumValue(str(self.maxval)))
+            doc.append(OWS.MinimumValue(str(to_json_serializable(self.minval))))
+            doc.append(OWS.MaximumValue(str(to_json_serializable(self.maxval))))
             if self.spacing:
                 doc.append(OWS.Spacing(str(self.spacing)))
         else:
-            doc = OWS.Value(str(self.value))
+            doc = OWS.Value(str(to_json_serializable(self.value)))
         return doc
 
-    def __repr__(self):
-        return "AllowedValue(minval=%s, maxval=%s, range_closure=%s)" % (self.minval, self.maxval, self.range_closure)
+    def __repr__(self) -> str:
+        return f"AllowedValue(minval={self.minval}, maxval={self.maxval}, range_closure={self.range_closure})"
 
     @property
-    def json(self):
+    def json(self) -> JsonValue:
         value = self.value
         if hasattr(value, 'json'):
             value = value.json
         return {
             'type': 'allowedvalue',
             'allowed_type': self.allowed_type,
-            'value': value,
-            'minval': self.minval,
-            'maxval': self.maxval,
+            'value' : to_json_serializable(value),
+            'minval': to_json_serializable(self.minval),
+            'maxval': to_json_serializable(self.maxval),
             'spacing': self.spacing,
             'range_closure': self.range_closure
         }
 
 
-def get_converter(convertor):
+def convert(data_type: str, data: LiteralInputValue) -> Any:
     """function for decoration of convert
     """
-
-    def decorator_selector(data_type, data):
-        convert = None
-        if data_type in LITERAL_DATA_TYPES:
-            if data_type == 'string':
-                convert = convert_string
-            elif data_type == 'integer':
-                convert = convert_integer
-            elif data_type == 'float':
-                convert = convert_float
-            elif data_type == 'boolean':
-                convert = convert_boolean
-            elif data_type == 'positiveInteger':
-                convert = convert_positiveInteger
-            elif data_type == 'anyURI':
-                convert = convert_anyURI
-            elif data_type == 'time':
-                convert = convert_time
-            elif data_type == 'date':
-                convert = convert_date
-            elif data_type == 'dateTime':
-                convert = convert_datetime
-            elif data_type == 'scale':
-                convert = convert_scale
-            elif data_type == 'angle':
-                convert = convert_angle
-            elif data_type == 'nonNegativeInteger':
-                convert = convert_positiveInteger
-            else:
-                raise InvalidParameterValue(
-                    "Invalid data_type value of LiteralInput " + \
-                    "set to '{}'".format(data_type))
-        try:
-            return convert(data)
-        except ValueError:
+    convert = None
+    if data_type in LITERAL_DATA_TYPES:
+        if data_type == 'string':
+            convert = convert_string
+        elif data_type == 'integer':
+            convert = convert_integer
+        elif data_type == 'float':
+            convert = convert_float
+        elif data_type == 'boolean':
+            convert = convert_boolean
+        elif data_type == 'positiveInteger':
+            convert = convert_positiveInteger
+        elif data_type == 'anyURI':
+            convert = convert_anyURI
+        elif data_type == 'time':
+            convert = convert_time
+        elif data_type == 'date':
+            convert = convert_date
+        elif data_type == 'dateTime':
+            convert = convert_datetime
+        elif data_type == 'scale':
+            convert = convert_scale
+        elif data_type == 'angle':
+            convert = convert_angle
+        elif data_type == 'nonNegativeInteger':
+            convert = convert_positiveInteger
+        else:
             raise InvalidParameterValue(
-                "Could not convert value '{}' to format '{}'".format(
-                    data, data_type))
-
-    return decorator_selector
-
-
-@get_converter
-def convert(data_type, data):
-    """Convert data to target value
-    """
-
-    return data_type, data
+                "Invalid data_type value of LiteralInput " + \
+                "set to '{}'".format(data_type))
+    try:
+        return convert(data)
+    except ValueError:
+        raise InvalidParameterValue(
+            "Could not convert value '{}' to format '{}'".format(
+                data, data_type))
 
 
-def convert_boolean(inpt):
+def convert_boolean(inpt: LiteralInputValue) -> bool:
     """Return boolean value from input boolean input
 
     >>> convert_boolean('1')
@@ -212,7 +220,7 @@ def convert_boolean(inpt):
     return val
 
 
-def convert_float(inpt):
+def convert_float(inpt: LiteralInputValue) -> float:
     """Return float value from inpt
 
     >>> convert_float('1')
@@ -222,7 +230,7 @@ def convert_float(inpt):
     return float(inpt)
 
 
-def convert_integer(inpt):
+def convert_integer(inpt: LiteralInputValue) -> int:
     """Return integer value from input inpt
 
     >>> convert_integer('1.0')
@@ -232,7 +240,7 @@ def convert_integer(inpt):
     return int(float(inpt))
 
 
-def convert_string(inpt):
+def convert_string(inpt: LiteralInputValue) -> str:
     """Return string value from input lit_input
 
     >>> convert_string(1)
@@ -241,7 +249,7 @@ def convert_string(inpt):
     return str(inpt)
 
 
-def convert_positiveInteger(inpt):
+def convert_positiveInteger(inpt: LiteralInputValue) -> int:
     """Return value of input"""
 
     inpt = convert_integer(inpt)
@@ -252,7 +260,7 @@ def convert_positiveInteger(inpt):
         return inpt
 
 
-def convert_anyURI(inpt):
+def convert_anyURI(inpt: LiteralInputValue) -> str:
     """Return value of input
 
     :rtype: url components
@@ -268,7 +276,7 @@ def convert_anyURI(inpt):
             'The value "{}" does not seem to be of type anyURI'.format(inpt))
 
 
-def convert_time(inpt):
+def convert_time(inpt: LiteralInputValue ) -> datetime.time:
     """Return value of input
     time formating assumed according to ISO standard:
 
@@ -283,7 +291,7 @@ def convert_time(inpt):
     return inpt
 
 
-def convert_date(inpt):
+def convert_date(inpt: LiteralInputValue) -> datetime.date:
     """Return value of input
     date formating assumed according to ISO standard:
 
@@ -298,7 +306,7 @@ def convert_date(inpt):
     return inpt
 
 
-def convert_datetime(inpt):
+def convert_datetime(inpt: LiteralInputValue ) -> datetime.datetime:
     """Return value of input
     dateTime formating assumed according to ISO standard:
 
@@ -316,13 +324,13 @@ def convert_datetime(inpt):
     return inpt
 
 
-def convert_scale(inpt):
+def convert_scale(inpt: LiteralInputValue) -> float:
     """Return value of input"""
 
     return convert_float(inpt)
 
 
-def convert_angle(inpt):
+def convert_angle(inpt: LiteralInputValue) -> float:
     """Return value of input
 
     return degrees
@@ -332,7 +340,7 @@ def convert_angle(inpt):
     return inpt % 360
 
 
-def make_allowedvalues(allowed_values):
+def make_allowedvalues(allowed_values: Any) -> List[AllowedValue]:
     """ convert given value list to AllowedValue objects
 
         List/tuple value are intepreted as range
@@ -368,10 +376,9 @@ def make_allowedvalues(allowed_values):
     return new_allowedvalues
 
 
-def is_anyvalue(value):
+def is_anyvalue(value: Any) -> bool:
     """Check for any value object of given value
     """
-
     is_av = False
 
     if value == AnyValue:
@@ -384,3 +391,16 @@ def is_anyvalue(value):
         is_av = True
 
     return is_av
+
+
+def to_json_serializable( data: Any ) -> JsonValue:
+    """ Convern Literal to serializable value
+    """
+    # Convert datetime to string
+    if isinstance(data, (datetime.date,datetime.time,datetime.datetime)):
+        return data.replace(microsecond=0).isoformat()
+    elif isinstance(data, datetime.date):
+        return data.isoformat()
+    else:
+        return data
+

@@ -16,16 +16,27 @@ import logging
 import traceback
 from pyqgiswps import WPS, OWS
 from pyqgiswps.app.WPSResponse import WPSResponse
+from pyqgiswps.app.WPSRequest import WPSRequest
+from pyqgiswps.app.Process import WPSProcess
 from pyqgiswps.config import confservice
 from pyqgiswps.exceptions import (MissingParameterValue, NoApplicableCode, InvalidParameterValue)
+from pyqgiswps.inout.literaltypes import JsonValue
 from pyqgiswps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
 from pyqgiswps.executors.logstore import STATUS
 from pyqgiswps.executors.processingexecutor import ProcessingExecutor, UnknownProcessError
+from pyqgiswps.accesspolicy import AccessPolicy
 
 from collections import deque
 import os
 import copy
 
+from typing import Iterable, TypeVar, Optional, Union
+
+# Define generic WPS Input
+WPSInput = Union[ComplexInput, LiteralInput, BoundingBoxInput]
+
+XMLDocument = TypeVar('XMLDocument')
+XMLElement  = TypeVar('XMLElement')
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -40,41 +51,41 @@ class Service():
 
     """
 
-    def __init__(self, processes=[] ):
+    def __init__(self, processes: Iterable[WPSProcess]=[] ) -> None:
         # Get and start executor
         self.executor = ProcessingExecutor(processes)
 
-    def terminate(self):
+    def terminate(self) -> None:
         self.executor.terminate()
 
     @property
-    def processes(self):
+    def processes(self) -> Iterable[WPSProcess]:
         return self.executor.list_processes()
 
-    def get_process(self, ident, **context):
+    def get_process(self, ident: str, **context) -> WPSProcess:
         return self.get_processes((ident,), **context)[0]
 
-    def get_processes(self, idents, **context):
+    def get_processes(self, idents: Iterable[str], **context) -> Iterable[WPSProcess]:
         return self.executor.get_processes(idents, **context)
 
-    def get_results(self, uuid):
+    def get_results(self, uuid: str) -> XMLDocument:
         doc = self.executor.get_results(uuid)
         if doc is None:
             raise NoApplicableCode('No results found for %s' % uuid, code=404)
 
         return doc
 
-    def get_status(self, uuid=None, **kwargs):
+    def get_status(self, uuid: Optional[str]=None, **kwargs) -> JsonValue:
         """ Return the status of the stored processes
         """
         return self.executor.get_status(uuid, **kwargs)
 
-    def delete_results(self, uuid ):
+    def delete_results(self, uuid: str ) -> bool:
         """ Delete process results and status 
         """
         return self.executor.delete_results(uuid)
 
-    def get_capabilities(self, wps_request, accesspolicy=None):
+    def get_capabilities(self, wps_request: WPSRequest, accesspolicy: AccessPolicy=None) -> XMLDocument:
         """ Handle getcapbabilities request
         """
         process_elements = [p.capabilities_xml()
@@ -245,7 +256,7 @@ class Service():
 
         return doc
 
-    def describe(self, identifiers, **context):
+    def describe(self, identifiers: Iterable[str], **context) -> XMLDocument:
         """ Return process description
         """
         if not identifiers:
@@ -284,7 +295,8 @@ class Service():
 
         return status_url.format(host_url=proxy_host,uuid=uuid)
 
-    async def execute(self, identifier, wps_request, uuid, **context):
+    async def execute(self, identifier: str, wps_request: WPSRequest, uuid: str, 
+                      **context) -> XMLDocument:
         """Parse and perform Execute WPS request call
         
         :param identifier: process identifier string
@@ -330,7 +342,7 @@ class Service():
 
         return document
 
-    def _parse(self, process, wps_request):
+    def _parse(self, process: WPSProcess, wps_request: WPSRequest):
         """Parse request
         """
         LOGGER.debug('Checking if datainputs is required and has been passed')
@@ -378,7 +390,8 @@ class Service():
                         outpt.as_reference = is_reference
 
 
-    def create_complex_inputs(self, source, inputs):
+    def create_complex_inputs(self, source: ComplexInput, 
+                              inputs: Iterable[JsonValue]) -> Iterable[ComplexInput]:
         """ Create new ComplexInput as clone of original ComplexInput
 
             because of inputs can be more then one, take it just as Prototype
@@ -418,7 +431,8 @@ class Service():
             raise MissingParameterValue(description="Given data input is missing", locator=source.identifier)
         return outinputs
 
-    def create_literal_inputs(self, source, inputs):
+    def create_literal_inputs(self, source: LiteralInput, 
+                              inputs: Iterable[JsonValue]) -> Iterable[LiteralInput]:
         """ Takes the http_request and parses the input to objects
         :return collections.deque:
         """
@@ -443,7 +457,8 @@ class Service():
 
         return outinputs
 
-    def create_bbox_inputs(self, source, inputs):
+    def create_bbox_inputs(self, source: BoundingBoxInput, 
+                           inputs: Iterable[JsonValue]) -> Iterable[BoundingBoxInput]:
         """ Takes the http_request and parses the input to objects
         :return collections.deque:
         """

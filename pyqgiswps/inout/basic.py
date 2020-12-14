@@ -19,7 +19,8 @@ from enum import Enum
 import os
 import logging
 from pyqgiswps.inout.literaltypes import (LITERAL_DATA_TYPES, convert,
-                                          make_allowedvalues, is_anyvalue)
+                                          make_allowedvalues, is_anyvalue, 
+                                          to_json_serializable)
 from pyqgiswps import OWS, OGCUNIT, NAMESPACES
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.validator.base import emptyvalidator
@@ -363,7 +364,7 @@ class LiteralInput(BasicIO, BasicLiteral, SimpleHandler):
             'uoms': self.uoms,
             'uom': self.uom,
             'mode': self.valid_mode,
-            'data': self.data
+            'data': to_json_serializable(self.data)
         }
 
 
