@@ -11,10 +11,12 @@
 
 import os
 
+_pid = os.getpid()
+
 def _get_ipc( name ) -> str:
-    ipc_path = '/tmp/qgswps/%s_%s' % (name, os.getpid())
+    ipc_path = f'/tmp/qgswps/{name}_{_pid}'
     os.makedirs(os.path.dirname(ipc_path), exist_ok=True)
-    return 'ipc://'+ipc_path
+    return f'ipc://{ipc_path}'
 
 
 WORKER_READY=b"ready"

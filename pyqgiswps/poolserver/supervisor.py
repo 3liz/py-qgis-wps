@@ -78,7 +78,7 @@ class Supervisor:
 
         ctx = zmq.asyncio.Context.instance()
         self._sock = ctx.socket(zmq.PULL)
-        self._sock.setsockopt(zmq.LINGER, 500)
+        self._sock.setsockopt(zmq.RCVTIMEO, 1000)
         self._sock.bind( address )
 
         self._timeout = timeout
