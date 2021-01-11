@@ -165,7 +165,7 @@ def test_proxy_status_url( host ):
 
     # Get the status and make sure is 200
     rv = requests.get(host+"/status/{}?SERVICE=WPS".format(uuid),  
-            headers={ 'X-Proxy-Location': proxy_loc })
+            headers={ 'X-Forwarded-Url': proxy_loc })
     assert rv.status_code == 200
 
     st = rv.json()['status']

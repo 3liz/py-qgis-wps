@@ -2,6 +2,7 @@
     Test Processing executor
 """
 import pytest
+from urllib.parse import urlparse, parse_qs
 
 from pyqgiswps.app import WPSProcess, Service
 from pyqgiswps.tests import HTTPTestCase, assert_response_accepted
@@ -50,5 +51,49 @@ class TestsExecutor(HTTPTestCase):
         assert rv.status_code == 200
         assert len(rv.xpath('/wps:ExecuteResponse')) > 0
         assert len(rv.xpath('//wps:ProcessFailed')) > 0
+
+    @pytest.mark.skip(reason="FIXME")
+    def test_mapcontext_describe(self):
+        """ Test describe process with context
+        """
+        rv = self.client.get(("/ows/?SERVICE=WPS&Request=DescribeProcess"
+                              "&Identifier=pyqgiswps_test:testmapcontext"
+                              "&Version=1.0.0&MAP=france_parts"), path='')
+
+        assert rv.status_code == 200
+
+        # Get the response and test that we can get the result status
+        assert rv.headers.get('Content-Type') == 'text/xml;charset=utf-8'
+
+        # Check the contextualized default value
+        assert rv.xpath_text('//DataInputs/Input/LiteralData/DefaultValue') == 'france_parts'
+
+    @pytest.mark.skip(reason="FIXME")
+    def test_mapcontext_execute(self):
+        """ Test execute process with context
+        """
+        rv = self.client.get(("/ows/?SERVICE=WPS&Request=Execute"
+                              "&Identifier=pyqgiswps_test:testmapcontext&Version=1.0.0"
+                              "&MAP=france_parts&DATAINPUTS=INPUT=hello_context"), path="")
+        assert rv.status_code == 200
+        assert rv.xpath_text('//wps:ProcessOutputs/wps:Output/wps:Data/wps:LiteralData') == 'france_parts'
+
+
+    def test_proxy_url( self ):
+        """ Test if proxy url is set 
+        """
+        uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0'
+                               '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
+        rv = self.client.get(uri, path='')
+        assert rv.status_code == 200
+
+        # Get the status url
+        status_url = resp.xpath_attr('/wps:ExecuteResponse','statusLocation')
+
+        q = parse_qs(urlparse(status_url).query)
+        assert 'uuid' in q
+
+        uuid = q['uuid'][0]
+ 
 
 

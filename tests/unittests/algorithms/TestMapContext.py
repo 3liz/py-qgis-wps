@@ -1,6 +1,7 @@
 """ Test just returning simple value
 """
-from pathlib import Path
+
+import traceback
 
 from qgis.core import (QgsProcessingParameterNumber,
                        QgsProcessingParameterString,
@@ -16,7 +17,6 @@ class TestMapContext(QgsProcessingAlgorithm):
 
     def __init__(self):
         super().__init__()
-        self.project_uri = None
 
     def name(self):
         return 'testmapcontext'
@@ -36,19 +36,21 @@ class TestMapContext(QgsProcessingAlgorithm):
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        if config:
-            self.project_uri = config.get('project_uri',self.project_uri)
-            project_name = Path(self.project_uri).stem
-        else:
-            project_name = None
-        self.addParameter(QgsProcessingParameterString(self.INPUT, 'Input string', 
-                          defaultValue=project_name))
+        # XXX Do not modify anything to 'self': we CANNOT presume that same 
+        # instance will be used for processAlgorithm().
+        project_name = config.get('project_uri') 
+        try:
+            self.addParameter(QgsProcessingParameterString(self.INPUT, 'Input string', 
+                              defaultValue=project_name, optional=True))
+        except Exception:
+            traceback.print_exc()    
 
         self.addOutput(QgsProcessingOutputString(self.OUTPUT,"Output"))
 
     def processAlgorithm(self, parameters, context, feedback):
 
-        value = self.parameterAsString(parameters, self.INPUT, context)
-        outval = Path(self.project_uri).stem
+        param  = self.parameterDefinition(self.INPUT)
+        outval = param.defaultValue() 
+
         return {self.OUTPUT: "%s" %  outval}
-        
+
