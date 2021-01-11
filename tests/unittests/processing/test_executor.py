@@ -2,6 +2,7 @@
     Test Processing executor
 """
 import pytest
+import json
 from urllib.parse import urlparse, parse_qs
 
 from pyqgiswps.app import WPSProcess, Service
@@ -52,7 +53,7 @@ class TestsExecutor(HTTPTestCase):
         assert len(rv.xpath('/wps:ExecuteResponse')) > 0
         assert len(rv.xpath('//wps:ProcessFailed')) > 0
 
-    @pytest.mark.skip(reason="FIXME")
+
     def test_mapcontext_describe(self):
         """ Test describe process with context
         """
@@ -68,7 +69,7 @@ class TestsExecutor(HTTPTestCase):
         # Check the contextualized default value
         assert rv.xpath_text('//DataInputs/Input/LiteralData/DefaultValue') == 'france_parts'
 
-    @pytest.mark.skip(reason="FIXME")
+
     def test_mapcontext_execute(self):
         """ Test execute process with context
         """
@@ -84,16 +85,29 @@ class TestsExecutor(HTTPTestCase):
         """
         uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0'
                                '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
-        rv = self.client.get(uri, path='')
+        proxy_loc = 'http://test.proxy.loc:8080/'
+       
+        headers = { 'X-Forwarded-Url': proxy_loc }
+
+        rv = self.client.get(uri, path='', headers=headers)
         assert rv.status_code == 200
 
         # Get the status url
-        status_url = resp.xpath_attr('/wps:ExecuteResponse','statusLocation')
+        status_url = rv.xpath('/wps:ExecuteResponse')[0].attrib['statusLocation']
 
         q = parse_qs(urlparse(status_url).query)
         assert 'uuid' in q
 
         uuid = q['uuid'][0]
  
+        # Get the status
+        rv = self.client.get(f"/status/{uuid}?SERVICE=WPS", path='', headers=headers)
+        assert rv.status_code == 200
 
+        assert rv.headers.get('Content-Type','').find('application/json') == 0
+        st = json.loads(rv.get_data())['status']
+    
+        # Parse the host url 
+        status_url = urlparse(st['status_url'])
+        assert f"{status_url.scheme}://{status_url.netloc}/" == proxy_loc
 

@@ -22,12 +22,12 @@ from .processingio import (parse_input_definitions,
 from qgis.core import (QgsApplication,
                        QgsMapLayer,
                        QgsWkbTypes,
-                       QgsProcessingException, 
                        QgsProcessingFeedback,
                        QgsProcessingContext,
                        QgsProcessingAlgorithm,
                        QgsProcessingUtils,
                        QgsFeatureRequest,
+                       QgsProcessingParameterDefinition,
                        QgsProcessingOutputLayerDefinition)
 
 from pyqgiswps.app.Process import WPSProcess
@@ -38,13 +38,12 @@ from pyqgiswps.config import confservice
 
 from pyqgiswps.utils.filecache import get_valid_filename
 
-from processing.core.Processing import (Processing,
-                                        ProcessingConfig,
+from processing.core.Processing import (ProcessingConfig,
                                         RenderingStyles)
 
 from .processingcontext import ProcessingContext, MapContext
 
-from typing import Union, Mapping, TypeVar, Any
+from typing import Union,Mapping,TypeVar,Any
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -207,38 +206,63 @@ class Feedback(QgsProcessingFeedback):
         LOGGER.debug("%s:%s %s",self.name, self.uuid, info)
 
 
-def onFinishHandler(alg: QgsProcessingAlgorithm,
-                    context: QgsProcessingContext,
-                    feedback: QgsProcessingFeedback,
-                    parameters = {},
-                    **kwargs):
-    """ This is a dummy function 
-        Results will be handler after run()
+def run_processing_algorithm( alg: QgsProcessingAlgorithm, 
+                              parameters: Mapping[str,QgsProcessingParameterDefinition], 
+                              feedback: QgsProcessingFeedback,
+                              context: QgsProcessingContext,
+                              create_context: dict) -> None:
+    """ Re-implemente `Processing.runAlgorithm`
+
+        Processing.runAlgorithm perform mainly checks useless in this context.
+        More: it calls an `execute` function that in turns re-create the algorithm
+        with no context
+
+        see https://github.com/qgis/QGIS/blob/master/python/plugins/processing/core/Processing.py
     """
-    if feedback.isCanceled():
-        return False
+    # Check parameters values
+    ok, msg = alg.checkParameterValues(parameters, context)
+    if not ok:
+        msg = f"Processing parameters error:\n{msg}"
+        feedback.reportError(msg)
+        raise ProcessException(msg)
 
-    return True
+    # Validate CRS
+    if not alg.validateInputCrs(parameters, context):
+        feedback.pushInfo(("Warning: Not all input layers use the same CRS"
+                           "\nThis can cause unexpected results."))    
+
+    # Execute algorithm
+    # XXX: The algorithm is recreated here
+    # So we need to pass the create_context again
+    # see https://qgis.org/api/qgsprocessingalgorithm_8cpp_source.html
+    try:
+        results, ok = alg.run( parameters, context, feedback, configuration=create_context,
+                               catchExceptions=False)
+        feedback.pushInfo(f"Results: {results}")    
+        return results
+    except Exception as err:
+        LOGGER.critical(traceback.format_exc())
+        raise ProcessException(f"Algorithm failed with error {err}")
 
 
-def run_algorithm( alg: QgsProcessingAlgorithm, parameters, 
+def run_algorithm( alg: QgsProcessingAlgorithm, 
+                   parameters: Mapping[str,QgsProcessingParameterDefinition], 
                    feedback: QgsProcessingFeedback,
                    context: QgsProcessingContext,
                    outputs: Mapping[str, WPSOutput],
-                   output_uri:str):
+                   output_uri:str,
+                   create_context: dict = {}):
 
     # XXX Fix destination names for models
     # Collect destination names for destination parameters for restoring
     # them later
     destinations = { p:v.destinationName for p,v in parameters.items() if isinstance(v,QgsProcessingOutputLayerDefinition) }
 
-    # XXX Warning, a new instance of the algorithm without create_context will be created at the 'run' call
-    # see https://qgis.org/api/qgsprocessingalgorithm_8cpp_source.html#l00434
-    # We can deal with that because we will have a QgsProcessingContext and we should not 
-    # rely on the create_context at this time.
-    results = Processing.runAlgorithm(alg, parameters=parameters, onFinish=onFinishHandler,
-                                      feedback=feedback, context=context)
+    results = run_processing_algorithm(alg, parameters=parameters, feedback=feedback,
+                                       context=context,
+                                       create_context=create_context)
 
+    # From https://github.com/qgis/QGIS/blob/master/python/plugins/processing/core/Processing.py
     for outdef in alg.outputDefinitions():
         outputName = outdef.name()
         out = outputs.get(outputName)
@@ -257,7 +281,6 @@ def run_algorithm( alg: QgsProcessingAlgorithm, parameters,
     # we want to deal with the results
     #
     handle_layer_outputs(alg, context, parameters, results, feedback=feedback)
-
     return results
 
 
@@ -334,12 +357,10 @@ class QgsProcess(WPSProcess):
 
         context.store_url = response.store_url
 
-        try:
-            run_algorithm(alg, parameters, feedback=feedback, context=context, 
-                          outputs=response.outputs,
-                          output_uri=output_uri)
-        except QgsProcessingException as e:
-            raise ProcessException("%s" % e)
+        run_algorithm(alg, parameters, feedback=feedback, context=context, 
+                      outputs=response.outputs,
+                      output_uri=output_uri,
+                      create_context=create_context)
 
         ok = context.write_result(context.workdir, destination)
         if not ok:
