@@ -65,9 +65,7 @@ def test_context(outputdir, data):
     inputs['INPUT'][0].data = 'france_parts'
     inputs['OUTPUT'][0].data = 'france_parts_2'
 
-    workdir = outputdir.strpath
-
-    context  = ProcessingContext(workdir, 'france_parts.qgs')
+    context  = ProcessingContext(str(outputdir), 'france_parts.qgs')
     feedback = QgsProcessingFeedback()
 
     parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
@@ -78,7 +76,7 @@ def test_context(outputdir, data):
 
     output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=destination)
     # Run algorithm
-    with chdir(outputdir.strpath):
+    with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)
 
     assert context.destination_project.count() == 1
@@ -87,7 +85,7 @@ def test_context(outputdir, data):
     ok = context.write_result(context.workdir, destination)
 
     assert ok
-    assert context.destination_project.fileName() == outputdir.join(destination+'.qgs').strpath
+    assert context.destination_project.fileName() == str(outputdir/(destination+'.qgs'))
 
     # WFS configuration inserted
     WFSLayers = context.destination_project.readListEntry('WFSLayers', '/')[0]
@@ -111,25 +109,23 @@ def test_context(outputdir, data):
 def test_get_project_file(outputdir, data):
     """ Test we can get a project file
     """
-    workdir = outputdir.strpath
-    context  = ProcessingContext(workdir, 'france_parts.qgs')
+    context  = ProcessingContext(str(outputdir), 'france_parts.qgs')
 
     # Fetch a file from rootdir
     path = context.resolve_path("france_parts/france_parts.shp")      
 
-    assert os.path.isfile(path.as_posix())
+    assert path.is_file()
 
 
 def test_get_project_folder(outputdir, data):
     """ Test we can get a project folder
     """
-    workdir = outputdir.strpath
-    context = ProcessingContext(workdir, 'france_parts.qgs')
+    context = ProcessingContext(str(outputdir), 'france_parts.qgs')
 
     # Fetch a file from rootdir
     path = context.resolve_path("france_parts")      
 
-    assert os.path.isdir(path.as_posix())
+    assert path.is_dir()
 
 
 def test_map_vector_context(outputdir, data):

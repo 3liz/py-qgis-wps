@@ -31,19 +31,22 @@ TESTS_CPU_LIMITS:=2.0
 TESTS_MEMORY_LIMITS:=2g
 
 test: local
-	rm -rf unittests/__outputdir__/*
+	rm -rf unittests/__outputdir__/* $$(pwd)/__workdir__/*
+	mkdir -p $$(pwd)/__workdir__
 	docker run --rm --name qgis-wps-test-$(FLAVOR)-$(COMMITID) -w /src \
     --cpus $(TESTS_CPU_LIMITS) \
     --memory $(TESTS_MEMORY_LIMITS) \
     -u $(BECOME_USER) \
     -v $(SRCDIR):/src \
     -v $$(pwd)/.local:/.local \
+	-v $$(pwd)/__workdir__:/srv/data \
     -v $(LOCAL_HOME)/.cache:/.cache \
     -e FAKEREDIS=yes \
     -e PIP_CACHE_DIR=/.cache \
     -e PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
     -e QGSWPS_CACHE_ROOTDIR=/src/tests/unittests/data \
     -e QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH=/src/tests/unittests \
+    -e QGSWPS_SERVER_WORKDIR=/srv/data \
     -e QGIS_OPTIONS_PATH=/src/tests/qgis \
     $(QGIS_IMAGE) /src/tests/run-tests.sh
 

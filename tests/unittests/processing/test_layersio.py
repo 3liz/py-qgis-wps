@@ -60,7 +60,7 @@ def test_arbitrary_layer_scheme():
     assert value == "foobar:layername"
 
 
-def test_multilayer_with_selection(outputdir, data):
+def test_multilayer_with_selection():
     """ Test map context return allowed layers
     """
     alg = _find_algorithm('pyqgiswps_test:testinputmultilayer')

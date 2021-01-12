@@ -14,7 +14,7 @@ def test_accesspolicy(rootdir):
     """
     """
     defaultpolicy = DefaultPolicy()
-    defaultpolicy.init(Path(rootdir.strpath) / "sample_accesspolicy.yml")
+    defaultpolicy.init(rootdir / "sample_accesspolicy.yml")
 
     accesspolicy = new_access_policy()
 

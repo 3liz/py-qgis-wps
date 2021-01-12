@@ -21,7 +21,7 @@ from qgis.core import (QgsProcessingContext,
 from pyqgiswps.qgscache.cachemanager import cacheservice
 from pyqgiswps.config import confservice
 
-from typing import Mapping, Any
+from typing import Mapping,Any,Optional 
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -29,7 +29,7 @@ LOGGER = logging.getLogger('SRVLOG')
 class MapContext:
     """ Hold context regarding the MAP parameter
     """
-    def __init__(self, map_uri: str=None):
+    def __init__(self, map_uri: Optional[str]=None):
         self.rootdir = Path(confservice.get('projects.cache','rootdir'))
         self.map_uri = map_uri
 
@@ -51,7 +51,7 @@ class MapContext:
 
 class ProcessingContext(QgsProcessingContext):
 
-    def __init__(self, workdir: str, map_uri: str=None) -> None:
+    def __init__(self, workdir: str, map_uri: Optional[str]=None) -> None:
         super().__init__()
         self.workdir = workdir
         self.rootdir = Path(confservice.get('projects.cache','rootdir'))
@@ -85,16 +85,26 @@ class ProcessingContext(QgsProcessingContext):
             LOGGER.error(traceback.format_exc())
             raise
 
-    def write_result(self, workdir: str, name: str) -> bool:
+    def write_result(self, workdir: str, name: str, wmsurl: Optional[str]=None) -> bool:
         """ Save results to disk
         """
         LOGGER.debug("Writing Results to %s", workdir)
+
+        project = self.destination_project
+
+        # Set project settings
+        if wmsurl:
+            project.writeEntry('WMSUrl','/',wmsurl)
+
+        def _layers_for( layertype ):
+            return (lid for lid,lyr in project.mapLayers().items() if lyr.type() == layertype)
+
         # Publishing vector layers in WFS and raster layers in WCS
-        dest_project = self.destination_project
-        dest_project.writeEntry( "WFSLayers", "/", [lid for lid,lyr in dest_project.mapLayers().items() if lyr.type() == QgsMapLayer.VectorLayer] )
-        for lid,lyr in dest_project.mapLayers().items():
-            if lyr.type() == QgsMapLayer.VectorLayer:
-                dest_project.writeEntry( "WFSLayersPrecision", "/"+lid, 6 )
-        dest_project.writeEntry( "WCSLayers", "/", [lid for lid,lyr in dest_project.mapLayers().items() if lyr.type() == QgsMapLayer.RasterLayer] )
-        return dest_project.write(os.path.join(workdir,name+'.qgs'))
+        project.writeEntry( "WFSLayers", "/", list(_layers_for(QgsMapLayer.VectorLayer)) )
+        project.writeEntry( "WCSLayers", "/", list(_layers_for(QgsMapLayer.RasterLayer)) )
+
+        for lid in _layers_for(QgsMapLayer.VectorLayer):
+            project.writeEntry( "WFSLayersPrecision", "/"+lid, 6 )
+
+        return project.write(os.path.join(workdir,name+'.qgs'))
 

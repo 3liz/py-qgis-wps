@@ -337,13 +337,18 @@ class QgsProcess(WPSProcess):
 
         alg = QgsApplication.processingRegistry().createAlgorithmById(request.identifier, create_context)
 
-        # Get WMS output uri
         destination = get_valid_filename(alg.id())
 
-        output_uri = confservice.get('server','wms_response_uri').format(
-            host_url=request.host_url,
-            uuid=response.uuid,
-            name=destination)
+        # Allow configparser to resolve host_url
+        confservice.set('wps.request', 'host_url', request.host_url)
+
+        output_map_url = "{map_uri}{uuid}/{name}.qgs".format(
+            map_uri = confservice.get('server','wps_result_map_uri'),
+            uuid    = response.uuid,
+            name    = destination)
+
+        # Get WMS output uri
+        output_uri = confservice.get('server', 'wms_response_uri').format(map_url=output_map_url)
 
         workdir  = response.process.workdir
         context  = ProcessingContext(workdir, map_uri=request.map_uri)
@@ -362,7 +367,10 @@ class QgsProcess(WPSProcess):
                       output_uri=output_uri,
                       create_context=create_context)
 
-        ok = context.write_result(context.workdir, destination)
+        # Build advertised WMS url
+        wmsurl = f"{confservice.get('server','wms_service_url')}?MAP={output_map_url}"
+
+        ok = context.write_result(context.workdir, destination, wmsurl)
         if not ok:
             raise ProcessException("Failed to write %s" % destination)
 

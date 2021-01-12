@@ -1,6 +1,7 @@
 """ Test parsing processing itputs to WPS inputs
 """
 import os
+from os import PathLike
 from urllib.parse import urlparse, parse_qs, urlencode
 
 from typing import Tuple
@@ -52,9 +53,9 @@ from processing.core.Processing import Processing
 
 class Context(QgsProcessingContext):
 
-    def __init__(self, project: QgsProject, workdir:str ) -> None:
+    def __init__(self, project: QgsProject, workdir: PathLike ) -> None:
         super().__init__()
-        self.workdir = workdir
+        self.workdir = str(workdir)
         self.setProject(project)
 
         # Create the destination project
@@ -72,16 +73,12 @@ def test_centroides_algorithms(outputdir, data):
     """
     alg = _find_algorithm('model:centroides')
 
-    workdir = outputdir.strpath
-
     # Load source project
     source      = QgsProject()
-    rv = source.read(data.join('france_parts.qgs').strpath)
+    rv = source.read(str(data/'france_parts.qgs'))
     assert rv == True
 
-    workdir = outputdir.strpath
-
-    context  = Context(source, workdir)
+    context  = Context(source, outputdir)
     feedback = QgsProcessingFeedback() 
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
@@ -102,7 +99,7 @@ def test_centroides_algorithms(outputdir, data):
 
     output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=destination_project)
     # Run algorithm
-    with chdir(outputdir.strpath):
+    with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, 
                                 outputs=outputs, output_uri=output_uri)   
 

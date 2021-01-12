@@ -4,6 +4,7 @@
 import pytest
 import json
 from urllib.parse import urlparse, parse_qs
+from pathlib import Path
 
 from pyqgiswps.app import WPSProcess, Service
 from pyqgiswps.tests import HTTPTestCase, assert_response_accepted
@@ -11,7 +12,9 @@ from time import sleep
 
 from test_common import async_test
 
+from qgis.core import QgsProject
 
+@pytest.mark.usefixtures("workdir_class")
 class TestsExecutor(HTTPTestCase):
 
     def test_execute_request(self):
@@ -79,13 +82,31 @@ class TestsExecutor(HTTPTestCase):
         assert rv.status_code == 200
         assert rv.xpath_text('//wps:ProcessOutputs/wps:Output/wps:Data/wps:LiteralData') == 'france_parts'
 
+    @async_test
+    def test_status_location( self ):
+        """ Test if proxy url is set 
+        """
+        uri = ("/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0"
+                               "&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2"
+                               "&storeExecuteResponse=true")
+
+        rv = self.client.get(uri, path='')
+        assert rv.status_code == 200
+
+        # Get the status url
+        status_url = rv.xpath('/wps:ExecuteResponse')[0].attrib['statusLocation']
+
+        rv = self.client.get(status_url)
+        assert rv.status_code == 200 
+        assert rv.xpath('/wps:ExecuteResponse')  is not None
+
 
     def test_proxy_url( self ):
         """ Test if proxy url is set 
         """
         uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0'
                                '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
-        proxy_loc = 'http://test.proxy.loc:8080/'
+        proxy_loc = 'http://test.proxy.loc:8080/anyhwere/'
        
         headers = { 'X-Forwarded-Url': proxy_loc }
 
@@ -108,6 +129,17 @@ class TestsExecutor(HTTPTestCase):
         st = json.loads(rv.get_data())['status']
     
         # Parse the host url 
-        status_url = urlparse(st['status_url'])
-        assert f"{status_url.scheme}://{status_url.netloc}/" == proxy_loc
+        status_url = st['status_url']
+        assert  status_url.startswith(proxy_loc)
+
+        # Get the project
+        project_path = self.workdir/uuid/'pyqgiswps_test_testcopylayer.qgs'
+        assert project_path.is_file()
+
+        project = QgsProject()
+        project.read(str(project_path))
+
+        value, ok = project.readEntry('WMSUrl','/','') 
+        assert ok
+        assert value.startswith(proxy_loc)
 

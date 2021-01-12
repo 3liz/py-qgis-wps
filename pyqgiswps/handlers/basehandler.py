@@ -107,7 +107,7 @@ class BaseHandler(tornado.web.RequestHandler):
         req = self.request
         proxy_url = self.application.config.get('host_proxy') or \
             req.headers.get('X-Forwarded-Url') or \
-            "{0.protocol}://{0.host}{0.path}".format(req)
+            "{0.protocol}://{0.host}/".format(req)
         proxy_url = proxy_url.format(**kwargs)
         return proxy_url
  

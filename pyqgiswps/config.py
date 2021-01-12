@@ -85,17 +85,18 @@ def load_configuration():
     # Expiration time in Redis cache for task responses
     CONFIG.set('server', 'response_expiration'  , getenv('QGSWPS_SERVER_RESPONSE_EXPIRATION','86400'))
     # Base url used for return WMS references (Qgis projects holding layers created by WPS tasks)
-    CONFIG.set('server', 'wms_service_url'      , getenv('QGSWPS_SERVER_WMS_SERVICE_URL','{host_url}'))
+    CONFIG.set('server', 'wms_service_url'      , getenv('QGSWPS_SERVER_WMS_SERVICE_URL','${wps.request:host_url}'))
     # Base uri used for the MAP argument in WMS references
     CONFIG.set('server', 'wps_result_map_uri'   , getenv('QGSWPS_SERVER_RESULTS_MAP_URI','wps-results:'))
     # Full URL used for returning  WPS references
-    CONFIG.set('server', 'wms_response_uri'     , '${wms_service_url}?MAP=${wps_result_map_uri}{uuid}/{name}.qgs&service=WMS&request=GetCapabilities')
+    CONFIG.set('server', 'wms_response_uri'     , '${wms_service_url}?MAP={map_url}&service=WMS&request=GetCapabilities')
     # Cleanup interval in seconds
     CONFIG.set('server', 'cleanup_interval'     ,'600')
     # Download API expiration ttl for a download URL
     CONFIG.set('server', 'download_ttl'         , getenv('QGSWPS_DOWNLOAD_TTL','30'))
     # Enable middleware filters from extensions
     CONFIG.set('server', 'enable_filters'       , getenv('QGSWPS_SERVER_ENABLE_FILTERS', 'yes'))
+    # Path for pre-installed extensions
     CONFIG.set('server', 'sys_config_path'      , getenv('QGSWPS_SYS_CONFIG_PATH'      , '/usr/share/qgis_wps'))
 
     #
@@ -129,12 +130,6 @@ def load_configuration():
 
     CONFIG.add_section('projects.schemes')
 
-    # XXX Legacy section
-    CONFIG.add_section('cache')
-    CONFIG.set('cache', 'size'    , '${projects.cache:size}')
-    CONFIG.set('cache', 'rootdir' , '${projects.cache:rootdir}')
-    CONFIG.set('cache', 'strict_check' , '${projects.cache:strict_check}')
-
     #
     # Processing
     #
@@ -155,11 +150,21 @@ def load_configuration():
     CONFIG.set('qgis.settings.folders', 'Processing/Configuration/SCRIPTS_FOLDERS', '${processing:providers_module_path}/scripts')
     CONFIG.set('qgis.settings.folders', 'Processing/Configuration/MODELS_FOLDER'  , '${processing:providers_module_path}/models')
 
+
     # Qgis settings
     #
     # Add other Qgis settings
     #
+    # XXX Not functional yet
     CONFIG.add_section('qgis.settings')
+
+    #
+    # Qgis projects
+    #
+    CONFIG.add_section('qgis.projects')
+    # Set this to force the the WMS url in the project
+    # properties
+    CONFIG.set('qgis.projects', 'wmsurl', '${server:wms_service_url}')
 
     #
     # Metadata
@@ -179,6 +184,11 @@ def load_configuration():
     CONFIG.set('metadata:main', 'contact_email', 'Email Address')
     CONFIG.set('metadata:main', 'contact_url', 'Contact URL')
     CONFIG.set('metadata:main', 'contact_role', 'pointOfContact')
+
+    #
+    # Used at runtime to set contextual configuration
+    #
+    CONFIG.add_section('wps.request')
 
 
 def read_config_dict( userdict ):
@@ -207,7 +217,14 @@ def read_config_file( cfgfile ):
 def config_to_dict():
     """ Convert actual configuration to dictionary
     """
-    return { s: dict(p.items()) for s,p in CONFIG.items() }
+    def _items(p):
+        for k in p.keys():
+            try:
+                yield k,p[k]
+            except configparser.InterpolationMissingOptionError:
+                yield k,p.get(k,raw=True)
+
+    return { s: dict(_items(p)) for s,p in CONFIG.items() }
 
 
 def validate_config_path(confname, confid, optional=False):

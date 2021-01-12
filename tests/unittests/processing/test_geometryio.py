@@ -80,7 +80,7 @@ def test_bbox_input():
 def test_bbox_input_with_context(outputdir):
     """ Test extent parameter with context
     """
-    context  = ProcessingContext(outputdir.strpath, 'france_parts_3857.qgs')
+    context  = ProcessingContext(str(outputdir), 'france_parts_3857.qgs')
 
     project = context.project()
     project_crs = project.crs()

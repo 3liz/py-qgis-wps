@@ -1,6 +1,7 @@
 """ Test parsing processing itputs to WPS inputs
 """
 import os
+from os import PathLike
 from urllib.parse import urlparse, parse_qs, urlencode
 
 from pyqgiswps.utils.contexts import chdir 
@@ -50,9 +51,9 @@ from processing.core.Processing import Processing
 
 class Context(QgsProcessingContext):
 
-    def __init__(self, project, workdir):
+    def __init__(self, project: QgsProject, workdir: PathLike ):
         super().__init__()
-        self.workdir = workdir
+        self.workdir = str(workdir)
         self.setProject(project)
 
         # Create the destination project
@@ -164,12 +165,10 @@ def test_layer_algorithm(outputdir, data):
 
     # Load source project
     source      = QgsProject()
-    rv = source.read(data.join('france_parts.qgs').strpath)
+    rv = source.read(str(data/'france_parts.qgs'))
     assert rv == True
 
-    workdir = outputdir.strpath
-
-    context  = Context(source, workdir)
+    context  = Context(source, outputdir)
     feedback = QgsProcessingFeedback() 
 
     parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
@@ -181,7 +180,7 @@ def test_layer_algorithm(outputdir, data):
     output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=destination)
 
     # Run algorithm
-    with chdir(outputdir.strpath):
+    with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)   
    
     destination_name = parameters['OUTPUT'].destinationName
@@ -201,12 +200,10 @@ def test_buffer_algorithm(outputdir, data):
 
     # Load source project
     source      = QgsProject()
-    rv = source.read(data.join('france_parts.qgs').strpath)
+    rv = source.read(str(data/'france_parts.qgs'))
     assert rv == True
 
-    workdir = outputdir.strpath
-
-    context  = Context(source, workdir)
+    context  = Context(source, outputdir)
     feedback = QgsProcessingFeedback() 
 
     parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
@@ -216,7 +213,7 @@ def test_buffer_algorithm(outputdir, data):
 
     output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
     # Run algorithm
-    with chdir(outputdir.strpath):
+    with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)   
    
     destination_name = parameters['OUTPUT_VECTOR'].destinationName
@@ -251,12 +248,10 @@ def test_output_vector_algorithm(outputdir, data):
 
     # Load source project
     source = QgsProject()
-    rv = source.read(data.join('france_parts.qgs').strpath)
+    rv = source.read(str(data/'france_parts.qgs'))
     assert rv == True
 
-    workdir = outputdir.strpath
-
-    context  = Context(source, workdir)
+    context  = Context(source, outputdir)
     feedback = QgsProcessingFeedback() 
 
     parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
@@ -265,7 +260,7 @@ def test_output_vector_algorithm(outputdir, data):
 
     output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
     # Run algorithm
-    with chdir(outputdir.strpath):
+    with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,outputs=outputs, output_uri=output_uri)   
     
     assert context.destination_project.count() == 1
@@ -303,12 +298,10 @@ def test_selectfeatures_algorithm(outputdir, data):
 
     # Load source project
     source      = QgsProject()
-    rv = source.read(data.join('france_parts.qgs').strpath)
+    rv = source.read(str(data/'france_parts.qgs'))
     assert rv == True
 
-    workdir = outputdir.strpath
-
-    context  = Context(source, workdir)
+    context  = Context(source, outputdir)
     feedback = QgsProcessingFeedback() 
 
     parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
@@ -318,7 +311,7 @@ def test_selectfeatures_algorithm(outputdir, data):
 
     output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
     # Run algorithm
-    with chdir(outputdir.strpath):
+    with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)   
     
     assert context.destination_project.count() == 1

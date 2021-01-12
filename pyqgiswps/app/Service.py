@@ -283,7 +283,7 @@ class Service():
         doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
         return doc
 
-    def _status_url(self, uuid, request):
+    def _status_url(self, uuid: str, request: WPSRequest):
         """ Return the status_url for the process <uuid>
         """
         cfg = confservice['server']

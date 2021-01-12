@@ -37,7 +37,7 @@ from qgis.core import (QgsProcessingAlgorithm,
 
 from ..processingcontext import ProcessingContext
 
-from typing import Any, Union
+from typing import Any,Union,Optional
 
 WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
 WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
@@ -161,7 +161,7 @@ def to_output_file( file_name: str, out: ComplexOutput, context: ProcessingConte
 
 
 def parse_response( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOutput, 
-                    output_uri: str, context: ProcessingContext ) -> WPSOutput:
+                    output_uri: str, context: ProcessingContext ) -> Optional[WPSOutput]:
     """ Map processing output to WPS
     """
     if isinstance(outdef, QgsProcessingOutputHtml):

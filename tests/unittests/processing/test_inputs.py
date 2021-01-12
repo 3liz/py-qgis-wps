@@ -256,8 +256,8 @@ def test_output_multiple_layers(outputdir, data):
     outdef = QgsProcessingOutputMultipleLayers("LAYERS")
 
     # Load source project
-    layer1 = data.join('france_parts/france_parts.shp').strpath
-    layer2 = data.join('raster_layer.tiff').strpath
+    layer1 = str(data/'france_parts'/'france_parts.shp')
+    layer2 = str(data/'raster_layer.tiff')
 
     context = QgsProcessingContext()
 

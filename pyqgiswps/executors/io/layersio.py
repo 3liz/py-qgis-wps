@@ -56,7 +56,7 @@ from pyqgiswps.exceptions import (NoApplicableCode,
 
 from pyqgiswps.utils.filecache import get_valid_filename
 
-from typing import Any, Union, Tuple
+from typing import Any,Union,Tuple,Optional
 
 WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
 WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
@@ -333,7 +333,7 @@ def parse_output_definition( outdef: QgsProcessingOutputDefinition, kwargs ) -> 
 
 
 def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefinition,
-                                     context: ProcessingContext ) -> None:
+                                     context: ProcessingContext ) -> Tuple[str,...]:
     """ Add layer to load on completion
 
         The layer will be added to the destination project
@@ -393,16 +393,18 @@ def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefi
         except Exception:
             LOGGER.error("Processing: Error loading result layer {}:\n{}".format(lyrname,traceback.format_exc()))
 
-        return ()
+        return None
 
     if multilayers:
         return tuple(name for name in (add_layer_details(lyrname) for lyrname in value) if name is not None)
     else:
-        return (add_layer_details(value),)
+        name = add_layer_details(value)
+        if name:
+            return (name,)
     
 
 def parse_response( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOutput, 
-                    output_uri: str, context: QgsProcessingContext ) -> WPSOutput:
+                    output_uri: str, context: QgsProcessingContext ) -> Optional[WPSOutput]:
     """ Process processing response to WPS output 
     """
     if not isinstance(outdef, OUTPUT_LAYER_TYPES):
@@ -417,4 +419,5 @@ def parse_response( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSO
     else:
         out.url = output_uri
 
+    return out
 

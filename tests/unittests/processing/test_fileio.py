@@ -91,7 +91,7 @@ def test_file_input( outputdir ):
     inp.data = "Hello world"
 
     context = QgsProcessingContext()
-    context.workdir = outputdir.strpath
+    context.workdir = str(outputdir)
 
     value = filesio.get_processing_value( param, [inp], context)
 
