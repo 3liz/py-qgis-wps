@@ -162,9 +162,9 @@ def load_configuration():
     # Qgis projects
     #
     CONFIG.add_section('qgis.projects')
-    # Set this to force the the WMS url in the project
-    # properties
-    CONFIG.set('qgis.projects', 'wmsurl', '${server:wms_service_url}')
+    # Set this to force the the advertised WMS url in the Qgis projects
+    # created by pyqgiswps
+    CONFIG.set('qgis.projects', 'wmsurl', getenv('QGSWPS_ADVERTISED_WMSURL','${server:wms_service_url}'))
 
     #
     # Metadata

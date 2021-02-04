@@ -46,7 +46,7 @@ Alternatively, you may use [docker-compose](https://docs.docker.com/compose/) fo
 Master Qgis projects must be located at the location given by  `QGSWPS_CACHE_ROOTDIR` - see configuration variables.
 
 Processing algorithms are located at the lacation given by `QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH`. 
-See the [Qywps documentation](https://projects.3liz.org/infra-v3/py-qgis-wps/tree/master#configuring-providers) on how to configure properly you provider directory.
+See the [py-qgis-wps](https://py-qgis-wps.readthedocs.io/en/latest/qgisprocessing.html#exposing-processing-algorithms) on how to configure properly you provider directory.
 
 ## Configuration 
 
