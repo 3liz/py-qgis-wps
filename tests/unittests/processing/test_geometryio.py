@@ -55,6 +55,22 @@ def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     return m
  
 
+def test_bbox_4326():
+    """ Test bounding box xml
+    """
+    # XXX With EPSG:4326 axes *MUST* be inverted
+    bbox_el = WPS.BoundingBoxData(OWS.LowerCorner('20 -112'),
+                                  OWS.UpperCorner('45 -87'))
+
+    bbox_el.attrib['crs'] = "EPSG:4326";
+    bbox = BoundingBox(bbox_el);
+
+    assert int(bbox.minx) == -112;
+    assert int(bbox.miny) == 20;
+    assert int(bbox.maxx) == -87;
+    assert int(bbox.maxy) == 45;
+
+
 def test_bbox_input():
     """ Test extent parameter
     """ 
@@ -65,11 +81,16 @@ def test_bbox_input():
     assert isinstance(inp,BoundingBoxInput)
     assert inp.crss[0] == "EPSG:4326"
 
-    # see create_bbox_inputs at L532 app/Service.py
     inp.data = ['15', '50', '16', '51']
     value = geometryio.input_to_extent( inp ) 
 
     assert isinstance(value,QgsReferencedRectangle)
+    assert isinstance(value,QgsRectangle)
+
+    assert value.xMinimum() == 15;
+    assert value.yMaximum() == 51;
+    assert value.yMinimum() == 50;
+    assert value.xMaximum() == 16;
 
     # Test CRS
     crs = value.crs()

@@ -1,9 +1,15 @@
 """
     Test Processing executor
 """
-import pytest
-from pyqgiswps.app import WPSProcess, Service
-from pyqgiswps.tests import HTTPTestCase
+""" Test WPS service
+"""
+import sys
+import os
+import requests
+from pathlib import Path
+from urllib.parse import urlparse, parse_qs
+from time import sleep
+from client_utils import * 
 
 # XXX With EPSG:4326 axes *MUST* be inverted
 CLIPRASTER_EXECUTE_POST="""<?xml version="1.0" encoding="UTF-8"?>
@@ -36,30 +42,29 @@ CLIPRASTER_EXECUTE_POST="""<?xml version="1.0" encoding="UTF-8"?>
 """
 
 
-class TestsClipRaster(HTTPTestCase):
+def test_clipbyextent_get( host, data ):
+    """  Test execute process """
 
-    #XXX Bounding box not supported as kvp
-    def test_execute_request_post(self):
-        """ Test processing executor 'Execute' request
-        """
-        uri = ('/ows/?service=WPS&MAP=raster_layer')
-        body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='pyqgiswps_test',INPUT='INPUT',EXTENT='EXTENT',OUTPUT='OUTPUT')
-        rv = self.client.post(body, path=uri)
-        assert rv.status_code == 200
+    uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcliprasterlayer&Version=1.0.0'
+                           '&MAP=raster_layer&DATAINPUTS='
+                           'INPUT=raster_layer%3B'
+                           'EXTENT=-112,20,-87,45%3B'
+                           'OUTPUT=clipped_layer')
 
-    def test_script_execute_request_post(self):
-        """ Test processing executor 'Execute' request
-        """
-        uri = ('/ows/?service=WPS&MAP=raster_layer')
-        body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='script',INPUT='INPUT',EXTENT='EXTENT',OUTPUT='OUTPUT')
-        rv = self.client.post(body, path=uri)
-        assert rv.status_code == 200
+    rv = requests.get(host+uri)
+    assert rv.status_code == 200
 
-    def test_model_execute_request_post(self):
-        """ Test processing executor 'Execute' request
-        """
-        uri = ('/ows/?service=WPS&MAP=raster_layer')
-        body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='model',INPUT='input',EXTENT='extent',OUTPUT='gdal:cliprasterbyextent_1:OUTPUT')
-        rv = self.client.post(body, path=uri)
-        assert rv.status_code == 200
+
+def test_clipbyextent_post( host, data ):
+    """ Test processing executor 'Execute' request
+    """
+    uri = ('/ows/?service=WPS&MAP=raster_layer')
+    body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='pyqgiswps_test',INPUT='INPUT',EXTENT='EXTENT',OUTPUT='OUTPUT')
+
+    rv = requests.post(host+uri,
+            data=body,
+            headers={ "Content-Type": "text/xml" })
+
+    resp = Response(rv)
+    assert resp.status_code == 200 
 

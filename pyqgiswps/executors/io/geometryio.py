@@ -194,7 +194,7 @@ def input_to_extent( inp: WPSInput ) -> Any:
     """ Convert to extent 
     """
     r = inp.data
-    rect  = QgsRectangle(float(r[0]),float(r[2]),float(r[1]),float(r[3]))
+    rect  = QgsRectangle(float(r[0]),float(r[1]),float(r[2]),float(r[3]))
     ref   = QgsCoordinateReferenceSystem(inp.crs)
     return QgsReferencedRectangle(rect, ref)
 

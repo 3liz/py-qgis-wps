@@ -469,6 +469,7 @@ class Service():
             newinpt = source.clone()
             newinpt.data = [datainput.minx, datainput.miny,
                             datainput.maxx, datainput.maxy]
+            LOGGER.debug(f"========> {newinpt.data}")
             outinputs.append(newinpt)
 
         if len(outinputs) < source.min_occurs:
