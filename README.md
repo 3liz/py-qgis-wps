@@ -10,17 +10,23 @@ This implementation allows you to expose and run on a server:
 * QGIS Processing models and scripts
 * QGIS plugins having a Processing provider according to their `metadata.txt`file
 
+It is written in Python and is a fork of [PyWPS](https://pywps.org/).
 
-It's is written in Python and is a fork of [PyWPS](https://pywps.org/).
-
-Requirements and limitations:
+Requirements and limitations :
 
 - Python 3.5+ only
 - Windows not officially supported
 - Redis server 
 
+[Conference explaining the project](https://www.youtube.com/watch?v=YL1tdcJwimA) during the FOSS4G 2019.
+
 Any WPS client work with this implementation. For instance QGIS Processing algorithms are available
-in a web interface using [Lizmap WPS module](https://github.com/3liz/lizmap-wps-web-client-module).
+in a web interface using [Lizmap WPS module](https://github.com/3liz/lizmap-wps-web-client-module) in the
+screenshot and GIF below :
+
+![Screenshot](screenshot.png)
+
+![Demo gif](demo.gif)
 
 
 # Documentation:
@@ -33,7 +39,7 @@ Latest documentation is available on [ReadTheDoc](https://py-qgis-wps.readthedoc
 Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following: 
 
 * QGIS centric
-* Handle all request in asynchronous way: all jobs should run in a non blocking way,  even
+* Handle all request in asynchronous way: all jobs should run in a non-blocking way, even
   with `storeExecuteResponse=true`
 * Use multiprocessing Pool to handle task queue instead instantiating a new process each time.
 * Uniform Logging with the 'logging' module
@@ -45,7 +51,8 @@ Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following:
 * Drop MS Windows specifics
 * Drop Python 2 support
 
-All these changes where not easy to implement without some drastic changes of the original code and we think that it  deviates too much from the PyWPS original intentions. 
+All these changes where not easy to implement without some drastic changes of the original code and we think
+that it  deviates too much from the PyWPS original intentions.
 
 That is, we have decided to fork the original project and go along with it. 
 
@@ -54,15 +61,15 @@ to start quickly this project.
 
 ## Why moving to Tornado instead WSGI
 
-* We need to support asyncio: asyncio require a blocking running loop. This cannot be achieved simply in a WSGI architecture.
-* Tornado has a better and better integration with native python asyncio and provide a great framework for developpingf http server.
+* We need to support asyncio: asyncio requires a blocking running loop. This cannot be achieved simply in a WSGI architecture.
+* Tornado has a better and better integration with native python asyncio and provide a great framework for developing a http server.
 
 ## Extensions to WPS
 
 ### TIMEOUT extension
 
 Specify the timeout for a process: if the process takes more than TIMEOUT seconds to run, the worker is then killed and an 
-error status is retourned.
+error status is returned.
 
 Set the the `TIMEOUT=<seconds>` in  GET requests. 
 
@@ -73,8 +80,8 @@ The server may configure maximum timeout value.
 
 ### EXPIRE extension
 
-Specify the expiration time for stored results: after EXPIRE seconds after end of the wps process, all results will be
-flushed from disks and local cache. Trying to requests the results again will return a 404 HTTP  error.
+Specify the expiration time for stored results: after EXPIRE seconds after the end of the wps process, all results will be
+flushed from disks and local cache. Trying to request the results again will return a 404 HTTP  error.
 
 Set the the `EXPIRE=<seconds>` in  GET requests. 
 
@@ -139,13 +146,13 @@ See the official documentation for how to setup a python virtualenv:  https://vi
 ## From source
 
 Install in development mode
-```
+```bash
 pip install -e .
 ```
 
 ## From python package archive
 
-```
+```bash
 pip install py-qgis-wps-X.Y.Z.tar.gz
 ```
 
@@ -153,11 +160,11 @@ pip install py-qgis-wps-X.Y.Z.tar.gz
 
 The server from a command line interface:
 
-The server does not run as a daemon by itself, there is several way to run a command as a daemon.
+The server does not run as a daemon by itself, there are several ways to run a command as a daemon.
 
 For example:
 
-* Use Supervisor http://supervisord.org/. Will gives you full control over logs and server status notifications.
+* Use Supervisor http://supervisord.org/ will give you full control over logs and server status notifications.
 * Use the `daemon` command.
 * Use Docker
 
@@ -187,20 +194,20 @@ optional arguments:
 
 ### From config ini file
 
-By default the wps server is not using any config file, but one can be used with the `--config` option.
+By default, the wps server is not using any config file, but one can be used with the `--config` option.
 A config file is a simple ini file, a sample config file is given with the sources.
 
 ### From environment variables
 
 The server can be configured with environnement variables:
 
-Confguration is done with environment variables:
+Configuration is done with environment variables:
 
 - QGSWPS\_SERVER\_WORKDIR: set the current dir processes, all processes will be running in that directory.
 - QGSWPS\_SERVER\_HOST\_PROXY: When the service is behind a reverse proxy, set this to the proxy entrypoint.
-- QGSWPS\_SERVER\_PARALLELPROCESSES: Number of parrallel process workers 
+- QGSWPS\_SERVER\_PARALLELPROCESSES: Number of parallel process workers
 - QGSWPS\_SERVER\_RESPONSE\_TIMEOUT: The max response time before killing a process.
-- QGSWPS\_SERVER\_RESPONSE\_EXPIRATION: The maxe time (in seconds) the response from a WPS process will be available.
+- QGSWPS\_SERVER\_RESPONSE\_EXPIRATION: The max time (in seconds) the response from a WPS process will be available.
 - QGSWPS\_SERVER\_WMS\_SERVICE\_URL: The base url for WMS service. Default to <hosturl>/wms. Responses from processing will
 be retourned as WMS urls. This configuration variable set the base url for accessing results.
 - QGSWPS\_SERVER\_RESULTS\_MAP\_URI
@@ -222,7 +229,7 @@ be retourned as WMS urls. This configuration variable set the base url for acces
 
 ### Processing configuration
 
-- QGSWPS\_PROCESSSING\_PROVIDERS\_MODULE\_PATH: Path to look for processing algoritms provider to publish, algorithms from providers specified heres will be runnable as WPS processes.
+- QGSWPS\_PROCESSSING\_PROVIDERS\_MODULE\_PATH: Path to look for processing algorithms provider to publish, algorithms from providers specified here will be runnable as WPS processes.
 
 # Exposing algorithms as WPS services
 
@@ -240,11 +247,11 @@ the plugin is available as a WPS service provider.
 The `iface`  parameter is a instance of `WPSServerInterface` which provide a 
 `registerProvider( provider: QgsAlgorithmProvider, expose: bool = True) -> Any` method.
 
-Exposed providers as WPS services must be registered usin the `registerProvider` method
+Exposed providers as WPS services must be registered using the `registerProvider` method
 
 Example:
 
-```
+```python
 def WPSClassFactory(iface: WPSServerInterface) -> Any:
 
     from TestAlgorithmProvider1 import  AlgorithmProvider1
@@ -259,5 +266,4 @@ def WPSClassFactory(iface: WPSServerInterface) -> Any:
 
 Processing algorithm with the flag [FlagHideFromToolbox](https://qgis.org/pyqgis/3.0/core/Processing/QgsProcessingAlgorithm.html#qgis.core.QgsProcessingAlgorithm.FlagHideFromToolbox) set will not be exposed as WPS process.  
 
-Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden) set wont be exposed in a `DescribeProcess` request.
-
+Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden) set won't be exposed in a `DescribeProcess` request.
