@@ -18,16 +18,6 @@ Requirements and limitations :
 - Windows not officially supported
 - Redis server 
 
-[Conference explaining the project](https://www.youtube.com/watch?v=YL1tdcJwimA) during the FOSS4G 2019.
-
-Any WPS client work with this implementation. For instance QGIS Processing algorithms are available
-in a web interface using [Lizmap WPS module](https://github.com/3liz/lizmap-wps-web-client-module) in the
-screenshot and GIF below :
-
-![Screenshot](screenshot.png)
-
-![Demo gif](demo.gif)
-
 
 # Documentation:
 
@@ -266,4 +256,9 @@ def WPSClassFactory(iface: WPSServerInterface) -> Any:
 
 Processing algorithm with the flag [FlagHideFromToolbox](https://qgis.org/pyqgis/3.0/core/Processing/QgsProcessingAlgorithm.html#qgis.core.QgsProcessingAlgorithm.FlagHideFromToolbox) set will not be exposed as WPS process.  
 
-Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden) set won't be exposed in a `DescribeProcess` request.
+Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden) set won't be exposed in a `DescribeProcess` request
+
+# Refs
+
+[Py-qgis-server at FOSS4G 2019](https://www.youtube.com/watch?v=YL1tdcJwimA).
+
