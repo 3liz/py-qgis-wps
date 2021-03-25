@@ -1,7 +1,5 @@
 # Py-QGIS-WPS 
 
-**NOTE**: the `qgis_release` branch version support qgis 3.14+
-
 Py-QGIS-WPS is an implementation of the [Web Processing Service](https://www.ogc.org/standards/wps)
 standard from the Open Geospatial Consortium based on the QGIS Processing API.
 
