@@ -301,6 +301,9 @@ def test_geometry_geometrytypes():
     inp = parse_input_definition(param)
     
     assert get_metadata(inp,'processing:geometryType')[0].href == "Line" 
+   
+    # Check allow multipart
+    assert len(get_metadata(inp,'processing:allowMultipart')) == 1
 
     # Multi Geometry
     param = QgsProcessingParameterGeometry("GEOM", 
@@ -312,6 +315,8 @@ def test_geometry_geometrytypes():
     assert get_metadata(inp,'processing:geometryType',2)[0].href == "Line" 
     assert get_metadata(inp,'processing:geometryType',2)[1].href == "Point" 
 
+    assert len(get_metadata(inp,'processing:allowMultipart')) == 1
+ 
     # Test output XML
     xml = inp.describe_xml()
 
@@ -326,4 +331,17 @@ def test_geometry_geometrytypes():
         assert type_ in ("Line","Point")
     
 
+def test_geometry_nomultipart():
+    """ Test geometry multipart Metadata 
+    """
+    # Single geometry
+    param = QgsProcessingParameterGeometry("GEOM", geometryTypes=[QgsWkbTypes.LineGeometry],
+                                           allowMultipart=False)
+
+    inp = parse_input_definition(param)
+    
+    assert get_metadata(inp,'processing:geometryType')[0].href == "Line"
+
+    # No multipart
+    assert get_metadata(inp,'processing:allowMultipart', minOccurence=0) == []
 

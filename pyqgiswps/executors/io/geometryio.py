@@ -96,6 +96,8 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs,
                 Metadata('processing:geometryType', QgsWkbTypes.geometryDisplayString(geomtype)) \
                 for geomtype in param.geometryTypes()
             )
+            if param.allowMultipart():
+                kwargs['metadata'].append(Metadata('processing:allowMultipart'))
         return ComplexInput(**kwargs)
 
     return None
