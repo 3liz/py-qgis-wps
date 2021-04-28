@@ -12,7 +12,7 @@ stages:
 tests:
   stage: test
   script:
-    - make docker-test FLAVOR=release
+    - make manifest docker-test FLAVOR=release
   tags:
     - infrav3
 
