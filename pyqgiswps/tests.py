@@ -19,7 +19,6 @@ import tempfile
 import lxml.etree
 from pyqgiswps import __version__, NAMESPACES
 
-
 from pyqgiswps.runtime import Application
 from pyqgiswps.logger import configure_log_levels
 from pyqgiswps.executors import processfactory
@@ -55,6 +54,11 @@ class TestRuntime:
         load_configuration()
         self.factory = processfactory.get_process_factory()
         self.factory.initialize()
+
+        # Get cachemanager ATFER loading configuration
+        from pyqgiswps.qgscache.cachemanager import cacheservice
+        self.cachemanager = cacheservice
+
         # Ensure Qgis is initialized
         self.factory.start_qgis() 
         self.started = True
@@ -62,6 +66,10 @@ class TestRuntime:
     def stop(self) -> None:
         if not self.started:
             return
+        # Clear cache earlier in order to prevent memory corruption 
+        # when projects are freed
+        self.cachemanager.clear()
+        self.started = False
         self.factory.terminate()        
 
     @classmethod

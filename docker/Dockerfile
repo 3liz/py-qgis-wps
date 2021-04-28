@@ -8,11 +8,18 @@ LABEL Description="QGIS3 WPS service" Vendor="3liz.org" Version="1."
 
 ARG BUILD_VERSION
 
+RUN apt-get update && apt-get install -y --no-install-recommends gosu \
+     python3-shapely  \
+     python3-psutil \
+     && apt-get clean  && rm -rf /var/lib/apt/lists/* \
+     && rm -rf /usr/share/man 
+
 RUN pip3 install \
     scipy \
     simplejson \
     geojson \
     pandas \
+    Jinja2 \
     && rm -rf /root/.cache /root/.ccache
 
 COPY docker-entrypoint.sh /
