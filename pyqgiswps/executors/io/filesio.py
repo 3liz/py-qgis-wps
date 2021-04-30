@@ -97,16 +97,8 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput
     elif typ == 'file':
         # Handle file reference
         outputfile = (Path(context.workdir)/param.name()).with_suffix(param.extension())
-        inp[0].download_ref(outputfile)
-
-        # Save data
         LOGGER.debug("Saving input data as %s", outputfile.as_posix())
-        with outputfile.open('wb') as f:
-            data = inp[0].data
-            if isinstance(data,str):
-                data = data.encode()
-            f.write(data)
-        # Return base name as input file in located in workdir
+        inp[0].download_ref(outputfile)
         value = outputfile.name
     else:
         value = None
