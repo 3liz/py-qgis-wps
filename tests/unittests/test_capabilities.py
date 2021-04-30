@@ -34,6 +34,28 @@ class BadRequestTest(HTTPTestCase):
         assert resp.status_code == 400
 
 
+class CorsRequestTest(HTTPTestCase):
+
+    def test_cors_options(self):
+        """ Test CORS options
+        """
+        resp = self.client.options( headers={ 'Origin': 'my.home' } )
+
+        assert resp.status_code == 200
+        assert 'Allow' in resp.headers
+        assert 'Access-Control-Allow-Methods' in resp.headers
+        assert 'Access-Control-Allow-Origin'  in resp.headers
+
+    def test_cors_request(self):
+        """ Test getcapabilities hrefs
+        """
+        resp = self.client.get( "?request=getcapabilities&service=wps",  headers={ 'Origin': 'my.home' })
+
+        assert resp.status_code == 200
+        assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
+        assert 'Access-Control-Allow-Origin'  in resp.headers
+
+
 class CapabilitiesTest(HTTPTestCase):
 
     def get_processes(self):

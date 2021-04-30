@@ -135,7 +135,18 @@ config_options:
       section: server
       key: wms_service_url
       tags: [ http, wps, processes ]
- 
+
+    - name: SERVER_CROSS_ORIGIN
+      label: Allows cross origin CORS
+      description: |
+          Allows any origin for CORS. If set to 'no', allow only CORS for the 'Origin'
+          header.
+      default: ''
+      type: boolean 
+      section: server
+      key: cross_origin
+      tags: [ http, security ]
+
     #==========
     # Logging  
     #==========
