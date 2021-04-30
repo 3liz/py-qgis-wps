@@ -194,16 +194,6 @@ class Format:
             'extension': self.extension
         }
 
-    @json.setter
-    def json(self, jsonin):
-        """Set format from json
-        :param jsonin:
-        """
-
-        self.mime_type = jsonin['mime_type']
-        self.encoding = jsonin['encoding']
-        self.schema = jsonin['schema']
-        self.extension = jsonin['extension']
 
 # Define catch all format
 Format.ANY = Format.from_definition(FORMATS.ANY)

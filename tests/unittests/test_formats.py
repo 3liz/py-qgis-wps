@@ -70,24 +70,4 @@ def test_json_out():
     assert outjson['encoding'] == ''
 
 
-def test_json_in():
-    """Test json import
-    """
-
-    injson = {}
-    injson['schema'] = 'elcepelce'
-    injson['extension'] = '.gml'
-    injson['mime_type'] = 'application/gml+xml'
-    injson['encoding'] = 'utf-8'
-
-    frmt = Format(injson['mime_type'])
-    frmt.json = injson
-
-    assert injson['schema'] == frmt.schema
-    assert injson['extension'] == frmt.extension
-    assert injson['mime_type'] == frmt.mime_type
-    assert injson['encoding'] == frmt.encoding
-
-
-
 

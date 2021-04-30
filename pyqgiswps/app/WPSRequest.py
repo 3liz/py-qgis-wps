@@ -20,17 +20,12 @@ import lxml.etree
 import base64
 from pyqgiswps import WPS
 from pyqgiswps.app.basic import xpath_ns
-from pyqgiswps.inout.basic import LiteralInput, ComplexInput, BBoxInput
 from pyqgiswps.exceptions import (NoApplicableCode, 
                                   OperationNotSupported, 
                                   MissingParameterValue, 
                                   VersionNegotiationFailed,
                                   InvalidParameterValue)
 from pyqgiswps.config import confservice
-from pyqgiswps.validator.mode import MODE
-from pyqgiswps.inout.literaltypes import AnyValue, NoValue, ValuesReference, AllowedValue
-
-from pyqgiswps.inout.formats import Format
 from pyqgiswps.owsutils.ows import BoundingBox
 
 import json
@@ -319,7 +314,6 @@ class WPSRequest:
             raise InvalidParameterValue('EXPIRE param must be an integer > 0 value, not "%s"', expire)
 
 
-
     @property
     def json(self):
         """Return JSON encoded representation of the request
@@ -342,101 +336,6 @@ class WPSRequest:
 
     def dumps( self ):
         return json.dumps(self.json, allow_nan=False)
-
-    @json.setter
-    def json(self, value):
-        """init this request from json back again
-
-        :param value: the json (not string) representation
-        """
-
-        self.operation = value['operation']
-        self.version = value['version']
-        self.language = value['language']
-        self.identifiers = value['identifiers']
-        self.store_execute = value['store_execute']
-        self.status = value['store_execute']
-        self.lineage = value['lineage']
-        self.outputs = value['outputs']
-        self.raw = value['raw']
-        self.inputs = {}
-
-        for identifier in value['inputs']:
-            inpt = None
-            inpt_defs = value['inputs'][identifier]
-
-            for inpt_def in inpt_defs:
-
-                if inpt_def['type'] == 'complex':
-                    inpt = ComplexInput(
-                        identifier=inpt_def['identifier'],
-                        title=inpt_def.get('title'),
-                        abstract=inpt_def.get('abstract'),
-                        data_format=Format(
-                            schema=inpt_def['data_format'].get('schema'),
-                            extension=inpt_def['data_format'].get('extension'),
-                            mime_type=inpt_def['data_format']['mime_type'],
-                            encoding=inpt_def['data_format'].get('encoding')
-                        ),
-                        supported_formats=[
-                            Format(
-                                schema=infrmt.get('schema'),
-                                extension=infrmt.get('extension'),
-                                mime_type=infrmt['mime_type'],
-                                encoding=infrmt.get('encoding')
-                            ) for infrmt in inpt_def['supported_formats']
-                        ],
-                        mode=MODE.NONE
-                    )
-                    inpt.file = inpt_def['file']
-                elif inpt_def['type'] == 'literal':
-
-                    allowed_values = []
-                    for allowed_value in inpt_def['allowed_values']:
-                        if allowed_value['type'] == 'anyvalue':
-                            allowed_values.append(AnyValue())
-                        elif allowed_value['type'] == 'novalue':
-                            allowed_values.append(NoValue())
-                        elif allowed_value['type'] == 'valuesreference':
-                            allowed_values.append(ValuesReference())
-                        elif allowed_value['type'] == 'allowedvalue':
-                            allowed_values.append(AllowedValue(
-                                allowed_type=allowed_value['allowed_type'],
-                                value=allowed_value['value'],
-                                minval=allowed_value['minval'],
-                                maxval=allowed_value['maxval'],
-                                spacing=allowed_value['spacing'],
-                                range_closure=allowed_value['range_closure']
-                            ))
-
-                    inpt = LiteralInput(
-                        identifier=inpt_def['identifier'],
-                        title=inpt_def.get('title'),
-                        abstract=inpt_def.get('abstract'),
-                        data_type=inpt_def.get('data_type'),
-                        allowed_values=AnyValue,
-                        uoms=inpt_def.get('uoms'),
-                        mode=inpt_def.get('mode')
-                    )
-                    inpt.uom = inpt_def.get('uom')
-                    inpt.data = inpt_def.get('data')
-
-                elif inpt_def['type'] == 'bbox':
-                    inpt = BBoxInput(
-                        identifier=inpt_def['identifier'],
-                        title=inpt_def['title'],
-                        abstract=inpt_def['abstract'],
-                        crss=inpt_def['crs'],
-                        dimensions=inpt_def['dimensions'],
-                        mode=inpt_def['mode']
-                    )
-                    inpt.ll = inpt_def['bbox'][0]
-                    inpt.ur = inpt_def['bbox'][1]
-
-            if identifier in self.inputs:
-                self.inputs[identifier].append(inpt)
-            else:
-                self.inputs[identifier] = [inpt]
 
 
 def get_inputs_from_xml(doc):
