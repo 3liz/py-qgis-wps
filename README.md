@@ -27,7 +27,6 @@ in a web interface using [Lizmap WPS module](https://github.com/3liz/lizmap-wps-
 
 Latest documentation is available on [ReadTheDoc](https://py-qgis-wps.readthedocs.io/en/latest/index.html)
 
-
 # Why Py-QGIS-WPS ?
 
 Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following: 
@@ -259,5 +258,12 @@ def WPSClassFactory(iface: WPSServerInterface) -> Any:
 
 Processing algorithm with the flag [FlagHideFromToolbox](https://qgis.org/pyqgis/3.0/core/Processing/QgsProcessingAlgorithm.html#qgis.core.QgsProcessingAlgorithm.FlagHideFromToolbox) set will not be exposed as WPS process.  
 
-Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden) set wont be exposed in a `DescribeProcess` request.
+Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden) set won't be exposed in a `DescribeProcess` request
+
+# Références
+
+* [OGC standards](https://www.ogc.org/standards)
+* [Introduction to WPS](http://opengeospatial.github.io/e-learning/wps/text/basic-index.html)
+* [Py-qgis-server at FOSS4G 2019](https://www.youtube.com/watch?v=YL1tdcJwimA).
+
 
