@@ -24,6 +24,8 @@ from pyqgiswps.logger import configure_log_levels
 from pyqgiswps.executors import processfactory
 from pyqgiswps.config import load_configuration
 
+from typing import Any, Optional, Dict
+
 @contextmanager
 def temp_dir():
     """Creates temporary directory"""
@@ -108,27 +110,6 @@ class HTTPTestCase(AsyncHTTPTestCase):
         return None
 
 
-class WpsClient:
-
-    def __init__(self, testcase):
-        self._testcase = testcase
-
-    def post(self, data, headers=None, path='/ows/'):
-        return WpsTestResponse(self._testcase.fetch(path, method='POST', 
-                               body=data, raise_error=False, headers=headers))
-
-    def get(self, query, headers=None, path='/ows/'):
-        return WpsTestResponse(self._testcase.fetch(path + query, raise_error=False,
-                               headers=headers))
-
-    def put(self, data, headers=None, path='/ows/'):
-        return WpsTestResponse(self._testcase.fetch(path, method='PUT', 
-                               body=data, raise_error=False, headers=headers))
-
-    def post_xml(self, doc):
-        return self.post(data=lxml.etree.tostring(doc, pretty_print=True))
-
-
 class WpsTestResponse:
 
     def __init__(self, http_response):
@@ -136,22 +117,57 @@ class WpsTestResponse:
         if self.headers.get('Content-Type','').find('text/xml')==0:
             self.xml = lxml.etree.fromstring(self.get_data())
 
-    def get_data(self):
+    def get_data(self) -> Any:
         return self.http_response.body
 
     @property
-    def status_code(self):
+    def body(self) -> Any:
+        return self.http_response.body
+
+    @property
+    def code(self) -> int:
+        return self.http_response.code
+
+    @property
+    def status_code(self) -> int:
         return self.http_response.code
 
     @property
     def headers(self):
         return self.http_response.headers
 
-    def xpath(self, path):
+    def xpath(self, path) -> 'xpath':
         return self.xml.xpath(path, namespaces=NAMESPACES)
 
-    def xpath_text(self, path):
+    def xpath_text(self, path) -> str:
         return ' '.join(e.text for e in self.xpath(path))
+
+
+
+class WpsClient:
+
+    def __init__(self, testcase):
+        self._testcase = testcase
+
+    def post(self, data, headers: Optional[Dict]=None, path: str='/ows/') -> WpsTestResponse:
+        return WpsTestResponse(self._testcase.fetch(path, method='POST', 
+                               body=data, raise_error=False, headers=headers))
+
+    def get(self, query, headers: Optional[Dict]=None, path: str='/ows/') -> WpsTestResponse:
+        return WpsTestResponse(self._testcase.fetch(path + query, raise_error=False,
+                               headers=headers))
+
+    def put(self, data, headers: Optional[Dict]=None, path: str='/ows/') -> WpsTestResponse:
+        return WpsTestResponse(self._testcase.fetch(path, method='PUT', 
+                               body=data, raise_error=False, headers=headers))
+
+    def post_xml(self, doc) -> WpsTestResponse:
+        return WpsTestResponse(self.post(data=lxml.etree.tostring(doc, pretty_print=True)))
+
+    def options( self, headers: Optional[Dict]=None, path: str='/ows/') -> WpsTestResponse:
+        return WpsTestResponse(self._testcase.fetch(path, method='OPTIONS',
+                               raise_error=False, headers=headers))
+    
 
 
 def assert_response_accepted(resp):

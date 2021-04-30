@@ -17,8 +17,9 @@ from tornado.web import HTTPError  # noqa F401
 from ..exceptions import NoApplicableCode
 
 from ..version import __version__
+from ..config import confservice
 
-from typing import Any,Union
+from typing import Any,Union,Optional
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -28,6 +29,8 @@ class BaseHandler(tornado.web.RequestHandler):
     def initialize(self) -> None:
         super().initialize()
         self.connection_closed = False
+        self._cfg = confservice['server']
+        self._cross_origin = self._cfg.getboolean('cross_origin')
 
     def prepare(self) -> None:
         self.has_body_arguments = len(self.request.body_arguments)>0
@@ -49,6 +52,32 @@ class BaseHandler(tornado.web.RequestHandler):
         self.connection_closed = True
         LOGGER.warning("Connection closed by client: {}".format(self.request.uri))
 
+    def set_option_headers(self, allow_header: Optional[str]=None) -> None:
+        """  Set correct headers for 'OPTION' method
+        """
+        if not allow_header:
+            allow_header = ', '.join( me for me in self.SUPPORTED_METHODS if hasattr(self, me.lower()) )
+
+        self.set_header("Allow", allow_header)
+        if self.set_access_control_headers():
+            # Required in CORS context
+            # see https://developer.mozilla.org/fr/docs/Web/HTTP/M%C3%A9thode/OPTIONS
+            self.set_header('Access-Control-Allow-Methods', allow_header)
+
+    def set_access_control_headers(self) -> bool:
+        """  Handle Access control and cross origin headers (CORS)
+        """
+        origin = self.request.headers.get('Origin')
+        if origin:
+            if self._cross_origin:
+                self.set_header('Access-Control-Allow-Origin', '*')
+            else:
+                self.set_header('Access-Control-Allow-Origin', origin)
+                self.set_header('Vary', 'Origin')
+            return True
+        else:
+            return False
+
     def write_xml(self, doc) -> None:
         """ XML response serializer """
 
@@ -64,6 +93,7 @@ class BaseHandler(tornado.web.RequestHandler):
             xml = doc
 
         self.set_header('Content-Type', 'text/xml;charset=utf-8')
+        self.set_access_control_headers()
         self.write(wps_version_comment)
         self.write(xml)
 
@@ -77,9 +107,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if isinstance(chunk, dict):
             chunk = json.dumps(chunk, sort_keys=True)
         self.set_header('Content-Type', 'application/json;charset=utf-8')
-        # Allow CORS on all origin
-        if self.request.headers.get('Origin'):
-            self.set_header('Access-Control-Allow-Origin', '*')
+        self.set_access_control_headers()
         self.write(chunk)
 
     def write_error(self, status_code: int, **kwargs: Any):

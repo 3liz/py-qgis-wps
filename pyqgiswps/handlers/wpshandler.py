@@ -16,6 +16,8 @@ from pyqgiswps.exceptions import InvalidParameterValue, OperationNotSupported
 from pyqgiswps.accesspolicy import new_access_policy
 from pyqgiswps.app.WPSRequest import WPSRequest
 
+from typing import Optional
+
 LOGGER = logging.getLogger('SRVLOG')
 
 
@@ -87,10 +89,16 @@ class WPSHandler(BaseHandler):
         
         self.write_xml(document)
 
+    def options(self, endpoint: Optional[str]=None) -> None:
+        """ Implement OPTION for validating CORS
+        """
+        self.set_option_headers('GET, POST, OPTIONS')
+
+
 
 class StatusHandler(BaseHandler):
 
-    def get_wps_status( self, uuid=None):
+    def get_wps_status( self, uuid: Optional[str]=None):
         """ Return the status of the processes
         """ 
         wps_status = self.application.wpsservice.get_status(uuid)
@@ -117,7 +125,7 @@ class StatusHandler(BaseHandler):
         
         self.write_json({ 'status': wps_status })
 
-    def get_wps_request( self, uuid ):
+    def get_wps_request( self, uuid: str ):
         """ Return request infos
         """
         if uuid is None:
@@ -133,7 +141,7 @@ class StatusHandler(BaseHandler):
 
         self.write_json({'request': wps_request})        
 
-    def get( self, uuid=None):
+    def get( self, uuid: Optional[str]=None):
         """ Return status infos
         """
         key = self.get_argument('KEY', default=None)
@@ -142,7 +150,7 @@ class StatusHandler(BaseHandler):
         else:
             self.get_wps_status(uuid)
 
-    def delete( self, uuid=None ):
+    def delete( self, uuid: Optional[str]=None ):
         """ Delete results
         """
         if uuid is None:
@@ -155,4 +163,10 @@ class StatusHandler(BaseHandler):
                 self.set_status(409) # 409 == Conflict
         except FileNotFoundError:
             self.set_status(404)
+
+    def options(self, endpoint: Optional[str]=None) -> None:
+        """ Implement OPTION for validating CORS
+        """
+        self.set_option_headers('GET, DELETE, OPTIONS')
+
 

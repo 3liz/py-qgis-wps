@@ -99,6 +99,8 @@ def load_configuration():
     # Path for pre-installed extensions
     CONFIG.set('server', 'sys_config_path'      , getenv('QGSWPS_SYS_CONFIG_PATH'      , '/usr/share/qgis_wps'))
 
+    CONFIG.set('server', 'cross_origin'  , getenv('QGSWPS_SERVER_CROSS_ORIGIN' , 'yes'))
+
     #
     # Logging
     #
