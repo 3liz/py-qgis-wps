@@ -6,7 +6,7 @@ variables:
 .only_refs: &only_refs
   refs:
     - tags
-    - master
+    - 1.5.x
 
 #-------------
 # Build

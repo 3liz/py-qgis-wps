@@ -29,7 +29,7 @@ build:
   only:
     refs:
       - tags
-      - master
+      - 1.5.x
   tags:
     - infrav3
   except:
