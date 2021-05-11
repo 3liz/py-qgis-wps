@@ -10,6 +10,7 @@ services:
       QGSWPS_CACHE_ROOTDIR: /src/tests/unittests/data 
       QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH: /src/tests/unittests
       QGSWPS_SERVER_WORKDIR: /srv/data
+      QGSWPS_SERVER_RESTARTMON: /src/.qgis-restart
       QGIS_OPTIONS_PATH: /src/tests/qgis
       QGSWPS_LOGLEVEL: DEBUG
       QGSWPS_REDIS_HOST: redis

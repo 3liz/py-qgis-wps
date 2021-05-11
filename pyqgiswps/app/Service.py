@@ -62,11 +62,11 @@ class Service():
     def processes(self) -> Iterable[WPSProcess]:
         return self.executor.list_processes()
 
-    def get_process(self, ident: str, **context) -> WPSProcess:
-        return self.get_processes((ident,), **context)[0]
+    def get_process(self, ident: str, map_uri: Optional[str]=None) -> WPSProcess:
+        return self.get_processes((ident,), map_uri=map_uri)[0]
 
-    def get_processes(self, idents: Iterable[str], **context) -> Iterable[WPSProcess]:
-        return self.executor.get_processes(idents, **context)
+    def get_processes(self, idents: Iterable[str], map_uri: Optional[str]=None) -> Iterable[WPSProcess]:
+        return self.executor.get_processes(idents, map_uri=map_uri)
 
     def get_results(self, uuid: str) -> XMLDocument:
         doc = self.executor.get_results(uuid)
@@ -256,7 +256,7 @@ class Service():
 
         return doc
 
-    def describe(self, identifiers: Iterable[str], **context) -> XMLDocument:
+    def describe(self, identifiers: Iterable[str], map_uri: Optional[str]=None) -> XMLDocument:
         """ Return process description
         """
         if not identifiers:
@@ -268,7 +268,7 @@ class Service():
 
         identifier_elements = []
         try:
-            identifier_elements.extend(p.describe_xml() for p in self.get_processes(identifiers,**context))
+            identifier_elements.extend(p.describe_xml() for p in self.get_processes(identifiers,map_uri=map_uri))
         except UnknownProcessError as exc:
             raise InvalidParameterValue("Unknown process %s" % exc, "identifier")
         except Exception as e:
@@ -296,7 +296,7 @@ class Service():
         return status_url.format(host_url=proxy_host,uuid=uuid)
 
     async def execute(self, identifier: str, wps_request: WPSRequest, uuid: str, 
-                      **context) -> XMLDocument:
+                      map_uri: Optional[str]=None) -> XMLDocument:
         """Parse and perform Execute WPS request call
         
         :param identifier: process identifier string
@@ -304,7 +304,7 @@ class Service():
         :param uuid: string identifier of the request
         """
         try:
-            process = self.get_process(identifier, **context)
+            process = self.get_process(identifier, map_uri=map_uri)
         except UnknownProcessError:
             raise InvalidParameterValue("Unknown process '%r'" % identifier, 'Identifier')
 

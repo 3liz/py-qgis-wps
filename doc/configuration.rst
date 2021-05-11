@@ -247,6 +247,22 @@ header.
 
 
 
+.. _SERVER_RESTARTMON:
+
+SERVER_RESTARTMON
+-----------------
+
+The file to watch for restarting workers. When the modified date of the file is changed, 
+the processing providers are reloaded.
+
+
+:Type: path
+:Section: server
+:Key: restartmon
+:Env: QGSRV_SERVER_RESTARTMON
+
+
+
 .. _LOGGING_LEVEL:
 
 LOGGING_LEVEL

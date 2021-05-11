@@ -143,11 +143,11 @@ def run_server( port, address=None, user=None ):
     from pyqgiswps.executors import processfactory
 
     pr_factory = processfactory.get_process_factory() 
-    pr_factory.initialize()
+    processes = pr_factory.initialize(True)
 
     max_buffer_size = get_size_bytes(confservice.get('server', 'maxbuffersize'))
 
-    application = Application()
+    application = Application(processes)
     server = HTTPServer(application, max_buffer_size=max_buffer_size)
     server.listen(port, address=address)
 

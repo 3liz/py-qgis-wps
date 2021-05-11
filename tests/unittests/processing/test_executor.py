@@ -8,6 +8,8 @@ from pathlib import Path
 
 from pyqgiswps.app import WPSProcess, Service
 from pyqgiswps.tests import HTTPTestCase, assert_response_accepted
+from pyqgiswps.executors.processfactory import get_process_factory
+
 from time import sleep
 
 from test_common import async_test
@@ -16,6 +18,9 @@ from qgis.core import QgsProject
 
 @pytest.mark.usefixtures("workdir_class")
 class TestsExecutor(HTTPTestCase):
+
+    def get_processes(self):
+        return get_process_factory()._create_qgis_processes()
 
     def test_execute_request(self):
         """ Test processing executor 'Execute' request

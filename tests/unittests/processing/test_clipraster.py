@@ -4,6 +4,7 @@
 import pytest
 from pyqgiswps.app import WPSProcess, Service
 from pyqgiswps.tests import HTTPTestCase
+from pyqgiswps.executors.processfactory import get_process_factory
 
 # XXX With EPSG:4326 axes *MUST* be inverted
 CLIPRASTER_EXECUTE_POST="""<?xml version="1.0" encoding="UTF-8"?>
@@ -37,6 +38,9 @@ CLIPRASTER_EXECUTE_POST="""<?xml version="1.0" encoding="UTF-8"?>
 
 
 class TestsClipRaster(HTTPTestCase):
+
+    def get_processes(self):
+        return get_process_factory()._create_qgis_processes()
 
     #XXX Bounding box not supported as kvp
     def test_clipbyextent_get( self ):

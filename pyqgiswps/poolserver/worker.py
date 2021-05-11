@@ -15,7 +15,7 @@ import pickle
 
 from typing import Callable
 
-from .utils import WORKER_READY
+from .utils import WORKER_READY, WORKER_DONE
 from .supervisor import Client as SupervisorClient
 
 LOGGER=logging.getLogger('SRVLOG')
@@ -97,8 +97,9 @@ def worker_handler( router: str, broadcastaddr: str, maxcycles: int = None,
             try:
                 if broadcastaddr and sub.recv(flags=zmq.NOBLOCK)==b'RESTART':
                     # There is no really way to restart
-                    # so exit and let the framework restart a wew worker
+                    # so exit and let the framework restart a new worker
                     LOGGER.info("RESTART notification received")
+                    sock.send(WORKER_DONE)
                     break
             except zmq.error.Again:
                 pass

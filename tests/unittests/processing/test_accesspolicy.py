@@ -6,6 +6,7 @@ from pathlib import Path
 from pyqgiswps.accesspolicy import new_access_policy, DefaultPolicy
 from pyqgiswps.app import Service
 from pyqgiswps.tests import HTTPTestCase
+from pyqgiswps.executors.processfactory import get_process_factory
 
 from pyqgisservercontrib.core.filters import blockingfilter
 
@@ -28,6 +29,9 @@ def test_accesspolicy(rootdir):
 
 
 class TestAccessPolicy(HTTPTestCase):
+
+    def get_processes(self):
+        return get_process_factory()._create_qgis_processes()
 
     def get_filters(self):
 

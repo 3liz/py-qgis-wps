@@ -21,7 +21,7 @@ import traceback
 
 from typing import Callable, Any
 
-from .utils import _get_ipc, WORKER_READY
+from .utils import _get_ipc, WORKER_READY, WORKER_DONE
 
 LOGGER=logging.getLogger('SRVLOG')
 
@@ -73,9 +73,20 @@ class _Client:
             self._worker_s.append(worker_id)
             self._worker_q.put_nowait(worker_id)
 
+    def _remove_worker(self, worker_id) -> None:
+        if worker_id in self._worker_s:
+            LOGGER.debug("WORKER GONE %s", worker_id)
+            self._worker_s.remove(worker_id)
+
     async def _get_worker(self, timeout):
-        worker_id = await asyncio.wait_for(self._worker_q.get(), timeout)
-        self._worker_s.remove(worker_id)
+        while True:
+            worker_id = await asyncio.wait_for(self._worker_q.get(), timeout)
+            try:
+                self._worker_s.remove(worker_id)
+                break
+            except ValueError:
+                # Worker was removed from list, try again
+                pass
         return worker_id
 
     async def _poll(self) -> None:
@@ -89,6 +100,11 @@ class _Client:
                     # Worker is available on new connection
                     # Mark worker as available
                     self._put_worker(worker_id)
+                    continue
+                if rest[0] == WORKER_DONE:
+                    # Worker is gone because of a restart
+                    # Remove worker from list
+                    self._remove_worker(worker_id)
                     continue
 
                 msgid = rest[0]

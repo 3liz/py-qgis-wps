@@ -147,6 +147,17 @@ config_options:
       key: cross_origin
       tags: [ http, security ]
 
+    - name: SERVER_RESTARTMON
+      label: Restart test file
+      description: |
+          The file to watch for restarting workers. When the modified date of the file is changed, 
+          the processing providers are reloaded.
+      default: ''
+      section: server
+      key: restartmon
+      type: path
+      tags: [ wps, processes ]
+
     #==========
     # Logging  
     #==========

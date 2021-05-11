@@ -61,7 +61,6 @@ class WPSHandler(BaseHandler):
             if not self.accesspolicy.allow(wpsrequest.identifier):
                 raise HTTPError(403,reason="Unauthorized operation")
             response = await service.execute(wpsrequest.identifier, wpsrequest, uuid.uuid1(),
-                                             # Context
                                              map_uri=wpsrequest.map_uri)
         else:
             raise OperationNotSupported("Unknown operation %r" % wpsrequest.operation)

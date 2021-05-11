@@ -7,6 +7,7 @@ from pathlib import Path
 from pyqgiswps.app import WPSProcess, Service
 from pyqgiswps.tests import HTTPTestCase, assert_response_accepted
 from pyqgiswps.executors.io import filesio
+from pyqgiswps.executors.processfactory import get_process_factory
 
 from pyqgiswps.inout import (LiteralInput, 
                              ComplexInput,
@@ -29,6 +30,9 @@ from pyqgiswps.executors.processingio import(
 
 
 class TestsFileIO(HTTPTestCase):
+
+    def get_processes(self):
+        return get_process_factory()._create_qgis_processes()
 
     def test_output_file_reference(self):
         """ Test output file as reference

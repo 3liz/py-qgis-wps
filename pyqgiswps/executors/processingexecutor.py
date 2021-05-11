@@ -13,6 +13,8 @@ import shutil
 import logging
 import lxml
 
+from typing import Iterable
+
 try:
     # XXX On android userland, /proc/stat is not readable
     import psutil
@@ -29,10 +31,13 @@ from pyqgiswps.logger import logfile_context
 from pyqgiswps.utils.lru import lrucache
 from pyqgiswps.exceptions import (NoApplicableCode, ProcessException)
 from pyqgiswps.config import confservice
+from pyqgiswps.app.Process import WPSProcess
 
 from pyqgiswps.poolserver.client import (create_client, 
                                          RequestBackendError, 
                                          MaxRequestsExceeded)
+
+from pyqgisservercontrib.core.watchfiles import watchfiles
 
 from .processfactory import get_process_factory
 from .logstore import logstore
@@ -53,19 +58,32 @@ class ProcessingExecutor:
     """ Progessing executor
     """
 
-    def __init__(self, processes=[]):
-        self.processes = {}
-        self._context_processes = lrucache(50)
+    def __init__(self, processes: Iterable[WPSProcess]):
 
         maxqueuesize = confservice.getint('server','maxqueuesize')
 
         self._pool = create_client( maxqueuesize )
+        self._context_processes = lrucache(50)
         self._factory = get_process_factory()
+        self._reload_handler = None
 
-        self.install_processes( processes )
+        self.processes = { p.identifier: p for p in processes }
 
         # Launch the cleanup task
         self.schedule_cleanup()
+
+        # Initialize restart handler
+        self.init_restart_handler()
+
+    def init_restart_handler(self):
+        restartmon = confservice.get('server','restartmon')
+        if restartmon:
+            LOGGER.info(f"Reload handler monitoring: {restartmon}")
+            check_time = confservice.getint('server','restartmon_check_time', 3000)
+            self._reload_handler = watchfiles([restartmon],
+                                              lambda *_args: self.reload_qgis_processes(),
+                                              check_time)
+            self._reload_handler.start()
 
     def get_status( self, uuid=None, **kwargs ):
         """ Return status of the stored processes
@@ -118,22 +136,14 @@ class ProcessingExecutor:
     def terminate(self):
         """ Execute cleanup tasks
         """
+        if self._reload_handler:
+            self._reload_handler.stop()
+
         if self._cleanup_task:
             self._cleanup_task.cancel()
 
         if self._pool:
             self._pool.close()
-
-    def install_processes( self, processes ):
-        """ Install processes 
-        """
-        LOGGER.debug("Installing processes")
-        if processes:
-            self._qgis_disabled = True
-            self.processes = { p.identifier: p for p in processes }
-        else:
-            self._qgis_disabled = False
-            self.processes = self._factory.create_qgis_processes()
 
     def list_processes( self ):
         """ List all available processes
@@ -144,7 +154,7 @@ class ProcessingExecutor:
         """
         return self.processes.values()
 
-    def get_processes( self, identifiers, map_uri=None, **context ):
+    def get_processes( self, identifiers, map_uri=None ):
         """ Override executors.get_process
         """
         try:
@@ -152,15 +162,16 @@ class ProcessingExecutor:
         except KeyError as exc:
             raise UnknownProcessError(str(exc))
 
-        # Create a new instance of a process for the given context
-        # Contextualized processes are stored in lru cache
-        def _test(p):
-            return (map_uri,p.identifier) not in self._context_processes
-
         # TODO Allow create contextualized processes from non-processing processes
-        if not self._qgis_disabled and map_uri is not None:
+        if self._factory.qgis_enabled and map_uri is not None:
+
+            # Create a new instance of a process for the given context
+            # Contextualized processes are stored in lru cache
+            def _test(p):
+                return (map_uri,p.identifier) not in self._context_processes
+
             if any(_test(p) for p in processes):
-                processes = self._factory.create_contextualized_processes(identifiers, map_uri=map_uri, **context)
+                processes = self._factory.create_contextualized_processes(identifiers, map_uri=map_uri)
                 # Update cache
                 for p in processes:
                     self._context_processes[(map_uri,p.identifier)] = p 
@@ -169,7 +180,19 @@ class ProcessingExecutor:
                 processes = [self._context_processes[(map_uri,p.identifier)] for p in processes]
         return processes
 
-    def schedule_cleanup( self ):
+    def reload_qgis_processes(self) -> None:
+        """ Reload Qgis processes 
+        """
+        factory = self._factory
+        if factory.qgis_enabled:
+            try:
+                LOGGER.info("Reloading Qgis providers")
+                self.processes = { p.identifier: p for p in factory.create_qgis_processes() }
+                self._context_processes.clear()
+            except ProcessException:
+                LOGGER.error("Failed to reload Qgis processes")
+
+    def schedule_cleanup( self ) -> None:
         """ Schedule a periodic cleanup
         """
         interval = confservice.getint('server','cleanup_interval')
@@ -274,7 +297,7 @@ class ProcessingExecutor:
 
 
     @staticmethod
-    def _clean_processes():
+    def _clean_processes() -> None:
         """ Clean up all processes
             Remove status and delete processes workdir
 
@@ -322,7 +345,7 @@ class ProcessingExecutor:
 
 if HAVE_PSUTIL:
     @contextmanager
-    def memory_logger(response):
+    def memory_logger(response) -> None:
         """ Log memory consumption
         """
         # Get the current process info
@@ -342,7 +365,7 @@ if HAVE_PSUTIL:
                                                    response.process.identifier))
 else:
     @contextmanager
-    def memory_logger(response):
+    def memory_logger(response) -> None:
         try:
             yield 
         finally:

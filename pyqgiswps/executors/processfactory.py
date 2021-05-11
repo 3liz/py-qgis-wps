@@ -1,5 +1,5 @@
 #
-# Copyright 2018 3liz
+# Copyright 2018-2021 3liz
 # Author: David Marteau
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -12,13 +12,20 @@
 import os
 import logging
 import traceback
+import queue
+import signal
 
 from glob import glob
 from itertools import chain
+from multiprocessing import Process, Queue
+
+from typing import List, Optional
 
 from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths
 from pyqgiswps.poolserver.server import create_poolserver
 from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
+from pyqgiswps.app.Process import WPSProcess
+from pyqgiswps.exceptions import ProcessException
 
 from pyqgiswps.config import confservice
 
@@ -26,13 +33,100 @@ from .logstore import logstore
 
 LOGGER = logging.getLogger('SRVLOG')
 
+# Android does not support semaphores
+# and thus queue implementation will not work
+# 
+# Borrow android detection from kivy:
+# On Android sys.platform returns 'linux2', so prefer to check the
+# presence of python-for-android environment variables (ANDROID_ARGUMENT
+# or ANDROID_PRIVATE).
+_is_android = 'ANDROID_ARGUMENT' in os.environ
+
+
+# Delegate Qgis process loading in 
+# another processes, this will enable live update
+# of Qgis providers/algorithms
+#
+# The delecate acts as a pool server: restarting the subprocess
+# 
+#
+class _FactoryDelegate(Process):
+
+    def __init__(self, factory: 'QgsProcessFactory'):
+        super().__init__()
+        self._queue = Queue()
+        self._factory = factory
+        
+    def stop(self):
+        self._queue.put(None)
+
+    def create_qgis_processes(self) -> Optional[List[WPSProcess]]:
+        processes = self._queue.get()
+        if processes is None:
+            raise ProcessException("Failed to initialize Qgis processes")
+        return processes
+
+    def create_contextualized_processes( self, identifiers: List[str], map_uri: str) -> List[WPSProcess]:
+        self._queue.put((identifiers, map_uri))
+        return self._queue.get()
+
+    @staticmethod
+    def task(q: Queue, factory: 'QgsProcessFactory') -> None:
+        """ Handle Qgis processes creation
+            Run in detached process
+        """
+        try: 
+            processes = factory._create_qgis_processes()
+            q.put(processes)
+        except Exception:
+            LOGGER.error(traceback.format_exc())
+            q.put(None)
+            return
+        # Subsqequent calls: return contextualized processe
+        while True:
+            try:
+                args = q.get()
+                if args is None:
+                    break
+                identifiers, map_uri = args
+                processes = factory._create_contextualized_processes(identifiers, map_uri)
+                q.put(processes)
+            except queue.Empty:
+                pass
+            except Exception:
+                LOGGER.error(traceback.format_exc())
+                q.put([])
+
+    def run(self):
+        """ Run in a subprocess
+        """
+        def term( *args ):
+            raise SystemExit()
+
+        signal.signal(signal.SIGTERM,term)
+        try:
+            while True:
+                # Create sub-process for handling processes creation
+                p = Process(target=self.task, args=(self._queue, self._factory))
+                p.start()
+                p.join()
+                p.close()
+        except SystemExit:
+            LOGGER.debug("Factory delegate: got SystemExit()")
+            if p and p.is_alive():
+                p.terminate()
+
+
 class QgsProcessFactory:
 
     def __init__(self):
         self._initialized = False
         self.qgisapp = None
+        self.qgis_enabled = False
+        
+        self._delegate = None
 
-    def initialize(self):
+    def initialize(self, load_qgis_processing: bool=False) -> Optional[List[WPSProcess]]:
         """ Initialize the factory
 
             Should be called once
@@ -51,7 +145,14 @@ class QgsProcessFactory:
         self._wps_interface.initialize(default_path)
         self._wps_interface.initialize(plugin_path)
 
+        if load_qgis_processing:
+            processes = self.create_qgis_processes()
+        else:
+            processes = None
+
         self._create_pool()
+
+        return processes
 
     def _create_pool(self):
         """ Initialize the worker pool
@@ -75,27 +176,37 @@ class QgsProcessFactory:
                                               timeout     = response_timeout)
         self._initialized = True
 
-    def create_contextualized_processes( self, identifiers, map_uri, **context ):
+    def restart_pool(self):
+        """ Restart all workers in pool
+        """
+        if self._initialized:
+            self._poolserver.restart()
+
+    def _create_contextualized_processes( self, identifiers, map_uri ) -> List[WPSProcess]:
         """ Create processes from context
         """
-        try:
-            from pyqgiswps.executors.processingprocess import QgsProcess
-            return [QgsProcess.createInstance(ident,map_uri=map_uri, **context) for ident in identifiers]
-        except Exception:
-            traceback.print_exc()
-            raise
+        from pyqgiswps.executors.processingprocess import QgsProcess
+        return [QgsProcess.createInstance(ident,map_uri=map_uri) for ident in identifiers]
 
-    def create_qgis_processes(self):
+    def create_contextualized_processes( self, identifiers, map_uri ) -> List[WPSProcess]:
+        if self._delegate and self._delegate.is_alive():
+            return self._delegate.create_contextualized_processes(identifiers, map_uri)
+        else:
+            # XXX Fallback to direct call, needed for testing
+            return self._create_contextualized_processes(identifiers, map_uri)
+
+    def _create_qgis_processes(self) -> List[WPSProcess]:
         """
           Convert processing algorithms to WPS processes
         """
+        self.qgis_enabled = True
         self.start_qgis()
 
         # Install processes from processing providers
         from pyqgiswps.executors.processingprocess import QgsProcess
         from qgis.core import QgsProcessingAlgorithm
 
-        processes = {}
+        processes = []
 
         iface = self._wps_interface
 
@@ -105,14 +216,40 @@ class QgsProcessFactory:
 
         for provider in iface.providers:
             LOGGER.debug("Loading processing algorithms from provider '%s'", provider.id())
-            processes.update({ alg.id():QgsProcess( alg ) for alg in provider.algorithms() if not _is_hidden(alg) })
+            processes.extend(QgsProcess( alg ) for alg in provider.algorithms() if not _is_hidden(alg))
 
         if processes:
-            LOGGER.info("Published processes:\n * %s", "\n * ".join(sorted(processes.keys())))
+            LOGGER.info("Published processes:\n * %s", "\n * ".join(sorted(p.identifier for p in processes)))
         else:
             LOGGER.warning("No published processes !")
 
         # Return the list of processes
+        return processes
+
+    def create_qgis_processes(self) -> List[WPSProcess]: 
+        """ Create initial qgis processes objects in another processes in order 
+            to prevent side effects from loading algorithms and 
+            allow for live reload
+
+            This 
+        """
+        self.qgis_enabled = True
+        # Re-create the sub-processes
+        if _is_android:
+            LOGGER.warn("Android platform detected: restarting processes may not behave as expected")
+            processes = self._create_qgis_processes()
+        else:
+            if not self._delegate:
+                self._delegate = _FactoryDelegate(self)
+                self._delegate.start()
+            else:
+                self._delegate.stop()
+            # Get processes list
+            processes = self._delegate.create_qgis_processes()
+            # Restart pool so that workers may 
+            # reload providers
+            self.restart_pool()
+
         return processes
 
     def worker_initializer(self):
@@ -165,6 +302,9 @@ class QgsProcessFactory:
     def terminate(self):
         """ Cleanup  resources
         """
+        if self._delegate and self._delegate.is_alive():
+            LOGGER.info("Terminating factory delegate")
+            self._delegate.terminate()
         if self._initialized:
             LOGGER.info("Closing worker pool")
             self._poolserver.terminate()

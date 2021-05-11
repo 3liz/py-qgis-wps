@@ -20,4 +20,5 @@ def _get_ipc( name ) -> str:
 
 
 WORKER_READY=b"ready"
+WORKER_DONE=b"done"
 
