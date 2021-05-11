@@ -39,6 +39,18 @@ CLIPRASTER_EXECUTE_POST="""<?xml version="1.0" encoding="UTF-8"?>
 class TestsClipRaster(HTTPTestCase):
 
     #XXX Bounding box not supported as kvp
+    def test_clipbyextent_get( self ):
+        """  Test execute process """
+
+        uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcliprasterlayer&Version=1.0.0'
+                               '&MAP=raster_layer&DATAINPUTS='
+                               'INPUT=raster_layer%3B'
+                               'EXTENT=-112,20,-87,45%3B'
+                               'OUTPUT=clipped_layer')
+
+        rv = self.client.get(uri, path='')
+        assert rv.status_code == 400
+
     def test_execute_request_post(self):
         """ Test processing executor 'Execute' request
         """

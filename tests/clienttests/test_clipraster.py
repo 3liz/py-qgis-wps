@@ -41,7 +41,7 @@ CLIPRASTER_EXECUTE_POST="""<?xml version="1.0" encoding="UTF-8"?>
 </wps:Execute>
 """
 
-
+# KVP is not supported for BoundingBox input
 def test_clipbyextent_get( host, data ):
     """  Test execute process """
 
@@ -52,8 +52,7 @@ def test_clipbyextent_get( host, data ):
                            'OUTPUT=clipped_layer')
 
     rv = requests.get(host+uri)
-    assert rv.status_code == 200
-
+    assert rv.status_code == 400
 
 def test_clipbyextent_post( host, data ):
     """ Test processing executor 'Execute' request
