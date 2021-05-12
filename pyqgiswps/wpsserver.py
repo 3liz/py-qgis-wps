@@ -15,7 +15,8 @@ from .version import __manifest__, __description__
 from .runtime import run_server
 from .config import (load_configuration, 
                      read_config_file, 
-                     confservice)
+                     confservice,
+                     warn_unsafe_options)
 from .logger import setup_log_handler
 
 LOGGER=logging.getLogger('SRVLOG')
@@ -82,6 +83,8 @@ def read_configuration(args=None):
         from .config import write_config
         write_config(sys.stdout)
         sys.exit(0)
+
+    warn_unsafe_options()
 
     # set log level
     setup_log_handler()

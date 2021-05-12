@@ -6,12 +6,11 @@ from qgis.core import (QgsProcessingParameterNumber,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterVectorDestination,
                        QgsProcessingOutputVectorLayer,
+                       QgsProcessingOutputLayerDefinition,
                        QgsProcessingOutputNumber,
                        QgsProcessingAlgorithm,
                        QgsVectorFileWriter)
 
-
-from .TestUtils import QgsProcessingParameterVectorDestinationEx
 
 class TestCopyLayer(QgsProcessingAlgorithm):
 
@@ -40,8 +39,8 @@ class TestCopyLayer(QgsProcessingAlgorithm):
            see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         self.addParameter(QgsProcessingParameterVectorLayer(self.INPUT, 'Vector Layer'))
-        self.addParameter(QgsProcessingParameterVectorDestinationEx(self.OUTPUT, 'Output Layer',
-                          fileExt="shp"))
+        self.addParameter(QgsProcessingParameterVectorDestination(self.OUTPUT, 'Output Layer',
+                          defaultValue=QgsProcessingOutputLayerDefinition(f'{self.OUTPUT}.shp')))
 
     def processAlgorithm(self, parameters, context, feedback):
         """ Virtual override

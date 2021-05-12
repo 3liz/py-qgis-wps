@@ -182,9 +182,12 @@ def test_layer_algorithm(outputdir, data):
     # Run algorithm
     with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)   
-   
-    destination_name = parameters['OUTPUT'].destinationName
+  
+    output = parameters['OUTPUT']
+    assert output.destinationName == 'france_parts_2'
+    assert output.sink.staticValue() == './OUTPUT.shp'
     assert context.destination_project.count() == 1
+
 
 def test_buffer_algorithm(outputdir, data):
     """ Test simple layer output 

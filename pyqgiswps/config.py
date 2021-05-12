@@ -36,7 +36,7 @@ def _log( *args ):
 
 
 def load_configuration():
-    """Load PyWPS configuration from configuration file.
+    """Load py-qgis-wps configuration from environment
 
     :param cfgfile: path to the configuration file
     :param cfgdefault: default configuration dict
@@ -121,7 +121,6 @@ def load_configuration():
     #
     # Projects cache
     #
-
     CONFIG.add_section('projects.cache')
     # Maximun number of projects in cache
     CONFIG.set('projects.cache', 'size'    , getenv('QGSWPS_CACHE_SIZE','10' ))
@@ -135,12 +134,22 @@ def load_configuration():
     #
     # Processing
     #
-
     CONFIG.add_section('processing')
-    CONFIG.set('processing', 'providers_module_path', getenv('QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH',''))
-    CONFIG.set('processing', 'exposed_providers'    , getenv('QGSWPS_PROCESSING_EXPOSED_PROVIDERS' ,'script,model'))
+    CONFIG.set('processing', 'providers_module_path' , getenv('QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH',''))
+    CONFIG.set('processing', 'exposed_providers'     , getenv('QGSWPS_PROCESSING_EXPOSED_PROVIDERS' ,'script,model'))
     CONFIG.set('processing', 'accesspolicy'         , getenv('QGSWPS_PROCESSING_ACCESSPOLICY' ,'${providers_module_path}/accesspolicy.yml'))
-    CONFIG.set('processing', 'default_module_path'  , '${server:sys_config_path}/processing')
+    CONFIG.set('processing', 'default_module_path'     , '${server:sys_config_path}/processing')
+    # Define default format used as file destinaton, use Qgis default if not 
+    # specified
+    CONFIG.set('processing', 'vector.fileext', getenv('QGSWPS_PROCESSING_VECTOR_FILEEXT',''))
+    CONFIG.set('processing', 'raster.fileext', getenv('QGSWPS_PROCESSING_RASTER_FILEEXT',''))
+    # Allow passing the wps parameter directly as file/uri sink in destination parameter
+    # Warning this is an **UNSAFE OPTION**, do not allow if you are exposing the service
+    # publicly or with concurrent running jobs.
+    # Note thar layer name may be specified by appending '|layername=<name>' to the input value
+    # Files will be saved under the root path defined by the `[processing] destination_root_path` option. 
+    CONFIG.set('processing', 'unsafe.raw_destination_input_sink', getenv('QGSWPS_PROCESSING_RAW_DESTINATION_INPUT_SINK','no'))
+    CONFIG.set('processing', 'destination_root_path', getenv('QGSWPS_PROCESSING_DESTINATION_ROOT_PATH','./'))
 
     #
     # Qgis folders settings
@@ -191,6 +200,13 @@ def load_configuration():
     # Used at runtime to set contextual configuration
     #
     CONFIG.add_section('wps.request')
+
+
+def warn_unsafe_options() -> None:
+    if CONFIG.getboolean('processing','unsafe.raw_destination_input_sink'):
+        _log('********************************************')
+        _log('* WARNING: !!! UNSAFE OPTION ACTIVATED !!! *')
+        _log('********************************************')
 
 
 def read_config_dict( userdict ):

@@ -13,9 +13,9 @@
 #
 """Validation modes
 """
+from enum import IntEnum
 
-
-class MODE():
+class MODE(IntEnum):
     """Validation mode enumeration
     """
     NONE = 0

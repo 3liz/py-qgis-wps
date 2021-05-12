@@ -231,6 +231,22 @@ corresponds to an 'alias in py-qgis-server <https://py-qgis-server.readthedocs.i
 
 
 
+.. _SERVER_CROSS_ORIGIN:
+
+SERVER_CROSS_ORIGIN
+-------------------
+
+Allows any origin for CORS. If set to 'no', allow only CORS for the 'Origin'
+header.
+
+
+:Type: boolean
+:Section: server
+:Key: cross_origin
+:Env: QGSRV_SERVER_CROSS_ORIGIN
+
+
+
 .. _LOGGING_LEVEL:
 
 LOGGING_LEVEL
@@ -399,5 +415,80 @@ Path to the access policy configuration file
 :Section: processing
 :Key: accesspolicy
 :Env: QGSRV_PROCESSING_ACCESSPOLICY
+
+
+
+.. _PROCESSING_VECTOR_FILEEXT:
+
+PROCESSING_VECTOR_FILEEXT
+-------------------------
+
+Define the default vector file extensions for vector destination
+parameters. If not specified, then the Qgis default value is used.
+
+
+:Type: string
+:Section: processing
+:Key: vector.fileext
+:Env: QGSRV_PROCESSING_VECTOR_FILEEXT
+
+
+
+.. _PROCESSING_RASTER_FILEEXT:
+
+PROCESSING_RASTER_FILEEXT
+-------------------------
+
+Define the default raster file extensions for raster destination
+parameters. If not specified, then the Qgis default value is used.
+
+
+:Type: string
+:Section: processing
+:Key: raster.fileext
+:Env: QGSRV_PROCESSING_RASTER_FILEEXT
+
+
+
+.. _PROCESSING_RAW_DESTINATION_INPUT_SINK:
+
+PROCESSING_RAW_DESTINATION_INPUT_SINK
+-------------------------------------
+
+Allow input value as sink for destination layers. 
+This allow value passed as input value to be interpreted as
+path or uri sink definition. This enable passing any string
+that Qgis may use a input source but without open options except for the
+'layername=<name>' option.
+Running concurrent jobs with this option may result in unpredictable
+behavior.
+For that reason it is considered as an UNSAFE OPTION and you should never enable this option 
+if you are exposing the service publicly.
+
+File path prefixed with '/' will correspond to path located in the root directory specified by
+the `PROCESSING_DESTINATION_ROOT_PATH` option. Otherwise, they will be stored in the job folder.
+
+
+:Type: boolean
+:Section: processing
+:Key: 
+:Env: QGSRV_PROCESSING_RAW_DESTINATION_INPUT_SINK
+
+
+
+.. _PROCESSING_DESTINATION_ROOT_PATH:
+
+PROCESSING_DESTINATION_ROOT_PATH
+--------------------------------
+
+Specify the root directory for storing destination layers files when
+the `PROCESSING_RAW_DESTINATION_INPUT_SINK` option is enabled. 
+If not specified, file will be stored in the job folder.
+
+
+:Type: string
+:Section: processing
+:Key: 
+:Env: QGSRV_PROCESSING_DESTINATION_ROOT_PATH
 
 
