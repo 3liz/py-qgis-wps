@@ -283,9 +283,13 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput
         # i.e layer will be stored in the destination project
         #
         # Canonize the output_name
-         
-        # Use canonical file name
-        sink = "./%s.%s" % (get_valid_filename(param.name()), param.defaultFileExtension())
+        stripped_data = inp[0].data.strip('"')
+        if stripped_data.startswith('file://'):
+            # Use provided filename
+            sink = stripped_data[7:]
+        else:
+            # Use canonical file name
+            sink = "./%s.%s" % (get_valid_filename(param.name()), param.defaultFileExtension())
         value = QgsProcessingOutputLayerDefinition(sink, context.destination_project)
         value.destinationName = inp[0].data
         LOGGER.debug("Handling destination layer: %s, details name: %s", param.name(), value.destinationName)
