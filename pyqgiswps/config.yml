@@ -232,7 +232,6 @@ config_options:
     #===============
     # Processing
     #===============
-
     - name: PROCESSING_PROVIDERS_MODULE_PATH
       label: Processing providers path
       description: Path to Qgis processing providers modules
@@ -259,5 +258,54 @@ config_options:
       section: processing
       key: accesspolicy
       tags: [ qgis, processing ]
+
+    - name: PROCESSING_VECTOR_FILEEXT
+      label: Default vector file extension
+      description: |
+          Define the default vector file extensions for vector destination
+          parameters. If not specified, then the Qgis default value is used.
+      type: string
+      section: processing
+      key: 'vector.fileext'
+      tags: [ qgis, processing, vector ]
+    
+    - name: PROCESSING_RASTER_FILEEXT
+      label: Default raster file extension
+      description: |
+          Define the default raster file extensions for raster destination
+          parameters. If not specified, then the Qgis default value is used.
+      type: string
+      section: processing
+      key: 'raster.fileext'
+      tags: [ qgis, processing, raster ]
+
+    - name:  PROCESSING_RAW_DESTINATION_INPUT_SINK
+      label: Use destination input as sink
+      description: |
+        Allow input value as sink for destination layers. 
+        This allow value passed as input value to be interpreted as
+        path or uri sink definition. This enable passing any string
+        that Qgis may use a input source but without open options except for the
+        'layername=<name>' option.
+        Running concurrent jobs with this option may result in unpredictable
+        behavior.
+        For that reason it is considered as an UNSAFE OPTION and you should never enable this option 
+        if you are exposing the service publicly.
+
+        File path prefixed with '/' will correspond to path located in the root directory specified by
+        the `PROCESSING_DESTINATION_ROOT_PATH` option. Otherwise, they will be stored in the job folder.
+      type: boolean
+      default: no
+      section: processing
+
+    - name: PROCESSING_DESTINATION_ROOT_PATH
+      label: Specify destination root path
+      description: |
+        Specify the root directory for storing destination layers files when
+        the `PROCESSING_RAW_DESTINATION_INPUT_SINK` option is enabled. 
+        If not specified, file will be stored in the job folder.
+      type: string
+      default: ''
+      section: processing
 
 

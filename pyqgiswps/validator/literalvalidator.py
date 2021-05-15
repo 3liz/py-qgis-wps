@@ -109,7 +109,7 @@ def _validate_range(interval, data):
 def _validate_layer(value, data):
     """Validate data against a layer expression directly
 
-    :param value: list or tupple with allowed data
+    :param value: list or tuple with allowed data
     :param data: the data itself (string or number)
     """
     passed = False

@@ -11,6 +11,7 @@
 import logging
 import traceback
 
+from pathlib import Path
 from urllib.parse import urlparse, urlencode, parse_qs
 
 from qgis.core import (QgsProcessing,
@@ -28,6 +29,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterLimitedDataTypes,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink,
+                       QgsProcessingDestinationParameter,
                        QgsProcessingParameterVectorDestination,
                        QgsProcessingParameterRasterDestination,
                        QgsProcessingParameterMultipleLayers,
@@ -55,6 +57,7 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                                   InvalidParameterValue)
 
 from pyqgiswps.utils.filecache import get_valid_filename
+from pyqgiswps.config import confservice
 
 from typing import Any,Union,Tuple,Optional
 
@@ -64,9 +67,12 @@ WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
 LOGGER = logging.getLogger('SRVLOG')
 
 
-DESTINATION_LAYER_TYPES = (QgsProcessingParameterFeatureSink,
-                           QgsProcessingParameterVectorDestination,
-                           QgsProcessingParameterRasterDestination)
+DESTINATION_VECTOR_LAYER_TYPES = (QgsProcessingParameterFeatureSink,
+                                  QgsProcessingParameterVectorDestination)
+
+DESTINATION_RASTER_LAYER_TYPES = (QgsProcessingParameterRasterDestination,)
+
+DESTINATION_LAYER_TYPES = DESTINATION_VECTOR_LAYER_TYPES + DESTINATION_RASTER_LAYER_TYPES
 
 OUTPUT_LAYER_TYPES = ( QgsProcessingOutputVectorLayer, 
                        QgsProcessingOutputRasterLayer,
@@ -161,8 +167,77 @@ def is_vector_type( datatypes ):
         or QgsProcessing.TypeVectorLine  in datatypes \
         or QgsProcessing.TypeVectorPolygon in datatypes
 
+
 def is_raster_type( datatypes ):
     return QgsProcessing.TypeRaster in datatypes
+
+
+def get_default_destination_values( param: QgsProcessingDestinationParameter, default: Optional[str] ) -> Tuple[str,str]:
+    """ Get default value from parameter
+    """
+    defval = param.defaultValue()
+    ext    = param.defaultFileExtension()
+
+    # Check for default extensions override ?
+    if isinstance(param, DESTINATION_VECTOR_LAYER_TYPES):
+        ext = confservice.get('processing','vector.fileext') or ext
+    elif isinstance(param, DESTINATION_RASTER_LAYER_TYPES):
+        ext = confservice.get('processing','raster.fileext') or ext
+
+    if isinstance(defval, QgsProcessingOutputLayerDefinition):
+        sink  = defval.sink
+        if sink:
+            # Try to get extension from the sink value
+            sink = sink.staticValue()
+            if sink:
+                # Remove extra open options
+                url = urlparse(sink.split('|',1)[0])
+                if url.path and url.scheme.lower() in ('','file'):
+                    p      = Path(url.path)
+                    ext    = p.suffix.lstrip('.') or ext
+                    defval = defval.destinationName or p.stem
+    else:
+        defval = default
+
+    return ext, defval
+
+
+def parse_root_destination_path( param: QgsProcessingDestinationParameter, 
+                                 value: str, default_extension: str) -> Tuple[str,str]:
+    """ Parse input value as sink 
+
+        In this situation, value is interpreted as the output sink of the destination layer,
+        It may be any source url supported by Qgis (but with options stripped)
+        
+        The layername may be specified by appending the '|layername=<name>' to the input string.
+    """
+    value,*rest = value.split('|',2)
+
+    destinationName = None
+
+    # Check for layername option
+    if len(rest)>0 and rest[0].lower().startswith('layername='):
+        destinationName = rest[0].split('=')[1].strip()
+
+    url = urlparse(value)
+    if url.path and url.scheme.lower() in ('','file'):
+        p = Path(url.path)
+
+        if p.is_absolute():
+            root = Path(confservice.get('processing','destination_root_path'))
+            p = root.joinpath( p.relative_to('/') )
+        
+        # Check for extension:
+        if not p.suffix:
+            p = p.with_suffix(f'.{default_extension}')
+            
+        destinationName = destinationName or p.stem
+        sink = str(p)
+    else:
+        destinationName = destinationName or param.name()
+        sink = value
+
+    return sink, destinationName
 
 
 def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs,
@@ -198,18 +273,22 @@ def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs,
             # Set max occurs accordingly
             if typ == 'multilayer':
                 kwargs['max_occurs'] = len(kwargs['allowed_values'])
-
         return LiteralInput(**kwargs)
 
-    elif isinstance(param, QgsProcessingParameterRasterDestination):
+    elif isinstance(param, DESTINATION_LAYER_TYPES):
+        # Since QgsProcessingOutputLayerDefinition may
+        # be defined as default value, get extension
+        # and layer name from it 
+        extension, defval = get_default_destination_values(param, kwargs['default'])
+        kwargs['default'] = defval
+
         kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:extension',param.defaultFileExtension()))
+        # Used to retrieve extension when handling wps response
+        kwargs['metadata'].append(Metadata('processing:extension', extension))
+        if isinstance(param, DESTINATION_VECTOR_LAYER_TYPES):
+            kwargs['metadata'].append(Metadata('processing:dataType' , str(param.dataType())))
         return LiteralInput(**kwargs)
-    elif isinstance(param, (QgsProcessingParameterVectorDestination, QgsProcessingParameterFeatureSink)):
-        kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:dataType' , str(param.dataType())))
-        kwargs['metadata'].append(Metadata('processing:extension', param.defaultFileExtension()))
-        return LiteralInput(**kwargs)
+
     else:
         return None
 
@@ -217,6 +296,10 @@ def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs,
 # --------------------------------------
 # WPS inputs ->  processing inputs data
 # --------------------------------------
+
+def get_metadata( inp, name ):
+    return [m.href for m in inp.metadata if m.title == name]
+
 
 def parse_layer_spec( layerspec: str, context: ProcessingContext, allow_selection: bool=False ) -> Tuple[str,bool]:
     """ Parse a layer specification
@@ -281,13 +364,21 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput
         #
         # Enforce pushing created layers to layersToLoadOnCompletion list
         # i.e layer will be stored in the destination project
-        #
-        # Canonize the output_name
-         
-        # Use canonical file name
-        sink = "./%s.%s" % (get_valid_filename(param.name()), param.defaultFileExtension())
+        
+        # get extension from input metadata (should always exist for destination)
+        extension = get_metadata( inp[0], 'processing:extension')[0]
+ 
+        destination = inp[0].data
+
+        if confservice.getboolean('processing','unsafe.raw_destination_input_sink'):
+            sink, destination = parse_root_destination_path(param, destination, extension)                          
+        else:
+            # Use canonical file name
+            sink = "./%s.%s" % (get_valid_filename(param.name()), extension)
+
         value = QgsProcessingOutputLayerDefinition(sink, context.destination_project)
-        value.destinationName = inp[0].data
+        value.destinationName = destination
+
         LOGGER.debug("Handling destination layer: %s, details name: %s", param.name(), value.destinationName)
 
     elif isinstance(param, QgsProcessingParameterFeatureSource):
@@ -344,7 +435,7 @@ def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefi
 
     if not multilayers and context.willLoadLayerOnCompletion( value ):
         # Do not add the layer twice: may be already added
-        # an layer destination parameter
+        # in layer destination parameter
         details = context.layerToLoadOnCompletionDetails( value )
         if details.name:
             LOGGER.debug("Skipping already added layer for %s (details name: %s)", outputName, details.name)
@@ -380,7 +471,7 @@ def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefi
             layer = QgsProcessingUtils.mapLayerFromString(lyrname, context, typeHint=details.layerTypeHint)
             if layer is not None:
                 # Fix layer name
-                # If details name is empty it well be set to the file name 
+                # Because if details name is empty it will be set to the file name 
                 # see https://qgis.org/api/qgsprocessingcontext_8cpp_source.html#l00128
                 # XXX Make sure that Processing/Configuration/PREFER_FILENAME_AS_LAYER_NAME 
                 # setting is set to false (see processfactory.py:129)

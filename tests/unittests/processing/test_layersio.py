@@ -6,12 +6,15 @@ import pytest
 from urllib.parse import urlparse, parse_qs, urlencode
 
 from pyqgiswps.app import WPSProcess, Service
-from pyqgiswps.tests import HTTPTestCase, assert_response_accepted
+from pyqgiswps.tests import HTTPTestCase, assert_response_accepted, chconfig
 from time import sleep
 from test_common import async_test
 
 from qgis.core import (QgsProcessingContext,
-                       QgsProcessingParameterVectorLayer)
+                       QgsProcessingParameterVectorLayer,
+                       QgsProcessingParameterVectorDestination,
+                       QgsProcessingParameterRasterDestination,
+                       QgsProcessingOutputLayerDefinition)
 
 
 from pyqgiswps.executors.io import layersio
@@ -33,7 +36,7 @@ from pyqgiswps.exceptions import (NoApplicableCode,
 
 
 def test_layer_scheme():
-    """ Test arbitrary layer scheme deos not trig an error
+    """ Test layer scheme
     """
     param = QgsProcessingParameterVectorLayer("LAYER", "")
 
@@ -47,7 +50,7 @@ def test_layer_scheme():
 
 
 def test_arbitrary_layer_scheme():
-    """ Test arbitrary layer scheme deos not trig an error
+    """ Test arbitrary layer scheme does not trig an error
     """
     param = QgsProcessingParameterVectorLayer("LAYER", "")
 
@@ -76,3 +79,73 @@ def test_multilayer_with_selection():
     inpt.data = data
     #self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE))    
 
+
+def test_vector_default_fileext():
+    """ Tests default vector file extension config
+    """
+    param = QgsProcessingParameterVectorDestination("LAYER", "")
+    with chconfig('processing','vector.fileext','csv'):
+        ext, defval = layersio.get_default_destination_values(param,None)
+        assert ext == 'csv'
+
+def test_raster_default_fileext():
+    """ Tests default vector file extension config
+    """
+    param = QgsProcessingParameterRasterDestination("LAYER", "")
+    with chconfig('processing','raster.fileext','foo'):
+        ext, defval = layersio.get_default_destination_values(param,None)
+        assert ext == 'foo'
+
+
+def test_layer_destination():
+
+    param = QgsProcessingParameterVectorDestination("LAYER", "",
+                          defaultValue=QgsProcessingOutputLayerDefinition('foo.shp'))
+    inp = parse_input_definition(param)
+    assert inp.default == "foo"
+
+    metadata = layersio.get_metadata(inp, 'processing:extension')
+    assert len(metadata) == 1
+    assert metadata[0] == 'shp'
+
+    inp.data = "bar"
+
+    context = QgsProcessingContext()
+    context.destination_project = None
+
+    inp.data = "bar"
+    value = layersio.get_processing_value( param, [inp], context)
+    assert isinstance(value, QgsProcessingOutputLayerDefinition)
+    assert value.destinationName == 'bar'
+    assert value.sink.staticValue() == './LAYER.shp'
+
+    # Check unsafe option
+    with chconfig('processing','unsafe.raw_destination_input_sink','yes'):
+        inp.data = "/foobar.csv"
+        value = layersio.get_processing_value( param, [inp], context)
+        assert value.destinationName == 'foobar'
+        assert value.sink.staticValue() == 'foobar.csv'
+
+    # Check unsafe option with default extension
+    with chconfig('processing','unsafe.raw_destination_input_sink','yes'):
+        inp.data = "/foobar"
+        value = layersio.get_processing_value( param, [inp], context)
+        assert value.destinationName == 'foobar'
+        assert value.sink.staticValue() == 'foobar.shp'
+
+    # Check unsafe option with layername
+    with chconfig('processing','unsafe.raw_destination_input_sink','yes'),\
+         chconfig('processing','destination_root_path','/unsafe'):
+        inp.data = "file:/path/to/foobar.csv|layername=foobaz"
+        value = layersio.get_processing_value( param, [inp], context)
+        assert value.destinationName == 'foobaz'
+        assert value.sink.staticValue() == '/unsafe/path/to/foobar.csv'
+
+     # Check unsafe option with url
+    with chconfig('processing','unsafe.raw_destination_input_sink','yes'):
+        inp.data = "postgres://service=foobar|layername=foobaz"
+        value = layersio.get_processing_value( param, [inp], context)
+        assert value.destinationName == 'foobaz'
+        assert value.sink.staticValue() == 'postgres://service=foobar'
+
+        

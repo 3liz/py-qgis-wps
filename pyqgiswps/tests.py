@@ -22,7 +22,7 @@ from pyqgiswps import __version__, NAMESPACES
 from pyqgiswps.runtime import Application
 from pyqgiswps.logger import configure_log_levels
 from pyqgiswps.executors import processfactory
-from pyqgiswps.config import load_configuration
+from pyqgiswps.config import load_configuration, confservice
 
 from typing import Any, Optional, Dict
 
@@ -79,6 +79,17 @@ class TestRuntime:
         if not hasattr(cls,'_instance'):
             cls._instance = TestRuntime()
         return cls._instance        
+
+@contextmanager
+def chconfig(section, key, value):
+    """ Use configuration setting
+    """
+    prev = confservice.get(section,key)
+    try:
+        confservice.set(section,key,value)
+        yield prev
+    finally:
+        confservice.set(section,key,prev)
 
 
 class HTTPTestCase(AsyncHTTPTestCase):
