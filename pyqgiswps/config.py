@@ -89,7 +89,7 @@ def load_configuration():
     # Base uri used for the MAP argument in WMS references
     CONFIG.set('server', 'wps_result_map_uri'   , getenv('QGSWPS_SERVER_RESULTS_MAP_URI','wps-results:'))
     # Full URL used for returning  WPS references
-    CONFIG.set('server', 'wms_response_uri'     , '${wms_service_url}?MAP={map_url}&service=WMS&request=GetCapabilities')
+    CONFIG.set('server', 'wms_response_url'     , '${wms_service_url}?MAP={map_url}&service=WMS&request=GetCapabilities')
     # Cleanup interval in seconds
     CONFIG.set('server', 'cleanup_interval'     ,'600')
     # Download API expiration ttl for a download URL

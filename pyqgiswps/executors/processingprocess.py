@@ -250,7 +250,6 @@ def run_algorithm( alg: QgsProcessingAlgorithm,
                    feedback: QgsProcessingFeedback,
                    context: QgsProcessingContext,
                    outputs: Mapping[str, WPSOutput],
-                   output_uri:str,
                    create_context: dict = {}):
 
     # XXX Fix destination names for models
@@ -275,7 +274,7 @@ def run_algorithm( alg: QgsProcessingAlgorithm,
             #
             if outputName in destinations and context.willLoadLayerOnCompletion( value ):
                 context.layerToLoadOnCompletionDetails( value ).name = destinations[outputName]
-            processing_to_output(value, outdef, out, output_uri, context)
+            processing_to_output(value, outdef, out, context)
     #
     # Handle results, we do not use onFinish callback because
     # we want to deal with the results
@@ -342,14 +341,6 @@ class QgsProcess(WPSProcess):
         # Allow configparser to resolve host_url
         confservice.set('wps.request', 'host_url', request.host_url)
 
-        output_map_url = "{map_uri}{uuid}/{name}.qgs".format(
-            map_uri = confservice.get('server','wps_result_map_uri'),
-            uuid    = response.uuid,
-            name    = destination)
-
-        # Get WMS output uri
-        output_uri = confservice.get('server', 'wms_response_uri').format(map_url=output_map_url)
-
         workdir  = response.process.workdir
         context  = ProcessingContext(workdir, map_uri=request.map_uri)
         feedback = Feedback(response, alg.id(), uuid_str=uuid_str)
@@ -360,11 +351,20 @@ class QgsProcess(WPSProcess):
         # Convert parameters from WPS inputs
         parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in request.inputs.items() )
 
+        # Build MAP output url
+        output_map_url = "{map_uri}{uuid}/{name}.qgs".format(
+            map_uri = confservice.get('server','wps_result_map_uri'),
+            uuid    = response.uuid,
+            name    = destination)
+
+        # Build WMS output url
+        output_url = confservice.get('server', 'wms_response_url').format(map_url=output_map_url)
+
         context.store_url = response.store_url
+        context.wms_url   = output_url
 
         run_algorithm(alg, parameters, feedback=feedback, context=context, 
                       outputs=response.outputs,
-                      output_uri=output_uri,
                       create_context=create_context)
 
         # Build advertised WMS url

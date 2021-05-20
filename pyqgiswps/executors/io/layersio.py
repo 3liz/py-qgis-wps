@@ -495,7 +495,7 @@ def add_layer_to_load_on_completion( value: str, outdef: QgsProcessingOutputDefi
     
 
 def parse_response( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOutput, 
-                    output_uri: str, context: QgsProcessingContext ) -> Optional[WPSOutput]:
+                    context: QgsProcessingContext ) -> Optional[WPSOutput]:
     """ Process processing response to WPS output 
     """
     if not isinstance(outdef, OUTPUT_LAYER_TYPES):
@@ -503,12 +503,14 @@ def parse_response( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSO
 
     out.data_format = Format("application/x-ogc-wms")
 
+    output_url = context.wms_url
+
     result = add_layer_to_load_on_completion( value, outdef, context )
     if result:
         result = ','.join(result)
-        out.url = output_uri + '&' + urlencode((('layers',result),))
+        out.url = output_url + '&' + urlencode((('layers',result),))
     else:
-        out.url = output_uri
+        out.url = output_url
 
     return out
 

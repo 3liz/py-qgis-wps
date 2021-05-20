@@ -95,7 +95,7 @@ def test_simple_algorithms():
     assert parameters['PARAM2'] == 'stuff'
 
     # Run algorithm
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri="")   
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
 
     assert results['OUTPUT'] == "1 stuff"
     assert outputs['OUTPUT'].data == "1 stuff"
@@ -119,7 +119,7 @@ def test_option_algorithms():
     assert parameters['INPUT'] == 0
 
     # Run algorithm
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri="")   
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
     
     assert results['OUTPUT'] == 'selection is 0'
     assert outputs['OUTPUT'].data == "selection is 0"
@@ -145,8 +145,8 @@ def test_option_multi_algorithms():
 
     assert parameters['INPUT'] == [0,2]
 
-    # Run algorithm
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri="")   
+    # Run algorith
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
 
     assert results['OUTPUT'] == 'selection is 0,2'
     assert outputs['OUTPUT'].data == "selection is 0,2"
@@ -177,11 +177,11 @@ def test_layer_algorithm(outputdir, data):
 
     assert isinstance( parameters['OUTPUT'], QgsProcessingOutputLayerDefinition)
 
-    output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=destination)
+    context.wms_url = "http://localhost/wms/MAP=test/{name}.qgs".format(name=destination)
 
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)   
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
   
     output = parameters['OUTPUT']
     assert output.destinationName == 'france_parts_2'
@@ -214,10 +214,10 @@ def test_buffer_algorithm(outputdir, data):
     assert isinstance( parameters['OUTPUT_VECTOR'], QgsProcessingOutputLayerDefinition)
     assert isinstance( parameters['DISTANCE'], float)
 
-    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)   
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
    
     destination_name = parameters['OUTPUT_VECTOR'].destinationName
 
@@ -261,10 +261,10 @@ def test_output_vector_algorithm(outputdir, data):
 
     assert isinstance( parameters['DISTANCE'], float)
 
-    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,outputs=outputs, output_uri=output_uri)   
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,outputs=outputs)   
     
     assert context.destination_project.count() == 1
 
@@ -312,10 +312,10 @@ def test_selectfeatures_algorithm(outputdir, data):
     assert isinstance( parameters['OUTPUT_VECTOR'], QgsProcessingOutputLayerDefinition)
     assert isinstance( parameters['DISTANCE'], float)
 
-    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)   
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
     
     assert context.destination_project.count() == 1
 

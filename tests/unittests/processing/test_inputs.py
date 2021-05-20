@@ -214,13 +214,13 @@ def test_file_output_mimetypes():
 
     out = parse_output_definition(outdef)
 
-    output = processing_to_output('file.png', outdef, out, output_uri=None, context=context)
+    output = processing_to_output('file.png', outdef, out, context=context)
     assert isinstance(output, ComplexOutput)
     assert output.as_reference
     assert output.url == "store:file.png"
     assert output.data_format.mime_type == 'image/png'
 
-    output = processing_to_output('binaryfile', outdef, out, output_uri=None, context=context) 
+    output = processing_to_output('binaryfile', outdef, out, context=context) 
     assert output.data_format.mime_type == 'application/octet-stream'
 
 
@@ -260,12 +260,10 @@ def test_output_multiple_layers(outputdir, data):
     layer2 = str(data/'raster_layer.tiff')
 
     context = QgsProcessingContext()
-
-    output_uri='test:multilayer?service=WMS'
+    context.wms_url='test:multilayer?service=WMS'
 
     outp = parse_output_definition(outdef)
-    output = processing_to_output([layer1,layer2], outdef, outp, output_uri,
-                                  context=context)
+    output = processing_to_output([layer1,layer2], outdef, outp, context=context)
 
     assert isinstance(output, ComplexOutput)
     assert output.as_reference

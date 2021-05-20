@@ -74,10 +74,10 @@ def test_context(outputdir, data):
 
     destination = get_valid_filename(alg.id())
 
-    output_uri = "http://localhost/wms/MAP=test/{name}.qgs".format(name=destination)
+    context.wms_url = "http://localhost/wms/MAP=test/{name}.qgs".format(name=destination)
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs, output_uri=output_uri)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
 
     assert context.destination_project.count() == 1
 

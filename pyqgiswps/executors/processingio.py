@@ -292,10 +292,10 @@ def raw_response( value: Any, out: WPSOutput) -> WPSOutput:
 
 
 def processing_to_output( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOutput, 
-                          output_uri: str, context: ProcessingContext ) -> WPSOutput:
+                          context: ProcessingContext ) -> WPSOutput:
     """ Map processing output to WPS
     """
-    return layersio.parse_response(value, outdef, out, output_uri,  context) or \
-        filesio.parse_response(value, outdef, out, output_uri, context) or \
+    return layersio.parse_response(value, outdef, out, context) or \
+        filesio.parse_response(value, outdef, out, context) or \
         raw_response(value, out)
 

@@ -97,11 +97,11 @@ def test_centroides_algorithms(outputdir, data):
     # Destination project
     destination_project = get_valid_filename(alg.id())
 
-    output_uri = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=destination_project)
+    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=destination_project)
     # Run algorithm
     with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, 
-                                outputs=outputs, output_uri=output_uri)   
+                                outputs=outputs)   
 
     assert context.destination_project.count() == 1
 
