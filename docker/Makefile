@@ -66,6 +66,33 @@ manifest:
 
 deliver: tag push
 
+ifndef CI_COMMIT_TAG
+
+GIT_BRANCH=$(shell git branch --show-current)
+ifeq ($(GIT_BRANCH),)
+GIT_BRANCH=$(CI_COMMIT_BRANCH)
+endif
+
+ifeq ($(GIT_BRANCH),master)
+TAG_DEV=dev
+else
+TAG_DEV=$(GIT_BRANCH)-dev
+endif
+
+tag:
+	{ set -e; source factory.manifest; \
+	docker tag $(BUILDIMAGE) $(REGISTRY_PREFIX)$(NAME):$${release_tag}-$(TAG_DEV); \
+	docker tag $(BUILDIMAGE) $(REGISTRY_PREFIX)$(NAME):$(FLAVOR)-$(TAG_DEV); \
+	}
+
+push:
+	{ set -e; source factory.manifest; \
+	docker push $(REGISTRY_URL)/$(NAME):$${release_tag}-$(TAG_DEV); \
+	docker push $(REGISTRY_URL)/$(NAME):$(FLAVOR)-$(TAG_DEV); \
+	}
+
+else
+
 tag:
 	{ set -e; source factory.manifest; \
 	docker tag $(BUILDIMAGE) $(REGISTRY_PREFIX)$(NAME):$$version; \
@@ -82,6 +109,7 @@ push:
 	docker push $(REGISTRY_URL)/$(NAME):$(FLAVOR); \
 	}
 
+endif
 
 clean-all:
 	docker rmi -f $(shell docker images $(BUILDIMAGE) -q)
