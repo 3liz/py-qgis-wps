@@ -9,12 +9,23 @@ stages:
 # Tests
 #-----------------
 
-tests:
+.tests:
   stage: test
   script:
-    - make manifest docker-test FLAVOR=release
+    - make manifest docker-test FLAVOR=$QGIS_FLAVOR
   tags:
-    - infrav3
+    - infrav3-dind
+
+tests:release:
+  extends: .tests
+  variables:
+    QGIS_FLAVOR: release
+
+tests:ltr:
+  extends: .tests
+  variables:
+    QGIS_FLAVOR: ltr
+
 
 #---------------
 # Build
