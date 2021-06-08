@@ -173,6 +173,28 @@ def test_multilayer_context(outputdir, data):
     assert allowed_values == layers
 
 
+def test_context_crs(outputdir, data):
+    """ Test crs
+    """
+    context = ProcessingContext(str(outputdir), 'france_parts.qgs')
+   
+    crs_1 = context.project().crs()
+    crs_2 = context.destination_project.crs()
+    assert crs_1 == crs_2
+
+
+def test_context_crs_default(outputdir, data):
+    """ Test default crs
+    """
+    context = ProcessingContext(str(outputdir),None)
+
+    crs = context.destination_project.crs()
+    assert crs.isValid()
+ 
+
+
+
+
 
 
 

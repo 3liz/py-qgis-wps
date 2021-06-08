@@ -150,6 +150,14 @@ def load_configuration():
     # Files will be saved under the root path defined by the `[processing] destination_root_path` option. 
     CONFIG.set('processing', 'unsafe.raw_destination_input_sink', getenv('QGSWPS_PROCESSING_RAW_DESTINATION_INPUT_SINK','no'))
     CONFIG.set('processing', 'destination_root_path', getenv('QGSWPS_PROCESSING_DESTINATION_ROOT_PATH','./'))
+    #
+    # Preference for destination project
+    #
+    # Force ellipsoid imposed by the src project
+    CONFIG.set('processing','adjust_ellipsoid', getenv('QGSWPS_PROCESSING_ADJUST_ELLIPSOID','no'))
+    # Set the CRS to use when no source map is specified
+    # For more details on supported formats see OGRSpatialReference::SetFromUserInput()
+    CONFIG.set('processing','default_crs', getenv('QGSWPS_PROCESSING_DEFAULT_CRS','EPSG:4326'))
 
     #
     # Qgis folders settings

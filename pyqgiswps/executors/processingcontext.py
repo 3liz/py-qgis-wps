@@ -14,7 +14,8 @@ import traceback
 
 from pathlib import Path
 
-from qgis.core import (QgsProcessingContext, 
+from qgis.core import (QgsProcessingContext,
+                       QgsCoordinateReferenceSystem,
                        QgsProject, 
                        QgsMapLayer)
 
@@ -55,16 +56,31 @@ class ProcessingContext(QgsProcessingContext):
         super().__init__()
         self.workdir = workdir
         self.rootdir = Path(confservice.get('projects.cache','rootdir'))
-
+        
         if map_uri is not None:
             self.map_uri = map_uri
-            self.setProject(cacheservice.lookup(map_uri)[0])
+            project = cacheservice.lookup(map_uri)[0]
+            # Get the CRS of the project
+            project_crs = project.crs()
+            if project_crs.isValid():
+                self.setProject(project)
+            else:
+                LOGGER.warning("Invalid CRS for project '%s'", map_uri)
         else:
             LOGGER.warning("No map url defined, inputs may be incorrect !")
             self.map_uri = None
+            default_crs = confservice.get('processing','default_crs')
+            project_crs = QgsCoordinateReferenceSystem()
+            project_crs.createFromUserInput(default_crs)
+            if not project_crs.isValid():
+                LOGGER.error("Invalid default CRS '%s'",default_crs)
 
         # Create the destination project
-        self.destination_project = QgsProject()
+        destination_project = QgsProject()
+        if project_crs.isValid():
+            adjust_ellipsoid = confservice.getboolean('processing','adjust_ellipsoid')
+            destination_project.setCrs(project_crs, adjust_ellipsoid)
+        self.destination_project = destination_project
 
     def resolve_path( self, path: str ) -> str:
         """ Return the full path of a file if that file
