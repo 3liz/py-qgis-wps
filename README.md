@@ -30,7 +30,7 @@ Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following:
   with `storeExecuteResponse=true`
 * Use multiprocessing Pool to handle task queue instead instantiating a new process each time.
 * Uniform Logging with the 'logging' module
-* Serve response statu
+* Serve response status
 * Use Redis for asynchronous status storage.
 * Support python3 asyncio (and thus drop python2 supports)
 * Support streamed/chunked requests 
@@ -255,7 +255,7 @@ Processing algorithm with the flag [FlagHideFromToolbox](https://qgis.org/pyqgis
 
 Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden) set won't be exposed in a `DescribeProcess` request
 
-# Références
+# References
 
 * [OGC standards](https://www.ogc.org/standards)
 * [Introduction to WPS](http://opengeospatial.github.io/e-learning/wps/text/basic-index.html)
