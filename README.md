@@ -60,7 +60,7 @@ error status is returned.
 
 Set the the `TIMEOUT=<seconds>` in  GET requests. 
 
-In POST requests, set the `timeout=<seconds>` attribut in the `<ResponseDocument>` tag
+In POST requests, set the `timeout=<seconds>` attribut in the `<ResponseDocument>` tag.
 
 The server may configure maximum timeout value.
 
@@ -72,7 +72,7 @@ flushed from disks and local cache. Trying to request the results again will ret
 
 Set the the `EXPIRE=<seconds>` in  GET requests. 
 
-In POST requests, set the `expire=<seconds>` attribut int the `<ResponseDocument>` tag
+In POST requests, set the `expire=<seconds>` attribut int the `<ResponseDocument>` tag.
 
 The server may configure maximum expiration value.
 
@@ -107,7 +107,7 @@ using the `server/wms_response_uri` configuration setting.
 ## Contextualized input parameters
 
 Tasks parameters are contextualized using the `MAP` query param. If a `MAP` parameters is given when
-doinc a `DescripProcess` requests, allowed values for input layers will be taken from the qgis source project
+doing a `DescripProcess` requests, allowed values for input layers will be taken from the qgis source project
 according the type of the input layers.  
 
 Qgis project (.qgs) files and project stored in Postgres databases are both supported.
@@ -120,7 +120,7 @@ If you need to pass data to your algorithm from client-side, prefer inputs file 
 
 # Dependencies
 
-See [requirements.txt](requirements.txt) file
+See [requirements.txt](requirements.txt) file.
 
 
 # Installation from python package
