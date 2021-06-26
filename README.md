@@ -17,7 +17,7 @@ Requirements and limitations :
 - Redis server 
 
 
-# Documentation:
+# Documentation
 
 Latest documentation is available on [ReadTheDoc](https://py-qgis-wps.readthedocs.io/en/latest/index.html)
 
@@ -91,7 +91,7 @@ Example for returning status for one given process from its uuid:
 http://localhost:8080/ows/status/<uuid>?SERVICE=WPS
 ```
 
-# Running QGIS processing.
+# Running QGIS processing
 
 ## WPS input/output layer mapping
 
