@@ -158,6 +158,37 @@ config_options:
       type: path
       tags: [ wps, processes ]
 
+    - name: SERVER_SSL
+      label: Enable SSL
+      description: Enable SSL endpoint
+      default: 'no'
+      type: boolean
+      tags: [ http, ssl ]
+      section: server
+      key: ssl
+      version_added: "1.6.4"
+
+    - name: SERVER_SSL_CERT
+      label: SSL Certificat
+      description: Path to the SSL certificat file
+      default: ''
+      tags: [ http, ssl, security ]
+      section: server
+      key: ssl_cert
+      type: path
+      version_added: "1.6.4"
+
+    - name: SERVER_SSL_KEY
+      label: SSL Certificat
+      description: Path to the SSL key file
+      default: ''
+      tags: [ http, ssl, security ]
+      section: server
+      key: ssl_key
+      type: path
+      version_added: "1.6.4"
+
+
     #==========
     # Logging  
     #==========
@@ -254,7 +285,7 @@ config_options:
 
     - name: PROCESSING_EXPOSED_PROVIDERS
       label: Internal qgis providers exposed
-      description: Path to Qgis processing providers modules
+      description: Comma separated list of exposed Qgis processing internal providers
       default: 'script,model'
       type: list
       section: processing

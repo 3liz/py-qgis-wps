@@ -3,7 +3,7 @@
 # qypws makefile
 #
 
-VERSION:=1.6.3
+VERSION:=1.6.4
 
 ifndef CI_COMMIT_TAG
 VERSION_TAG=$(VERSION)rc0
@@ -61,8 +61,7 @@ docker-%:
 lint:
 	@flake8 --ignore=E123,E2,E3,E5,W2,W3  pyqgiswps pyqgisservercontrib
 
-test: lint manifest
-	$(MAKE) -C tests test FLAVOR=$(FLAVOR)
+test: lint manifest docker-test
 
 run: manifest
 	$(MAKE) -C tests run FLAVOR=$(FLAVOR)

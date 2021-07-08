@@ -129,6 +129,16 @@ def setuid(username):
     LOGGER.info("Setuid to user {} ({}:{})".format(getpwuid(os.getuid()).pw_name, os.getuid(), os.getgid()))
 
 
+def create_ssl_options():
+    """ Create an ssl context
+    """
+    import ssl
+    cfg = confservice['server']
+    ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ssl_ctx.load_cert_chain(cfg['ssl_cert'],cfg['ssl_key'])
+    return ssl_ctx
+
+
 def run_server( port, address=None, user=None ):
     """ Run the server
     """
@@ -136,6 +146,16 @@ def run_server( port, address=None, user=None ):
 
     if user:
         setuid(user)
+
+    kwargs = {}
+
+    # Setup ssl config
+    if confservice.getboolean('server','ssl'):
+        LOGGER.info("SSL enabled")
+        kwargs['ssl_options'] = create_ssl_options()
+
+    # Allow x-forward headers
+    kwargs['xheaders'] = True
 
     # Run
     LOGGER.info("Running WPS server on port %s:%s", address, port)
@@ -148,7 +168,7 @@ def run_server( port, address=None, user=None ):
     max_buffer_size = get_size_bytes(confservice.get('server', 'maxbuffersize'))
 
     application = Application(processes)
-    server = HTTPServer(application, max_buffer_size=max_buffer_size)
+    server = HTTPServer(application, max_buffer_size=max_buffer_size, **kwargs)
     server.listen(port, address=address)
 
     # Setup the supervisor timeout killer

@@ -100,6 +100,10 @@ def load_configuration():
     CONFIG.set('server', 'sys_config_path'      , getenv('QGSWPS_SYS_CONFIG_PATH'      , '/usr/share/qgis_wps'))
     CONFIG.set('server', 'cross_origin'         , getenv('QGSWPS_SERVER_CROSS_ORIGIN' , 'yes'))
     CONFIG.set('server', 'restartmon'           , getenv('QGSWPS_SERVER_RESTARTMON' , ''))
+    # SSL configuration 
+    CONFIG.set('server', 'ssl'           , getenv('QGSWPS_SERVER_SSL' , 'no'))
+    CONFIG.set('server', 'ssl_cert'      , getenv('QGSWPS_SERVER_SSL_CERT', ''))
+    CONFIG.set('server', 'ssl_key'       , getenv('QGSWPS_SERVER_SSL_KEY' , ''))
 
     #
     # Logging
