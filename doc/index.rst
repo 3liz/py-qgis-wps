@@ -10,6 +10,7 @@ Welcome to py-qgis-wps's documentation!
    intro
    configuration 
    qgisprocessing
+   styles
 
 Indices and tables
 ==================

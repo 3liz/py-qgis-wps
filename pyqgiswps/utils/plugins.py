@@ -9,13 +9,12 @@
 """ Processing utilities
 """
 
-import os
 import sys
 import logging
-import glob
 import configparser
 import traceback
 
+from pathlib import Path
 from collections import namedtuple
 from .styles import load_styles
 
@@ -97,6 +96,9 @@ class WPSServerInterfaceImpl:
                 # Initialize the plugin
                 LOGGER.info("Loaded plugin '%s'",plugin)
                 self._plugins[plugin] = package.WPSClassFactory(wpsIface)
+
+                # Load style from plugin packeges directory
+                load_styles(Path(package.__file__).parent)
             except Exception:
                 LOGGER.error("Failed to initialize plugin: %s", plugin)
                 traceback.print_exc()
@@ -139,21 +141,22 @@ def find_plugins(path: str) -> Generator[str,None,None]:
     """ return list of plugins in given path
     """
     LOGGER.debug("Looking for plugins in %s", path)
+    path = Path(path)
 
-    for plugin in glob.glob(os.path.join(path,"*")):
-        if not os.path.isdir(plugin):
+    for plugin in path.glob("*"):
+        if not plugin.is_dir():
             continue
-        if not os.path.exists(os.path.join(plugin, '__init__.py')):
+        if not (plugin / '__init__.py').exists():
             continue
 
-        metadatafile = os.path.join(plugin, 'metadata.txt')
-        if not os.path.exists(metadatafile):
+        metadatafile = plugin / 'metadata.txt'
+        if not metadatafile.exists():
             continue
 
         cp = configparser.ConfigParser()
 
         try:
-            with open(metadatafile, mode='rt') as f:
+            with metadatafile.open(mode='rt') as f:
                 cp.read_file(f)
 
             if not cp['general'].getboolean('wps'):
@@ -171,6 +174,6 @@ def find_plugins(path: str) -> Generator[str,None,None]:
             LOGGER.warning("Unsupported version for %s. Discarding", plugin)
             continue
 
-        yield os.path.basename(plugin)
+        yield plugin.name
 
 

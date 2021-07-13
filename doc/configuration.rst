@@ -263,6 +263,52 @@ the processing providers are reloaded.
 
 
 
+.. _SERVER_SSL:
+
+SERVER_SSL
+----------
+
+Enable SSL endpoint
+
+:Type: boolean
+:Default: no
+:Version Added: 1.6.4
+:Section: server
+:Key: ssl
+:Env: QGSRV_SERVER_SSL
+
+
+
+.. _SERVER_SSL_CERT:
+
+SERVER_SSL_CERT
+---------------
+
+Path to the SSL certificat file
+
+:Type: path
+:Version Added: 1.6.4
+:Section: server
+:Key: ssl_cert
+:Env: QGSRV_SERVER_SSL_CERT
+
+
+
+.. _SERVER_SSL_KEY:
+
+SERVER_SSL_KEY
+--------------
+
+Path to the SSL key file
+
+:Type: path
+:Version Added: 1.6.4
+:Section: server
+:Key: ssl_key
+:Env: QGSRV_SERVER_SSL_KEY
+
+
+
 .. _LOGGING_LEVEL:
 
 LOGGING_LEVEL
@@ -409,7 +455,7 @@ Path to Qgis processing providers modules
 PROCESSING_EXPOSED_PROVIDERS
 ----------------------------
 
-Path to Qgis processing providers modules
+Comma separated list of exposed Qgis processing internal providers
 
 :Type: list
 :Default: script,model

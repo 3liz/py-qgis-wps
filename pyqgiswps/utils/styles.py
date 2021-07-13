@@ -27,7 +27,7 @@ def load_styles(styledef_path: str) -> None:
                 ...
             }
             ...
-        {
+        }
     """
     filepath = os.path.join(styledef_path,'styles.json')
     if not os.path.exists(filepath):
