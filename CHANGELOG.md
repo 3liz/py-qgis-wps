@@ -2,12 +2,12 @@
 
 ## Unreleased
 
-## 1.6.4
+## 1.6.4 - 2021-07-21
 
 * Add SSL options
 * Improve documentation
 
-## 1.6.3
+## 1.6.3 - 2021-06-08
 
 * Support 'allowMultipart' metadata for geometry inputs
     * See https://github.com/qgis/QGIS/pull/42403
@@ -16,9 +16,8 @@
     * Define default CRS
 * Implement live reload of providers plugins
 
-## 1.6.2
+## 1.6.2 - 2021-05-20
 
 * Unsafe option for saving results at absolute location 
 * Add CORS support
 * Code cleaning
-
