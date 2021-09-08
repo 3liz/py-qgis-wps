@@ -47,7 +47,7 @@ _is_android = 'ANDROID_ARGUMENT' in os.environ
 # another processes, this will enable live update
 # of Qgis providers/algorithms
 #
-# The delecate acts as a pool server: restarting the subprocess
+# The delegate acts as a pool server: restarting the subprocess
 # 
 #
 class _FactoryDelegate(Process):
@@ -82,6 +82,7 @@ class _FactoryDelegate(Process):
             LOGGER.error(traceback.format_exc())
             q.put(None)
             return
+
         # Subsqequent calls: return contextualized processe
         while True:
             try:
@@ -107,9 +108,17 @@ class _FactoryDelegate(Process):
         try:
             while True:
                 # Create sub-process for handling processes creation
+                # Process will seat waiting for creating contextualized processes
                 p = Process(target=self.task, args=(self._queue, self._factory))
                 p.start()
                 p.join()
+                # Test non-zero exitcode
+                # This happends on Qgs provider registration failure because PyQgis exception are not 
+                # propagated to python 
+                if p.exitcode != 0:
+                    LOGGER.critical("Sub process exited with code %s",p.exitcode)
+                    self._queue.put(None)
+                    break
                 p.close()
         except SystemExit:
             LOGGER.debug("Factory delegate: got SystemExit()")
@@ -249,7 +258,7 @@ class QgsProcessFactory:
             # Restart pool so that workers may 
             # reload providers
             self.restart_pool()
-
+        
         return processes
 
     def worker_initializer(self):

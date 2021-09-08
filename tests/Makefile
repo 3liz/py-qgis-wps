@@ -54,8 +54,7 @@ test: local
 WORKERS:=1
 
 stop:
-	docker-compose stop  || true
-	docker-compose rm -f || true
+	docker-compose down -v --remove-orphans
 
 run: stop local
 	mkdir -p $$(pwd)/__workdir__

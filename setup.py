@@ -32,6 +32,7 @@ setup(
     maintainer='David Marteau',
     maintainer_email='david.marteau@3liz.com',
     url='https://github.com/3liz/py-qgis-wps',
+    python_requires=">=3.6",
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
@@ -39,7 +40,6 @@ setup(
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
