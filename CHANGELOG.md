@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Handle providers exception
+* Add tests for geometry parameter
+
 ## 1.6.4 - 2021-07-21
 
 * Add SSL options

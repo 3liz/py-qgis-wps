@@ -21,6 +21,7 @@ from .TestLongProcess import TestLongProcess
 from .TestInputFile import TestInputFile
 from .TestOutputVectorLayer import TestOutputVectorLayer
 from .TestOutputFile import TestOutputFile
+from .TestInputGeometry import TestInputGeometry
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -45,6 +46,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestInputFile(),
                  TestOutputVectorLayer(),
                  TestOutputFile(),
+                 TestInputGeometry(),
             ]
         except:
             traceback.print_exc()

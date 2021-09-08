@@ -3,6 +3,9 @@
     Test parsing processing inputs to WPS inputs
 """
 import os
+import json
+
+from os import PathLike
 
 from pyqgiswps import WPS, OWS
 from pyqgiswps.owsutils.ows import BoundingBox
@@ -18,7 +21,13 @@ from pyqgiswps.inout.formats import FORMATS, Format
 
 from pyqgiswps.executors.processingcontext import ProcessingContext
 from pyqgiswps.executors.processingio import(parse_input_definition,
-                                             parse_output_definition) 
+                                             parse_output_definition,
+                                             input_to_processing,
+                                             processing_to_output)
+
+from pyqgiswps.executors.processingprocess import(
+            run_algorithm,
+            _find_algorithm)
 
 from pyqgiswps.executors.io import geometryio
 
@@ -29,8 +38,12 @@ from pyqgiswps.exceptions import (NoApplicableCode,
 
 from pyqgiswps.app.basic import xpath_ns
 
+from pyqgiswps.utils.contexts import chdir 
+
 from qgis.core import QgsApplication
 from qgis.core import (QgsProcessing,
+                       QgsProcessingContext,
+                       QgsProcessingFeedback,
                        QgsProcessingParameterDefinition,
                        QgsProcessingParameterPoint,
                        QgsProcessingParameterExtent,
@@ -41,9 +54,27 @@ from qgis.core import (QgsProcessing,
                        QgsReferencedGeometry,
                        QgsGeometry,
                        QgsCoordinateReferenceSystem,
-                       QgsWkbTypes)
+                       QgsWkbTypes,
+                       QgsProject)
 
 from processing.core.Processing import Processing
+
+
+class Context(QgsProcessingContext):
+
+    def __init__(self, project: QgsProject, workdir: PathLike ):
+        super().__init__()
+        self.workdir = str(workdir)
+        self.setProject(project)
+
+        # Create the destination project
+        self.destination_project = QgsProject()
+
+    def write_result(self, workdir, name):
+        """ Save results to disk
+        """
+        return self.destination_project.write(os.path.join(workdir,name+'.qgs'))
+
 
 def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     if maxOccurence is None:
@@ -344,4 +375,78 @@ def test_geometry_nomultipart():
 
     # No multipart
     assert get_metadata(inp,'processing:allowMultipart', minOccurence=0) == []
+
+
+def test_geometry_algorithm(outputdir, data):
+    """ Test geometry algorithm
+    """
+    alg = _find_algorithm('pyqgiswps_test:testinputgeometry')
+
+    inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
+    outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
+   
+    inp  = inputs['INPUT'][0]
+    inp.data_format = Format.from_definition(FORMATS.WKT)
+    inp.data = 'CRS=EPSG:4326;MULTIPOINT((3.5 5.6), (4.8 10.5))'
+
+    # Load source project
+    source = QgsProject()
+    rv = source.read(str(data/'france_parts.qgs'))
+    assert rv == True
+
+    context  = Context(source, outputdir)
+    feedback = QgsProcessingFeedback() 
+
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+
+    # Check marshalled value 
+    value = parameters['INPUT']
+    assert isinstance( value, QgsReferencedGeometry )
+    assert value.wkbType() == QgsWkbTypes.MultiPoint
+
+    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+    # Run algorithm
+    with chdir(outputdir):
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
+   
+    out = json.loads(outputs.get('OUTPUT').data)
+    assert out['type'] == 'MultiPoint'
+
+
+def test_geometry_script(outputdir, data):
+    """ Test geometry script
+    """
+    alg = _find_algorithm('script:testinputgeometry')
+
+    inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
+    outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
+   
+    inp  = inputs['INPUT'][0]
+    inp.data_format = Format.from_definition(FORMATS.WKT)
+    inp.data = 'CRS=EPSG:4326;MULTIPOINT((3.5 5.6), (4.8 10.5))'
+
+    # Load source project
+    source = QgsProject()
+    rv = source.read(str(data/'france_parts.qgs'))
+    assert rv == True
+
+    context  = Context(source, outputdir)
+    feedback = QgsProcessingFeedback() 
+
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+
+    # Check marshalled value 
+    value = parameters['INPUT']
+    assert isinstance( value, QgsReferencedGeometry )
+    assert value.wkbType() == QgsWkbTypes.MultiPoint
+
+    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+    # Run algorithm
+    with chdir(outputdir):
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
+   
+    out = json.loads(outputs.get('OUTPUT').data)
+    assert out['type'] == 'MultiPoint'
+
+
 
