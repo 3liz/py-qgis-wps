@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.6.5 - 2021-09-21
+
 * Handle providers exception
 * Add tests for geometry parameter
 
