@@ -254,6 +254,9 @@ SERVER_RESTARTMON
 
 The file to watch for restarting workers. When the modified date of the file is changed, 
 the processing providers are reloaded.
+The restart is graceful, jobs terminate normally. During the restart process,
+the providers are reloaded, this allow for updatings providers, models and scripts without
+interrupting the service.
 
 
 :Type: path
@@ -528,12 +531,12 @@ For that reason it is considered as an UNSAFE OPTION and you should never enable
 if you are exposing the service publicly.
 
 File path prefixed with '/' will correspond to path located in the root directory specified by
-the `PROCESSING_DESTINATION_ROOT_PATH` option. Otherwise, they will be stored in the job folder.
+the `PROCESSING_DESTINATION_ROOT_PATH`_ option. Otherwise, they will be stored in the job folder.
 
 
 :Type: boolean
 :Section: processing
-:Key: 
+:Key: unsafe.raw_destination_input_sink
 :Env: QGSRV_PROCESSING_RAW_DESTINATION_INPUT_SINK
 
 
@@ -544,13 +547,46 @@ PROCESSING_DESTINATION_ROOT_PATH
 --------------------------------
 
 Specify the root directory for storing destination layers files when
-the `PROCESSING_RAW_DESTINATION_INPUT_SINK` option is enabled. 
+the `PROCESSING_RAW_DESTINATION_INPUT_SINK`_ option is enabled. 
 If not specified, file will be stored in the job folder.
 
 
 :Type: string
 :Section: processing
-:Key: 
+:Key: destination_root_path
 :Env: QGSRV_PROCESSING_DESTINATION_ROOT_PATH
+
+
+
+.. _PROCESSING_ADJUST_ELLIPSOID:
+
+PROCESSING_ADJUST_ELLIPSOID
+---------------------------
+
+Force the ellipsoid from the src project into the destination project. This only apply
+if the src project has a valid CRS.
+
+
+:Type: boolean
+:Section: processing
+:Key: adjust_ellipsoid
+:Env: QGSRV_PROCESSING_ADJUST_ELLIPSOID
+
+
+
+.. _PROCESSING_DEFAULT_CRS:
+
+PROCESSING_DEFAULT_CRS
+----------------------
+
+Set the CRS to use when no source map is specified.
+For more details on supported formats see the GDAL method ``GRSpatialReference::SetFromUserInput()``
+
+
+:Type: string
+:Default: EPSG:4326
+:Section: processing
+:Key: default_crs
+:Env: QGSRV_PROCESSING_DEFAULT_CRS
 
 

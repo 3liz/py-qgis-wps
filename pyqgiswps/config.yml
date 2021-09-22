@@ -148,10 +148,13 @@ config_options:
       tags: [ http, security ]
 
     - name: SERVER_RESTARTMON
-      label: Restart test file
+      label: Restart watch file
       description: |
           The file to watch for restarting workers. When the modified date of the file is changed, 
           the processing providers are reloaded.
+          The restart is graceful, jobs terminate normally. During the restart process,
+          the providers are reloaded, this allow for updatings providers, models and scripts without
+          interrupting the service.
       default: ''
       section: server
       key: restartmon
@@ -335,19 +338,44 @@ config_options:
         if you are exposing the service publicly.
 
         File path prefixed with '/' will correspond to path located in the root directory specified by
-        the `PROCESSING_DESTINATION_ROOT_PATH` option. Otherwise, they will be stored in the job folder.
+        the `PROCESSING_DESTINATION_ROOT_PATH`_ option. Otherwise, they will be stored in the job folder.
       type: boolean
       default: no
       section: processing
+      key: 'unsafe.raw_destination_input_sink'
+      tags: [ qgis, processing ]
 
     - name: PROCESSING_DESTINATION_ROOT_PATH
       label: Specify destination root path
       description: |
         Specify the root directory for storing destination layers files when
-        the `PROCESSING_RAW_DESTINATION_INPUT_SINK` option is enabled. 
+        the `PROCESSING_RAW_DESTINATION_INPUT_SINK`_ option is enabled. 
         If not specified, file will be stored in the job folder.
       type: string
       default: ''
       section: processing
+      key: 'destination_root_path'
+      tags: [ qgis, processing ]
 
+    - name: PROCESSING_ADJUST_ELLIPSOID
+      label: Force ellipsoid imposed by the src project
+      description: |
+        Force the ellipsoid from the src project into the destination project. This only apply
+        if the src project has a valid CRS.
+      type: boolean
+      default: no
+      section: processing
+      key: 'adjust_ellipsoid'
+      tags: [ qgis, processing, crs ]
+
+    - name: PROCESSING_DEFAULT_CRS
+      label: Set default CRS
+      description: |
+        Set the CRS to use when no source map is specified.
+        For more details on supported formats see the GDAL method ``GRSpatialReference::SetFromUserInput()``
+      type: string
+      default: 'EPSG:4326'
+      section: processing
+      key: 'default_crs'
+      tags: [ qgis, processing, crs ]
 

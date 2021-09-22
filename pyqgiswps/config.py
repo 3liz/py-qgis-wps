@@ -192,7 +192,6 @@ def load_configuration():
     #
     # Metadata
     #
-
     CONFIG.add_section('metadata:main')
     CONFIG.set('metadata:main', 'identification_title', 'Py-Qgis-WPS Processing Service')
     CONFIG.set('metadata:main', 'identification_abstract', 'Py-Qgis-WPS is an implementation of the Web Processing Service standard from the Open Geospatial Consortium. Py-Qgis-WPS is written in Python.')  # noqa
