@@ -108,3 +108,18 @@ Docker image is available on `docker-hub <https://hub.docker.com/r/3liz/qgis-wps
 All options are passed with environment variables. See the :ref:`Configuration settings <configuration_settings>`
 for a description of the options.
 
+
+Requests to OWS services
+------------------------
+
+The OWS requests use the following format:  ``/ows/?<ows_query_params>``
+
+Example:
+
+.. code-block:: text
+
+    http://localhost:8080/ows/?SERVICE=WPS&VERSION=1.0.0&REQUEST=GetCapabilities
+
+
+
+

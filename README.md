@@ -177,6 +177,16 @@ optional arguments:
                         uid to switch to
 ```
 
+### Requests to OWS services
+
+The OWS requests use the following format:  `/ows/?<ows_query_params>`
+
+Example:
+
+```
+http://myserver:8080/ows/?SERVICE=WPS&VERSION=1.0.0&REQUEST=GetCapabilities
+```
+
 ## Configuration
 
 ### From config ini file
