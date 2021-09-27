@@ -1,6 +1,7 @@
 # Changes
 
 ## Unreleased
+* Use PyTest `log-cli-*` options for enabling logger output" 
 
 ## 1.6.5 - 2021-09-21
 
