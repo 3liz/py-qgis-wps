@@ -123,7 +123,7 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             exception = NoApplicableCode(message, code=status_code)
 
-        LOGGER.debug('Request failed wint message: %s %s', message, str(exception))
+        LOGGER.debug('Request failed with message: %s %s', message, str(exception))
  
         self.write_xml(exception.get_body())
         self.finish()

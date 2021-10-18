@@ -3,7 +3,7 @@
 # qypws makefile
 #
 
-VERSION:=1.6.5
+VERSION:=1.6.6
 
 ifndef CI_COMMIT_TAG
 VERSION_TAG=$(VERSION)rc0
@@ -55,7 +55,7 @@ clean:
 FLAVOR:=release
 
 # Run tests with docker-test
-docker-%:
+test-%:
 	$(MAKE) -C tests $* FLAVOR=$(FLAVOR)
 
 lint:

@@ -19,7 +19,7 @@ endif
 
 ifdef PYPISERVER
 PYPISERVER_SCHEME ?= https
-PIP_OPTIONS="--extra-index-url=$(PYPISERVER_SCHEME)://$(PYPISERVER) --trusted-host=$(PYPISERVER) --pre"
+PIP_OPTIONS="--extra-index-url=$(PYPISERVER_SCHEME)://$(PYPISERVER) --trusted-host=$(PYPISERVER)"
 DOCKERFILE=-f Dockerfile.pypi
 BUILD_ARGS=--build-arg PIP_OPTIONS=$(PIP_OPTIONS)
 else
