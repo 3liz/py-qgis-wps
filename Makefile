@@ -61,7 +61,7 @@ test-%:
 lint:
 	@flake8 --ignore=E123,E2,E3,E5,W2,W3  pyqgiswps pyqgisservercontrib
 
-test: lint manifest docker-test
+test: lint manifest test-test
 
 run: manifest
 	$(MAKE) -C tests run FLAVOR=$(FLAVOR)
