@@ -17,7 +17,8 @@ import shutil
 import tempfile
 
 import lxml.etree
-from pyqgiswps import __version__, NAMESPACES
+from pyqgiswps import __version__
+from pyqgiswps.ogc.ows.schema import NAMESPACES
 
 from pyqgiswps.runtime import Application
 from pyqgiswps.logger import configure_log_levels

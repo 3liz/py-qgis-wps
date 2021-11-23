@@ -7,15 +7,15 @@ import json
 
 from os import PathLike
 
-from pyqgiswps import WPS, OWS
-from pyqgiswps.owsutils.ows import BoundingBox
+from pyqgiswps.ogc.ows import WPS, OWS
+from pyqgiswps.ogc.ows.schema import xpath_ns, BoundingBox
+
 from pyqgiswps.inout import (LiteralInput, 
                              ComplexInput,
                              BoundingBoxInput, 
                              LiteralOutput, 
                              ComplexOutput,
                              BoundingBoxOutput)
-
 
 from pyqgiswps.inout.formats import FORMATS, Format
 
@@ -35,8 +35,6 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                                   InvalidParameterValue,
                                   MissingParameterValue,
                                   ProcessException)
-
-from pyqgiswps.app.basic import xpath_ns
 
 from pyqgiswps.utils.contexts import chdir 
 

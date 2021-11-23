@@ -20,9 +20,11 @@ import datetime
 from pyqgiswps.exceptions import InvalidParameterValue
 from pyqgiswps.validator.allowed_value import RANGECLOSURETYPE
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
-from pyqgiswps import XMLElement, OWS, NAMESPACES
+
+import pyqgiswps.ogc as ogc
 
 from typing import Optional, List, Dict, Union, Any, TypeVar
+
 
 import logging
 LOGGER = logging.getLogger('SRVLOG')
@@ -66,6 +68,10 @@ class AnyValue:
     def json(self) -> JsonValue:
         return {'type': 'anyvalue'}
 
+    @staticmethod
+    def to_json_serializable( data: Any ):
+        return to_json_serializable(data)
+
 
 class NoValue:
     """No value allowed
@@ -87,7 +93,7 @@ class ValuesReference:
         return {'type': 'valuesreference'}
 
 
-class AllowedValue(AnyValue):
+class AllowedValue(AnyValue, *ogc.exports.AllowedValue):
     """Allowed value parameters
     the values are evaluated in literal validator functions
 
@@ -115,20 +121,9 @@ class AllowedValue(AnyValue):
         self.spacing = spacing
         self.range_closure = range_closure
 
-    def describe_xml(self) -> XMLElement:
-        """Return back Element for DescribeProcess response
-        """
-        doc = None
-        if self.allowed_type == ALLOWEDVALUETYPE.RANGE:
-            doc = OWS.Range()
-            doc.set('{%s}rangeClosure' % NAMESPACES['ows'], self.range_closure)
-            doc.append(OWS.MinimumValue(str(to_json_serializable(self.minval))))
-            doc.append(OWS.MaximumValue(str(to_json_serializable(self.maxval))))
-            if self.spacing:
-                doc.append(OWS.Spacing(str(self.spacing)))
-        else:
-            doc = OWS.Value(str(to_json_serializable(self.value)))
-        return doc
+    @property
+    def is_range(self):
+        return self.allowed_type == ALLOWEDVALUETYPE.RANGE
 
     def __repr__(self) -> str:
         return f"AllowedValue(minval={self.minval}, maxval={self.maxval}, range_closure={self.range_closure})"

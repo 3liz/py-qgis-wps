@@ -5,8 +5,8 @@
 ##################################################################
 
 from pyqgiswps.app import WPSProcess
-from pyqgiswps.app.Common import Metadata
-from pyqgiswps import WPS, OWS
+from pyqgiswps.app.common import Metadata
+from pyqgiswps.ogc.ows import WPS, OWS
 from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
 
 class BadRequestTest(HTTPTestCase):

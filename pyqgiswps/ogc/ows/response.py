@@ -1,11 +1,11 @@
 #
-# Copyright 2018 3liz
+# Copyright 2021 3liz
 # Author: David Marteau
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
+# 
 # Original parts are Copyright 2016 OSGeo Foundation,            
 # represented by PyWPS Project Steering Committee,               
 # and released under MIT license.                                
@@ -13,96 +13,29 @@
 #
 
 import logging
-
 import time
-from pyqgiswps import WPS, OWS
-from pyqgiswps.exceptions import NoApplicableCode
-from pyqgiswps.executors.logstore import STATUS, logstore
+
+from pyqgiswps.app.request import WPSResponse
 from pyqgiswps.config import confservice
 
+from .schema import WPS, OWS, XMLDocument
+
+from typing import TypeVar
+
+UUID = TypeVar('UUID')
 
 LOGGER = logging.getLogger('SRVLOG')
 
 
-class WPSResponse():
+class OWSResponse(WPSResponse):
 
-    def __init__(self, process, wps_request, uuid, status_url=None):
-        """constructor
-
-        :param pyqgiswps.app.Process.Process process:
-        :param pyqgiswps.app.WPSRequest.WPSRequest wps_request:
-        :param uuid: string this request uuid
-        :param status_url: url to retrieve the status from
-        """
-
-        store_url = confservice.get('server','store_url')
-        store_url = store_url.format(host_url = wps_request.host_url, uuid = uuid,
-                                     file = '{file}')
-
-        self.process = process
-        self.wps_request = wps_request
-        self.outputs = {o.identifier: o for o in process.outputs}
-        self.message = ''
-        self.status = STATUS.NO_STATUS
-        self.status_percentage = -1
-        self.status_url = status_url
-        self.store_url  = store_url
-        self.uuid = uuid
-        self.document = None
-        self.store = False
-
-    def update_status(self, message=None, status_percentage=None, status=None):
-        """
-        Update status report of currently running process instance
-
-        :param str message: Message you need to share with the client
-        :param int status_percentage: Percent done (number betwen <0-100>)
-        :param pyqgiswps.app.WPSResponse.STATUS status: process status - user should usually
-            ommit this parameter
-        """
-        LOGGER.debug("*** Updating status: %s, %s, %s, %s", status, message, status_percentage, self.uuid)
-
-        if message is not None:
-            self.message = message
-
-        if status is not None:
-            self.status = status
-
-        if status_percentage is not None:
-            self.status_percentage = status_percentage
-
-        # Write response
-        if self.status >= STATUS.STORE_AND_UPDATE_STATUS:
-            # rebuild the doc and update the status xml file
-            self.document = self._construct_doc()
-            # check if storing of the status is requested
-            if self.store:
-                self._write_response_doc(self.uuid, self.document)
-            if self.status >= STATUS.DONE_STATUS:
-                self.process.clean()
-
-        self._update_response(self.uuid)
-
-    def _write_response_doc(self, request_uuid, doc):
-        """ Write response document
-        """
-        try:
-            logstore.write_response( request_uuid, doc)
-        except IOError as e:
-            raise NoApplicableCode('Writing Response Document failed with : %s' % e, code=500)
-
-    def _update_response( self, request_uuid ):
-        """ Log input request
-        """
-        logstore.update_response( request_uuid, self )
-
-    def _process_accepted(self):
+    def get_process_accepted(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessAccepted(self.message),
             creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
         )
 
-    def _process_started(self):
+    def get_process_started(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessStarted(
                 self.message,
@@ -111,7 +44,7 @@ class WPSResponse():
             creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
         )
 
-    def _process_paused(self):
+    def get_process_paused(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessPaused(
                 self.message,
@@ -120,13 +53,13 @@ class WPSResponse():
             creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
         )
 
-    def _process_succeeded(self):
+    def get_process_succeeded(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessSucceeded(self.message),
             creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
         )
 
-    def _process_failed(self):
+    def get_process_failed(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessFailed(
                 WPS.ExceptionReport(
@@ -140,7 +73,9 @@ class WPSResponse():
             creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
         )
 
-    def _construct_doc(self):
+    def get_execute_response(self) -> XMLDocument:
+        """ Cosstruct the execute XML response
+        """
         doc = WPS.ExecuteResponse()
         doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
             'http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_response.xsd'
@@ -152,7 +87,7 @@ class WPSResponse():
             '?service=WPS&request=GetCapabilities'
         )
 
-        if self.status >= STATUS.STORE_STATUS:
+        if self.status >= WPSResponse.STATUS.STORE_STATUS:
             doc.attrib['statusLocation'] = self.status_url
 
         # Process XML
@@ -173,26 +108,26 @@ class WPSResponse():
 
         # Status XML
         # return the correct response depending on the progress of the process
-        if self.status == STATUS.STORE_AND_UPDATE_STATUS:
+        if self.status == WPSResponse.STATUS.STORE_AND_UPDATE_STATUS:
             if self.status_percentage == -1:
-                status_doc = self._process_accepted()
+                status_doc = self.get_process_accepted()
                 doc.append(status_doc)
                 return doc
             elif self.status_percentage >= 0:
-                status_doc = self._process_started()
+                status_doc = self.get_process_started()
                 doc.append(status_doc)
                 return doc
 
         # check if process failed and display fail message
-        if self.status == STATUS.ERROR_STATUS:
-            status_doc = self._process_failed()
+        if self.status == WPSResponse.STATUS.ERROR_STATUS:
+            status_doc = self.get_process_failed()
             doc.append(status_doc)
             return doc
 
         # TODO: add paused status
 
-        if self.status == STATUS.DONE_STATUS:
-            status_doc = self._process_succeeded()
+        if self.status == WPSResponse.STATUS.DONE_STATUS:
+            status_doc = self.get_process_succeeded()
             doc.append(status_doc)
 
             # DataInputs and DataOutputs definition XML if lineage=true
@@ -207,4 +142,5 @@ class WPSResponse():
             output_elements = [self.outputs[o].execute_xml() for o in self.outputs]
             doc.append(WPS.ProcessOutputs(*output_elements))
         return doc
+
 

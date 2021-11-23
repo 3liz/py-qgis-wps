@@ -5,8 +5,8 @@
 ##################################################################
 
 import unittest
-from pyqgiswps import WPSProcess, Service, WPS, OWS
-from pyqgiswps.app.basic import xpath_ns
+from pyqgiswps.app import WPSProcess, Service
+from pyqgiswps.ogc.ows.schema import WPS, OWS, xpath_ns
 from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
 import lxml.etree
 

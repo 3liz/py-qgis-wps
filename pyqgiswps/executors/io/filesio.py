@@ -15,7 +15,7 @@ import mimetypes
 from os.path import normpath, basename
 from pathlib import Path
 
-from pyqgiswps.app.Common import Metadata
+from pyqgiswps.app.common import Metadata
 
 from pyqgiswps.inout.formats import Format
 from pyqgiswps.inout import (LiteralInput,

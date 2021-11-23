@@ -125,8 +125,23 @@ class BaseHandler(tornado.web.RequestHandler):
 
         LOGGER.debug('Request failed with message: %s %s', message, str(exception))
  
-        self.write_xml(exception.get_body())
+        self.format_exception(exception)
         self.finish()
+
+    def format_exception(self, exc: NoApplicableCode) -> None:
+        """ Format exception 
+            Override this in handler
+        """
+        self.write_json({
+            'exceptionReport':
+            {
+                'code': exc.code,
+                'locator': exc.locator,
+                'name': exc.name,
+                'description': exc.description,
+            }
+        })
+
 
     def proxy_url(self, **kwargs: Any) -> str:
         """ Return the proxy_url

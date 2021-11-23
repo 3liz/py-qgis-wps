@@ -24,7 +24,7 @@ from typing import List, Optional
 from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths
 from pyqgiswps.poolserver.server import create_poolserver
 from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
-from pyqgiswps.app.Process import WPSProcess
+from pyqgiswps.app.process import WPSProcess
 from pyqgiswps.exceptions import ProcessException
 
 from pyqgiswps.config import confservice

@@ -7,18 +7,24 @@
 import asyncio
 import lxml.etree
 import json
-from pyqgiswps import (WPSProcess, LiteralOutput, LiteralInput,
-    BoundingBoxOutput, BoundingBoxInput, Format, ComplexInput, ComplexOutput)
+from pyqgiswps.app import WPSProcess
+from pyqgiswps.inout import (Format,
+                             BoundingBoxOutput, 
+                             BoundingBoxInput, 
+                             ComplexInput, 
+                             ComplexOutput, 
+                             LiteralOutput,
+                             LiteralInput)
 from pyqgiswps.validator.base import emptyvalidator
 from pyqgiswps.validator.complexvalidator import validategml
 from pyqgiswps.exceptions import InvalidParameterValue
-from pyqgiswps import get_inputs_from_xml, get_output_from_xml
-from pyqgiswps import E, WPS, OWS
-from pyqgiswps.app.basic import xpath_ns
+
+from pyqgiswps.ogc.ows.schema import E, OWS, WPS, xpath_ns, BoundingBox
+from pyqgiswps.ogc.ows.request import get_inputs_from_xml, get_output_from_xml
+
 from pyqgiswps.tests import HTTPTestCase, assert_response_success
 
 from io import StringIO
-from pyqgiswps.owsutils.ows import BoundingBox
 
 
 def ultimate_question(request, response):

@@ -21,12 +21,9 @@ Based on OGC OWS, WPS and
 http://lists.opengeospatial.org/pipermail/wps-dev/2013-October/000335.html
 """
 
-from tornado.escape import xhtml_escape as escape
 from tornado.web import HTTPError
 
 import logging
-
-from pyqgiswps import __version__
 
 HTTPException = HTTPError
 
@@ -53,36 +50,9 @@ class NoApplicableCode(HTTPException):
         super().__init__(status_code=code, log_message=log_message, *args, **kwargs)
 
     @property
-    def name(self):
+    def name(self) -> str:
         """The status name."""
         return self.__class__.__name__
-
-    def get_headers(self):
-        """Get a list of headers."""
-        return [('Content-Type', 'text/xml')]
-
-    def get_description(self):
-        """Get the description."""
-        if self.description:
-            return '''<ows:ExceptionText>%s</ows:ExceptionText>''' % escape(self.description)
-        else:
-            return ''
-
-    def get_body(self):
-        """Get the XML body."""
-        return (  # noqa
-            '<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsExceptionReport.xsd" version="1.0.0">\n'
-            '  <ows:Exception exceptionCode="%(name)s" locator="%(locator)s" >\n'
-            '      %(description)s\n'
-            '  </ows:Exception>\n'
-            '</ows:ExceptionReport>'
-        ) % {
-            'version': __version__,
-            'code': self.code,
-            'locator': escape(self.locator),
-            'name': escape(self.name),
-            'description': self.get_description()
-        }
 
 
 class InvalidParameterValue(NoApplicableCode):

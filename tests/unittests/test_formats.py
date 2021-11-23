@@ -8,7 +8,7 @@
 
 from pyqgiswps.inout.formats import Format, get_format, FORMATS
 from lxml import etree
-from pyqgiswps.app.basic import xpath_ns
+from pyqgiswps.ogc.ows.schema import xpath_ns
 from pyqgiswps.validator.base import emptyvalidator
 
 

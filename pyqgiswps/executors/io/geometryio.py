@@ -14,7 +14,7 @@ import json
 
 from osgeo import ogr
 
-from pyqgiswps.app.Common import Metadata
+from pyqgiswps.app.common import Metadata
 from pyqgiswps.inout.formats import Format, FORMATS
 from pyqgiswps.inout import (LiteralInput,
                              ComplexInput,

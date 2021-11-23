@@ -14,32 +14,29 @@
 
 import logging
 import traceback
-from pyqgiswps import WPS, OWS
-from pyqgiswps.app.WPSResponse import WPSResponse
-from pyqgiswps.app.WPSRequest import WPSRequest
-from pyqgiswps.app.Process import WPSProcess
+from pyqgiswps.app.request import WPSRequest
+from pyqgiswps.app.process import WPSProcess
 from pyqgiswps.config import confservice
 from pyqgiswps.exceptions import (MissingParameterValue, NoApplicableCode, InvalidParameterValue)
 from pyqgiswps.inout.literaltypes import JsonValue
 from pyqgiswps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
 from pyqgiswps.executors.logstore import STATUS
 from pyqgiswps.executors.processingexecutor import ProcessingExecutor, UnknownProcessError
-from pyqgiswps.accesspolicy import AccessPolicy
 from pyqgiswps.owsutils.ows import BoundingBox
 
 from collections import deque
 import os
 import copy
 
-from typing import Iterable, TypeVar, Optional, Union
+from typing import TypeVar, Iterable, Optional, Union, Any
 
 # Define generic WPS Input
 WPSInput = Union[ComplexInput, LiteralInput, BoundingBoxInput]
 
-XMLDocument = TypeVar('XMLDocument')
-XMLElement  = TypeVar('XMLElement')
-
 LOGGER = logging.getLogger('SRVLOG')
+
+
+ResponseDocument = TypeVar('ResponseDocument')
 
 
 class Service():
@@ -68,7 +65,18 @@ class Service():
     def get_processes(self, idents: Iterable[str], map_uri: Optional[str]=None) -> Iterable[WPSProcess]:
         return self.executor.get_processes(idents, map_uri=map_uri)
 
-    def get_results(self, uuid: str) -> XMLDocument:
+    def get_processes_for_request(self, idents: Iterable[str], 
+                                  map_uri: Optional[str]=None) -> Iterable[WPSProcess]:
+        try:
+            return self.get_processes(idents, map_uri)
+        except UnknownProcessError as exc:
+            raise InvalidParameterValue("Unknown process %s" % exc, "identifier") from None
+        except Exception as e:
+            LOGGER.critical("Exception:\n%s",traceback.format_exc())
+            raise NoApplicableCode(str(e), code=500) from None
+
+
+    def get_results(self, uuid: str) -> Any:
         doc = self.executor.get_results(uuid)
         if doc is None:
             raise NoApplicableCode('No results found for %s' % uuid, code=404)
@@ -85,203 +93,6 @@ class Service():
         """
         return self.executor.delete_results(uuid)
 
-    def get_capabilities(self, wps_request: WPSRequest, accesspolicy: AccessPolicy=None) -> XMLDocument:
-        """ Handle getcapbabilities request
-        """
-        process_elements = [p.capabilities_xml()
-                            for p in self.processes if accesspolicy.allow(p.identifier)]
-
-        doc = WPS.Capabilities()
-
-        doc.attrib['service'] = 'WPS'
-        doc.attrib['version'] = '1.0.0'
-        doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
-        doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
-            'http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsGetCapabilities_response.xsd'
-        # TODO: check Table 7 in OGC 05-007r7
-        doc.attrib['updateSequence'] = '1'
-
-        metadata = confservice['metadata:main']
-
-        # Service Identification
-        service_ident_doc = OWS.ServiceIdentification(
-            OWS.Title(metadata.get('identification_title'))
-        )
-
-        if metadata.get('identification_abstract'):
-            service_ident_doc.append(
-                OWS.Abstract(metadata.get('identification_abstract')))
-
-        if metadata.get('identification_keywords'):
-            keywords_doc = OWS.Keywords()
-            for k in metadata.get('identification_keywords').split(','):
-                if k:
-                    keywords_doc.append(OWS.Keyword(k))
-            service_ident_doc.append(keywords_doc)
-
-        if metadata.get('identification_keywords_type'):
-            keywords_type = OWS.Type(metadata.get('identification_keywords_type'))
-            keywords_type.attrib['codeSpace'] = 'ISOTC211/19115'
-            keywords_doc.append(keywords_type)
-
-        service_ident_doc.append(OWS.ServiceType('WPS'))
-
-        # TODO: set proper version support
-        service_ident_doc.append(OWS.ServiceTypeVersion('1.0.0'))
-
-        service_ident_doc.append(
-            OWS.Fees(metadata.get('identification_fees')))
-
-        for con in metadata.get('identification_accessconstraints').split(','):
-            service_ident_doc.append(OWS.AccessConstraints(con))
-
-        if metadata.get('identification_profile'):
-            service_ident_doc.append(
-                OWS.Profile(metadata.get('identification_profile')))
-
-        doc.append(service_ident_doc)
-
-        # Service Provider
-        service_prov_doc = OWS.ServiceProvider(
-            OWS.ProviderName(metadata.get('provider_name')))
-
-        if metadata.get('provider_url'):
-            service_prov_doc.append(OWS.ProviderSite(
-                {'{http://www.w3.org/1999/xlink}href': metadata.get('provider_url')})
-            )
-
-        # Service Contact
-        service_contact_doc = OWS.ServiceContact()
-
-        # Add Contact information only if a name is set
-        if metadata.get('contact_name'):
-            service_contact_doc.append(OWS.IndividualName(metadata.get('contact_name')))
-            if metadata.get('contact_position'):
-                service_contact_doc.append(OWS.PositionName(metadata.get('contact_position')))
-
-            contact_info_doc = OWS.ContactInfo()
-
-            phone_doc = OWS.Phone()
-            if metadata.get('contact_phone'):
-                phone_doc.append(OWS.Voice(metadata.get('contact_phone')))
-            # Add Phone if not empty
-            if len(phone_doc):
-                contact_info_doc.append(phone_doc)
-
-            address_doc = OWS.Address()
-            if metadata.get('deliveryPoint'):
-                address_doc.append(OWS.DeliveryPoint(metadata.get('contact_address')))
-            if metadata.get('city'):
-                address_doc.append(OWS.City(metadata.get('contact_city')))
-            if metadata.get('contact_stateorprovince'):
-                address_doc.append(OWS.AdministrativeArea(metadata.get('contact_stateorprovince')))
-            if metadata.get('contact_postalcode'):
-                address_doc.append(OWS.PostalCode(metadata.get('contact_postalcode')))
-            if metadata.get('contact_country'):
-                address_doc.append(OWS.Country(metadata.get('contact_country')))
-            if metadata.get('contact_email'):
-                address_doc.append(OWS.ElectronicMailAddress(metadata.get('contact_email')))
-            # Add Address if not empty
-            if len(address_doc):
-                contact_info_doc.append(address_doc)
-
-            if metadata.get('contact_url'):
-                contact_info_doc.append(OWS.OnlineResource({'{http://www.w3.org/1999/xlink}href': metadata.get('contact_url')}))
-            if metadata.get('contact_hours'):
-                contact_info_doc.append(OWS.HoursOfService(metadata.get('contact_hours')))
-            if metadata.get('contact_instructions'):
-                contact_info_doc.append(OWS.ContactInstructions(metadata.get('contact_instructions')))
-
-            # Add Contact information if not empty
-            if len(contact_info_doc):
-                service_contact_doc.append(contact_info_doc)
-
-            if metadata.get('contact_role'):
-                service_contact_doc.append(OWS.Role(metadata.get('contact_role')))
-
-        # Add Service Contact only if ProviderName and PositionName are set
-        if len(service_contact_doc):
-            service_prov_doc.append(service_contact_doc)
-
-        doc.append(service_prov_doc)
-
-        server_href = {'{http://www.w3.org/1999/xlink}href': confservice.get('server','url').format(host_url=wps_request.host_url)}
-
-        # Operations Metadata
-        operations_metadata_doc = OWS.OperationsMetadata(
-            OWS.Operation(
-                OWS.DCP(
-                    OWS.HTTP(
-                        OWS.Get(server_href),
-                        OWS.Post(server_href)
-                    )
-                ),
-                name="GetCapabilities"
-            ),
-            OWS.Operation(
-                OWS.DCP(
-                    OWS.HTTP(
-                        OWS.Get(server_href),
-                        OWS.Post(server_href)
-                    )
-                ),
-                name="DescribeProcess"
-            ),
-            OWS.Operation(
-                OWS.DCP(
-                    OWS.HTTP(
-                        OWS.Get(server_href),
-                        OWS.Post(server_href)
-                    )
-                ),
-                name="Execute"
-            )
-        )
-        doc.append(operations_metadata_doc)
-
-        doc.append(WPS.ProcessOfferings(*process_elements))
-
-        languages = confservice.get('server','language').split(',')
-        languages_doc = WPS.Languages(
-            WPS.Default(
-                OWS.Language(languages[0])
-            )
-        )
-        lang_supported_doc = WPS.Supported()
-        for lang in languages:
-            lang_supported_doc.append(OWS.Language(lang))
-        languages_doc.append(lang_supported_doc)
-
-        doc.append(languages_doc)
-
-        return doc
-
-    def describe(self, identifiers: Iterable[str], map_uri: Optional[str]=None) -> XMLDocument:
-        """ Return process description
-        """
-        if not identifiers:
-            raise MissingParameterValue('', 'identifier')
-
-        # 'all' keyword means all processes
-        if 'all' in (ident.lower() for ident in identifiers):
-            identifiers = [p.identifier for p in self.processes]
-
-        identifier_elements = []
-        try:
-            identifier_elements.extend(p.describe_xml() for p in self.get_processes(identifiers,map_uri=map_uri))
-        except UnknownProcessError as exc:
-            raise InvalidParameterValue("Unknown process %s" % exc, "identifier")
-        except Exception as e:
-            LOGGER.critical("Exception:\n%s",traceback.format_exc())
-            raise NoApplicableCode(str(e), code=500)
-
-        doc = WPS.ProcessDescriptions(*identifier_elements)
-        doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
-            'http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsDescribeProcess_response.xsd'
-        doc.attrib['service'] = 'WPS'
-        doc.attrib['version'] = '1.0.0'
-        doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
-        return doc
 
     def _status_url(self, uuid: str, request: WPSRequest):
         """ Return the status_url for the process <uuid>
@@ -296,7 +107,7 @@ class Service():
         return status_url.format(host_url=proxy_host,uuid=uuid)
 
     async def execute(self, identifier: str, wps_request: WPSRequest, uuid: str, 
-                      map_uri: Optional[str]=None) -> XMLDocument:
+                      map_uri: Optional[str]=None) -> ResponseDocument:
         """Parse and perform Execute WPS request call
         
         :param identifier: process identifier string
@@ -313,7 +124,7 @@ class Service():
         # just for execute
         process = copy.deepcopy(process)
 
-        self._parse( process, wps_request )
+        self._check_request( process, wps_request )
 
         workdir = os.path.abspath(confservice.get('server','workdir'))
         workdir = os.path.join(workdir, str(uuid))
@@ -327,7 +138,7 @@ class Service():
         status_url = self._status_url(uuid, wps_request)
 
         # Create response object
-        wps_response = WPSResponse( process, wps_request, uuid, status_url=status_url)
+        wps_response = wps_request.create_response( process, uuid, status_url=status_url)
 
         if wps_request.store_execute == 'true':
             # Setting STORE_AND_UPDATE_STATUS will trigger
@@ -342,8 +153,8 @@ class Service():
 
         return document
 
-    def _parse(self, process: WPSProcess, wps_request: WPSRequest):
-        """Parse request
+    def _check_request(self, process: WPSProcess, wps_request: WPSRequest):
+        """ Check request
         """
         LOGGER.debug('Checking if datainputs is required and has been passed')
         if process.inputs:

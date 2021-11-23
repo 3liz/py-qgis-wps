@@ -10,7 +10,7 @@
 """
 import logging
 
-from pyqgiswps.app.Common import Metadata
+from pyqgiswps.app.common import Metadata
 from pyqgiswps.exceptions import InvalidParameterValue
 
 from pyqgiswps.inout import (LiteralInput,

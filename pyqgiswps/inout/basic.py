@@ -18,10 +18,12 @@ from enum import Enum
 
 import os
 import logging
+
+import pyqgiswps.ogc as ogc
+
 from pyqgiswps.inout.literaltypes import (LITERAL_DATA_TYPES, convert,
                                           make_allowedvalues, is_anyvalue, 
                                           to_json_serializable)
-from pyqgiswps import OWS, OGCUNIT, NAMESPACES
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.validator.base import emptyvalidator
 from pyqgiswps.validator import get_validator
@@ -475,7 +477,7 @@ class ComplexOutput(BasicIO, BasicComplex, IOHandler):
         BasicComplex.__init__(self, data_format, supported_formats)
 
 
-class UOM:
+class UOM(*ogc.exports.UOM):
     """
     :param uom: unit of measure
     """
@@ -483,16 +485,6 @@ class UOM:
     def __init__(self, uom=''):
         self.uom = uom
 
-    def describe_xml(self):
-        elem = OWS.UOM(
-            self.uom
-        )
-
-        elem.attrib['{%s}reference' % NAMESPACES['ows']] = OGCUNIT[self.uom]
-
-        return elem
-
-    def execute_attribute(self):
-        return OGCUNIT[self.uom]
-
+    def ogcunit(self):
+        return ogc.ows.OGCUNIT[self.uom]
 

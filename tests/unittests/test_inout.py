@@ -11,9 +11,9 @@ import tempfile
 import pytest
 
 from io import StringIO
-from pyqgiswps import Format
+from pyqgiswps.inout.formats import Format
 from pyqgiswps.validator import get_validator
-from pyqgiswps import NAMESPACES
+from pyqgiswps.ogc.ows import NAMESPACES
 from pyqgiswps.inout.basic import IOHandler, SOURCE_TYPE, SimpleHandler, BBoxInput, BBoxOutput, \
     ComplexInput, ComplexOutput, LiteralInput, LiteralOutput
 from pyqgiswps.inout import BoundingBoxInput as BoundingBoxInputXML

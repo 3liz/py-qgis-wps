@@ -15,7 +15,8 @@
 
 import os
 
-from pyqgiswps import E, OWS, WPS, OGCTYPE, NAMESPACES
+import pyqgiswps.ogc as ogc
+
 from pyqgiswps.config import confservice, get_size_bytes
 from pyqgiswps.inout import basic
 from copy import deepcopy
@@ -23,7 +24,8 @@ from pyqgiswps.validator.mode import MODE
 from pyqgiswps.inout.literaltypes import AnyValue
 from pyqgiswps.inout.httpclient import openurl
 
-class BoundingBoxInput(basic.BBoxInput):
+
+class BoundingBoxInput(basic.BBoxInput, *ogc.exports.BoundingBoxInput):
 
     """
     :param string identifier: The name of this input.
@@ -34,7 +36,7 @@ class BoundingBoxInput(basic.BBoxInput):
     :param int min_occurs: how many times this input occurs
     :param int max_occurs: how many times this input occurs
     :param metadata: List of metadata advertised by this process. They
-                     should be :class:`pyqgiswps.app.Common.Metadata` objects.
+                     should be :class:`pyqgiswps.app.common.Metadata` objects.
     """
 
     def __init__(self, identifier, title, crss, abstract='',
@@ -49,72 +51,13 @@ class BoundingBoxInput(basic.BBoxInput):
         self.min_occurs = int(min_occurs)
         self.max_occurs = int(max_occurs)
 
-    def describe_xml(self):
-        """
-        :return: describeprocess response xml element
-        """
-        doc = E.Input(
-            OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
-        )
-
-        doc.attrib['minOccurs'] = str(self.min_occurs)
-        doc.attrib['maxOccurs'] = str(self.max_occurs)
-
-        if self.abstract:
-            doc.append(OWS.Abstract(self.abstract))
-
-        for m in self.metadata:
-            doc.append(OWS.Metadata(dict(m)))
-
-        bbox_data_doc = E.BoundingBoxData()
-        doc.append(bbox_data_doc)
-
-        default_doc = E.Default()
-        default_doc.append(E.CRS(self.crss[0]))
-
-        supported_doc = E.Supported()
-        for c in self.crss:
-            supported_doc.append(E.CRS(c))
-
-        bbox_data_doc.append(default_doc)
-        bbox_data_doc.append(supported_doc)
-
-        return doc
-
-    def execute_xml(self):
-        """
-        :return: execute response element
-        """
-        doc = WPS.Input(
-            OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
-        )
-
-        if self.abstract:
-            doc.append(OWS.Abstract(self.abstract))
-
-        bbox_data_doc = OWS.BoundingBox()
-
-        bbox_data_doc.attrib['crs'] = self.crs
-        bbox_data_doc.attrib['dimensions'] = str(self.dimensions)
-
-        bbox_data_doc.append(
-            OWS.LowerCorner('{0[0]} {0[1]}'.format(self.data)))
-        bbox_data_doc.append(
-            OWS.UpperCorner('{0[2]} {0[3]}'.format(self.data)))
-
-        doc.append(bbox_data_doc)
-
-        return doc
-
     def clone(self):
         """Create copy of yourself
         """
         return deepcopy(self)
 
 
-class ComplexInput(basic.ComplexInput):
+class ComplexInput(basic.ComplexInput, *ogc.exports.ComplexInput):
     """
     Complex data input
 
@@ -174,98 +117,13 @@ class ComplexInput(basic.ComplexInput):
         self.max_size = get_size_bytes(max_size)
         return self.max_size
 
-    def describe_xml(self):
-        """Return Describe process element
-        """
-
-        doc = E.Input(
-            OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
-        )
-
-        doc.attrib['minOccurs'] = str(self.min_occurs)
-        doc.attrib['maxOccurs'] = str(self.max_occurs)
-
-        if self.abstract:
-            doc.append(OWS.Abstract(self.abstract))
-
-        for m in self.metadata:
-            doc.append(OWS.Metadata(dict(m)))
-
-        if self.supported_formats is not None:
-            default_format_el = self.supported_formats[0].describe_xml()
-            supported_format_elements = [f.describe_xml() for f in self.supported_formats]
-            doc.append(
-                E.ComplexData(
-                    E.Default(default_format_el),
-                    E.Supported(*supported_format_elements)
-                )
-            )
-
-        return doc
-
-    def execute_xml(self):
-        """Render Execute response XML node
-
-
-        :return: node
-        :rtype: ElementMaker
-        """
-        node = None
-        if self.as_reference:
-            node = self._execute_xml_reference()
-        else:
-            node = self._execute_xml_data()
-
-        doc = WPS.Input(
-            OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
-        )
-        if self.abstract:
-            doc.append(OWS.Abstract(self.abstract))
-        doc.append(node)
-
-        return doc
-
-    def _execute_xml_reference(self):
-        """Return Reference node
-        """
-        doc = WPS.Reference()
-        doc.attrib['{http://www.w3.org/1999/xlink}href'] = self.url
-        if self.data_format:
-            if self.data_format.mime_type:
-                doc.attrib['mimeType'] = self.data_format.mime_type
-            if self.data_format.encoding:
-                doc.attrib['encoding'] = self.data_format.encoding
-            if self.data_format.schema:
-                doc.attrib['schema'] = self.data_format.schema
-        if self.method.upper() == 'POST' or self.method.upper() == 'GET':
-            doc.attrib['method'] = self.method.upper()
-        return doc
-
-    def _execute_xml_data(self):
-        """Return Data node
-        """
-        doc = WPS.Data()
-        complex_doc = WPS.ComplexData(self.data)
-
-        if self.data_format:
-            if self.data_format.mime_type:
-                complex_doc.attrib['mimeType'] = self.data_format.mime_type
-            if self.data_format.encoding:
-                complex_doc.attrib['encoding'] = self.data_format.encoding
-            if self.data_format.schema:
-                complex_doc.attrib['schema'] = self.data_format.schema
-        doc.append(complex_doc)
-        return doc
-
     def clone(self):
         """Create copy of yourself
         """
         return deepcopy(self)
 
 
-class LiteralInput(basic.LiteralInput):
+class LiteralInput(basic.LiteralInput, *ogc.exports.LiteralInput):
     """
     :param str identifier: The name of this input.
     :param str title: Title of the input
@@ -278,7 +136,7 @@ class LiteralInput(basic.LiteralInput):
     :param pyqgiswps.validator.mode.MODE mode: validation mode (none to strict)
     :param pyqgiswps.inout.literaltypes.AnyValue allowed_values: or :py:class:`pyqgiswps.inout.literaltypes.AllowedValue` object
     :param metadata: List of metadata advertised by this process. They
-                     should be :class:`pyqgiswps.app.Common.Metadata` objects.
+                     should be :class:`pyqgiswps.app.common.Metadata` objects.
     """
 
     def __init__(self, identifier, title, data_type='integer', abstract='',
@@ -296,94 +154,6 @@ class LiteralInput(basic.LiteralInput):
         self.default = default
         self.min_occurs = int(min_occurs)
         self.max_occurs = int(max_occurs)
-
-    def describe_xml(self):
-        """Return DescribeProcess Output element
-        """
-        doc = E.Input(
-            OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
-        )
-
-        doc.attrib['minOccurs'] = str(self.min_occurs)
-        doc.attrib['maxOccurs'] = str(self.max_occurs)
-
-        if self.abstract:
-            doc.append(OWS.Abstract(self.abstract))
-
-        for m in self.metadata:
-            doc.append(OWS.Metadata(dict(m)))
-
-        literal_data_doc = E.LiteralData()
-
-        if self.data_type:
-            data_type = OWS.DataType(self.data_type)
-            data_type.attrib['{%s}reference' %
-                             NAMESPACES['ows']] = OGCTYPE[self.data_type]
-            literal_data_doc.append(data_type)
-
-        if self.uoms:
-            default_uom_element = self.uoms[0].describe_xml()
-            supported_uom_elements = [u.describe_xml() for u in self.uoms]
-
-            literal_data_doc.append(
-                E.UOMs(
-                    E.Default(default_uom_element),
-                    E.Supported(*supported_uom_elements)
-                )
-            )
-
-        doc.append(literal_data_doc)
-
-        # TODO: refer to table 29 and 30
-        if self.any_value:
-            literal_data_doc.append(OWS.AnyValue())
-        else:
-            literal_data_doc.append(self._describe_xml_allowedvalues())
-
-        if self.default is not None:
-            literal_data_doc.append(E.DefaultValue(str(self.default)))
-
-        return doc
-
-    def execute_xml(self):
-        """Render Execute response XML node
-
-        :return: node
-        :rtype: ElementMaker
-        """
-        node = self._execute_xml_data()
-
-        doc = WPS.Input(
-            OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
-        )
-        if self.abstract:
-            doc.append(OWS.Abstract(self.abstract))
-        doc.append(node)
-
-        return doc
-
-    def _describe_xml_allowedvalues(self):
-        """Return AllowedValues node
-        """
-        doc = OWS.AllowedValues()
-        for value in self.allowed_values:
-            doc.append(value.describe_xml())
-        return doc
-
-    def _execute_xml_data(self):
-        """Return Data node
-        """
-        doc = WPS.Data()
-        literal_doc = WPS.LiteralData(str(self.data))
-
-        if self.data_type:
-            literal_doc.attrib['dataType'] = self.data_type
-        if self.uom:
-            literal_doc.attrib['uom'] = self.uom
-        doc.append(literal_doc)
-        return doc
 
     def clone(self):
         """Create copy of yourself

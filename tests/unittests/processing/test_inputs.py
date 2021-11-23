@@ -6,8 +6,7 @@ from urllib.parse import urlparse, parse_qs, urlencode
 
 from pyqgiswps.utils.contexts import chdir 
 
-from pyqgiswps import WPS, OWS
-from pyqgiswps.owsutils.ows import BoundingBox
+from pyqgiswps.ogc.ows.schema import WPS, OWS, BoundingBox
 from pyqgiswps.inout import (LiteralInput, 
                              ComplexInput,
                              BoundingBoxInput, 

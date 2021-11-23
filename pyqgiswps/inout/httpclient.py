@@ -47,7 +47,7 @@ def openurl( url: str, filename: os.PathLike, max_bytes: int=0, **kwargs ) -> No
                              **kwargs)
             except Exception as e:
                 fail = True
-                raise NoApplicableCode("File Reference error %s: %s", url, str(e))
+                raise NoApplicableCode("File Reference error %s: %s", url, str(e)) from None
             finally:
                 client.close()
     finally:

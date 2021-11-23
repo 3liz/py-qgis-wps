@@ -1,5 +1,5 @@
 #
-# Copyright 2018 3liz
+# Copyright 2018-2021 3liz
 # Author: David Marteau
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -12,8 +12,9 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
+import pyqgiswps.ogc as ogc
 
-class Metadata:
+class Metadata(*ogc.exports.Metadata):
     """
     ows:Metadata content model.
 
@@ -22,15 +23,9 @@ class Metadata:
     :param type_: fully qualified URL
     """
 
-    def __init__(self, title, href=None, type_='simple'):
+    def __init__(self, title, href=None, role=None, type_='simple'):
         self.title = title
         self.href = href
+        self.role = role
         self.type = type_
-
-    def __iter__(self):
-        yield '{http://www.w3.org/1999/xlink}title', self.title
-        if self.href is not None:
-            yield '{http://www.w3.org/1999/xlink}href', self.href
-        yield '{http://www.w3.org/1999/xlink}type', self.type
-
        

@@ -22,7 +22,7 @@ from .logger import log_request
 
 from .config import confservice, get_size_bytes
 
-from .handlers import (RootHandler, WPSHandler, StoreHandler, StatusHandler, 
+from .handlers import (RootHandler, OWSHandler, StoreHandler, StatusHandler, 
                        DownloadHandler)
 
 from .accesspolicy import init_access_policy
@@ -78,9 +78,9 @@ def configure_handlers( appfilters ):
         if cfg.getboolean('enable_filters'):
             filters = load_filters(r"/ows/", appfilters=appfilters)
             for uri,fltrs in filters.items():
-                yield (uri, WPSHandler, dict(filters=fltrs) )
+                yield (uri, OWSHandler, dict(filters=fltrs) )
         else:
-            yield (r"/ows/", WPSHandler)
+            yield (r"/ows/", OWSHandler)
 
     handlers = [ (r"/"     , RootHandler) ]
     handlers.extend( ows_handlers() )
@@ -106,7 +106,7 @@ def configure_handlers( appfilters ):
 class Application(tornado.web.Application):
 
     def __init__(self, processes=[], filters=None):
-        from pyqgiswps.app.Service import Service
+        from pyqgiswps.app.service import Service
         self.wpsservice = Service(processes=processes)
         self.config     = confservice['server']
         super().__init__(configure_handlers( filters ))

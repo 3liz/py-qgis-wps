@@ -19,9 +19,11 @@
 # based on Web Processing Service Best Practices Discussion Paper, OGC 12-029
 # http://opengeospatial.org/standards/wps
 
-from lxml.builder import ElementMaker
 from collections import namedtuple
 import mimetypes
+
+import pyqgiswps.ogc as ogc
+
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.validator.base import emptyvalidator
 
@@ -69,7 +71,7 @@ def _get_mimetypes():
 _get_mimetypes()
 
 
-class Format:
+class Format(*ogc.exports.Format):
     """Input/output format specification
 
     Predefined Formats are stored in :class:`pyqgiswps.inout.formats.FORMATS`
@@ -164,23 +166,6 @@ class Format:
         return all([frmt.mime_type == self.mime_type,
                     frmt.encoding == self.encoding,
                     frmt.schema == self.schema])
-
-    def describe_xml(self):
-        """Return describe process response element
-        """
-
-        elmar = ElementMaker()
-        doc = elmar.Format(
-            elmar.MimeType(self.mime_type)
-        )
-
-        if self.encoding:
-            doc.append(elmar.Encoding(self.encoding))
-
-        if self.schema:
-            doc.append(elmar.Schema(self.schema))
-
-        return doc
 
     @property
     def json(self):

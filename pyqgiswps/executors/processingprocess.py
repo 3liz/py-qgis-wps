@@ -30,9 +30,8 @@ from qgis.core import (QgsApplication,
                        QgsProcessingParameterDefinition,
                        QgsProcessingOutputLayerDefinition)
 
-from pyqgiswps.app.Process import WPSProcess
-from pyqgiswps.app.WPSResponse import WPSResponse
-from pyqgiswps.app.WPSRequest  import WPSRequest
+from pyqgiswps.app.process import WPSProcess
+from pyqgiswps.app.request import WPSResponse, WPSRequest
 from pyqgiswps.exceptions import ProcessException
 from pyqgiswps.config import confservice
 

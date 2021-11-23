@@ -5,15 +5,19 @@
 ##################################################################
 
 from collections import namedtuple
-from pyqgiswps import WPSProcess
-from pyqgiswps import LiteralInput, ComplexInput, BoundingBoxInput
-from pyqgiswps import LiteralOutput, ComplexOutput, BoundingBoxOutput
-from pyqgiswps import E, WPS, OWS, OGCTYPE, Format, NAMESPACES, OGCUNIT
+
+from pyqgiswps.app import WPSProcess
+from pyqgiswps.inout.inputs import LiteralInput, ComplexInput, BoundingBoxInput
+from pyqgiswps.inout.outputs import LiteralOutput, ComplexOutput, BoundingBoxOutput
 from pyqgiswps.inout.literaltypes import LITERAL_DATA_TYPES
-from pyqgiswps.app.basic import xpath_ns
-from pyqgiswps.app.Common import Metadata
 from pyqgiswps.inout.formats import Format
 from pyqgiswps.inout.literaltypes import AllowedValue
+
+from pyqgiswps.ogc import OGCTYPE, OGCUNIT
+from pyqgiswps.ogc.ows import E, WPS, OWS, NAMESPACES
+from pyqgiswps.ogc.ows.schema import xpath_ns
+
+from pyqgiswps.app.common import Metadata
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 
 from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version

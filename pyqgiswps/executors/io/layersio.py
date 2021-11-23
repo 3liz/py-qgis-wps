@@ -42,7 +42,7 @@ from qgis.core import (QgsProcessing,
 
 from ..processingcontext import MapContext, ProcessingContext
 
-from pyqgiswps.app.Common import Metadata
+from pyqgiswps.app.common import Metadata
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 from pyqgiswps.inout.formats import Format, FORMATS
 from pyqgiswps.inout.literaltypes import AllowedValue

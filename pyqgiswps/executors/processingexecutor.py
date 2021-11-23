@@ -26,12 +26,12 @@ except Exception:
 from contextlib import contextmanager
 from datetime import datetime
 
-from pyqgiswps.app.WPSResponse import STATUS
+from pyqgiswps.app.request import STATUS
 from pyqgiswps.logger import logfile_context
 from pyqgiswps.utils.lru import lrucache
 from pyqgiswps.exceptions import (NoApplicableCode, ProcessException)
 from pyqgiswps.config import confservice
-from pyqgiswps.app.Process import WPSProcess
+from pyqgiswps.app.process import WPSProcess
 
 from pyqgiswps.poolserver.client import (create_client, 
                                          RequestBackendError, 

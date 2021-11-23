@@ -22,9 +22,9 @@ from pyqgiswps.executors.io import datetimeio
 from pyqgiswps.inout import (LiteralInput,
                              LiteralOutput)
 
-from pyqgiswps import OGCTYPE
+from pyqgiswps.ogc import OGCTYPE
 
-from pyqgiswps.app import WPSRequest
+from pyqgiswps.app.request import WPSRequest
 
 from qgis.PyQt.QtCore import Qt, QDateTime, QDate, QTime
 from qgis.core import (QgsProcessingContext,

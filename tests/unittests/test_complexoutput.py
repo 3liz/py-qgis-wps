@@ -1,14 +1,14 @@
 
-from pyqgiswps.app.Common import Metadata
+from pyqgiswps.app.common import Metadata
 from pyqgiswps.inout.formats import Format
 from pyqgiswps.inout import (LiteralInput,
-                        ComplexInput,
-                        BoundingBoxInput,
-                        LiteralOutput,
-                        ComplexOutput,
-                        BoundingBoxOutput)
+                             ComplexInput,
+                             BoundingBoxInput,
+                             LiteralOutput,
+                             ComplexOutput,
+                             BoundingBoxOutput)
 
-from pyqgiswps import WPS, OWS
+from pyqgiswps.ogc.ows import WPS, OWS
 
 def test_complex_output_href():
     """ Test external reference in complex output 
