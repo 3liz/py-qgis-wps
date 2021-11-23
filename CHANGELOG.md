@@ -1,7 +1,14 @@
 # Changes
 
 ## Unreleased
-* Use PyTest `log-cli-*` options for enabling logger output" 
+
+* Fix BoundingBox input
+    * Fix crs from bounding box input
+    * Allow bounding box as kvp input data
+* Refactorize OWS requests
+    * Allow support for multiple formats
+* Clean dead code 
+* Use PyTest `log-cli-*` options for enabling logger output"  
 
 ## 1.6.5 - 2021-09-21
 

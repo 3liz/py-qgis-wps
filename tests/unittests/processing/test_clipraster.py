@@ -53,7 +53,7 @@ class TestsClipRaster(HTTPTestCase):
                                'OUTPUT=clipped_layer')
 
         rv = self.client.get(uri, path='')
-        assert rv.status_code == 400
+        assert rv.status_code == 200
 
     def test_execute_request_post(self):
         """ Test processing executor 'Execute' request

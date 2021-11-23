@@ -321,8 +321,20 @@ class BasicBoundingBox:
         self.crss = crss or ['epsg:4326']
         self.crs = self.crss[0]
         self.dimensions = dimensions
-        self.ll = []
-        self.ur = []
+        self._data = None
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        if isinstance(value, list):
+            self._data = [float(number) for number in value]
+        elif isinstance(value, str):
+            self._data = [float(number) for number in value.split(',')[:4]]
+        else:
+            self._data = None
 
 
 class LiteralInput(BasicIO, BasicLiteral, SimpleHandler):
@@ -420,7 +432,7 @@ class BBoxInput(BasicIO, BasicBoundingBox, IOHandler):
             'abstract': self.abstract,
             'type': 'bbox',
             'crs': self.crss,
-            'bbox': (self.ll, self.ur),
+            'bbox': self.data,
             'dimensions': self.dimensions,
             'mode': self.valid_mode
         }

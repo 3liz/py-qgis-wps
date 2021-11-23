@@ -252,8 +252,7 @@ class TestBoxInput:
 
     def setup_method(self, me):
         self.bbox_input = BBoxInput("bboxinput", dimensions=2)
-        self.bbox_input.ll = [0, 1]
-        self.bbox_input.ur = [2, 4]
+        self.bbox_input.data = [0, 1, 2, 4]
 
     def test_contruct(self):
         assert isinstance(self.bbox_input, BBoxInput)
@@ -265,7 +264,7 @@ class TestBoxInput:
         assert not out['title'], 'title exists'
         assert not out['abstract'], 'abstract set'
         assert out['type'] == 'bbox', 'type set'
-        assert out['bbox'] == ([0, 1], [2, 4]), 'data are there'
+        assert out['bbox'] == [0., 1., 2., 4.], 'data are there'
         assert out['dimensions'] == 2, 'Dimensions set'
 
 

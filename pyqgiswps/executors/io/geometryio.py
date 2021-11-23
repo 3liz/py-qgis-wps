@@ -64,14 +64,14 @@ def parse_extent_input( param: QgsProcessingParameterDefinition, kwargs,
         # Return a QgsCoordinateReferenceSystem
         crs = project.crs()
         if crs and crs.isValid():
-            crss = crs.authid()
+            crsid = crs.authid()
     else:
         # Default CRS
-        crss = 'EPSG:4326'
+        crsid = 'EPSG:4326'
 
     # XXX This is the default, do not presume anything
     # about effective crs at compute time
-    kwargs['crss'] = [crss]
+    kwargs['crss'] = [crsid]
     return BoundingBoxInput(**kwargs)
 
 
@@ -196,7 +196,7 @@ def input_to_extent( inp: WPSInput ) -> Any:
     """ Convert to extent 
     """
     r = inp.data
-    rect  = QgsRectangle(float(r[0]),float(r[1]),float(r[2]),float(r[3]))
+    rect  = QgsRectangle(r[0],r[1],r[2],r[3])
     ref   = QgsCoordinateReferenceSystem(inp.crs)
     return QgsReferencedRectangle(rect, ref)
 

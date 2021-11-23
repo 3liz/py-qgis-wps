@@ -22,7 +22,6 @@ from pyqgiswps.inout.literaltypes import JsonValue
 from pyqgiswps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
 from pyqgiswps.executors.logstore import STATUS
 from pyqgiswps.executors.processingexecutor import ProcessingExecutor, UnknownProcessError
-from pyqgiswps.owsutils.ows import BoundingBox
 
 from collections import deque
 import os
@@ -271,19 +270,22 @@ class Service():
     def create_bbox_inputs(self, source: BoundingBoxInput, 
                            inputs: Iterable[JsonValue]) -> Iterable[BoundingBoxInput]:
         """ Takes the http_request and parses the input to objects
-        :return collections.deque:
+            :return collections.deque:
         """
-
         outinputs = deque(maxlen=source.max_occurs)
 
-        for datainput in inputs:
-
-            if not isinstance(datainput, BoundingBox):
-                raise InvalidParameterValue("Invalid value for parameter '{source.identifier}'")
-
+        for inpt in inputs:
             newinpt = source.clone()
-            newinpt.data = [datainput.minx, datainput.miny,
-                            datainput.maxx, datainput.maxy]
+            newinpt.data = inpt.get('data')
+
+            crs = inpt.get('crs')
+            if crs:
+                newinpt.crs = crs
+            dimensions = inpt.get('dimensions')
+
+            if dimensions:
+                newinpt.dimensions = dimensions
+                
             outinputs.append(newinpt)
 
         if len(outinputs) < source.min_occurs:

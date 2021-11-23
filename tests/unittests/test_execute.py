@@ -19,7 +19,7 @@ from pyqgiswps.validator.base import emptyvalidator
 from pyqgiswps.validator.complexvalidator import validategml
 from pyqgiswps.exceptions import InvalidParameterValue
 
-from pyqgiswps.ogc.ows.schema import E, OWS, WPS, xpath_ns, BoundingBox
+from pyqgiswps.ogc.ows.schema import E, OWS, WPS, xpath_ns
 from pyqgiswps.ogc.ows.request import get_inputs_from_xml, get_output_from_xml
 
 from pyqgiswps.tests import HTTPTestCase, assert_response_success
@@ -56,7 +56,7 @@ def bbox_process(request, response):
     coords = request.inputs['mybbox'][0].data
     assert type(coords) == type([])
     assert len(coords) == 4
-    assert coords[0] == '15'
+    assert coords[0] == float(15)
     response.outputs['outbbox'].data = coords
     return response
 
@@ -145,7 +145,7 @@ class ExecuteTest(HTTPTestCase):
         assert_response_success(resp)
         assert get_output(resp.xml) == {'message': "Hello foo!"}
 
-    def test_bbox(self):
+    def test_bbox_io(self):
         request_doc = WPS.Execute(
             OWS.Identifier('my_bbox_process'),
             WPS.DataInputs(
@@ -166,7 +166,7 @@ class ExecuteTest(HTTPTestCase):
                                    '/wps:ProcessOutputs/Output')
         self.assertEqual('outbbox', xpath_ns(output,
             './ows:Identifier')[0].text)
-        self.assertEqual('15 50', xpath_ns(output,
+        self.assertEqual('15.0 50.0', xpath_ns(output,
             './ows:BoundingBox/ows:LowerCorner')[0].text)
 
 #
@@ -272,12 +272,12 @@ def test_bbox_input():
                         OWS.LowerCorner('40 50'),
                         OWS.UpperCorner('60 70'))))))
     rv = get_inputs_from_xml(request_doc)
-    bbox = rv['bbox'][0]
-    assert isinstance(bbox, BoundingBox)
-    assert bbox.minx == '40'
-    assert bbox.miny == '50'
-    assert bbox.maxx == '60'
-    assert bbox.maxy == '70'
+    bbox = rv['bbox'][0]['data']
+    assert isinstance(bbox, list)
+    assert bbox[0] == '40'
+    assert bbox[1] == '50'
+    assert bbox[2] == '60'
+    assert bbox[3] == '70'
 
 
 def test_reference_post_input():

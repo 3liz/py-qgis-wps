@@ -649,7 +649,13 @@ def get_inputs_from_xml(doc):
             for bbox_data in bbox_datas:
                 bbox_data_el = bbox_data
                 bbox = BoundingBox(bbox_data_el)
-                the_inputs[identifier].append(bbox)
+                inpt = {}
+                inpt['identifier'] = identifier_el.text
+                inpt['data'] = [bbox.minx, bbox.miny, bbox.maxx, bbox.maxy]
+                inpt['dimensions'] = bbox.dimensions
+                if bbox.crs:
+                    inpt['crs'] = bbox.crs.id
+                the_inputs[identifier].append(inpt)
     return the_inputs
 
 
