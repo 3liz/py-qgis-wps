@@ -57,7 +57,6 @@ class _Client:
         self._running  = False
         self._handlers = {}
         self._socket   = socket
-        self._loop     = asyncio.get_event_loop()
         self._maxqueue = maxqueue
 
         # Get track of available workers
@@ -167,7 +166,7 @@ class _Client:
             LOGGER.error("%s (%s)", zmq.strerror(err.errno), err.errno)
             raise RequestGatewayError()
 
-        handler = self._loop.create_future()
+        handler = asyncio.get_running_loop().create_future()
 
         try:
             self._handlers[correlation_id] = handler
