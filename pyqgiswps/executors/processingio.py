@@ -26,7 +26,8 @@ from qgis.core import (QgsProcessingAlgorithm,
                        QgsProcessingParameterDefinition,
                        QgsProcessingParameterNumber,
                        QgsProcessingOutputDefinition,
-                       QgsProcessingParameterField)
+                       QgsProcessingParameterField,
+                       QgsUnitTypes)
 
 from .processingcontext import MapContext, ProcessingContext
 
@@ -54,6 +55,12 @@ def _is_optional( param: QgsProcessingParameterDefinition ) -> bool:
 
 def _is_hidden( param: QgsProcessingParameterDefinition ) -> bool:
     return (int(param.flags()) & QgsProcessingParameterDefinition.FlagHidden) !=0
+
+def _number_data_type( param: QgsProcessingParameterNumber ) -> str:
+    return { 
+        QgsProcessingParameterNumber.Double :'float',
+        QgsProcessingParameterNumber.Integer:'integer',
+    }[param.dataType()]
 
 
 # ==================
@@ -88,11 +95,25 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
             kwargs['default'] = options[default_value]
 
     elif typ == 'number':
-        kwargs['data_type'] = { 
-            QgsProcessingParameterNumber.Double :'float',
-            QgsProcessingParameterNumber.Integer:'integer',
-        }[param.dataType()]
+        kwargs['data_type'] = _number_data_type(param)
         kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
+    elif typ == 'distance':
+        kwargs['data_type'] = 'length'
+        kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
+        kwargs['metadata'].extend((
+            Metadata('processing:parentParameterName', param.parentParameterName()),
+            Metadata('processing:defaultUnit', QgsUnitTypes.toString(param.defaultUnit())),
+        ))
+    elif typ == 'scale':
+        kwargs['data_type'] = 'scale'
+        kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
+    elif typ == 'duration':
+        # XXX OGC duration is defined as time dataType
+        kwargs['data_type'] = 'time'
+        kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
+        kwargs['metadata'].append(
+            Metadata('processing:defaultUnit', QgsUnitTypes.toString(param.defaultUnit())),
+        )
     elif typ =='field':
         kwargs['data_type'] = 'string'
         kwargs['metadata'].append(Metadata('processing:parentLayerParameterName',

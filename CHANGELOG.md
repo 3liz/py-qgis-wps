@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Add support for inputs:
+    * 'Mesh' layer parameter
+    * QgsProcessingParameterDistance
+    * QgsProcessingParameterDuration
+    * QgsProcessingParameterScale
 * Fix BoundingBox input
     * Fix crs from bounding box input
     * Allow bounding box as kvp input data

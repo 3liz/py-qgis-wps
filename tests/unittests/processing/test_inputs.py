@@ -34,6 +34,9 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterDefinition,
                        QgsProcessingParameterNumber,
                        QgsProcessingParameterEnum,
+                       QgsProcessingParameterDuration,
+                       QgsProcessingParameterDistance,
+                       QgsProcessingParameterScale,
                        QgsProcessingOutputLayerDefinition,
                        QgsProcessingOutputHtml,
                        QgsProcessingOutputFile,
@@ -49,9 +52,20 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingUtils,
                        QgsProcessingFeedback,
                        QgsProcessingContext,
-                       QgsProject)
+                       QgsProject,
+                       QgsUnitTypes)
 
 from processing.core.Processing import Processing
+
+
+def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
+    if maxOccurence is None:
+        maxOccurence = minOccurence
+    assert minOccurence <= maxOccurence
+    m = list(filter(lambda m: m.title == name, inp.metadata))
+    assert len(m) >= minOccurence
+    assert len(m) <= maxOccurence
+    return m
 
 
 def test_literal_input():
@@ -70,6 +84,54 @@ def test_literal_input():
     assert inp.allowed_values[0].maxval == param.maximum()
     assert inp.default == param.defaultValue()
 
+
+def test_scale_input():
+    param = QgsProcessingParameterScale("TEST", "LiteralScale", defaultValue=2.0)
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp, LiteralInput)
+    assert inp.identifier == "TEST"
+    assert inp.data_type == "scale"
+    assert len(inp.allowed_values) == 1
+    assert inp.default == param.defaultValue()
+
+
+def test_distance_input():
+    param = QgsProcessingParameterDistance("TEST", "LiteralDistance", 
+            defaultValue=2.0,
+            minValue=1.0,
+            maxValue=100.0)
+    param.setDefaultUnit(QgsUnitTypes.DistanceMeters)
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp, LiteralInput)
+    assert inp.identifier == "TEST"
+    assert inp.data_type == "length"
+    assert len(inp.allowed_values) == 1
+    assert inp.default == param.defaultValue()
+    assert inp.allowed_values[0].allowed_type == ALLOWEDVALUETYPE.RANGE
+    assert inp.allowed_values[0].minval == param.minimum()
+    assert inp.allowed_values[0].maxval == param.maximum()
+    assert get_metadata(inp,'processing:defaultUnit')[0].href == QgsUnitTypes.toString(param.defaultUnit())
+
+
+def test_duration_input():
+    param = QgsProcessingParameterDuration("TEST", "LiteralDuration", 
+            defaultValue=2.0,
+            minValue=1.0,
+            maxValue=100.0)
+    param.setDefaultUnit(QgsUnitTypes.TemporalSeconds)
+    inp = parse_input_definition(param)
+
+    assert isinstance(inp, LiteralInput)
+    assert inp.identifier == "TEST"
+    assert inp.data_type == "time"
+    assert len(inp.allowed_values) == 1
+    assert inp.default == param.defaultValue()
+    assert inp.allowed_values[0].allowed_type == ALLOWEDVALUETYPE.RANGE
+    assert inp.allowed_values[0].minval == param.minimum()
+    assert inp.allowed_values[0].maxval == param.maximum()
+    assert get_metadata(inp,'processing:defaultUnit')[0].href == QgsUnitTypes.toString(param.defaultUnit())
 
 
 def test_options_input():
@@ -238,15 +300,6 @@ def test_input_title():
     assert inp.title == input_title
     assert inp.abstract == input_abstract
 
-
-def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
-    if maxOccurence is None:
-        maxOccurence = minOccurence
-    assert minOccurence <= maxOccurence
-    m = list(filter(lambda m: m.title == name, inp.metadata))
-    assert len(m) >= minOccurence
-    assert len(m) <= maxOccurence
-    return m
 
 
 def test_output_multiple_layers(outputdir, data):

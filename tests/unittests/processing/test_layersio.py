@@ -14,7 +14,8 @@ from qgis.core import (QgsProcessingContext,
                        QgsProcessingParameterVectorLayer,
                        QgsProcessingParameterVectorDestination,
                        QgsProcessingParameterRasterDestination,
-                       QgsProcessingOutputLayerDefinition)
+                       QgsProcessingParameterMeshLayer,
+                       QgsProcessingOutputLayerDefinition,)
 
 
 from pyqgiswps.executors.io import layersio
@@ -33,6 +34,16 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                                   InvalidParameterValue,
                                   MissingParameterValue,
                                   ProcessException)
+
+def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
+    if maxOccurence is None:
+        maxOccurence = minOccurence
+    assert minOccurence <= maxOccurence
+    m = list(filter(lambda m: m.title == name, inp.metadata))
+    assert len(m) >= minOccurence
+    assert len(m) <= maxOccurence
+    return m
+
 
 
 def test_layer_scheme():
@@ -148,4 +159,17 @@ def test_layer_destination():
         assert value.destinationName == 'foobaz'
         assert value.sink.staticValue() == 'postgres://service=foobar'
 
-        
+    
+def test_mesh_layer():
+    param = QgsProcessingParameterMeshLayer("LAYER", "")
+
+    inp = parse_input_definition(param)
+    inp.data = "layer:layername"
+
+    assert get_metadata(inp, "processing:dataTypes")[0].href == "TypeMesh" 
+
+    context = QgsProcessingContext()
+
+    value = layersio.get_processing_value( param, [inp], context)
+    assert value == "layername"
+

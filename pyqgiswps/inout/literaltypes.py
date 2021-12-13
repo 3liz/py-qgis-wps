@@ -43,7 +43,7 @@ LiteralNumeric = TypeVar('LiteralNumeric',int,float)
 # Literal data types
 LITERAL_DATA_TYPES = ('float', 'boolean', 'integer', 'string',
                       'positiveInteger', 'anyURI', 'time', 'date', 'dateTime',
-                      'scale', 'angle',
+                      'scale', 'angle','length',
                       'nonNegativeInteger')
 
 

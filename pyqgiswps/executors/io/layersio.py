@@ -19,6 +19,7 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterMapLayer,
                        QgsProcessingParameterRasterLayer,
                        QgsProcessingParameterVectorLayer,
+                       QgsProcessingParameterMeshLayer,
                        QgsProcessingFeatureSourceDefinition,
                        QgsProcessingOutputDefinition,
                        QgsProcessingOutputLayerDefinition,
@@ -81,7 +82,8 @@ OUTPUT_LAYER_TYPES = ( QgsProcessingOutputVectorLayer,
 
 INPUT_VECTOR_LAYER_TYPES = (QgsProcessingParameterVectorLayer, QgsProcessingParameterFeatureSource)
 INPUT_RASTER_LAYER_TYPES = (QgsProcessingParameterRasterLayer,)
-INPUT_OTHER_LAYER_TYPES  = (QgsProcessingParameterMapLayer, QgsProcessingParameterMultipleLayers)
+INPUT_OTHER_LAYER_TYPES  = (QgsProcessingParameterMapLayer, QgsProcessingParameterMultipleLayers, 
+                            QgsProcessingParameterMeshLayer)
 
 INPUT_LAYER_TYPES = INPUT_VECTOR_LAYER_TYPES + INPUT_RASTER_LAYER_TYPES + INPUT_OTHER_LAYER_TYPES
 
@@ -96,6 +98,7 @@ SourceTypes = {
     QgsProcessing.TypeRaster: 'TypeRaster',
     QgsProcessing.TypeFile: 'TypeFile',
     QgsProcessing.TypeVector: 'TypeVector',
+    QgsProcessing.TypeMesh: 'TypeMesh',
 }
 
 # Allowed inputs formats
@@ -118,13 +121,15 @@ def get_layers_type(param: QgsProcessingParameterDefinition,  kwargs) -> None:
     if isinstance(param, QgsProcessingParameterLimitedDataTypes):
         datatypes = param.dataTypes()
 
-    if not datatypes: 
+    if not datatypes:
         if isinstance(param, INPUT_VECTOR_LAYER_TYPES):
             datatypes = [QgsProcessing.TypeVector]
         elif isinstance(param, INPUT_RASTER_LAYER_TYPES):
             datatypes = [QgsProcessing.TypeRaster]
         elif isinstance( param, QgsProcessingParameterMultipleLayers):
             datatypes = [param.layerType()]
+        elif isinstance( param, QgsProcessingParameterMeshLayer):
+            datatypes = [QgsProcessing.TypeMesh]
         else:
             datatypes = [QgsProcessing.TypeMapLayer]
 
@@ -148,9 +153,12 @@ def get_layers_from_context(kwargs, context: MapContext, datatypes) -> None:
                 or (geomtype == QgsWkbTypes.PolygonGeometry   and QgsProcessing.TypeVectorPolygon in datatypes) \
                 or QgsProcessing.TypeVectorAnyGeometry in datatypes \
                 or QgsProcessing.TypeVector in datatypes \
-                or QgsProcessing.TypeMapLayer in datatypes
+                or  QgsProcessing.TypeMapLayer in datatypes
         elif lyr.type() == QgsMapLayer.RasterLayer: 
             return QgsProcessing.TypeRaster in datatypes \
+                or QgsProcessing.TypeMapLayer in datatypes
+        elif lyr.type() == QgsMapLayer.MeshLayer:
+            return QgsProcessing.TypeMesh in datatypes \
                 or QgsProcessing.TypeMapLayer in datatypes
         return False
             
