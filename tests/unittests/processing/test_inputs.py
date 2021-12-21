@@ -1,6 +1,7 @@
 """ Test parsing processing itputs to WPS inputs
 """
-import os
+import pytest
+
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs, urlencode
 
@@ -27,14 +28,11 @@ from pyqgiswps.executors.processingio import(
 
 from pyqgiswps.executors.processingprocess import _find_algorithm
 
-from pyqgiswps.utils.qgis import version_info as qgis_version_info
-
-from qgis.core import QgsApplication
+from qgis.core import Qgis, QgsApplication
 from qgis.core import (QgsProcessing,
                        QgsProcessingParameterDefinition,
                        QgsProcessingParameterNumber,
                        QgsProcessingParameterEnum,
-                       QgsProcessingParameterDuration,
                        QgsProcessingParameterDistance,
                        QgsProcessingParameterScale,
                        QgsProcessingOutputLayerDefinition,
@@ -114,8 +112,10 @@ def test_distance_input():
     assert inp.allowed_values[0].maxval == param.maximum()
     assert get_metadata(inp,'processing:defaultUnit')[0].href == QgsUnitTypes.toString(param.defaultUnit())
 
-
+@pytest.mark.skipif(Qgis.QGIS_VERSION_INT < 32200, reason="requires qgis 3.22+")
 def test_duration_input():
+    from qgis.core import QgsProcessingParameterDuration
+
     param = QgsProcessingParameterDuration("TEST", "LiteralDuration", 
             defaultValue=2.0,
             minValue=1.0,
