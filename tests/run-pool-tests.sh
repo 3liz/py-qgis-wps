@@ -2,14 +2,21 @@
 
 set -e
 
-# Add /.local to path
-export PATH=$PATH:/.local/bin
-
 echo "-- HOME is $HOME"
 
-pip3 install -U --user setuptools
-pip3 install --no-warn-script-location --user --prefer-binary -r requirements.txt
-pip3 install --user -e ./ 
+VENV_PATH=/.local/venv
 
-python3 -m pyqgiswps.poolserver
+PIP="$VENV_PATH/bin/pip"
+PIP_INSTALL="$VENV_PATH/bin/pip install -U"
+
+echo "-- Creating virtualenv"
+python3 -m venv --system-site-packages $VENV_PATH
+
+echo "-- Installing required packages..."
+$PIP_INSTALL -q pip setuptools wheel
+$PIP_INSTALL -q --prefer-binary -r requirements.txt
+
+$PIP install -e .
+
+$VENV_PATH/bin/python3 -m pyqgiswps.poolserver
 

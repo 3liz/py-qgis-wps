@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+* Install server in venv in docker image
 * Add support for inputs:
     * 'Mesh' layer parameter
     * QgsProcessingParameterDistance

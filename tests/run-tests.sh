@@ -2,16 +2,22 @@
 
 set -e
 
-# Add /.local to path
-export PATH=$PATH:/.local/bin
-
 echo "-- HOME is $HOME"
 
-pip3 install -U --user setuptools
-pip3 install --no-warn-script-location --user --prefer-binary -r requirements.pip
-pip3 install --no-warn-script-location --user --prefer-binary -r requirements.txt 
+VENV_PATH=/.local/venv
 
-pip3 install --user -e ./ 
+PIP="$VENV_PATH/bin/pip"
+PIP_INSTALL="$VENV_PATH/bin/pip install -U"
+
+echo "-- Creating virtualenv"
+python3 -m venv --system-site-packages $VENV_PATH
+
+echo "-- Installing required packages..."
+$PIP_INSTALL -q pip setuptools wheel
+$PIP_INSTALL -q --prefer-binary -r requirements.pip
+$PIP_INSTALL -q --prefer-binary -r requirements.txt
+
+$PIP install -e ./ 
 
 export QGIS_DISABLE_MESSAGE_HOOKS=1
 export QGIS_NO_OVERRIDE_IMPORT=1
@@ -21,5 +27,5 @@ export QGSWPS_SERVER_PROCESSLIFECYCLE=0
 
 export PYTHONFAULTHANDLER=1
 
-cd tests/unittests && pytest -v $@
+cd tests/unittests && $VENV_PATH/bin/pytest -v $@
 

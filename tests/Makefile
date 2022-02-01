@@ -54,7 +54,7 @@ test: local
 WORKERS:=1
 
 stop:
-	docker-compose down -v --remove-orphans
+	docker compose down -v --remove-orphans
 
 run: stop local
 	mkdir -p $$(pwd)/__workdir__
@@ -65,7 +65,7 @@ run: stop local
     SRCDIR=$(SRCDIR) \
     PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
     RUN_COMMAND=/src/tests/run-server.sh \
-    && docker-compose up     
+    && docker compose up     
 
 # Run tests with real redis to test asynchronous
 # behavior  
@@ -78,7 +78,7 @@ test-async: stop local
     SRCDIR=$(SRCDIR) \
     PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
     RUN_COMMAND=/src/tests/run-tests.sh \
-    && docker-compose up     
+    && docker compose up     
 
 
 test-pool: local
