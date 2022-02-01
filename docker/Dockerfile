@@ -27,7 +27,7 @@ RUN mkdir -p /opt/local/ \
         pandas \
         Jinja2 \
     && /opt/local/pyqgiswps/bin/pip install --no-cache-dir $PIP_OPTIONS   \
-        "py-qgis-server==${BUILD_VERSION}" \
+        "py-qgis-wps==${BUILD_VERSION}" \
         "pyqgiservercontrib-lizmap-access-policy" \
     && ln -s /opt/local/servicemngr/bin/wpsserver \
     && ln -s /opt/local/servicemngr/bin/wpsserver-check \
