@@ -2,7 +2,7 @@
 set -e
 
 if [[ "$1" == "version" ]]; then
-    version=`pip3 list | grep qgis-wps | tr -s [:blank:] | cut -d ' ' -f 2`
+    version=`/opt/local/pyqgiswps/bin/pip list | grep qgis-wps | tr -s [:blank:] | cut -d ' ' -f 2`
     qgis_version=`python3 -c "from qgis.core import Qgis; print(Qgis.QGIS_VERSION.split('-')[0])"`
     # Strip the 'rc' from the version
     # An 'rc' version is not released so as a docker image the rc is not relevant 

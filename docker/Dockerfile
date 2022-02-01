@@ -29,8 +29,8 @@ RUN mkdir -p /opt/local/ \
     && /opt/local/pyqgiswps/bin/pip install --no-cache-dir $PIP_OPTIONS   \
         "py-qgis-wps==${BUILD_VERSION}" \
         "pyqgiservercontrib-lizmap-access-policy" \
-    && ln -s /opt/local/servicemngr/bin/wpsserver \
-    && ln -s /opt/local/servicemngr/bin/wpsserver-check \
+    && ln -s /opt/local/pyqgiswps/bin/wpsserver \
+    && ln -s /opt/local/pyqgiswps/bin/wpsserver-check \
     && rm -rf /root/.cache /root/.ccache
 
 COPY /docker-entrypoint.sh /
