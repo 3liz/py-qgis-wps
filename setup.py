@@ -22,6 +22,9 @@ DESCRIPTION = ('Py-Qgis-WPS is an implementation of the Web Processing Service '
 KEYWORDS = 'QGIS WPS OGC processing'
 INSTALL_REQUIRES = parse_requirements('requirements.txt')
 
+with open('README.md') as f:
+    content_readme = f.read()
+
 setup(
     name='py-qgis-wps',
     version=VERSION,
@@ -31,6 +34,8 @@ setup(
     author_email='david.marteau@3liz.com',
     maintainer='David Marteau',
     maintainer_email='david.marteau@3liz.com',
+    long_description=content_readme,
+    long_description_content_type="text/markdown",
     url='https://github.com/3liz/py-qgis-wps',
     python_requires=">=3.6",
     classifiers=[
