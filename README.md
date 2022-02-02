@@ -1,5 +1,9 @@
 # Py-QGIS-WPS 
 
+[![PyPi version badge](https://badgen.net/pypi/v/py-qgis-wps)](https://pypi.org/project/py-qgis-wps/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/py-qgis-wps)](https://pypi.org/project/py-qgis-wps/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/py-qgis-wps)](https://pypi.org/project/py-qgis-wps/)
+
 Py-QGIS-WPS is an implementation of the [Web Processing Service](https://www.ogc.org/standards/wps)
 standard from the Open Geospatial Consortium based on the QGIS Processing API.
 
