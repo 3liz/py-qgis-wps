@@ -12,10 +12,9 @@ It is written in Python and is a fork of [PyWPS](https://pywps.org/).
 
 Requirements and limitations :
 
-- Python 3.5+ only
+- Python 3.6 minimum
 - Windows not officially supported
 - Redis server 
-
 
 # Documentation
 
@@ -137,10 +136,10 @@ Install in development mode
 pip install -e .
 ```
 
-## From python package archive
+## From python package server
 
 ```bash
-pip install py-qgis-wps-X.Y.Z.tar.gz
+pip install py-qgis-wps
 ```
 
 # Running the server
