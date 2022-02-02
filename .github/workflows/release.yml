@@ -47,10 +47,12 @@ jobs:
           python setup.py sdist
 
       - name: Create release on GitHub
-        uses: ncipollo/release-action@v1.8.8
+        uses: ncipollo/release-action@v1.9.0
         with:
           bodyFile: release.md
           token: ${{ secrets.BOT_HUB_TOKEN }}
+          allowUpdates: true
+          artifacts: "dist/*.tar.gz"
 
       - name: Deploy to PyPI
         uses: pypa/gh-action-pypi-publish@master
