@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.6.7 - 2021-02-01
+
 * Release the package on https://pypi.org/
 
 ## 1.6.6 - 2021-02-01
