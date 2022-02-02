@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Release the package on https://pypi.org/
+
 ## 1.6.6 - 2021-02-01
 
 * Install server in venv in docker image
