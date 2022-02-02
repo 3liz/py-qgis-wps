@@ -98,7 +98,7 @@ http://localhost:8080/ows/status/<uuid>?SERVICE=WPS
 
 ## WPS input/output layer mapping
 
-With Qgis desktop , Qgis processing algorithms usually apply on a Qgis  source project and computed layers are displayed in the same context as the source project. 
+With QGIS desktop, QGIS processing algorithms usually apply on a QGIS source project and computed layers are displayed in the same context as the source project. 
 
 Py-qgis-wps works the same way: a qgis project will be used as a source of input layers. 
 The difference is that, when an algorithm runs, it creates a qgis project file associated to the current task and register computed layers to it.  
@@ -113,7 +113,7 @@ Tasks parameters are contextualized using the `MAP` query param. If a `MAP` para
 doing a `DescripProcess` requests, allowed values for input layers will be taken from the qgis source project
 according the type of the input layers.  
 
-Qgis project (.qgs) files and project stored in Postgres databases are both supported.
+QGIS project (.qgs) files and project stored in Postgres databases are both supported.
 
 The best practice is to always provide a `MAP` parameters and include the possible input layer in a qgs project. This way you
 may connect whatever data source supported by qgis and use them as input data in a safe way.
@@ -264,14 +264,12 @@ def WPSClassFactory(iface: WPSServerInterface) -> Any:
 
 ## Controlling what is exposed:
 
-Processing algorithm with the flag [FlagHideFromToolbox](https://qgis.org/pyqgis/3.0/core/Processing/QgsProcessingAlgorithm.html#qgis.core.QgsProcessingAlgorithm.FlagHideFromToolbox) set will not be exposed as WPS process.  
+Processing algorithm with the flag [FlagHideFromToolbox](https://qgis.org/pyqgis/latest/core/QgsProcessingAlgorithm.html#qgis.core.QgsProcessingAlgorithm.FlagHideFromToolbox) set will not be exposed as WPS process.
 
-Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden) set won't be exposed in a `DescribeProcess` request
+Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/latest/core/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden) set won't be exposed in a `DescribeProcess` request
 
 # References
 
 * [OGC standards](https://www.ogc.org/standards)
 * [Introduction to WPS](http://opengeospatial.github.io/e-learning/wps/text/basic-index.html)
 * [Py-qgis-server at FOSS4G 2019](https://www.youtube.com/watch?v=YL1tdcJwimA).
-
-
