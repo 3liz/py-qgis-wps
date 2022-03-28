@@ -18,15 +18,7 @@ from pyqgiswps.config import confservice
 
 LOGGER = logging.getLogger('SRVLOG')
 
-##
-## Use fakeredis for unittests
-##
-use_fakeredis = os.getenv('FAKEREDIS','').lower() in ('1','yes','y','true')
-if use_fakeredis:
-    import fakeredis
-else:
-    import redis
-
+import redis
 
 def utcnow():
     return datetime.utcnow().replace(microsecond=0)
@@ -211,14 +203,10 @@ class LogStore:
         self._prefix  = cfg.get('prefix',fallback='pyggiswps')
         self._hstatus = "%s:status"  % self._prefix
 
-        if use_fakeredis:
-            LOGGER.warning("LOGSTORE: Simulating REDIS connection")
-            self._db  = fakeredis.FakeStrictRedis()
-        else:
-            self._db  = redis.StrictRedis(
-                host = cfg.get('host',fallback='localhost'),
-                port = cfg.getint('port' , fallback=6379),
-                db   = cfg.getint('dbnum', fallback=0))
+        self._db  = redis.StrictRedis(
+            host = cfg.get('host',fallback='localhost'),
+            port = cfg.getint('port' , fallback=6379),
+            db   = cfg.getint('dbnum', fallback=0))
 
 
 #

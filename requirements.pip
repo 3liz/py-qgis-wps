@@ -1,5 +1,4 @@
 setuptools
 coverage
 pytest
-fakeredis
 

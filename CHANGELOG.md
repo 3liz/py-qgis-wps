@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Remove fakeredis dependency
+* Use docker compose for tests
+
 ## 1.6.7 - 2021-02-01
 
 * Release the package on https://pypi.org/
