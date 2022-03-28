@@ -2,8 +2,6 @@
 
     See http://redis-py.readthedocs.io/en/latest/
 """
-
-import os
 import json
 import logging
 
@@ -15,10 +13,10 @@ from enum import IntEnum
 
 from pyqgiswps.config import confservice
 
+import redis
 
 LOGGER = logging.getLogger('SRVLOG')
 
-import redis
 
 def utcnow():
     return datetime.utcnow().replace(microsecond=0)
