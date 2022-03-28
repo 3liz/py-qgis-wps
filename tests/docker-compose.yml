@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 services:
   wps:
     image: ${QGIS_IMAGE}
@@ -15,14 +15,19 @@ services:
       QGSWPS_LOGLEVEL: DEBUG
       QGSWPS_REDIS_HOST: redis
       PYTEST_ADDOPTS: ${PYTEST_ADDOPTS}
-    user: ${BECOME_USER}
+    user: "${BECOME_USER}:${BECOME_USER}"
     volumes:
       - ${SRCDIR}:/src
       - ${PWD}/.local:/.local
-      - ${LOCAL_HOME}/.cache:/.cache
+      - ${PWD}/.cache:/.cache
       - ${PWD}/__workdir__:/srv/data
     ports:
       - 127.0.0.1:8888:8080
+    deploy:
+        resources:
+            limits:
+                cpus: ${CPU_LIMITS}
+                memory: ${MEMORY_LIMITS}
   redis:
-      image: redis:5-alpine
+     image: redis:5-alpine
 

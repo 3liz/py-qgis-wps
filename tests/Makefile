@@ -1,4 +1,6 @@
 SHELL:=bash
+.ONESHELL:
+.PHONY: env
 #
 #  Makefile for running server in docker containers
 #
@@ -17,76 +19,51 @@ BECOME_USER:=$(shell id -u)
 
 SERVER_HTTP_PORT:=127.0.0.1:8888
 
-ifndef LOCAL_HOME
-LOCAL_HOME=$(shell pwd)
-endif
-
 SRCDIR=$(shell realpath ..)
 
 local:
-	rm -rf $$(pwd)/.local
-	mkdir -p  $$(pwd)/.local  $(LOCAL_HOME)/.cache
+	rm -rf unittests/__outputdir__/*
+	mkdir -p $$(pwd)/__workdir__
+	mkdir -p  $$(pwd)/.local  $$(pwd)/.cache
+
+clean:
+	rm -rf $$(pwd)/.local $$(pwd)/.cache
 
 TESTS_CPU_LIMITS:=2.0
 TESTS_MEMORY_LIMITS:=2g
 
-test: local
-	rm -rf unittests/__outputdir__/* $$(pwd)/__workdir__/*
-	mkdir -p $$(pwd)/__workdir__
-	docker run --rm --name qgis-wps-test-$(FLAVOR)-$(COMMITID) -w /src \
-    --cpus $(TESTS_CPU_LIMITS) \
-    --memory $(TESTS_MEMORY_LIMITS) \
-    -u $(BECOME_USER) \
-    -v $(SRCDIR):/src \
-    -v $$(pwd)/.local:/.local \
-	-v $$(pwd)/__workdir__:/srv/data \
-    -v $(LOCAL_HOME)/.cache:/.cache \
-    -e FAKEREDIS=yes \
-    -e PIP_CACHE_DIR=/.cache \
-    -e PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
-    -e QGSWPS_CACHE_ROOTDIR=/src/tests/unittests/data \
-    -e QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH=/src/tests/unittests \
-    -e QGSWPS_SERVER_WORKDIR=/srv/data \
-    -e QGIS_OPTIONS_PATH=/src/tests/qgis \
-    $(QGIS_IMAGE) /src/tests/run-tests.sh
-
-
 WORKERS:=1
+
+env: local
+	@echo "Creating environment file for docker-compose"
+	@cat <<-EOF > .env
+		BECOME_USER=$(BECOME_USER)
+		QGIS_IMAGE=$(QGIS_IMAGE)
+		WORKERS=$(WORKERS)
+		SRCDIR=$(SRCDIR)
+		PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)"
+		CPU_LIMITS=$(TESTS_CPU_LIMITS)
+		MEMORY_LIMITS=$(TESTS_MEMORY_LIMITS)
+		EOF
+
+test: export RUN_COMMAND=/src/tests/run-tests.sh
+test: env up
+
+run: export RUN_COMMAND=/src/tests/run-server.sh
+run: up
 
 stop:
 	docker compose down -v --remove-orphans
 
-run: stop local
-	mkdir -p $$(pwd)/__workdir__
-	export BECOME_USER=$(BECOME_USER)  \
-    QGIS_IMAGE=$(QGIS_IMAGE) \
-    WORKERS=$(WORKERS) \
-    LOCAL_HOME=$(LOCAL_HOME) \
-    SRCDIR=$(SRCDIR) \
-    PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
-    RUN_COMMAND=/src/tests/run-server.sh \
-    && docker compose up     
-
-# Run tests with real redis to test asynchronous
-# behavior  
-test-async: stop local
-	rm -rf unittests/__outputdir__/*
-	export BECOME_USER=$(BECOME_USER)  \
-    QGIS_IMAGE=$(QGIS_IMAGE) \
-    WORKERS=$(WORKERS) \
-    LOCAL_HOME=$(LOCAL_HOME) \
-    SRCDIR=$(SRCDIR) \
-    PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
-    RUN_COMMAND=/src/tests/run-tests.sh \
-    && docker compose up     
-
+up:
+	docker compose up -V  --remove-orphans --force-recreate --exit-code-from wps
 
 test-pool: local
 	docker run --rm --name qgis-wps-test-pool-$(FLAVOR)-$(COMMITID) -w /src \
     -u $(BECOME_USER) \
     -v $(SRCDIR):/src \
     -v $$(pwd)/.local:/.local \
-    -v $(LOCAL_HOME)/.cache:/.cache \
+    -v $$(pwd)/.cache:/.cache \
     -e PIP_CACHE_DIR=/.cache \
     -e PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
     $(QGIS_IMAGE) /src/tests/run-pool-tests.sh

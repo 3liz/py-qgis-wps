@@ -5,6 +5,7 @@ import pytest
 import json
 from urllib.parse import urlparse, parse_qs
 from pathlib import Path
+from time import sleep
 
 from pyqgiswps.app import WPSProcess, Service
 from pyqgiswps.tests import HTTPTestCase, assert_response_accepted
@@ -89,7 +90,7 @@ class TestsExecutor(HTTPTestCase):
 
     @async_test
     def test_status_location( self ):
-        """ Test if proxy url is set 
+        """ Test status location
         """
         uri = ("/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0"
                                "&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2"
@@ -101,7 +102,7 @@ class TestsExecutor(HTTPTestCase):
         # Get the status url
         status_url = rv.xpath('/wps:ExecuteResponse')[0].attrib['statusLocation']
 
-        rv = self.client.get(status_url)
+        rv = self.client.get(status_url, path='')
         assert rv.status_code == 200 
         assert rv.xpath('/wps:ExecuteResponse')  is not None
 
