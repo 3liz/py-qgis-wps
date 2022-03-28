@@ -2,7 +2,7 @@ tornado >= 6
 jsonschema
 lxml
 python-dateutil
-redis
+redis < 4.2.0
 psutil
 pyzmq >= 17
 PyYAML
