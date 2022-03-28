@@ -236,11 +236,9 @@ class QgsProcessFactory:
         return processes
 
     def create_qgis_processes(self) -> List[WPSProcess]: 
-        """ Create initial qgis processes objects in another processes in order 
+        """ Create initial qgis processes objects in another process in order 
             to prevent side effects from loading algorithms and 
             allow for live reload
-
-            This 
         """
         self.qgis_enabled = True
         # Re-create the sub-processes

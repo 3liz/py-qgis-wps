@@ -13,6 +13,7 @@ import shutil
 import logging
 import lxml
 
+from glob import glob
 from typing import Iterable
 
 try:
@@ -66,6 +67,7 @@ class ProcessingExecutor:
         self._context_processes = lrucache(50)
         self._factory = get_process_factory()
         self._reload_handler = None
+        self._restart_files  = []
 
         self.processes = { p.identifier: p for p in processes }
 
@@ -75,14 +77,32 @@ class ProcessingExecutor:
         # Initialize restart handler
         self.init_restart_handler()
 
-    def init_restart_handler(self):
+    def update_restart_files(self):
+        """ Updates file that may trigger a restart  of
+            workers
+        """
+        self._restart_files.clear()
         restartmon = confservice.get('server','restartmon')
         if restartmon:
-            LOGGER.info(f"Reload handler monitoring: {restartmon}")
+            self._restart_files.append(restartmon)
+            # Watch plugins
+            pluginpath = confservice.get('processing','providers_module_path')
+            if pluginpath:
+                plugins = glob(os.path.join(pluginpath,'*/.update-manifest'))
+                self._restart_files.extend(plugins)
+
+            LOGGER.debug("Updated monitored files %s", self._restart_files)
+            return True
+            
+    def init_restart_handler(self):
+        if self.update_restart_files():
+            def callback( *_args ): 
+                self.reload_qgis_processes()
+                self.update_restart_files()
+
+            LOGGER.info("Initializing reload monitoring")
             check_time = confservice.getint('server','restartmon_check_time', 3000)
-            self._reload_handler = watchfiles([restartmon],
-                                              lambda *_args: self.reload_qgis_processes(),
-                                              check_time)
+            self._reload_handler = watchfiles(self._restart_files, callback, check_time)
             self._reload_handler.start()
 
     def get_status( self, uuid=None, **kwargs ):
