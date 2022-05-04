@@ -22,7 +22,7 @@ Requirements and limitations :
 
 # Documentation
 
-Latest documentation is available on [ReadTheDoc](https://py-qgis-wps.readthedocs.io/en/latest/index.html)
+Latest documentation is available on [docs.3liz.org](https://docs.3liz.org/py-qgis-wps/)
 
 # Why Py-QGIS-WPS ?
 

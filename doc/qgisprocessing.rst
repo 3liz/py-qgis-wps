@@ -110,7 +110,7 @@ Publishing WPS results with py-qgis-server
 The ``server/wms_response_uri`` configuration default to ``wps_results:``
 
 `Py-qgis-server <https://github.com/3liz/py-qgis-server>`_ can access to the wps results by defining a 
-`custom scheme alias <https://py-qgis-server.readthedocs.io/en/latest/schemes.html#scheme-aliases>`_. that links the wps data to the  wps server workdir configuration ``wms_response_uri``.
+`custom scheme alias <https://docs.3liz.org/py-qgis-server/schemes.html#scheme-aliases>`_. that links the wps data to the  wps server workdir configuration ``wms_response_uri``.
 
 Example::
 

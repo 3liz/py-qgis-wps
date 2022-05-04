@@ -219,7 +219,7 @@ SERVER_RESULTS_MAP_URI
 
 Base uri used for the MAP argument in WMS/WFS response references.
 Define a base URI to use for 'MAP' arguments in WMS/WFS responses, this uri may
-corresponds to an 'alias in py-qgis-server <https://py-qgis-server.readthedocs.io/en/latest/schemes.html#scheme-aliases>' _.
+corresponds to an 'alias in py-qgis-server <https://docs.3liz.org/py-qgis-server/schemes.html#scheme-aliases>' _.
 
 
 
