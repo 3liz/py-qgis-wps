@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Styling output layers &mdash; py-qgis-wps 1.5 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Running QGIS processing" href="qgisprocessing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> py-qgis-wps
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#running-the-server">Running the server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html#common-configuration-options">Common Configuration Options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qgisprocessing.html">Running QGIS processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qgisprocessing.html#exposing-processing-algorithms">Exposing processing algorithms</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Styling output layers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">py-qgis-wps</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Styling output layers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/styles.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="styling-output-layers">
+<span id="qgis-styles"></span><h1>Styling output layers<a class="headerlink" href="#styling-output-layers" title="Permalink to this headline"></a></h1>
+<p>Py-qgis-wps use the <code class="docutils literal notranslate"><span class="pre">RenderingStyle</span></code> manager defined in <code class="docutils literal notranslate"><span class="pre">processing.gui.RenderingStyle</span></code>.</p>
+<p>The basic way to define styles for layer outputs is to define a <code class="docutils literal notranslate"><span class="pre">styles.json</span></code> files at each provider’s
+root directory that associate output to a <code class="docutils literal notranslate"><span class="pre">.qml</span></code> file applied to the output layer</p>
+<p>Structure of <code class="docutils literal notranslate"><span class="pre">styles.json</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;algid&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;OUTPUT_NAME&quot;</span><span class="p">:</span> <span class="s2">&quot;mystyle.qml&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The style defined in <code class="docutils literal notranslate"><span class="pre">mystyle.qml</span></code> will be applied to the output layer defined with <code class="docutils literal notranslate"><span class="pre">OUTPUT_NAME</span></code></p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qgisprocessing.html" class="btn btn-neutral float-left" title="Running QGIS processing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, David Marteau - 3liz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

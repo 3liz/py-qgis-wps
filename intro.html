@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Description &mdash; py-qgis-wps 1.5 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration Settings" href="configuration.html" />
+    <link rel="prev" title="Welcome to py-qgis-wps’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> py-qgis-wps
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Description</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements-and-limitations">Requirements and limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#install-from-source">Install from source</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#running-the-server">Running the server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#options">Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-with-docker">Running with Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requests-to-ows-services">Requests to OWS services</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html#common-configuration-options">Common Configuration Options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qgisprocessing.html">Running QGIS processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qgisprocessing.html#exposing-processing-algorithms">Exposing processing algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="styles.html">Styling output layers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">py-qgis-wps</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Description</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/intro.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="description">
+<span id="server-description"></span><h1>Description<a class="headerlink" href="#description" title="Permalink to this headline"></a></h1>
+<p>Py-QGIS-WPS is an implementation of the [Web Processing Service](<a class="reference external" href="https://www.ogc.org/standards/wps">https://www.ogc.org/standards/wps</a>)
+standard from the Open Geospatial Consortium based on the QGIS Processing API.</p>
+<p>This implementation allows you to expose and run on a server:
+* QGISQGIS Processing algorithms available on Desktop
+* QGIS Processing models and scripts
+* QGIS plugins having a Processing provider according to their <cite>metadata.txt</cite> file</p>
+<p>It’s is written in Python and is a fork of [PyWPS](<a class="reference external" href="https://pywps.org/">https://pywps.org/</a>).</p>
+<section id="requirements-and-limitations">
+<span id="server-requirements"></span><h2>Requirements and limitations<a class="headerlink" href="#requirements-and-limitations" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p>Python 3.5+ only</p></li>
+<li><p>Windows not officially supported</p></li>
+<li><p>Redis server</p></li>
+</ul>
+<p>Any WPS client should work with this implementation. For instance QGIS Processing algorithms are available
+in a web interface using [Lizmap WPS module](<a class="reference external" href="https://github.com/3liz/lizmap-wps-web-client-module">https://github.com/3liz/lizmap-wps-web-client-module</a>).</p>
+</section>
+<section id="features">
+<span id="server-features"></span><h2>Features<a class="headerlink" href="#features" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p>Asynchronous requests and parellel tasks execution</p></li>
+<li><p>Execution timeout</p></li>
+<li><p>Data expiration</p></li>
+<li><p>Status API.</p></li>
+</ul>
+</section>
+</section>
+<section id="installation">
+<span id="server-installation"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h1>
+<section id="install-from-source">
+<span id="server-source-install"></span><h2>Install from source<a class="headerlink" href="#install-from-source" title="Permalink to this headline"></a></h2>
+<ul>
+<li><p>Install from sources:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+</pre></div>
+</div>
+</li>
+<li><p>Install from build version X.Y.Z:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">dist</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">py</span><span class="o">-</span><span class="n">qgis</span><span class="o">-</span><span class="n">server</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+</section>
+<section id="running-the-server">
+<span id="server-running"></span><h1>Running the server<a class="headerlink" href="#running-the-server" title="Permalink to this headline"></a></h1>
+<p>The server does not run as a daemon by itself, there is several way to run a command as a daemon.</p>
+<p>For example:</p>
+<ul class="simple">
+<li><p>Use <a class="reference external" href="http://supervisord.org/">Supervisor</a>. Will gives you full control over logs and server status notifications.</p></li>
+<li><p>Use the <code class="docutils literal notranslate"><span class="pre">daemon</span></code> command.</p></li>
+<li><p>Use systemd</p></li>
+<li><p>…</p></li>
+</ul>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline"></a></h2>
+<p><strong>pyqgiswps</strong> [<em>options</em>]</p>
+</section>
+<section id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline"></a></h2>
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-d">
+<span id="cmdoption-debug"></span><span class="sig-name descname"><span class="pre">-d</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-d" title="Permalink to this definition"></a></dt>
+<dd><p>Force debug mode. This is the same as setting the <a class="reference internal" href="configuration.html#logging-level"><span class="std std-ref">LOGGING_LEVEL</span></a> option to <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code></p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-c">
+<span id="cmdoption-config"></span><span class="sig-name descname"><span class="pre">-c</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--config</span></span><span class="sig-prename descclassname"> <span class="pre">path</span></span><a class="headerlink" href="#cmdoption-c" title="Permalink to this definition"></a></dt>
+<dd><p>Use the configuration file located at <code class="docutils literal notranslate"><span class="pre">path</span></code></p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-dump-config">
+<span class="sig-name descname"><span class="pre">--dump-config</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-dump-config" title="Permalink to this definition"></a></dt>
+<dd><p>Dump the configuration and exit</p>
+</dd></dl>
+
+</section>
+<section id="running-with-docker">
+<span id="server-docker-running"></span><h2>Running with Docker<a class="headerlink" href="#running-with-docker" title="Permalink to this headline"></a></h2>
+<p>Docker image is available on <a class="reference external" href="https://hub.docker.com/r/3liz/qgis-wps">docker-hub</a>.</p>
+<p>All options are passed with environment variables. See the <a class="reference internal" href="configuration.html#configuration-settings"><span class="std std-ref">Configuration settings</span></a>
+for a description of the options.</p>
+</section>
+<section id="requests-to-ows-services">
+<h2>Requests to OWS services<a class="headerlink" href="#requests-to-ows-services" title="Permalink to this headline"></a></h2>
+<p>The OWS requests use the following format:  <code class="docutils literal notranslate"><span class="pre">/ows/?&lt;ows_query_params&gt;</span></code></p>
+<p>Example:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>http://localhost:8080/ows/?SERVICE=WPS&amp;VERSION=1.0.0&amp;REQUEST=GetCapabilities
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to py-qgis-wps’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="configuration.html" class="btn btn-neutral float-right" title="Configuration Settings" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, David Marteau - 3liz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

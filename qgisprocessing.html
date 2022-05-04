@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Running QGIS processing &mdash; py-qgis-wps 1.5 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Styling output layers" href="styles.html" />
+    <link rel="prev" title="Configuration Settings" href="configuration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> py-qgis-wps
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Description</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#running-the-server">Running the server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html#common-configuration-options">Common Configuration Options</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Running QGIS processing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#wps-input-output-layer-mapping">WPS input/output layer mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contextualized-input-parameters">Contextualized input parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#exposing-processing-algorithms">Exposing processing algorithms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-metadata-txt-file">The <code class="docutils literal notranslate"><span class="pre">metadata.txt</span></code> file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#registering-providers">Registering providers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-scripts-and-models">Using scripts and models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#controlling-what-is-exposed">Controlling what is exposed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#publishing-wps-results-with-py-qgis-server">Publishing WPS results with py-qgis-server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reloading-providers">Reloading providers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="styles.html">Styling output layers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">py-qgis-wps</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Running QGIS processing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/qgisprocessing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="running-qgis-processing">
+<span id="qgis-processing"></span><h1>Running QGIS processing<a class="headerlink" href="#running-qgis-processing" title="Permalink to this headline"></a></h1>
+<section id="wps-input-output-layer-mapping">
+<span id="layer-mapping"></span><h2>WPS input/output layer mapping<a class="headerlink" href="#wps-input-output-layer-mapping" title="Permalink to this headline"></a></h2>
+<p>With Qgis desktop , Qgis processing algorithms usually apply on a Qgis  source project and computed layers are displayed in the same context as the source project.</p>
+<p>Py-qgis-wps works the same way: a qgis project will be used as a source of input layers.
+The difference is that, when an algorithm runs, it creates a qgis project file associated to the current task and register computed layers to it.</p>
+<p>The created project may be used as OWS source with Qgis Server. Output layers are returned as complex objects
+holding a reference to a WMS/WFS uri that can be used directly with Qgis server. The uri template is configurable
+using the <code class="docutils literal notranslate"><span class="pre">server/wms_response_uri</span></code> configuration setting.</p>
+</section>
+<section id="contextualized-input-parameters">
+<span id="contextualized-params"></span><h2>Contextualized input parameters<a class="headerlink" href="#contextualized-input-parameters" title="Permalink to this headline"></a></h2>
+<p>Tasks parameters are contextualized using the <cite>MAP</cite> query param. If a <cite>MAP</cite> parameters is given when
+doinc a <cite>DescripProcess</cite> requests, allowed values for input layers will be taken from the qgis source project
+according the type of the input layers.</p>
+<p>Qgis project (.qgs) files and project stored in Postgres databases are both supported.</p>
+<p>The best practice is to always provide a <cite>MAP</cite> parameters and include the possible input layer in a qgs project. This way you
+may connect whatever data source supported by qgis and use them as input data in a safe way.</p>
+<p>If you need to pass data to your algorithm from client-side, prefer inputs file parameter and small payloads.</p>
+</section>
+</section>
+<section id="exposing-processing-algorithms">
+<span id="exposing-algorithms"></span><h1>Exposing processing algorithms<a class="headerlink" href="#exposing-processing-algorithms" title="Permalink to this headline"></a></h1>
+<p>The processing provider modules are searched in the path given by the <a class="reference internal" href="configuration.html#processing-providers-module-path"><span class="std std-ref">PROCESSING_PROVIDERS_MODULE_PATH</span></a>
+config variable.</p>
+<p>Processing providers following the same rules as  Qgis regular plugin with a special factory entrypoint: <code class="docutils literal notranslate"><span class="pre">WPSClassFactory(iface)</span></code> in the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file.</p>
+<section id="the-metadata-txt-file">
+<h2>The <code class="docutils literal notranslate"><span class="pre">metadata.txt</span></code> file<a class="headerlink" href="#the-metadata-txt-file" title="Permalink to this headline"></a></h2>
+<p>As regular QGIS plugin, a metadata.txt file must be present with a special entry <code class="docutils literal notranslate"><span class="pre">wps=True</span></code> indicating that
+the plugin is available as a WPS service provider.</p>
+</section>
+<section id="registering-providers">
+<h2>Registering providers<a class="headerlink" href="#registering-providers" title="Permalink to this headline"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">iface</span></code>  parameter is a instance of <code class="docutils literal notranslate"><span class="pre">WPSServerInterface</span></code> which provide a
+<code class="docutils literal notranslate"><span class="pre">registerProvider(</span> <span class="pre">provider:</span> <span class="pre">QgsAlgorithmProvider,</span> <span class="pre">expose:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">Any</span></code> method.</p>
+<p>Exposed providers as WPS services must be registered usin the <code class="docutils literal notranslate"><span class="pre">registerProvider</span></code> method.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">WPSClassFactory</span><span class="p">(</span><span class="n">iface</span><span class="p">:</span> <span class="n">WPSServerInterface</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+
+    <span class="kn">from</span> <span class="nn">TestAlgorithmProvider1</span> <span class="kn">import</span>  <span class="n">AlgorithmProvider1</span>
+    <span class="kn">from</span> <span class="nn">TestAlgorithmProvider2</span> <span class="kn">import</span>  <span class="n">AlgorithmProvider2</span>
+
+    <span class="n">iface</span><span class="o">.</span><span class="n">registerProvider</span><span class="p">(</span> <span class="n">AlgorithmProvider1</span><span class="p">()</span> <span class="p">)</span>
+    <span class="n">iface</span><span class="o">.</span><span class="n">registerProvider</span><span class="p">(</span> <span class="n">AlgorithmProvider2</span><span class="p">()</span> <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="using-scripts-and-models">
+<h2>Using scripts and models<a class="headerlink" href="#using-scripts-and-models" title="Permalink to this headline"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Py-qgis-wps</span></code> works with scripts and models. First creates a <code class="docutils literal notranslate"><span class="pre">models/</span></code> and a <code class="docutils literal notranslate"><span class="pre">scripts/</span></code> directory
+in the folder given by the <a class="reference internal" href="configuration.html#processing-providers-module-path"><span class="std std-ref">PROCESSING_PROVIDERS_MODULE_PATH</span></a> option.</p>
+<p>Your processing module directory should be something like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;PROCESSSING_PROVIDERS_MODULE_PATH&gt;/
+|
+|- models/
+|    |
+|    \- &lt;your `.model3` files here&gt;
+|
+\- scripts/
+     |
+     \- &lt;your `.py` scripts here&gt;
+</pre></div>
+</div>
+<p>Then simple drop your <code class="docutils literal notranslate"><span class="pre">.model3</span></code> in the <code class="docutils literal notranslate"><span class="pre">models/</span></code> folder and the  python scripts in the <code class="docutils literal notranslate"><span class="pre">scripts/</span></code> folder.
+After restarting the workers you should see the corresponding algorithms in the list of published WPS jobs.</p>
+</section>
+<section id="controlling-what-is-exposed">
+<h2>Controlling what is exposed<a class="headerlink" href="#controlling-what-is-exposed" title="Permalink to this headline"></a></h2>
+<p>Processing algorithm with the flag <a class="reference external" href="https://qgis.org/pyqgis/3.0/core/Processing/QgsProcessingAlgorithm.html#qgis.core.QgsProcessingAlgorithm.FlagHideFromToolbox">FlagHideFromToolbox</a> set will not be exposed as WPS process.</p>
+<p>Parameters with the flag <a class="reference external" href="https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden">FlagHidden</a> set wont be exposed in a <code class="docutils literal notranslate"><span class="pre">DescribeProcess</span></code> request.</p>
+</section>
+<section id="publishing-wps-results-with-py-qgis-server">
+<span id="expose-wps-output-with-py-qgis-server"></span><h2>Publishing WPS results with py-qgis-server<a class="headerlink" href="#publishing-wps-results-with-py-qgis-server" title="Permalink to this headline"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">server/wms_response_uri</span></code> configuration default to <code class="docutils literal notranslate"><span class="pre">wps_results:</span></code></p>
+<p><a class="reference external" href="https://github.com/3liz/py-qgis-server">Py-qgis-server</a> can access to the wps results by defining a
+<a class="reference external" href="https://docs.3liz.org/py-qgis-server/schemes.html#scheme-aliases">custom scheme alias</a>. that links the wps data to the  wps server workdir configuration <code class="docutils literal notranslate"><span class="pre">wms_response_uri</span></code>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Py-qgis-wps configuration.</span>
+<span class="p">[</span><span class="n">server</span><span class="p">]</span>
+<span class="n">workdir</span> <span class="o">=</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">wps</span><span class="o">/</span><span class="n">results</span>
+
+<span class="c1"># Py-qgis-server configuration</span>
+<span class="c1"># Bind the scheme &#39;wps_results:&#39; to the wps output directory</span>
+<span class="p">[</span><span class="n">projects</span><span class="o">.</span><span class="n">schemes</span><span class="p">]</span>
+<span class="n">wps_results</span> <span class="o">=</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">wps</span><span class="o">/</span><span class="n">results</span>
+</pre></div>
+</div>
+</section>
+<section id="reloading-providers">
+<span id="id1"></span><h2>Reloading providers<a class="headerlink" href="#reloading-providers" title="Permalink to this headline"></a></h2>
+<p>Providers may be reloaded gracefully using the <a class="reference internal" href="configuration.html#server-restartmon"><span class="std std-ref">SERVER_RESTARTMON</span></a> option.
+This allow for updatings providers, models and scripts without interrupting the service.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration Settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="styles.html" class="btn btn-neutral float-right" title="Styling output layers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, David Marteau - 3liz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
