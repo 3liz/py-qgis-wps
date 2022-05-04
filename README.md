@@ -61,7 +61,7 @@ to start quickly this project.
 Specify the timeout for a process: if the process takes more than TIMEOUT seconds to run, the worker is then killed and an 
 error status is returned.
 
-Set the the `TIMEOUT=<seconds>` in  GET requests. 
+Set the `TIMEOUT=<seconds>` in  GET requests.
 
 In POST requests, set the `timeout=<seconds>` attribut in the `<ResponseDocument>` tag.
 
@@ -73,7 +73,7 @@ The server may configure maximum timeout value.
 Specify the expiration time for stored results: after EXPIRE seconds after the end of the wps process, all results will be
 flushed from disks and local cache. Trying to request the results again will return a 404 HTTP  error.
 
-Set the the `EXPIRE=<seconds>` in  GET requests. 
+Set the `EXPIRE=<seconds>` in  GET requests.
 
 In POST requests, set the `expire=<seconds>` attribut int the `<ResponseDocument>` tag.
 
