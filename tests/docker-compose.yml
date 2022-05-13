@@ -7,6 +7,7 @@ services:
     environment:
       PIP_CACHE_DIR: /.cache
       WORKERS: ${WORKERS}
+      QGSWPS_SERVER_ENABLE_FILTERS: 'yes'
       QGSWPS_CACHE_ROOTDIR: /src/tests/unittests/data 
       QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH: /src/tests/unittests
       QGSWPS_SERVER_WORKDIR: /srv/data
@@ -29,5 +30,5 @@ services:
                 cpus: ${CPU_LIMITS}
                 memory: ${MEMORY_LIMITS}
   redis:
-     image: redis:5-alpine
+     image: redis:6-alpine
 

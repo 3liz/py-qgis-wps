@@ -18,8 +18,6 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                                   InvalidParameterValue, 
                                   OperationNotSupported)
 
-from pyqgiswps.accesspolicy import new_access_policy
-
 from pyqgiswps.ogc.ows import OWSRequest
 
 from typing import Optional
@@ -30,16 +28,10 @@ LOGGER = logging.getLogger('SRVLOG')
 class OWSHandler(BaseHandler):
     """ Handle WPS requests
     """
-    def initialize(self, filters=None):
+    def initialize(self, access_policy):
         super().initialize()
-    
-        self._filters     = filters or []
-        self.accesspolicy = new_access_policy()
-
-    async def prepare(self):
-        super().prepare()
-        for filt in self._filters:
-            await filt.apply( self )
+   
+        self.accesspolicy = access_policy
 
     async def handle_wps_request(self, method_parser):
         """ Handle a wps request

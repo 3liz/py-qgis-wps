@@ -153,5 +153,21 @@ class BaseHandler(tornado.web.RequestHandler):
             "{0.protocol}://{0.host}/".format(req)
         proxy_url = proxy_url.format(**kwargs)
         return proxy_url
- 
 
+
+class NotFoundHandler(BaseHandler):
+    def prepare(self):  # for all methods
+        raise HTTPError(
+            status_code=404,
+            reason="Invalid resource path."
+        )
+
+
+class ErrorHandler(BaseHandler):
+    def initialize(self, status_code: int, reason: Optional[str]=None) -> None:
+        super().initialize()
+        self.set_status(status_code)
+        self.reason = reason
+
+    def prepare(self) -> None:
+        raise HTTPError(self._status_code, reason=self.reason)

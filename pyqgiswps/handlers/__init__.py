@@ -7,6 +7,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
+from .basehandler import ( # noqa F401
+    NotFoundHandler,
+    ErrorHandler
+)
+
 from .roothandler import RootHandler                     # noqa F401
 from .owshandler import OWSHandler                       # noqa F401
 from .statushandler import StatusHandler                 # noqa F401

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Refactorize access policy managment
+* Add restart notification on provider changes
 * Remove fakeredis dependency
 * Use docker compose for tests
 

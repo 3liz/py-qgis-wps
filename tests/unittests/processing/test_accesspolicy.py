@@ -8,7 +8,7 @@ from pyqgiswps.app import Service
 from pyqgiswps.tests import HTTPTestCase
 from pyqgiswps.executors.processfactory import get_process_factory
 
-from pyqgisservercontrib.core.filters import blockingfilter
+from pyqgisservercontrib.core.filters import policy_filter
 
 
 def test_accesspolicy(rootdir):
@@ -35,10 +35,9 @@ class TestAccessPolicy(HTTPTestCase):
 
     def get_filters(self):
 
-        @blockingfilter()
-        def access_filter( handler ):
-            handler.accesspolicy.add_policy(deny=['pyqgiswps_test:*'],
-                                            allow=['pyqgiswps_test:simplebuffer'])
+        @policy_filter()
+        def access_filter(_):
+            return [dict(deny=['pyqgiswps_test:*'], allow=['pyqgiswps_test:simplebuffer'])]
 
         return [access_filter]
 

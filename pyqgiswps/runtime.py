@@ -16,52 +16,21 @@ import pkg_resources
 
 from tornado.web import StaticFileHandler
 
-from typing import Mapping, List
-
 from .logger import log_request
-
 from .config import confservice, get_size_bytes
+from .handlers import (
+    RootHandler, 
+    OWSHandler, StoreHandler, StatusHandler, 
+    DownloadHandler,
+    NotFoundHandler
+)
 
-from .handlers import (RootHandler, OWSHandler, StoreHandler, StatusHandler, 
-                       DownloadHandler)
-
-from .accesspolicy import init_access_policy
-
-from pyqgisservercontrib.core.filters import ServerFilter
+from .accesspolicy import init_access_policy, new_access_policy
 
 LOGGER = logging.getLogger('SRVLOG')
 
 
-def load_filters( base_uri: str, appfilters: List[ServerFilter]=None ) -> Mapping[str,List[ServerFilter]]:
-    """ Load filters and return a Mapping
-    """
-    import pyqgisservercontrib.core.componentmanager as cm
-
-    filters = { base_uri: [] }
-
-    def _add_filter( afilter ):
-        uri = os.path.join(base_uri, afilter.uri)
-        fls = filters.get(uri,[])
-        fls.append(afilter)
-        filters[uri] = fls
-
-    if appfilters:
-        for flt in appfilters:
-            _add_filter(flt)
-
-    collection = []
-    cm.register_entrypoints('qgssrv_contrib_access_policy', collection, wpspolicy=True)
-
-    for flt in collection:
-        _add_filter(flt)
-
-    # Sort filters
-    for flist in filters.values():
-        flist.sort(key=lambda f: f.pri, reverse=True)
-    return filters
-
-
-def configure_handlers( appfilters ):
+def configure_handlers():
     """ Set up request handlers
     """
     staticpath = pkg_resources.resource_filename("pyqgiswps", "webui")
@@ -73,43 +42,37 @@ def configure_handlers( appfilters ):
 
     init_access_policy()
 
-    def ows_handlers():
-        # Load filters overriding '/ows/'
-        if cfg.getboolean('enable_filters'):
-            filters = load_filters(r"/ows/", appfilters=appfilters)
-            for uri,fltrs in filters.items():
-                yield (uri, OWSHandler, dict(filters=fltrs) )
-        else:
-            yield (r"/ows/", OWSHandler)
+    default_access_policy = new_access_policy()
 
-    handlers = [ (r"/"     , RootHandler) ]
-    handlers.extend( ows_handlers() )
-    handlers.extend( [
-        (r"/ows/store/([^/]+)/(.*)?", StoreHandler, { 'workdir': workdir }),
+    handlers = [ 
+        (r"/", RootHandler),
+        (r"/ows/", OWSHandler, {'access_policy': default_access_policy}),
+        (r"/ows/store/([^/]+)/(.*)?", StoreHandler, {'workdir': workdir}),
         (r"/ows/status/([^/]+)?", StatusHandler),
         # Add theses as shortcuts
-        (r"/store/([^/]+)/(.*)?", StoreHandler, { 'workdir': workdir }),
+        (r"/store/([^/]+)/(.*)?", StoreHandler, {'workdir': workdir}),
         (r"/status/([^/]+)?", StatusHandler),
         # Temporary download url api
-        (r"/dnl/(_)/([^/]+)", DownloadHandler, { 'workdir': workdir }),
+        (r"/dnl/(_)/([^/]+)", DownloadHandler, {'workdir': workdir}),
         (r"/dnl/([^/]+)/(.*)", DownloadHandler, { 'workdir': workdir, 'query': True, 'ttl': dnl_ttl }),
         # Web ui anagement
         (r"/ui/(.*)", StaticFileHandler, {
             'path': staticpath, 
             'default_filename':"dashboard.html"
         }),
-    ] )
+    ]
 
     return handlers
 
 
 class Application(tornado.web.Application):
 
-    def __init__(self, processes=[], filters=None):
+    def __init__(self, processes=[]):
         from pyqgiswps.app.service import Service
         self.wpsservice = Service(processes=processes)
         self.config     = confservice['server']
-        super().__init__(configure_handlers( filters ))
+
+        super().__init__(configure_handlers(), default_handler_class=NotFoundHandler)
 
     def log_request(self, handler):
         """ Write HTTP requet to the logs
@@ -137,6 +100,18 @@ def create_ssl_options():
     ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     ssl_ctx.load_cert_chain(cfg['ssl_cert'],cfg['ssl_key'])
     return ssl_ctx
+
+
+def initialize_middleware( app, filters=None ): 
+    """ Initialize the middleware
+    """
+    if confservice.getboolean('server','enable_filters'):
+        from .middleware import MiddleWareRouter
+        router = MiddleWareRouter(app, filters)
+    else:
+        router = app
+
+    return router
 
 
 def run_server( port, address=None, user=None ):
@@ -168,7 +143,7 @@ def run_server( port, address=None, user=None ):
     max_buffer_size = get_size_bytes(confservice.get('server', 'maxbuffersize'))
 
     application = Application(processes)
-    server = HTTPServer(application, max_buffer_size=max_buffer_size, **kwargs)
+    server = HTTPServer(initialize_middleware(application), max_buffer_size=max_buffer_size, **kwargs)
     server.listen(port, address=address)
 
     # Setup the supervisor timeout killer

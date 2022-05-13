@@ -20,7 +20,7 @@ import lxml.etree
 from pyqgiswps import __version__
 from pyqgiswps.ogc.ows.schema import NAMESPACES
 
-from pyqgiswps.runtime import Application
+from pyqgiswps.runtime import Application, initialize_middleware
 from pyqgiswps.logger import configure_log_levels
 from pyqgiswps.executors import processfactory
 from pyqgiswps.config import load_configuration, confservice
@@ -97,8 +97,8 @@ class HTTPTestCase(AsyncHTTPTestCase):
  
     def get_app(self) ->  Application:
         configure_log_levels()
-        self._application =  Application(processes=self.get_processes(),filters=self.get_filters())
-        return self._application
+        self._application =  Application(processes=self.get_processes())
+        return initialize_middleware(self._application, filters=self.get_filters())
 
     def tearDown(self) -> None:
         self._application.terminate()

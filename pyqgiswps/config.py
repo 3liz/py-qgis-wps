@@ -95,7 +95,7 @@ def load_configuration():
     # Download API expiration ttl for a download URL
     CONFIG.set('server', 'download_ttl'         , getenv('QGSWPS_DOWNLOAD_TTL','30'))
     # Enable middleware filters from extensions
-    CONFIG.set('server', 'enable_filters'       , getenv('QGSWPS_SERVER_ENABLE_FILTERS', 'yes'))
+    CONFIG.set('server', 'enable_filters'       , getenv('QGSWPS_SERVER_ENABLE_FILTERS', 'no'))
     # Path for pre-installed extensions
     CONFIG.set('server', 'sys_config_path'      , getenv('QGSWPS_SYS_CONFIG_PATH'      , '/usr/share/qgis_wps'))
     CONFIG.set('server', 'cross_origin'         , getenv('QGSWPS_SERVER_CROSS_ORIGIN' , 'yes'))
