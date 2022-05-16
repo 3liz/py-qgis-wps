@@ -16,6 +16,9 @@ echo "-- Installing required packages..."
 $PIP_INSTALL -q pip setuptools wheel
 $PIP_INSTALL -q --prefer-binary -r requirements.txt
 
+# Add builtin modules
+export QGSWPS_BUILTIN_ACL_MODULES=install
+
 $PIP install -e .
 
 export QGIS_DISABLE_MESSAGE_HOOKS=1

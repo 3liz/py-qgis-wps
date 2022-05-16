@@ -3,6 +3,7 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
+import os
 from setuptools import setup, find_namespace_packages
 
 
@@ -24,6 +25,15 @@ INSTALL_REQUIRES = parse_requirements('requirements.txt')
 
 with open('README.md') as f:
     content_readme = f.read()
+
+
+if os.getenv("QGSWPS_BUILTIN_ACL_MODULES") == 'install':
+    builtin_access_policies = [
+        'lizmap_acl = pyqgisservercontrib.lizmapacl.filters:register_policy',
+    ]
+else:
+    builtin_access_policies = []
+
 
 setup(
     name='py-qgis-wps',
@@ -59,6 +69,7 @@ setup(
     entry_points={
         'console_scripts': ['wpsserver = pyqgiswps.wpsserver:main',
                             'wpsserver-check = pyqgiswps.healthcheck:main'],
+        'py_qgis_wps.access_policy': builtin_access_policies,
     },
 
     **kwargs

@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends gosu \
      && rm -rf /usr/share/man 
 
 # Create virtualenv for installing server
-RUN mkdir -p /opt/local/ \ 
+RUN mkdir -p /opt/local/ \
     && python3 -m venv --system-site-packages /opt/local/pyqgiswps && cd /usr/local/bin \
     && /opt/local/pyqgiswps/bin/pip install -U --no-cache-dir pip setuptools wheel \
     && /opt/local/pyqgiswps/bin/pip install --no-cache-dir \
@@ -26,9 +26,9 @@ RUN mkdir -p /opt/local/ \
         scipy  \
         pandas \
         Jinja2 \
+    && export QGSWPS_BUILTIN_ACL_MODULES=install \ 
     && /opt/local/pyqgiswps/bin/pip install --no-cache-dir $PIP_OPTIONS   \
         "py-qgis-wps==${BUILD_VERSION}" \
-        "pyqgiservercontrib-lizmap-access-policy" \
     && ln -s /opt/local/pyqgiswps/bin/wpsserver \
     && ln -s /opt/local/pyqgiswps/bin/wpsserver-check \
     && rm -rf /root/.cache /root/.ccache

@@ -1,0 +1,42 @@
+---
+
+autoreload: yes
+
+# Define access policies
+policies:
+    # Global policy
+    - deny: all
+
+    # Policy for groups admin and operator
+    - allow:  'script:*'
+      groups: 
+        - admin
+        - operator
+
+    # Policy for group operator only on map 'france_parts' with
+    # testsimplevalue processes
+    - allow: 'pyqgiswps_test:testsimplevalue'
+      groups: 
+        - operator
+      maps:  
+        - 'france_parts'
+
+    # Policy for user john only on map 'france_parts' with
+    # testcopylayer processes
+    - allow: 'pyqgiswps_test:testcopylayer'
+      users: john 
+      maps:  'france_parts'
+
+    # Policy for user jack only on subfolder '*/france_parts' with
+    # testcopylayer processes
+    - allow: 'pyqgiswps_test:testcopylayer'
+      users: jack
+      maps:  '*/france_parts'
+
+
+
+# Include other policies
+include_policies:
+    - policies/*.yml
+
+
