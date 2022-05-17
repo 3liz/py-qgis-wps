@@ -2,16 +2,18 @@
 
 ## Unreleased
 
+## 1.7.0 - 2022-05-17
+
 * Refactorize access policy managment
 * Add restart notification on provider changes
 * Remove fakeredis dependency
 * Use docker compose for tests
 
-## 1.6.7 - 2021-02-01
+## 1.6.7 - 2022-02-01
 
 * Release the package on https://pypi.org/
 
-## 1.6.6 - 2021-02-01
+## 1.6.6 - 2022-02-01
 
 * Install server in venv in docker image
 * Add support for inputs:

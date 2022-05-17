@@ -22,12 +22,12 @@ SERVER_HTTP_PORT:=127.0.0.1:8888
 SRCDIR=$(shell realpath ..)
 
 local:
-	rm -rf unittests/__outputdir__/*
-	mkdir -p $$(pwd)/__workdir__
-	mkdir -p  $$(pwd)/.local  $$(pwd)/.cache
+	@rm -rf unittests/__outputdir__/*
+	@mkdir -p $$(pwd)/__workdir__
+	@mkdir -p  $$(pwd)/.local  $$(pwd)/.cache
 
 clean:
-	rm -rf $$(pwd)/.local $$(pwd)/.cache
+	@rm -rf $$(pwd)/.local $$(pwd)/.cache
 
 TESTS_CPU_LIMITS:=2.0
 TESTS_MEMORY_LIMITS:=2g
@@ -44,6 +44,7 @@ env: local
 		PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)"
 		CPU_LIMITS=$(TESTS_CPU_LIMITS)
 		MEMORY_LIMITS=$(TESTS_MEMORY_LIMITS)
+		COMPOSE_PROJECT_NAME=test-pyqgiswps
 		EOF
 
 test: export RUN_COMMAND=/src/tests/run-tests.sh
