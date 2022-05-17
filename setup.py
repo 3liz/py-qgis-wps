@@ -27,12 +27,9 @@ with open('README.md') as f:
     content_readme = f.read()
 
 
-if os.getenv("QGSWPS_BUILTIN_ACL_MODULES") == 'install':
-    builtin_access_policies = [
-        'lizmap_acl = pyqgisservercontrib.lizmapacl.filters:register_policy',
-    ]
-else:
-    builtin_access_policies = []
+builtin_access_policies = [
+    'lizmap_acl = pyqgisservercontrib.lizmapacl.filters:register_policy',
+]
 
 
 setup(
@@ -67,9 +64,13 @@ setup(
                                               'pyqgisservercontrib.*']),
     include_package_data = True,
     entry_points={
-        'console_scripts': ['wpsserver = pyqgiswps.wpsserver:main',
-                            'wpsserver-check = pyqgiswps.healthcheck:main'],
-        'py_qgis_wps.access_policy': builtin_access_policies,
+        'console_scripts': [
+            'wpsserver = pyqgiswps.wpsserver:main',
+            'wpsserver-check = pyqgiswps.healthcheck:main'
+        ],
+        'py_qgis_wps.access_policy': [
+            'lizmap_acl = pyqgisservercontrib.lizmapacl.filters:register_policy',
+        ],
     },
 
     **kwargs

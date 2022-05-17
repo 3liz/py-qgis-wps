@@ -31,8 +31,8 @@ That is, order is not significant when defining rules.
 ## Policy configuration
 
 Policy rules are configured using a YAML file. The  path to this configuration file 
-is given by the `QGSRV_LIZMAP_POLICY` environment variable or the  `policy` variable
-in the `server` section of the [py-qgis-server](https://github.com/3liz/py-qgis-wps) configuration.
+is given by the `QGSWPS_EXTENSIONS_LIZMAPACL_POLICY` environment variable or the  `policy` variable
+in the `[extensions:lizmapacl]` section of the [py-qgis-wps](https://github.com/3liz/py-qgis-wps) configuration.
 
 Example of policy configuration:
 

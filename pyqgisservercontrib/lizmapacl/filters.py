@@ -216,9 +216,9 @@ def register_policy(policy_service, *args, **kwargs) -> None:
     from  pyqgisservercontrib.core import componentmanager
 
     configservice = componentmanager.get_service('@3liz.org/config-service;1')
-    configservice.add_section('lizmap')
+    configservice.add_section('extensions:lizmapacl')
 
-    with_policy = configservice.get('lizmap','policy', fallback=None)
+    with_policy = configservice.get('extensions:lizmapacl','policy', fallback=None)
     if with_policy:
         policyfile = Path(with_policy)
         if not policyfile.exists():

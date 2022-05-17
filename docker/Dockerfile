@@ -26,7 +26,6 @@ RUN mkdir -p /opt/local/ \
         scipy  \
         pandas \
         Jinja2 \
-    && export QGSWPS_BUILTIN_ACL_MODULES=install \ 
     && /opt/local/pyqgiswps/bin/pip install --no-cache-dir $PIP_OPTIONS   \
         "py-qgis-wps==${BUILD_VERSION}" \
     && ln -s /opt/local/pyqgiswps/bin/wpsserver \
