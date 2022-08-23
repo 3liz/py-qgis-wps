@@ -27,5 +27,5 @@ export QGSWPS_SERVER_PROCESSLIFECYCLE=0
 
 export PYTHONFAULTHANDLER=1
 
-cd tests/unittests && $VENV_PATH/bin/pytest -v $@
+cd tests/unittests && exec $VENV_PATH/bin/pytest -v $@
 
