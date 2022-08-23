@@ -13,14 +13,18 @@ import logging
 import urllib.parse
 
 from functools import partial
-from urllib.parse import urlparse, urljoin, parse_qs
-from typing import Tuple
-from collections import namedtuple
+from urllib.parse import urlparse, urlunparse, urljoin, parse_qs
+from typing import Tuple, NamedTuple, Optional
+from datetime import datetime
 
 from ..utils.lru import lrucache
 from ..config import confservice
 
-from qgis.core import QgsProjectBadLayerHandler, QgsProject
+from qgis.core import (Qgis,
+                       QgsApplication,
+                       QgsProjectBadLayerHandler, 
+                       QgsProject)
+
 from qgis.server import QgsServerProjectUtils
 
 from pyqgisservercontrib.core import componentmanager
@@ -30,10 +34,16 @@ from .handlers import * # noqa: F403,F401
 
 LOGGER = logging.getLogger('SRVLOG')
 
-CacheDetails = namedtuple("CacheDetails",('project','timestamp'))
+class CacheDetails(NamedTuple):
+    project: QgsProject
+    timestamp: datetime
 
 
 class StrictCheckingError(Exception):
+    pass
+
+
+class PathNotAllowedError(Exception):
     pass
 
 
@@ -48,6 +58,49 @@ def _merge_qs( query1: str, query2: str ) -> str:
     params_2 = parse_qs(query2)
     params_2.update(params_1)
     return '&'.join('%s=%s' % (k,v[0]) for k,v in params_2.items())
+
+
+class QgisStorageHandler:
+    """ Handler for handling Qgis supported storage
+        throught the `QgsProjectStorage` api.
+    """
+    def __init__(self):
+        pass
+
+    def get_storage_metadata( self, uri: str ):
+        # Check out for storage
+        storage = QgsApplication.projectStorageRegistry().projectStorageFromUri(uri)
+        if not storage:
+            LOGGER.error("No project storage found for %s", uri)
+            raise FileNotFoundError(uri)
+        res, metadata = storage.readProjectStorageMetadata( uri )
+        if not res:
+            LOGGER.error("Failed to read storage metadata for %s", uri)
+            raise FileNotFoundError(uri)
+        return metadata
+
+    def get_modified_time( self, url: urllib.parse.ParseResult) -> datetime:
+        """ Return the modified date time of the project referenced by its url
+        """
+        metadata = self.get_storage_metadata(urlunparse(url))
+        return metadata.lastModified.toPyDateTime()
+
+    def get_project( self, url: urllib.parse.ParseResult,
+                     project: Optional[QgsProject]=None,
+                     timestamp: Optional[datetime]=None) -> Tuple[QgsProject, datetime]:
+        """ Create or return a project
+        """
+        uri = urlunparse(url)
+
+        metadata = self.get_storage_metadata(uri)
+        modified_time = metadata.lastModified.toPyDateTime()
+
+        if timestamp is None or timestamp < modified_time:
+            cachmngr  = componentmanager.get_service('@3liz.org/cache-manager;1')
+            project   = cachmngr.read_project(uri)
+            timestamp = modified_time
+
+        return project, timestamp
 
 
 @componentmanager.register_factory(CACHE_MANAGER_CONTRACTID)
@@ -67,14 +120,31 @@ class QgsCacheManager:
         self._create_project = QgsProject
         self._cache = lrucache(size)
         self._strict_check = cnf.getboolean('strict_check')
+        self._trust_layer_metadata = cnf.getboolean('trust_layer_metadata')
+        self._disable_getprint = cnf.getboolean('disable_getprint')
         self._aliases = {}
         self._default_scheme = cnf.get('default_handler',fallback='file')
+
+        allowed_schemes = cnf.get('allow_storage_schemes')
+        if allowed_schemes != '*':
+            allowed_schemes = [s.strip() for s in allowed_schemes.split(',')]
+        self._allowed_schemes = allowed_schemes
 
         # Set the base url for file protocol
         self._aliases['file'] = 'file:///%s/' % cnf.get('rootdir').strip('/')
 
+        if self._disable_getprint:
+            LOGGER.info("** Cache: Getprint disabled")
+
+        if self._trust_layer_metadata:
+            LOGGER.info("** Cache: Trust Layer Metadata on")
+
         # Load protocol handlers
         componentmanager.register_entrypoints('qgssrv_contrib_protocol_handler')
+
+    @property
+    def trust_mode_on(self) -> bool:
+        return self._trust_layer_metadata
 
     def clear(self) -> None:
         """ Clear the whole cache
@@ -115,19 +185,24 @@ class QgsCacheManager:
 
         return url
 
-
     def get_project_factory( self, key: str ):
         """ Return project store create function for the given key
         """
         url = self.resolve_alias(key)
 
         scheme = url.scheme or self._default_scheme
+        # Check for allowed schemes
+        if self._allowed_schemes != '*' and scheme not in self._allowed_schemes:
+            LOGGER.error("Scheme %s not allowed", scheme)
+            raise PathNotAllowedError(key)
+
         # Retrieve the protocol-handler
         try:
             store = componentmanager.get_service('@3liz.org/cache/protocol-handler;1?scheme=%s' % scheme)
         except componentmanager.FactoryNotFoundError:
-            LOGGER.error("No protocol handler found for %s", scheme)
-            raise FileNotFoundError(key)
+            LOGGER.warning("No protocol handler found for %s: using Qgis storage handler", scheme)
+            # Fallback to Qgis storage handler
+            store = QgisStorageHandler()
        
         return partial(store.get_project,url)
 
@@ -170,15 +245,25 @@ class QgsCacheManager:
             from path.
         """
         LOGGER.debug("Reading Qgis project %s", path)
-        project = self._create_project()
+
+        # see https://github.com/qgis/QGIS/pull/49266
+        if Qgis.QGIS_VERSION_INT < 32601:
+            project = self._create_project()
+        else:
+            project = self._create_project(capabilities=Qgis.ProjectCapabilities())
+
+        readflags = QgsProject.ReadFlags()
+        if self._trust_layer_metadata:
+            readflags |= QgsProject.FlagTrustLayerMetadata
+        if self._disable_getprint:
+            readflags |= QgsProject.FlagDontLoadLayouts
+
         badlayerh = BadLayerHandler()
         project.setBadLayerHandler(badlayerh)
         project.read(path)
-        if self._strict_check and not badlayerh.validatLayers(project):
+        if self._strict_check and not badlayerh.validateLayers(project):
             raise StrictCheckingError
         return project
-
-
 
 
 class BadLayerHandler(QgsProjectBadLayerHandler):
@@ -195,7 +280,7 @@ class BadLayerHandler(QgsProjectBadLayerHandler):
         nameElements = (lyr.firstChildElement("layername") for lyr in layers if lyr)
         self.badLayerNames = set(elem.text() for elem in nameElements if elem)
 
-    def validatLayers( self, project: QgsProject ) -> bool:
+    def validateLayers( self, project: QgsProject ) -> bool:
         """ Check layers
             
             If layers are excluded do not count them as bad layers

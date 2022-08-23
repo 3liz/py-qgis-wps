@@ -57,7 +57,9 @@ stop:
 	docker compose down -v --remove-orphans
 
 up:
-	docker compose up -V  --remove-orphans --force-recreate --exit-code-from wps
+	docker compose up -V --quiet-pull --remove-orphans \
+		--force-recreate --exit-code-from wps
+	docker compose down -v --remove-orphans
 
 test-pool: local
 	docker run --rm --name qgis-wps-test-pool-$(FLAVOR)-$(COMMITID) -w /src \

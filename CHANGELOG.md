@@ -1,6 +1,7 @@
 # Changes
 
 ## Unreleased
+* Skip capabilities check for Qgis >= 3.26.1
 
 ## 1.7.0 - 2022-05-17
 

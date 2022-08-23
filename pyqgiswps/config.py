@@ -31,8 +31,16 @@ from pyqgisservercontrib.core import componentmanager
 CONFIG = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
 CONFIG.optionxform = lambda opt: opt
 
+getenv = os.getenv
+
 def _log( *args ):
     print( *args, file=sys.stderr, flush=True)
+
+
+def getenv2( env1, env2, default):
+    """ Get value from alternate env variable
+    """
+    return getenv(env1,getenv(env2,default))
 
 
 def load_configuration():
@@ -46,7 +54,6 @@ def load_configuration():
     CONFIG.clear()
 
     _log('loading configuration')
-    getenv = os.getenv
 
     #
     # Server
@@ -132,7 +139,15 @@ def load_configuration():
     CONFIG.set('projects.cache', 'rootdir' , getenv('QGSWPS_CACHE_ROOTDIR',''))
     # Ensure that loaded project is valid before loading in cache
     CONFIG.set('projects.cache', 'strict_check' , getenv('QGSWPS_CACHE_STRICT_CHECK','yes'))
+    CONFIG.set('projects.cache', 'trust_layer_metadata', 
+               getenv2('QGSWPS_TRUST_LAYER_METADATA','QGIS_SERVER_TRUST_LAYER_METADATA','no'))
+    CONFIG.set('projects.cache', 'disable_getprint'    ,   
+               getenv2('QGSWPS_DISABLE_GETPRINT','QGIS_SERVER_DISABLE_GETPRINT','no'))
 
+    CONFIG.set('projects.cache', 'allow_storage_schemes', getenv('QGSWPS_CACHE_ALLOW_STORAGE_SCHEMES', '*'))
+
+
+    # 
     CONFIG.add_section('projects.schemes')
 
     #
