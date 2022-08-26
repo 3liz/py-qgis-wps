@@ -11,14 +11,14 @@ from pyqgiswps.inout.inputs import LiteralInput, ComplexInput, BoundingBoxInput
 from pyqgiswps.inout.outputs import LiteralOutput, ComplexOutput, BoundingBoxOutput
 from pyqgiswps.inout.literaltypes import LITERAL_DATA_TYPES
 from pyqgiswps.inout.formats import Format
-from pyqgiswps.inout.literaltypes import AllowedValue
+from pyqgiswps.inout.literaltypes import AllowedValues
 
 from pyqgiswps.ogc import OGCTYPE, OGCUNIT
 from pyqgiswps.ogc.ows import E, WPS, OWS, NAMESPACES
 from pyqgiswps.ogc.ows.schema import xpath_ns
 
 from pyqgiswps.app.common import Metadata
-from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE, RANGECLOSURETYPE
 
 from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
 
@@ -133,7 +133,7 @@ class DescribeProcessInputTest(HTTPTestCase):
                 hello,
                 'hello_string',
                 'Process Hello',
-                inputs=[LiteralInput('the_name', 'Input name')],
+                inputs=[LiteralInput('the_name', 'Input name', data_type='string')],
                 metadata=[Metadata('process metadata 1', 'http://example.org/1'), Metadata('process metadata 2', 'http://example.org/2')]
         )
 
@@ -142,7 +142,9 @@ class DescribeProcessInputTest(HTTPTestCase):
                                'Process Hello',
                                inputs=[LiteralInput('the_number',
                                                     'Input number',
-                                                     data_type='positiveInteger')])
+                                                    data_type='integer',
+                                                    allowed_values=AllowedValues.positiveValue(),
+                                                    )])
         return [hello_string, hello_integer]
 
 
@@ -154,12 +156,12 @@ class DescribeProcessInputTest(HTTPTestCase):
 
     def test_one_literal_string_input(self):
         result = self.describe_process('hello_string')
-        assert result.inputs == [('the_name', 'literal', 'integer')]
+        assert result.inputs == [('the_name', 'literal', 'string')]
         assert result.metadata == ['process metadata 1', 'process metadata 2']
 
     def test_one_literal_integer_input(self):
         result = self.describe_process('hello_integer')
-        assert result.inputs == [('the_number', 'literal', 'positiveInteger')]
+        assert result.inputs == [('the_number', 'literal', 'integer')]
 
 
 # ---------------------
@@ -167,14 +169,14 @@ class DescribeProcessInputTest(HTTPTestCase):
 # ---------------------
 
 def test_literal_integer_input():
-    literal = LiteralInput('foo', 'Literal foo', data_type='positiveInteger', uoms=['metre'])
+    literal = LiteralInput('foo', 'Literal foo', data_type='integer', uoms=['metre'])
     doc = literal.describe_xml()
     assert doc.tag == E.Input().tag
     [identifier_el] = xpath_ns(doc, './ows:Identifier')
     assert identifier_el.text == 'foo'
     [type_el] = xpath_ns(doc, './LiteralData/ows:DataType')
-    assert type_el.text == 'positiveInteger'
-    assert type_el.attrib['{%s}reference' % NAMESPACES['ows']] == OGCTYPE['positiveInteger']
+    assert type_el.text == 'integer'
+    assert type_el.attrib['{%s}reference' % NAMESPACES['ows']] == OGCTYPE['integer']
     anyvalue = xpath_ns(doc, './LiteralData/ows:AnyValue')
     assert len(anyvalue) == 1
 
@@ -187,14 +189,11 @@ def test_literal_allowed_values_input():
         'Foo',
         data_type='integer',
         uoms=['metre'],
-        allowed_values=(
-            1, 2, (5, 10), (12, 4, 24),
-            AllowedValue(
+        allowed_values=AllowedValues(
                 allowed_type=ALLOWEDVALUETYPE.RANGE,
                 minval=30,
                 maxval=33,
-                range_closure='closed-open')
-        )
+                range_closure=RANGECLOSURETYPE.CLOSEDOPEN)
     )
     doc = literal.describe_xml()
 
@@ -206,8 +205,8 @@ def test_literal_allowed_values_input():
     values = xpath_ns(allowed_value, './ows:Value')
     ranges = xpath_ns(allowed_value, './ows:Range')
 
-    assert len(values) == 2
-    assert len(ranges) == 3
+    assert len(values) == 0
+    assert len(ranges) == 1
 
 
 def test_complex_input_identifier():

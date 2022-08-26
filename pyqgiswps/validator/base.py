@@ -12,8 +12,13 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
+import datetime
 
 from pyqgiswps.validator.mode import MODE
+
+from typing import Any, TypeVar
+
+Json = TypeVar('Json')
 
 
 def emptyvalidator(data_input, mode):
@@ -24,3 +29,13 @@ def emptyvalidator(data_input, mode):
         return True
     else:
         return False
+
+
+def to_json_serializable( data: Any ) -> Json:
+    """ Convert Literal to serializable value
+    """
+    # Convert datetime to string
+    if isinstance(data, (datetime.time, datetime.datetime)):
+        return data.replace(microsecond=0).isoformat()
+    else:
+        return data

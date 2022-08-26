@@ -35,7 +35,7 @@ class TestsExecutor(HTTPTestCase):
         uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testraiseerror&Version=1.0.0'
                                '&DATAINPUTS=PARAM1=10')
         rv = self.client.get(uri, path='')
-        assert rv.status_code == 424
+        assert rv.status_code == 500
 
     @async_test
     def test_process_error_async(self):

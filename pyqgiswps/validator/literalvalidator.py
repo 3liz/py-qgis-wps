@@ -40,50 +40,75 @@ def validate_allowed_values(data_input, mode):
         passed = True
     else:
         data = data_input.data
+        allowed_values = data_input.allowed_values
 
-        LOGGER.debug('validating allowed values: %s in %s', data, data_input.allowed_values)
-        for value in data_input.allowed_values:
+        LOGGER.debug('validating allowed values: %s in %s', data, allowed_values.json)
+        allowed_type = allowed_values.allowed_type
 
-            if value.allowed_type == ALLOWEDVALUETYPE.VALUE:
-                passed = _validate_value(value, data)
+        if allowed_type == ALLOWEDVALUETYPE.VALUE:
+            passed = _validate_value(allowed_values, data)
 
-            elif value.allowed_type == ALLOWEDVALUETYPE.LAYER:
-                passed = _validate_layer(value, data)
+        elif allowed_type == ALLOWEDVALUETYPE.LAYER:
+            passed = _validate_layer(allowed_values, data)
 
-            elif value.allowed_type == ALLOWEDVALUETYPE.RANGE:
-                passed = _validate_range(value, data)
-
-            if passed is True:
-                break
+        elif allowed_type == ALLOWEDVALUETYPE.RANGE:
+            passed = _validate_range(allowed_values, data)
 
     LOGGER.debug('validation result: %r', passed)
     return passed
 
 
-def _validate_value(value, data):
+def _validate_value(allowed_values, data):
     """Validate data against given value directly
 
     :param value: list or tupple with allowed data
     :param data: the data itself (string or number)
     """
+    return data in allowed_values.values
 
+
+def _validate_range_min(interval, data):
     passed = False
-    if data == value.value:
-        passed = True
+    if interval.minval <= data:
+        if interval.spacing and isinstance(data, (int, float)):
+            spacing = abs(interval.spacing)
+            diff = data - interval.minval
+            passed = diff % spacing == 0
+        else:
+            passed = True
+
+        if passed:
+            if interval.range_closure in (RANGECLOSURETYPE.CLOSED, RANGECLOSURETYPE.CLOSEDOPEN):
+                passed = (interval.minval <= data)
+            elif interval.range_closure in (RANGECLOSURETYPE.OPEN, RANGECLOSURETYPE.OPENCLOSED):
+                passed = (interval.minval < data)
+    else:
+        passed = False
 
     return passed
 
 
-def _validate_range(interval, data):
+def _validate_range_max(interval, data):
     """Validate data against given range
     """
+    if interval.range_closure in (RANGECLOSURETYPE.CLOSED, RANGECLOSURETYPE.OPENCLOSED):
+        passed = (data <= interval.maxval)
+    elif interval.range_closure in (RANGECLOSURETYPE.OPEN, RANGECLOSURETYPE.CLOSEDOPEN):
+        passed = (data < interval.maxval)
+    else:
+        passed = False
 
+    return passed
+
+
+def _validate_range_minmax(interval, data):
+    """Validate data against given range
+    """
     passed = False
 
-    LOGGER.debug('validating range: %s (%s) in %r', data, type(data), interval)
     if interval.minval <= data <= interval.maxval:
 
-        if interval.spacing:
+        if interval.spacing and isinstance(data, (int, float)):
             spacing = abs(interval.spacing)
             diff = data - interval.minval
             passed = diff % spacing == 0
@@ -102,22 +127,33 @@ def _validate_range(interval, data):
     else:
         passed = False
 
+    return passed
+
+
+def _validate_range(interval, data):
+    """Validate data against given range
+    """
+    LOGGER.debug('validating range: %s (%s) in %r', data, type(data), interval)
+    if interval.minval is not None and interval.maxval is not None:
+        passed = _validate_range_minmax(interval, data)
+    elif interval.minval is not None:
+        passed = _validate_range_min(interval, data)
+    elif interval.maxval is not None:
+        passed = _validate_range_max(interval, data)
+    else:
+        passed = True
+
     LOGGER.debug('validation result: %r', passed)
     return passed
 
 
-def _validate_layer(value, data):
+def _validate_layer(allowed_values, data):
     """Validate data against a layer expression directly
 
     :param value: list or tuple with allowed data
     :param data: the data itself (string or number)
     """
-    passed = False
     if data.find('layer:',0,6) == 0:
-        passed = (urlparse(data).path == value.value)
-    else:
-        passed = (data == value.value)
-
-    return passed
-
-
+        data = urlparse(data).path
+   
+    return data in allowed_values.values

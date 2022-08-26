@@ -12,7 +12,7 @@ sample_pr_data = {
   "pinned": false,
   "status": "ERROR_STATUS",
   "status_url": "http://onfi-cluster-0.snap.lizlan:8200/petra/ows/?service=WPS&request=GetResults&uuid=29ea7892-2d29-11e8-b39e-0254d567f739",
-  "store_execute": true, 
+  "execute_async": true, 
   "store_url": "http://onfi-cluster-0.snap.lizlan:8200/petra/store/29ea7892-2d29-11e8-b39e-0254d567f739/?service=WPS", 
   "time_end": "2018-03-21T16:59:05.754979Z",
   "time_start": "2018-03-21T16:59:05.495468Z",

@@ -76,10 +76,9 @@ def test_literal_input():
     assert isinstance(inp, LiteralInput)
     assert inp.identifier == "TEST"
     assert inp.data_type == "integer"
-    assert len(inp.allowed_values) == 1
-    assert inp.allowed_values[0].allowed_type == ALLOWEDVALUETYPE.RANGE
-    assert inp.allowed_values[0].minval == param.minimum()
-    assert inp.allowed_values[0].maxval == param.maximum()
+    assert inp.allowed_values.allowed_type == ALLOWEDVALUETYPE.RANGE
+    assert inp.allowed_values.minval == param.minimum()
+    assert inp.allowed_values.maxval == param.maximum()
     assert inp.default == param.defaultValue()
 
 
@@ -90,7 +89,6 @@ def test_scale_input():
     assert isinstance(inp, LiteralInput)
     assert inp.identifier == "TEST"
     assert inp.data_type == "scale"
-    assert len(inp.allowed_values) == 1
     assert inp.default == param.defaultValue()
 
 
@@ -105,11 +103,10 @@ def test_distance_input():
     assert isinstance(inp, LiteralInput)
     assert inp.identifier == "TEST"
     assert inp.data_type == "length"
-    assert len(inp.allowed_values) == 1
     assert inp.default == param.defaultValue()
-    assert inp.allowed_values[0].allowed_type == ALLOWEDVALUETYPE.RANGE
-    assert inp.allowed_values[0].minval == param.minimum()
-    assert inp.allowed_values[0].maxval == param.maximum()
+    assert inp.allowed_values.allowed_type == ALLOWEDVALUETYPE.RANGE
+    assert inp.allowed_values.minval == param.minimum()
+    assert inp.allowed_values.maxval == param.maximum()
     assert get_metadata(inp,'processing:defaultUnit')[0].href == QgsUnitTypes.toString(param.defaultUnit())
 
 @pytest.mark.skipif(Qgis.QGIS_VERSION_INT < 32200, reason="requires qgis 3.22+")
@@ -126,11 +123,10 @@ def test_duration_input():
     assert isinstance(inp, LiteralInput)
     assert inp.identifier == "TEST"
     assert inp.data_type == "time"
-    assert len(inp.allowed_values) == 1
     assert inp.default == param.defaultValue()
-    assert inp.allowed_values[0].allowed_type == ALLOWEDVALUETYPE.RANGE
-    assert inp.allowed_values[0].minval == param.minimum()
-    assert inp.allowed_values[0].maxval == param.maximum()
+    assert inp.allowed_values.allowed_type == ALLOWEDVALUETYPE.RANGE
+    assert inp.allowed_values.minval == param.minimum()
+    assert inp.allowed_values.maxval == param.maximum()
     assert get_metadata(inp,'processing:defaultUnit')[0].href == QgsUnitTypes.toString(param.defaultUnit())
 
 
@@ -143,9 +139,9 @@ def test_options_input():
 
     assert isinstance(inp, LiteralInput)
     assert inp.data_type == 'string'
-    assert inp.allowed_values[0].value == options[0]
-    assert inp.allowed_values[1].value == options[1]
-    assert inp.allowed_values[2].value == options[2]
+    assert inp.allowed_values.values[0] == options[0]
+    assert inp.allowed_values.values[1] == options[1]
+    assert inp.allowed_values.values[2] == options[2]
     assert inp.default == options[1]
 
 
@@ -158,9 +154,9 @@ def test_multi_options_input():
 
     assert isinstance(inp, LiteralInput)
     assert inp.data_type == 'string'
-    assert inp.allowed_values[0].value == options[0]
-    assert inp.allowed_values[1].value == options[1]
-    assert inp.allowed_values[2].value == options[2]
+    assert inp.allowed_values.values[0] == options[0]
+    assert inp.allowed_values.values[1] == options[1]
+    assert inp.allowed_values.values[2] == options[2]
     assert inp.default == options[1]
     assert inp.max_occurs == len(options)
 

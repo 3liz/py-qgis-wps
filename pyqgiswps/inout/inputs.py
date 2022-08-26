@@ -24,6 +24,12 @@ from pyqgiswps.validator.mode import MODE
 from pyqgiswps.inout.literaltypes import AnyValue
 from pyqgiswps.inout.httpclient import openurl
 
+from pyqgiswps.exceptions import InvalidParameterValue
+
+from typing import TypeVar
+
+Json = TypeVar('Json')
+Self = TypeVar('Self')
 
 class BoundingBoxInput(basic.BBoxInput, *ogc.exports.BoundingBoxInput):
 
@@ -42,10 +48,10 @@ class BoundingBoxInput(basic.BBoxInput, *ogc.exports.BoundingBoxInput):
     def __init__(self, identifier, title, crss, abstract='',
                  dimensions=2, metadata=[], min_occurs=1,
                  max_occurs=1,
-                 mode=MODE.NONE, default=None):
+                 default=None):
         basic.BBoxInput.__init__(self, identifier, title=title,
                                  abstract=abstract, crss=crss,
-                                 dimensions=dimensions, mode=mode)
+                                 dimensions=dimensions)
 
         self.metadata = metadata
         self.min_occurs = int(min_occurs)
@@ -55,6 +61,22 @@ class BoundingBoxInput(basic.BBoxInput, *ogc.exports.BoundingBoxInput):
         """Create copy of yourself
         """
         return deepcopy(self)
+
+    def validate_input(self, inpt: Json) -> Self:
+        """  Set parameter from json definition
+        """
+        self.data = inpt.get('data')
+        if not self.data or len(self.data) < self.dimensions:
+            raise InvalidParameterValue(f"Invalid bbox data for input '{self.identifier}')")
+
+        self.crs = inpt.get('crs')
+        if not self.crs:
+            self.crs = self.crss[0]
+        elif self.crs not in self.crss:
+            raise InvalidParameterValue(f"Invalid crs for input '{self.identifier}')")
+
+        self.dimensions = inpt.get('dimensions', self.dimensions)
+        return self
 
 
 class ComplexInput(basic.ComplexInput, *ogc.exports.ComplexInput):
@@ -122,6 +144,34 @@ class ComplexInput(basic.ComplexInput, *ogc.exports.ComplexInput):
         """
         return deepcopy(self)
 
+    def validate_input(self, inpt: Json) -> Self:
+        """  Set parameter from json definition
+        """
+        if self.supported_formats:
+            frmt = self.supported_formats[0]
+        else:
+            frmt: None
+
+        mimetype = inpt.get('mimeType')
+        if mimetype:
+            frmt = self.get_format(mimetype)
+            if not frmt:
+                raise InvalidParameterValue(
+                    f"Invalid mimeType value '{mimetype}' for input {self.identifier}")
+
+        self.data_format = frmt
+
+        # get the referenced input otherwise get the value of the field
+        href = inpt.get('href', None)
+        if href:
+            self.method = inpt.get('method', 'GET')
+            self.url = href
+            self.as_reference = True
+            self.body = inpt.get('body')
+        else:
+            self.data = inpt.get('data')
+        return self
+
 
 class LiteralInput(basic.LiteralInput, *ogc.exports.LiteralInput):
     """
@@ -139,7 +189,7 @@ class LiteralInput(basic.LiteralInput, *ogc.exports.LiteralInput):
                      should be :class:`pyqgiswps.app.common.Metadata` objects.
     """
 
-    def __init__(self, identifier, title, data_type='integer', abstract='',
+    def __init__(self, identifier, title, data_type, abstract='',
                  metadata=[], uoms=None, default=None,
                  min_occurs=1, max_occurs=1,
                  mode=MODE.SIMPLE, allowed_values=AnyValue):
@@ -159,3 +209,20 @@ class LiteralInput(basic.LiteralInput, *ogc.exports.LiteralInput):
         """Create copy of yourself
         """
         return deepcopy(self)
+
+    def validate_input(self, inpt: Json) -> Self:
+        """  Set parameter from json definition
+        """
+        code = inpt.get('uom')
+        if code:
+            code = self.get_uom(code)
+            if not code:
+                raise InvalidParameterValue(
+                    f"Invalid uom value '{code}' for input {self.identifier}")
+        elif self.uoms:
+            self.uom = self.uoms[0]
+
+        self.data = inpt.get('data')
+        return self
+
+ 

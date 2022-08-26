@@ -11,10 +11,9 @@ import os
 import traceback
 import shutil
 import logging
-import lxml
 
 from glob import glob
-from typing import Iterable
+from typing import Iterable, Any, Optional
 
 try:
     # XXX On android userland, /proc/stat is not readable
@@ -30,7 +29,12 @@ from datetime import datetime
 from pyqgiswps.app.request import STATUS
 from pyqgiswps.logger import logfile_context
 from pyqgiswps.utils.lru import lrucache
-from pyqgiswps.exceptions import (NoApplicableCode, ProcessException)
+from pyqgiswps.exceptions import (
+    NoApplicableCode, 
+    ProcessException,
+    UnknownProcessError,
+)
+
 from pyqgiswps.config import confservice
 from pyqgiswps.app.process import WPSProcess
 
@@ -45,15 +49,6 @@ from .logstore import logstore
 
 LOGGER = logging.getLogger('SRVLOG')
 
-
-class ExecutorError(Exception):
-    pass
-
-class UnknownProcessError(ExecutorError):
-    pass
-
-class StorageNotFound(ExecutorError): 
-    pass
 
 class ProcessingExecutor:
     """ Progessing executor
@@ -115,7 +110,26 @@ class ProcessingExecutor:
         """
         return logstore.get_status(uuid, **kwargs)
 
-    def delete_results( self, uuid):
+    def kill_job(self, uuid, pid: Optional[int] = None) -> bool:
+        """ Kill process job
+
+            This will have no effects if the worker 
+            is not in 'BUSY' state
+        """
+        if pid is None:
+            # Retrieve pid
+            store = self.get_status(uuid)
+            if not store:
+                return False
+       
+            pid = store.get('pid')
+            if not pid:
+                return False
+
+        return self._factory.kill_worker_busy(pid) 
+
+
+    def delete_results(self, uuid, force: bool=False) -> bool:
         """ Delete process results and status 
  
             :param uuid: the uuid of the required process. 
@@ -123,20 +137,23 @@ class ProcessingExecutor:
 
             :return: True if the status has been deleted.
         """
-        rec = logstore.get_status(uuid)
-        if rec is None:
-            raise FileNotFoundError(uuid)
-        try:
-            if STATUS[rec['status']] < STATUS.DONE_STATUS:
-                return False
-        except KeyError:
-            # Handle legacy status
-            pass
+        if not force:
+            rec = logstore.get_status(uuid)
+            if rec is None:
+                raise FileNotFoundError(uuid)
+            try:
+                if STATUS[rec['status']] < STATUS.DONE_STATUS:
+                    return False
+            except KeyError:
+                # Handle legacy status
+                pass
+        else:
+            LOGGER.warning("Forcing resources deletion for job '%s'", uuid) 
 
         workdir = os.path.abspath(confservice.get('server','workdir'))
 
         # Delete the working directory
-        uuid_str = rec['uuid']
+        uuid_str = str(uuid)
         workdir = os.path.join(workdir, uuid_str)
         LOGGER.info("Cleaning response status: %s", uuid_str)
         try:
@@ -212,7 +229,7 @@ class ProcessingExecutor:
             except ProcessException:
                 LOGGER.error("Failed to reload Qgis processes")
 
-    def schedule_cleanup( self ) -> None:
+    def schedule_cleanup(self) -> None:
         """ Schedule a periodic cleanup
         """
         interval = confservice.getint('server','cleanup_interval')
@@ -228,7 +245,7 @@ class ProcessingExecutor:
         # Schedule the task
         self._cleanup_task = asyncio.ensure_future( _run_cleanup() )
 
-    async def execute( self, wps_request, wps_response ):
+    async def execute(self, wps_request, wps_response) -> Any:
         """ Execute a process
 
             :return: wps_response or None
@@ -237,10 +254,7 @@ class ProcessingExecutor:
         process.uuid = wps_response.uuid
 
         # Start request
-        logstore.log_request( process.uuid, wps_request)
-
-        # Check if we need no store the response
-        wps_response.store = (wps_response.status >= STATUS.STORE_STATUS)
+        logstore.log_request(process.uuid, wps_request)
 
         # Get request defined timeout
         timeout = wps_request.timeout
@@ -248,10 +262,14 @@ class ProcessingExecutor:
         apply_future = self._pool.apply_async(self._run_process, args=(process.handler, wps_request, wps_response),
                                               timeout=timeout)
 
-        if wps_response.status == STATUS.STORE_AND_UPDATE_STATUS:
+        if wps_request.execute_async:
             # ---------------------------------
             # Run the processe asynchronously
             # ---------------------------------
+
+            # Task accepted
+            wps_response.update_status('Task accepted', None, STATUS.ACCEPTED_STATUS)
+            
             async def do_execute_async():
                 # Handle errors while we are going async
                 try:
@@ -265,31 +283,34 @@ class ProcessingExecutor:
                     LOGGER.error(traceback.format_exc())
                     wps_response.update_status("Internal Error", None, STATUS.ERROR_STATUS)
                     pass
-
+           
             # Fire and forget
             asyncio.ensure_future(do_execute_async())
 
-            wps_response.update_status('Task accepted')
-            return wps_response.document                        
+            return wps_response.document 
         else:
             # -------------------------------
             # Run process and wait for response 
             # -------------------------------
+
+            # Task accepted
+            wps_response.update_status('Task accepted', None, STATUS.ACCEPTED_STATUS)
+ 
             try:
                 return await apply_future
             except asyncio.TimeoutError:
                 wps_response.update_status("Timeout Error", None, STATUS.ERROR_STATUS)
-                raise NoApplicableCode("Execute Timeout", code=424)
+                raise NoApplicableCode("Process execution Timeout", code=504)
             except MaxRequestsExceeded:
                 raise NoApplicableCode("Server busy, please retry later", code=509)
             except RequestBackendError as e:
                 if isinstance(e.response, ProcessException):
-                    raise NoApplicableCode("Process Error", code=424)
+                    raise NoApplicableCode("Process Error", code=500)
                 else:
                     raise
 
     @staticmethod
-    def _run_process(handler, wps_request, wps_response):
+    def _run_process(handler, wps_request, wps_response) -> bytes:
         """ Run WPS  process
 
             Note that there is nothing to return is async mode
@@ -299,14 +320,16 @@ class ProcessingExecutor:
             # Change current dir to workdir
             os.chdir(workdir)
 
-            wps_response.update_status('Task started', 0)
-
+            wps_response.update_status('Task started', 0, STATUS.STARTED_STATUS)
+            
             with logfile_context(workdir, 'processing'), memory_logger(wps_response):
                 handler(wps_request, wps_response)
+
                 wps_response.update_status('Task finished',100, STATUS.DONE_STATUS)
 
                 ## Return pickable response
-                return lxml.etree.tostring(wps_response.document, pretty_print=True)
+                if wps_response.document:
+                    return wps_response.get_document_bytes()
 
         except ProcessException as e:
             wps_response.update_status("%s" % e, None, STATUS.ERROR_STATUS)

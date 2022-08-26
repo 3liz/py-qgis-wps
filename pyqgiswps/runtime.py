@@ -14,13 +14,19 @@ import tornado.process
 import signal
 import pkg_resources
 
-from tornado.web import StaticFileHandler
+from tornado.web import StaticFileHandler, RedirectHandler
 
 from .logger import log_request
 from .config import confservice, get_size_bytes
 from .handlers import (
     RootHandler, 
-    OWSHandler, StoreHandler, StatusHandler, 
+    ProcessHandler,
+    ExecuteHandler,
+    JobHandler,
+    ResultHandler,
+    OWSHandler, 
+    StoreHandler, 
+    StatusHandler, 
     DownloadHandler,
     NotFoundHandler
 )
@@ -44,11 +50,21 @@ def configure_handlers():
 
     default_access_policy = new_access_policy()
 
+    ogcapi_init_args = {
+        'access_policy': default_access_policy,
+    }
+
     handlers = [ 
         (r"/", RootHandler),
+        # OWS Api
         (r"/ows/", OWSHandler, {'access_policy': default_access_policy}),
-        (r"/ows/store/([^/]+)/(.*)?", StoreHandler, {'workdir': workdir}),
-        (r"/ows/status/([^/]+)?", StatusHandler),
+        # OGC Api
+        (r"/processes/([^/]+)/execution", ExecuteHandler, ogcapi_init_args),
+        (r"/processes/([^/]+)", ProcessHandler, ogcapi_init_args),
+        (r"/processes/?", ProcessHandler, ogcapi_init_args),
+        (r"/jobs/?", JobHandler, ogcapi_init_args),
+        (r"/jobs/([^/]+)", JobHandler, ogcapi_init_args),
+        (r"/jobs/([^/]+)/results", ResultHandler, ogcapi_init_args),
         # Add theses as shortcuts
         (r"/store/([^/]+)/(.*)?", StoreHandler, {'workdir': workdir}),
         (r"/status/([^/]+)?", StatusHandler),
@@ -60,6 +76,10 @@ def configure_handlers():
             'path': staticpath, 
             'default_filename':"dashboard.html"
         }),
+
+        # Deprecated: redirect
+        (r"/ows/store/([^/]+)/(.*)?", RedirectHandler, { 'url': "/store/{0}/{1}" }),
+        (r"/ows/status/([^/]+)?", RedirectHandler, { 'url': "/status/{0}" }),
     ]
 
     return handlers

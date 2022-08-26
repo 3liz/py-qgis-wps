@@ -11,7 +11,7 @@
 import logging
 
 from pyqgiswps.inout import LiteralInput
-from pyqgiswps.inout.literaltypes import convert_time
+from pyqgiswps.inout.literaltypes import AllowedValues, convert_time
 
 from qgis.PyQt.QtCore import Qt, QDateTime, QDate, QTime
 from qgis.core import (QgsProcessingParameterDefinition,
@@ -63,7 +63,7 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs) -> 
 
     kwargs['default'] = defval
 
-    return LiteralInput(allowed_values=[(minval,maxval)], **kwargs)
+    return LiteralInput(allowed_values=AllowedValues.range(minval,maxval), **kwargs)
 
 # --------------------------------------
 # WPS inputs ->  processing inputs data

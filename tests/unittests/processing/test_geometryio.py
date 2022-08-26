@@ -142,6 +142,7 @@ def test_bbox_input_with_context(outputdir):
 
     assert isinstance(inp,BoundingBoxInput)
     assert inp.crss[0] == "EPSG:3857"
+    assert inp.crs == "EPSG:3857"
 
     # see create_bbox_inputs at L532 app/Service.py
     inp.data = ['15', '50', '16', '51']

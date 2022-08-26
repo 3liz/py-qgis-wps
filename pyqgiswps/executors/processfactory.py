@@ -323,6 +323,12 @@ class QgsProcessFactory:
         """
         self._poolserver.start_supervisor()
 
+    def kill_worker_busy(self, pid: int) -> bool:
+        """ Force kill worker in BUSY state
+        """
+        return self._poolserver.kill_worker_busy(pid)
+
+
     @classmethod
     def instance(cls) -> 'QgsProcessFactory':
         if not hasattr(cls,'_instance'):

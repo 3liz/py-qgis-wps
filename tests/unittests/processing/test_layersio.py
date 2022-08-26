@@ -82,7 +82,7 @@ def test_multilayer_with_selection():
     inputs  = { p.name(): [parse_input_definition(p,alg,context)] for p in  alg.parameterDefinitions() }
 
     inpt = inputs['INPUT'][0]
-    allowed_values = { v.value for v in inpt.allowed_values }
+    allowed_values = { value for value in inpt.allowed_values.values }
 
     assert 'france_parts' in allowed_values
     data = 'layer:france_parts?'+urlencode((('select','OBJECTID=2662 OR OBJECTID=2664'),))

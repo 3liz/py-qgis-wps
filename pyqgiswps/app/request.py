@@ -18,7 +18,13 @@ from pyqgiswps.executors.logstore import STATUS, logstore
 from pyqgiswps.exceptions import NoApplicableCode
 from pyqgiswps.config import confservice
 
+from typing import TypeVar, Optional
+
 LOGGER = logging.getLogger('SRVLOG')
+
+
+Service = TypeVar('Service')
+UUID    = TypeVar('UUID')
 
 
 class WPSRequest:
@@ -30,12 +36,9 @@ class WPSRequest:
         self.language = None
         self.identifiers = None
         self.identifier = None
-        self.store_execute = None
-        self.status = None
-        self.lineage = None
+        self.execute_async = False
         self.inputs = None
         self.outputs = None
-        self.raw = None
         self.map_uri = None
         self.host_url = None
 
@@ -43,7 +46,6 @@ class WPSRequest:
 
         self.timeout    = cfg.getint('response_timeout')
         self.expiration = cfg.getint('response_expiration')
-
 
     @property
     def json(self):
@@ -55,18 +57,29 @@ class WPSRequest:
             'version': self.version,
             'language': self.language,
             'identifiers': self.identifiers,
-            'store_execute': self.store_execute,
-            'status': self.store_execute,
-            'lineage': self.lineage,
+            'identifier' : self.identifier,
+            'execute_async': self.execute_async,
             'inputs': { i:[inpt.json for inpt in self.inputs[i]] for i in self.inputs },
             'outputs': self.outputs,
-            'raw': self.raw
+            'timeout': self.timeout,
         }
 
         return obj
 
+    def __repr__(self) -> str:
+        return f"AllowedValue(values={self.values}, minval={self.minval}, maxval={self.maxval}, range_closure={self.range_closure})"
+
     def dumps( self ):
         return json.dumps(self.json, allow_nan=False)
+
+    #
+    # Execute
+    #
+    async def execute(self, service: Service, uuid: UUID, 
+                      map_uri: Optional[str]=None) -> bytes:
+        
+        return await service.execute( self.identifier, self, uuid, map_uri)
+
 
 
 class WPSResponse:
@@ -91,13 +104,20 @@ class WPSResponse:
         self.outputs = {o.identifier: o for o in process.outputs}
         self.message = ''
         self.status = WPSResponse.STATUS.NO_STATUS
-        self.status_percentage = -1
+        self.status_percentage = 0
         self.status_url = status_url
         self.store_url  = store_url
         self.uuid = uuid
         self.document = None
-        self.store = False
 
+    def get_document_bytes(self) -> Optional[bytes]:
+        """ Return bytes encoded document
+            Raises exception if no document is availabe 
+        """
+        if self.document is None:
+            raise NoApplicableCode('No document available', code=500)
+        return self.encode_response(self.document)
+    
     def update_status(self, message=None, status_percentage=None, status=None):
         """
         Update status report of currently running process instance
@@ -107,8 +127,6 @@ class WPSResponse:
         :param pyqgiswps.app.WPSResponse.STATUS status: process status - user should usually
             ommit this parameter
         """
-        LOGGER.debug("*** Updating status: %s, %s, %s, %s", status, message, status_percentage, self.uuid)
-
         if message is not None:
             self.message = message
 
@@ -119,14 +137,13 @@ class WPSResponse:
             self.status_percentage = status_percentage
 
         # Write response
-        if self.status >= WPSResponse.STATUS.STORE_AND_UPDATE_STATUS:
-            # rebuild the doc and update the status xml file
-            self.document = self.get_execute_response()
-            # check if storing of the status is requested
-            if self.store:
-                self._write_response_doc(self.uuid, self.document)
-            if self.status >= WPSResponse.STATUS.DONE_STATUS:
-                self.process.clean()
+        # rebuild the doc and update the status xml file
+        self.document = self.get_execute_response()
+        # check if storing of the status is requested
+        if self.document:
+            self._write_response_doc(self.uuid, self.document)
+        if self.status >= WPSResponse.STATUS.DONE_STATUS:
+            self.process.clean()
 
         self._update_response(self.uuid)
 
@@ -134,14 +151,14 @@ class WPSResponse:
         """ Write response document
         """
         try:
-            logstore.write_response( request_uuid, doc)
+            logstore.write_response(request_uuid, self.encode_response(doc))
         except IOError as e:
             raise NoApplicableCode('Writing Response Document failed with : %s' % e, code=500)
 
-    def _update_response( self, request_uuid ):
+    def _update_response(self, request_uuid):
         """ Log input request
         """
-        logstore.update_response( request_uuid, self )
+        logstore.update_response(request_uuid, self)
 
 
 

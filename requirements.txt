@@ -1,5 +1,5 @@
 tornado >= 6
-jsonschema
+jsonschema >= 4.15
 lxml
 python-dateutil
 redis

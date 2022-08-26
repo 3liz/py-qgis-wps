@@ -15,6 +15,7 @@ from tornado.testing import AsyncHTTPTestCase
 from contextlib import contextmanager
 import shutil
 import tempfile
+import json
 
 import lxml.etree
 from pyqgiswps import __version__
@@ -155,6 +156,9 @@ class WpsTestResponse:
         return ' '.join(e.text for e in self.xpath(path))
 
 
+#
+# OWS WPS Client/Response
+#
 
 class WpsClient:
 
@@ -174,12 +178,11 @@ class WpsClient:
                                body=data, raise_error=False, headers=headers))
 
     def post_xml(self, doc) -> WpsTestResponse:
-        return WpsTestResponse(self.post(data=lxml.etree.tostring(doc, pretty_print=True)))
+        return self.post(data=lxml.etree.tostring(doc, pretty_print=True))
 
     def options( self, headers: Optional[Dict]=None, path: str='/ows/') -> WpsTestResponse:
         return WpsTestResponse(self._testcase.fetch(path, method='OPTIONS',
-                               raise_error=False, headers=headers))
-    
+                               raise_error=False, headers=headers)) 
 
 
 def assert_response_accepted(resp):
@@ -218,3 +221,54 @@ def assert_pyqgiswps_version(resp):
     assert tokens[0] == 'py-qgis-wps'
     assert tokens[1] == __version__
 
+
+#
+# Generic HTTP Client/Response
+#
+
+class HttpResponse:
+
+    def __init__(self, http_response):
+        self.http_response = http_response
+
+    @property
+    def body(self) -> Any:
+        return self.http_response.body
+
+    @property
+    def status_code(self) -> int:
+        return self.http_response.code
+
+    @property
+    def headers(self):
+        return self.http_response.headers
+
+    @property
+    def json(self):
+        if self.headers.get('Content-Type','').find('application/json')==0:
+            return json.loads(self.body)
+
+
+class HttpClient:
+
+    def __init__(self, testcase):
+        self._testcase = testcase
+
+    def post(self, path: str, data: Any, headers: Optional[Dict]=None) -> HttpResponse:
+        return HttpResponse(self._testcase.fetch(path, method='POST', 
+                            body=data, raise_error=False, headers=headers))
+
+    def get(self, path, headers: Optional[Dict]=None) -> HttpResponse:
+        return HttpResponse(self._testcase.fetch(path, raise_error=False,
+                            headers=headers))
+
+    def put(self, path, data, headers: Optional[Dict]=None) -> HttpResponse:
+        return HttpResponse(self._testcase.fetch(path, method='PUT', 
+                            body=data, raise_error=False, headers=headers))
+
+    def options(self, path, headers: Optional[Dict]=None) -> HttpResponse:
+        return HttpResponse(self._testcase.fetch(path, method='OPTIONS',
+                            raise_error=False, headers=headers))
+
+    def post_json(self, path, data, headers: Optional[Dict]=None) -> HttpResponse:
+        return self.post(path, json.dumps(data), headers=headers)

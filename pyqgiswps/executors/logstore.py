@@ -4,12 +4,12 @@
 """
 import json
 import logging
-
+import os
 import uuid
 
 from datetime import datetime
-from lxml import etree
 from enum import IntEnum
+from typing import Optional
 
 from pyqgiswps.config import confservice
 
@@ -24,15 +24,15 @@ def utcnow():
 
 class STATUS(IntEnum):
     NO_STATUS = 0
-    STORE_STATUS = 10
-    STORE_AND_UPDATE_STATUS = 20
+    ACCEPTED_STATUS = 21
+    STARTED_STATUS = 25
     DONE_STATUS = 30
     ERROR_STATUS = 40
-
+    DISMISS_STATUS = 50
 
 class LogStore:
 
-    def log_request( self, request_uuid, wps_request):
+    def log_request(self, request_uuid, wps_request):
         """ Create request status
 
             Called once when the request is handled
@@ -44,9 +44,9 @@ class LogStore:
             'uuid': uuid_str,
             'version': wps_request.version,
             'identifier': wps_request.identifier,
-            'store_execute': wps_request.store_execute,
+            'execute_async': wps_request.execute_async,
             'status': STATUS.NO_STATUS.name,
-            'percent_done': 0,
+            'percent_done': -1,
             'message': '',
             'map': wps_request.map_uri,
             'expiration': wps_request.expiration,
@@ -66,7 +66,7 @@ class LogStore:
 
         return record
 
-    def set_json( self, value, expire):
+    def set_json(self, value, expire):
         """ Set a value at key 'name', expire is mandatory
         """
         # Create token
@@ -74,7 +74,7 @@ class LogStore:
         self._db.setex('token:'+token, expire, json.dumps(value))
         return token
 
-    def get_json( self, token ):
+    def get_json(self, token):
         """ Return the value at key 'name'
         """
         value = self._db.get('token:'+token)
@@ -82,7 +82,7 @@ class LogStore:
             value = json.loads(value.decode('utf-8'))
         return value
 
-    def update_response( self, request_uuid, wps_response ):
+    def update_response(self, request_uuid, wps_response):
         """ Update the request status
         """
         # Retrieve the record
@@ -96,15 +96,33 @@ class LogStore:
             record = self.log_request(request_uuid, wps_response.wps_request)
         else:
             record = json.loads(data.decode('utf-8'))
+
+        now = utcnow()
+
+        timestamp = now.timestamp()
+
+        current_status = STATUS[record['status']]
+
+        if current_status < STATUS.STARTED_STATUS and wps_response.status == STATUS.STARTED_STATUS:
+            # Task started
+            record['job_start'] = now.isoformat()+'Z'
+            # Record the actual pid
+            # Updating occurs in the worker process
+            # We use it to kill workers in 'BUSY' state
+            record['pid'] = os.getpid()
+
         record['message']      = wps_response.message
         record['percent_done'] = wps_response.status_percentage
         record['status']       = wps_response.status.name
-        record['timestamp']    = utcnow().timestamp()
+        record['timestamp']    = timestamp
 
         if wps_response.status >= STATUS.DONE_STATUS:
-            now = utcnow()
             record['time_end']  = now.isoformat()+'Z'
             record['expire_at'] = datetime.fromtimestamp(now.timestamp()+record['expiration']).isoformat()+'Z'
+
+            # Remove pid 
+            if 'pid' in record:
+                del record['pid']
 
         # Note that hset return 0 if the key already exists but change the value anyway
         self._db.hset(self._hstatus, uuid_str, json.dumps(record))
@@ -133,16 +151,15 @@ class LogStore:
         else:
             raise FileNotFoundError("No status for %s" % uuid_str)
 
-    def write_response( self,  request_uuid, doc ):
+    def write_response(self, request_uuid, content: bytes):
         """ Write response doc
         """
         uuid_str = str(request_uuid)
-        content = etree.tostring(doc, pretty_print=True, encoding='utf-8')
         rv = self._db.set("{}:response:{}".format(self._prefix, uuid_str), content)
         if not rv:
             LOGGER.error("LOGSTORE: Failed to log response %s", uuid_str)
 
-    def delete_response( self, request_uuid ):
+    def delete_response(self, request_uuid):
         """ Remove record and response
         """
         uuid_str = str(request_uuid)
@@ -153,27 +170,27 @@ class LogStore:
         p.hdel(self._hstatus, uuid_str)
         p.execute()
 
-    def get_results( self, uuid ):
+    def get_results(self, uuid) -> Optional[bytes]:
         """ Return results status
         """
         data = self._db.get("{}:response:{}".format(self._prefix, str(uuid)))
         if data is not None:
-            return etree.fromstring(data.decode('utf-8'))    
+            return data
 
     @property
-    def records( self ):
+    def records(self):
         """ Iterate through records
         """
         return ((k, json.loads(v.decode('utf-8'))) for k,v in self._db.hscan_iter(self._hstatus))
 
-    def get_request( self, uuid):
+    def get_request(self, uuid):
         """ Return results status
         """
         data = self._db.get("{}:request:{}".format(self._prefix, str(uuid)))
         if data is not None:
             return json.loads(data.decode('utf-8'))    
 
-    def get_status( self, uuid=None, key=None ):
+    def get_status(self, uuid=None, key=None):
         """ Return the status for the given processs
 
             Return None if the status is not found

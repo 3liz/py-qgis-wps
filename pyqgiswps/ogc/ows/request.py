@@ -16,7 +16,7 @@ import logging
 import lxml
 import lxml.etree
 import base64
-
+import traceback
 
 from pyqgiswps.config import confservice
 from pyqgiswps.app.request import WPSRequest
@@ -24,16 +24,17 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                                   OperationNotSupported,
                                   MissingParameterValue,
                                   VersionNegotiationFailed,
-                                  InvalidParameterValue)
+                                  InvalidParameterValue,
+                                  UnknownProcessError)
 
 from .schema import OWS, WPS, BoundingBox, xpath_ns, XMLDocument
 from .response import OWSResponse
 
-from typing import TypeVar, Optional
+from typing import TypeVar, Optional, Iterable
 
 AccessPolicy = TypeVar('AccessPolicy')
 Service      = TypeVar('Service')
-UUID         = TypeVar('UUID')
+WPSProcess   = TypeVar('WPSProcess')
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -49,8 +50,12 @@ def _check_version(version):
 
 class OWSRequest(WPSRequest):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.lineage = False
+
     @staticmethod
-    def parse_get_request(handler):
+    def parse_get_request(handler) -> WPSRequest:
         """ HTTP GET request parser
 
             :return: A WPSRequest instance
@@ -104,28 +109,14 @@ class OWSRequest(WPSRequest):
             expire = _get_query_param('EXPIRE', None)
             wpsrequest.check_and_set_expiration(expire)
 
-            wpsrequest.store_execute = _get_query_param('STOREEXECUTERESPONSE', 'false')
-            # XXX If storeExecuteResponse is set to true then we enforce 
-            # status supports. This will trigger *asynchronous* request.
-            wpsrequest.status = wpsrequest.store_execute
-            wpsrequest.lineage = _get_query_param('LINEAGE', 'false')
+            # Trigger async response
+            wpsrequest.execute_async = _get_query_param('STOREEXECUTERESPONSE', 'false').lower() == 'true'
+            wpsrequest.lineage = _get_query_param('LINEAGE', 'false').lower() == 'true'
 
             wpsrequest.inputs = get_data_from_kvp(_get_query_param('DATAINPUTS', None), 'DataInputs')
-            wpsrequest.outputs = {}
 
             # take responseDocument preferably
-            resp_outputs = get_data_from_kvp(_get_query_param('RESPONSEDOCUMENT', None))
-            raw_outputs  = get_data_from_kvp(_get_query_param('RAWDATAOUTPUT', None))
-            wpsrequest.raw = False
-            if resp_outputs:
-                wpsrequest.outputs = resp_outputs
-            elif raw_outputs:
-                wpsrequest.outputs = raw_outputs
-                wpsrequest.raw = True
-                # executeResponse XML will not be stored and no updating of
-                # status
-                wpsrequest.store_execute = 'false'
-                wpsrequest.status = 'false'
+            wpsrequest.outputs = get_data_from_kvp(_get_query_param('RESPONSEDOCUMENT', None))
 
         wpsrequest.operation = operation
 
@@ -144,7 +135,7 @@ class OWSRequest(WPSRequest):
         return wpsrequest
 
     @staticmethod
-    def parse_post_request(handler):
+    def parse_post_request(handler) -> WPSRequest:
         """Factory function returing propper parsing function
         """
         try:
@@ -198,28 +189,19 @@ class OWSRequest(WPSRequest):
                     'Process identifier not set', 'Identifier')
 
             wpsrequest.identifier = identifier[0].text
-            wpsrequest.lineage = 'false'
-            wpsrequest.store_execute = 'false'
-            wpsrequest.status = 'false'
+            wpsrequest.lineage = False
+            wpsrequest.execute_async = False
             wpsrequest.inputs = get_inputs_from_xml(doc)
             wpsrequest.outputs = get_output_from_xml(doc)
-            wpsrequest.raw = False
-            if xpath_ns(doc, '/wps:Execute/wps:ResponseForm/wps:RawDataOutput'):
-                wpsrequest.raw = True
-                # executeResponse XML will not be stored
-                wpsrequest.store_execute = 'false'
 
             # check if response document tag has been set then retrieve
             response_document = xpath_ns(
                 doc, './wps:ResponseForm/wps:ResponseDocument')
             if len(response_document) > 0:
                 wpsrequest.lineage = response_document[
-                    0].attrib.get('lineage', 'false')
-                wpsrequest.store_execute = response_document[
-                    0].attrib.get('storeExecuteResponse', 'false')
-                # XXX If storeExecuteResponse is set then we enforce
-                # the status supports
-                wpsrequest.status = wpsrequest.store_execute
+                    0].attrib.get('lineage', 'false').lower() == 'true'
+                wpsrequest.execute_async = response_document[
+                    0].attrib.get('storeExecuteResponse', 'false').lower() == 'true'
                 # Set timeout
                 timeout = response_document[0].attrib.get('timeout')
                 wpsrequest.check_and_set_timeout(timeout)
@@ -481,6 +463,16 @@ class OWSRequest(WPSRequest):
 
         return doc
 
+    def get_processes_for_request(self, service: Service,  idents: Iterable[str], 
+                                  map_uri: Optional[str]=None) -> Iterable[WPSProcess]:
+        try:
+            return service.get_processes(idents, map_uri)
+        except UnknownProcessError as exc:
+            raise InvalidParameterValue("Unknown process %s" % exc, "identifier") from None
+        except Exception as e:
+            LOGGER.critical("Exception:\n%s",traceback.format_exc())
+            raise NoApplicableCode(str(e), code=500) from None
+
     #
     # Describe
     #
@@ -497,7 +489,7 @@ class OWSRequest(WPSRequest):
             identifiers = [p.identifier for p in service.processes]
 
         identifier_elements = []
-        identifier_elements.extend(p.describe_xml() for p in service.get_processes_for_request(identifiers,map_uri=map_uri))
+        identifier_elements.extend(p.describe_xml() for p in self.get_processes_for_request(service, identifiers, map_uri=map_uri))
 
         doc = WPS.ProcessDescriptions(*identifier_elements)
         doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
@@ -506,14 +498,6 @@ class OWSRequest(WPSRequest):
         doc.attrib['version'] = '1.0.0'
         doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
         return doc
-
-    #
-    # Execute
-    #
-    async def execute(self, service: Service, uuid: UUID, 
-                      map_uri: Optional[str]=None) -> XMLDocument:
-        
-        return await service.execute( self.identifier, self, uuid, map_uri)
 
         
     # Create response
@@ -551,15 +535,6 @@ def _get_rawvalue_value(data, encoding=None):
         return data
 
 
-def _get_reference_header(header_element):
-    """Parses ReferenceInput Header element
-    """
-    header = {}
-    header['key'] = header_element.attrib('key')
-    header['value'] = header_element.attrib('value')
-    return header
-
-
 def _get_reference_body(body_element):
     """Parses ReferenceInput Body element
     """
@@ -572,13 +547,6 @@ def _get_reference_body(body_element):
         body = _get_rawvalue_value(body_element.text)
 
     return body
-
-
-def _get_reference_bodyreference(referencebody_element):
-    """Parse ReferenceInput BodyReference element
-    """
-    return referencebody_element.attrib.get(
-        '{http://www.w3.org/1999/xlink}href', '')
 
 
 def get_inputs_from_xml(doc):
@@ -630,17 +598,9 @@ def get_inputs_from_xml(doc):
                 '{http://www.w3.org/1999/xlink}href', '')
             inpt['mimeType'] = reference_data_el.attrib.get('mimeType', '')
             inpt['method'] = reference_data_el.attrib.get('method', 'GET')
-            header_element = xpath_ns(reference_data_el, './wps:Header')
-            if header_element:
-                inpt['header'] = _get_reference_header(header_element)
             body_element = xpath_ns(reference_data_el, './wps:Body')
             if body_element:
                 inpt['body'] = _get_reference_body(body_element[0])
-            bodyreference_element = xpath_ns(reference_data_el,
-                                             './wps:BodyReference')
-            if bodyreference_element:
-                inpt['bodyreference'] = _get_reference_bodyreference(
-                    bodyreference_element[0])
             the_inputs[identifier].append(inpt)
             continue
 
@@ -660,28 +620,11 @@ def get_inputs_from_xml(doc):
 
 
 def get_output_from_xml(doc):
-    the_output = {}
-
-    if xpath_ns(doc, '/wps:Execute/wps:ResponseForm/wps:ResponseDocument'):
-        for output_el in xpath_ns(doc, '/wps:Execute/wps:ResponseForm/wps:ResponseDocument/wps:Output'):
-            [identifier_el] = xpath_ns(output_el, './ows:Identifier')
-            outpt = {}
-            outpt[identifier_el.text] = ''
-            outpt['asReference'] = output_el.attrib.get('asReference', 'false')
-            the_output[identifier_el.text] = outpt
-
-    elif xpath_ns(doc, '/wps:Execute/wps:ResponseForm/wps:RawDataOutput'):
-        for output_el in xpath_ns(doc, '/wps:Execute/wps:ResponseForm/wps:RawDataOutput'):
-            [identifier_el] = xpath_ns(output_el, './ows:Identifier')
-            outpt = {}
-            outpt[identifier_el.text] = ''
-            outpt['mimetype'] = output_el.attrib.get('mimeType', '')
-            outpt['encoding'] = output_el.attrib.get('encoding', '')
-            outpt['schema'] = output_el.attrib.get('schema', '')
-            outpt['uom'] = output_el.attrib.get('uom', '')
-            the_output[identifier_el.text] = outpt
-
-    return the_output
+    """
+        Note that we ignore 'transmissionMode' since we 
+        do not allow client to change it.
+    """
+    return {}
 
 
 def get_data_from_kvp(data, part=None):
@@ -693,7 +636,7 @@ def get_data_from_kvp(data, part=None):
     the_data = {}
 
     if data is None:
-        return None
+        return the_data
 
     for d in data.split(";"):
         try:

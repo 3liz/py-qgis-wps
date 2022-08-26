@@ -20,85 +20,42 @@ import datetime
 from pyqgiswps.exceptions import InvalidParameterValue
 from pyqgiswps.validator.allowed_value import RANGECLOSURETYPE
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
+from pyqgiswps.validator.base import to_json_serializable
 
 import pyqgiswps.ogc as ogc
 
-from typing import Optional, List, Dict, Union, Any, TypeVar
+from typing import Optional, List, Any, TypeVar
 
 
 import logging
 LOGGER = logging.getLogger('SRVLOG')
 
+Json = TypeVar('Json')
 
-# JsonValue type definition
-JsonValue = Union[str,List['JsonValue'],Dict[str,'JsonValue'],int,float,bool,None]
-
-# Literal value type definition
+# Forward alue type definition
 LiteralInputValue = TypeVar('LiteralInputValue')
 
 # Comparable type for value range
 LiteralNumeric = TypeVar('LiteralNumeric',int,float)
 
-
 # Literal data types
-LITERAL_DATA_TYPES = ('float', 'boolean', 'integer', 'string',
-                      'positiveInteger', 'anyURI', 'time', 'date', 'dateTime',
-                      'scale', 'angle','length',
-                      'nonNegativeInteger')
-
-
-
-
-
-# currently we are supporting just ^^^ data types, feel free to add support for
-# more
-# 'measure', 'angleList',
-# 'angle', 'integerList',
-# 'positiveIntegerList',
-# 'lengthOrAngle', 'gridLength',
-# 'measureList', 'lengthList',
-# 'gridLengthList', 'scaleList', 'timeList',
-# 'nonNegativeInteger', 'length'
+LITERAL_DATA_TYPES = ogc.OGCTYPE.keys()
 
 
 class AnyValue:
     """Any value for literal input
     """
     @property
-    def json(self) -> JsonValue:
+    def json(self) -> Json:
         return {'type': 'anyvalue'}
 
-    @staticmethod
-    def to_json_serializable( data: Any ):
-        return to_json_serializable(data)
 
-
-class NoValue:
-    """No value allowed
-    NOTE: not really implemented
-    """
-
-    @property
-    def json(self) -> JsonValue:
-        return {'type': 'novalue'}
-
-
-class ValuesReference:
-    """Any value for literal input
-    NOTE: not really implemented
-    """
-
-    @property
-    def json(self) -> JsonValue:
-        return {'type': 'valuesreference'}
-
-
-class AllowedValue(AnyValue, *ogc.exports.AllowedValue):
+class AllowedValues(*ogc.exports.AllowedValues):
     """Allowed value parameters
     the values are evaluated in literal validator functions
 
     :param pyqgiswps.validator.allowed_value.ALLOWEDVALUETYPE allowed_type: VALUE or RANGE
-    :param value: single value
+    :param values: list of allowed values
     :param minval: minimal value in case of Range
     :param maxval: maximal value in case of Range
     :param spacing: spacing in case of Range
@@ -106,7 +63,7 @@ class AllowedValue(AnyValue, *ogc.exports.AllowedValue):
     """
 
     def __init__(self, allowed_type: ALLOWEDVALUETYPE = ALLOWEDVALUETYPE.VALUE, 
-                 value: Optional[Any]=None,
+                 values: Optional[List[Any]]=None,
                  minval: Optional[LiteralNumeric]=None, 
                  maxval: Optional[LiteralNumeric]=None, 
                  spacing: Optional[LiteralNumeric]=None,
@@ -115,7 +72,7 @@ class AllowedValue(AnyValue, *ogc.exports.AllowedValue):
         AnyValue.__init__(self)
 
         self.allowed_type = allowed_type
-        self.value = value
+        self.values = values
         self.minval = minval
         self.maxval = maxval
         self.spacing = spacing
@@ -125,23 +82,45 @@ class AllowedValue(AnyValue, *ogc.exports.AllowedValue):
     def is_range(self):
         return self.allowed_type == ALLOWEDVALUETYPE.RANGE
 
-    def __repr__(self) -> str:
-        return f"AllowedValue(minval={self.minval}, maxval={self.maxval}, range_closure={self.range_closure})"
-
     @property
-    def json(self) -> JsonValue:
-        value = self.value
-        if hasattr(value, 'json'):
-            value = value.json
+    def json(self) -> Json:
+        if self.values:
+            values = [to_json_serializable(value) for value in self.values]
+        else:
+            values = None
         return {
-            'type': 'allowedvalue',
+            'type': 'allowedvalues',
             'allowed_type': self.allowed_type,
-            'value' : to_json_serializable(value),
+            'values' : values,
             'minval': to_json_serializable(self.minval),
             'maxval': to_json_serializable(self.maxval),
             'spacing': self.spacing,
             'range_closure': self.range_closure
         }
+
+    @staticmethod
+    def positiveValue() -> 'AllowedValues':
+        """ Define range for value > 0 """
+        return AllowedValues(ALLOWEDVALUETYPE.RANGE, 
+                             minval=0, 
+                             range_closure=RANGECLOSURETYPE.OPEN)
+
+    @staticmethod
+    def nonNegativeValue() -> 'AllowedValues': 
+        """ Define range for value >= 0 """
+        return AllowedValues(ALLOWEDVALUETYPE.RANGE, 
+                             minval=0, 
+                             range_closure=RANGECLOSURETYPE.CLOSED)
+
+    @staticmethod
+    def range(minval, maxval, spacing=None, 
+              range_closure: RANGECLOSURETYPE = RANGECLOSURETYPE.CLOSED) -> 'AllowedValues':
+        """ Define range of values """
+        return AllowedValues(ALLOWEDVALUETYPE.RANGE,
+                             minval=minval,
+                             maxval=maxval,
+                             spacing=spacing,
+                             range_closure=range_closure)
 
 
 def convert(data_type: str, data: LiteralInputValue) -> Any:
@@ -157,8 +136,6 @@ def convert(data_type: str, data: LiteralInputValue) -> Any:
             convert = convert_float
         elif data_type == 'boolean':
             convert = convert_boolean
-        elif data_type == 'positiveInteger':
-            convert = convert_positiveInteger
         elif data_type == 'anyURI':
             convert = convert_anyURI
         elif data_type == 'time':
@@ -171,12 +148,11 @@ def convert(data_type: str, data: LiteralInputValue) -> Any:
             convert = convert_scale
         elif data_type == 'angle':
             convert = convert_angle
-        elif data_type == 'nonNegativeInteger':
-            convert = convert_positiveInteger
-        else:
-            raise InvalidParameterValue(
-                "Invalid data_type value of LiteralInput " + \
-                "set to '{}'".format(data_type))
+        elif data_type == 'length':
+            convert = convert_float
+    else:
+        raise InvalidParameterValue(
+            f"Invalid data_type value of LiteralInput set to '{data_type}'")
     try:
         return convert(data)
     except ValueError:
@@ -242,17 +218,6 @@ def convert_string(inpt: LiteralInputValue) -> str:
     '1'
     """
     return str(inpt)
-
-
-def convert_positiveInteger(inpt: LiteralInputValue) -> int:
-    """Return value of input"""
-
-    inpt = convert_integer(inpt)
-    if inpt < 0:
-        raise InvalidParameterValue(
-            'The value "{}" is not of type positiveInteger'.format(inpt))
-    else:
-        return inpt
 
 
 def convert_anyURI(inpt: LiteralInputValue) -> str:
@@ -335,67 +300,10 @@ def convert_angle(inpt: LiteralInputValue) -> float:
     return inpt % 360
 
 
-def make_allowedvalues(allowed_values: Any) -> List[AllowedValue]:
-    """ convert given value list to AllowedValue objects
-
-        List/tuple value are intepreted as range
-
-        :return: list of pyqgiswps.inout.literaltypes.AllowedValue
-    """
-
-    new_allowedvalues = []
-
-    for value in allowed_values:
-
-        if isinstance(value, AllowedValue):
-            new_allowedvalues.append(value)
-
-        elif type(value) == tuple or type(value) == list:
-            minval = maxval = spacing = None
-            if len(value) == 2:
-                minval = value[0]
-                maxval = value[1]
-            else:
-                minval = value[0]
-                spacing = value[1]
-                maxval = value[2]
-            new_allowedvalues.append(
-                AllowedValue(allowed_type=ALLOWEDVALUETYPE.RANGE,
-                             minval=minval, maxval=maxval,
-                             spacing=spacing)
-            )
-
-        else:
-            new_allowedvalues.append(AllowedValue(value=value))
-
-    return new_allowedvalues
-
-
 def is_anyvalue(value: Any) -> bool:
     """Check for any value object of given value
     """
-    is_av = False
-
-    if value == AnyValue:
-        is_av = True
-    elif value is None:
-        is_av = True
-    elif isinstance(value, AnyValue):
-        is_av = True
-    elif str(value).lower() == 'anyvalue':
-        is_av = True
-
-    return is_av
+    return (value == AnyValue) or (value is None) or isinstance(value, AnyValue)
 
 
-def to_json_serializable( data: Any ) -> JsonValue:
-    """ Convern Literal to serializable value
-    """
-    # Convert datetime to string
-    if isinstance(data, (datetime.date,datetime.time,datetime.datetime)):
-        return data.replace(microsecond=0).isoformat()
-    elif isinstance(data, datetime.date):
-        return data.isoformat()
-    else:
-        return data
 

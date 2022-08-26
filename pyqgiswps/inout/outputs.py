@@ -17,6 +17,11 @@ import pyqgiswps.ogc as ogc
 from pyqgiswps.inout import basic
 from pyqgiswps.validator.mode import MODE
 
+from typing import TypeVar
+
+Json = TypeVar('Json')
+Self = TypeVar('Self')
+
 
 class BoundingBoxOutput(basic.BBoxInput, *ogc.exports.BoundingBoxOutput):
     """
@@ -33,15 +38,20 @@ class BoundingBoxOutput(basic.BBoxInput, *ogc.exports.BoundingBoxOutput):
     """
     def __init__(self, identifier, title, crss, abstract='',
                  dimensions=2, metadata=[], min_occurs='1',
-                 max_occurs='1', mode=MODE.NONE):
+                 max_occurs='1'):
         basic.BBoxInput.__init__(self, identifier, title=title,
                                  abstract=abstract, crss=crss,
-                                 dimensions=dimensions, mode=mode)
+                                 dimensions=dimensions)
 
         self.metadata = metadata
         self.min_occurs = min_occurs
         self.max_occurs = max_occurs
 
+    def validate_output(self, output: Json) -> Self:
+        """  Set parameter from json definition
+        """
+        return self
+ 
 
 class ComplexOutput(basic.ComplexOutput, *ogc.exports.ComplexOutput):
     """
@@ -69,7 +79,11 @@ class ComplexOutput(basic.ComplexOutput, *ogc.exports.ComplexOutput):
         self.as_reference = as_reference
         self.url = None
 
-
+    def validate_output(self, output: Json) -> Self:
+        """  Set parameter from json definition
+        """
+        return self
+ 
 
 class LiteralOutput(basic.LiteralOutput, *ogc.exports.LiteralOutput):
     """
@@ -92,3 +106,8 @@ class LiteralOutput(basic.LiteralOutput, *ogc.exports.LiteralOutput):
         self.abstract = abstract
         self.metadata = metadata
 
+    def validate_output(self, output: Json) -> Self:
+        """  Set parameter from json definition
+        """
+        return self
+ 

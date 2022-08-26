@@ -98,6 +98,14 @@ class _Server:
         """
         self.broadcast(b'RESTART')
 
+    def kill_worker_busy(self, pid: int) -> bool:
+        """ Force kill worker
+        """
+        if self._supervisor: 
+            return self._supervisor.kill_worker_busy(pid)
+        else:
+            return False
+
 
 def create_poolserver( numworkers: int,  maxcycles: int = None,
                        initializer: Callable[[None],None] = None, initargs = (),

@@ -4,7 +4,6 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-import asyncio
 import lxml.etree
 import json
 from pyqgiswps.app import WPSProcess
@@ -298,25 +297,3 @@ def test_reference_post_input():
     assert rv['name'][0]['href'] == 'http://foo/bar/service'
     assert rv['name'][0]['method'] == 'POST'
     assert rv['name'][0]['body'] == 'request body'
-
-
-def test_reference_post_bodyreference_input():
-    request_doc = WPS.Execute(
-        OWS.Identifier('foo'),
-        WPS.DataInputs(
-            WPS.Input(
-                OWS.Identifier('name'),
-                WPS.Reference(
-                    WPS.BodyReference(
-                    {'{http://www.w3.org/1999/xlink}href': 'http://foo/bar/reference'}),
-                    {'{http://www.w3.org/1999/xlink}href': 'http://foo/bar/service'},
-                    method='POST'
-                )
-            )
-        )
-    )
-    rv = get_inputs_from_xml(request_doc)
-    assert rv['name'][0]['href'] == 'http://foo/bar/service'
-    assert rv['name'][0]['bodyreference'] == 'http://foo/bar/reference'
-
-

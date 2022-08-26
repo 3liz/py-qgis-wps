@@ -137,7 +137,7 @@ def test_map_vector_context(outputdir, data):
 
     layers = { l.name() for l in context.project().mapLayers().values() if l.type() == QgsMapLayer.VectorLayer }
     
-    allowed_values = { v.value for v in inputs['INPUT'][0].allowed_values }
+    allowed_values = { value for value in inputs['INPUT'][0].allowed_values.values }
 
     assert len(allowed_values) == len(layers)
     assert allowed_values == layers
@@ -152,7 +152,7 @@ def test_map_raster_context(outputdir, data):
 
     layers = { l.name() for l in context.project().mapLayers().values() if l.type() == QgsMapLayer.RasterLayer }
     
-    allowed_values = { v.value for v in inputs['INPUT'][0].allowed_values }
+    allowed_values = { value for value in inputs['INPUT'][0].allowed_values.values }
 
     assert len(allowed_values) == len(layers)
     assert allowed_values == layers
@@ -167,7 +167,7 @@ def test_multilayer_context(outputdir, data):
 
     layers = { l.name() for l in context.project().mapLayers().values() }
     
-    allowed_values = { v.value for v in inputs['INPUT'][0].allowed_values }
+    allowed_values = { value for value in inputs['INPUT'][0].allowed_values.values }
 
     assert len(allowed_values) == len(layers)
     assert allowed_values == layers

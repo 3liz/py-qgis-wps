@@ -13,7 +13,9 @@
 #
 
 import logging
-import time
+from datetime import datetime
+
+from lxml import etree
 
 from pyqgiswps.app.request import WPSResponse
 from pyqgiswps.config import confservice
@@ -27,12 +29,16 @@ UUID = TypeVar('UUID')
 LOGGER = logging.getLogger('SRVLOG')
 
 
+def utcnow_iso():
+    return datetime.utcnow().replace(microsecond=0).isoformat()+'Z'
+
+
 class OWSResponse(WPSResponse):
 
     def get_process_accepted(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessAccepted(self.message),
-            creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
+            creationTime=utcnow_iso()
         )
 
     def get_process_started(self) -> XMLDocument:
@@ -41,7 +47,7 @@ class OWSResponse(WPSResponse):
                 self.message,
                 percentCompleted=str(max(self.status_percentage,0))
             ),
-            creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
+            creationTime=utcnow_iso()
         )
 
     def get_process_paused(self) -> XMLDocument:
@@ -50,13 +56,13 @@ class OWSResponse(WPSResponse):
                 self.message,
                 percentCompleted=str(self.status_percentage)
             ),
-            creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
+            creationTime=utcnow_iso()
         )
 
     def get_process_succeeded(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessSucceeded(self.message),
-            creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
+            creationTime=utcnow_iso()
         )
 
     def get_process_failed(self) -> XMLDocument:
@@ -70,11 +76,16 @@ class OWSResponse(WPSResponse):
                     )
                 )
             ),
-            creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
+            creationTime=utcnow_iso()
         )
 
+    def encode_response(self, doc: XMLDocument) -> bytes:
+        """ Return response a bytes 
+        """
+        return etree.tostring(doc, pretty_print=True, encoding='utf-8')
+
     def get_execute_response(self) -> XMLDocument:
-        """ Cosstruct the execute XML response
+        """ Construct the execute XML response
         """
         doc = WPS.ExecuteResponse()
         doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
@@ -87,8 +98,7 @@ class OWSResponse(WPSResponse):
             '?service=WPS&request=GetCapabilities'
         )
 
-        if self.status >= WPSResponse.STATUS.STORE_STATUS:
-            doc.attrib['statusLocation'] = self.status_url
+        doc.attrib['statusLocation'] = self.status_url
 
         # Process XML
         process_doc = WPS.Process(
@@ -108,15 +118,15 @@ class OWSResponse(WPSResponse):
 
         # Status XML
         # return the correct response depending on the progress of the process
-        if self.status == WPSResponse.STATUS.STORE_AND_UPDATE_STATUS:
-            if self.status_percentage == -1:
-                status_doc = self.get_process_accepted()
-                doc.append(status_doc)
-                return doc
-            elif self.status_percentage >= 0:
-                status_doc = self.get_process_started()
-                doc.append(status_doc)
-                return doc
+        if self.status == WPSResponse.STATUS.ACCEPTED_STATUS:
+            status_doc = self.get_process_accepted()
+            doc.append(status_doc)
+            return doc
+
+        if self.status == WPSResponse.STATUS.STARTED_STATUS:
+            status_doc = self.get_process_started()
+            doc.append(status_doc)
+            return doc
 
         # check if process failed and display fail message
         if self.status == WPSResponse.STATUS.ERROR_STATUS:
@@ -130,8 +140,8 @@ class OWSResponse(WPSResponse):
             status_doc = self.get_process_succeeded()
             doc.append(status_doc)
 
-            # DataInputs and DataOutputs definition XML if lineage=true
-            if self.wps_request.lineage == 'true':
+            # DataInputs and DataOutputs definition XML if lineage is true
+            if self.wps_request.lineage:
                 data_inputs = [self.wps_request.inputs[i][0].execute_xml() for i in self.wps_request.inputs]
                 doc.append(WPS.DataInputs(*data_inputs))
 
@@ -142,5 +152,3 @@ class OWSResponse(WPSResponse):
             output_elements = [self.outputs[o].execute_xml() for o in self.outputs]
             doc.append(WPS.ProcessOutputs(*output_elements))
         return doc
-
-

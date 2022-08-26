@@ -96,3 +96,16 @@ class ProcessException(Exception):
     """
     pass
 
+
+class ExecutorError(Exception):
+    """ Exception occured in executor
+    """
+    pass
+
+class UnknownProcessError(ExecutorError):
+    pass
+
+class StorageNotFound(ExecutorError): 
+    pass
+
+

@@ -12,7 +12,13 @@ from .basehandler import ( # noqa F401
     ErrorHandler
 )
 
-from .roothandler import RootHandler                     # noqa F401
-from .owshandler import OWSHandler                       # noqa F401
+from .roothandler import RootHandler  # noqa F401
+from .owshandler import OWSHandler    # noqa F401
+from .apihandler import ( # noqa F401
+    ProcessHandler,
+    JobHandler,
+    ExecuteHandler,
+    ResultHandler,
+)
 from .statushandler import StatusHandler                 # noqa F401
 from .storehandler import StoreHandler, DownloadHandler  # noqa F401

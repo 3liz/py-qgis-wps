@@ -22,6 +22,8 @@ from .TestInputFile import TestInputFile
 from .TestOutputVectorLayer import TestOutputVectorLayer
 from .TestOutputFile import TestOutputFile
 from .TestInputGeometry import TestInputGeometry
+from .TestUltimateQuestion import TestUltimateQuestion
+
 
 class TestAlgorithmProvider(QgsProcessingProvider):
 
@@ -47,6 +49,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestOutputVectorLayer(),
                  TestOutputFile(),
                  TestInputGeometry(),
+                 TestUltimateQuestion(),
             ]
         except:
             traceback.print_exc()

@@ -12,7 +12,6 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-
 from io import StringIO, FileIO, BytesIO
 from enum import Enum
 
@@ -21,8 +20,9 @@ import logging
 
 import pyqgiswps.ogc as ogc
 
-from pyqgiswps.inout.literaltypes import (LITERAL_DATA_TYPES, convert,
-                                          make_allowedvalues, is_anyvalue, 
+from pyqgiswps.inout.literaltypes import (LITERAL_DATA_TYPES, 
+                                          convert,
+                                          is_anyvalue,  
                                           to_json_serializable)
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.validator.base import emptyvalidator
@@ -34,6 +34,8 @@ from pyqgiswps.inout.formats import Format
 
 import base64
 
+from typing import List
+
 LOGGER = logging.getLogger('SRVLOG')
 
 
@@ -43,34 +45,50 @@ class SOURCE_TYPE(Enum):
     DATA = 3
 
 
-class IOHandler:
-    """Basic IO class. Provides functions, to accept input data in file,
-       and stream object and give them out in all three types
-
+class BasicHandler:
+    """ Basic validator handler
     """
-
     def __init__(self, mode=MODE.NONE):
-        self.source_type = None
-        self.source = None
-        self._tempfile = None
-        self._stream = None
-
         self.valid_mode = mode
 
-    def _check_valid(self):
+    def check_valid(self):
         """Validate this input usig given validator
         """
         validate = self.validator
         _valid = validate(self, self.valid_mode)
         if not _valid:
-            raise InvalidParameterValue('Input data not valid using '
-                                        'mode %s' % (self.valid_mode))
+            raise InvalidParameterValue(
+                f"Input data not valid using mode '{self.valid_mode}'"
+            )
+
+    @property
+    def validator(self):
+        """Return the function suitable for validation
+        This method should be overridden by class children
+
+        :return: validating function
+        """
+
+        return emptyvalidator
+
+
+class IOHandler(BasicHandler):
+    """Basic IO class. Provides functions, to accept input data in file,
+       and stream object and give them out in all three types
+    """
+
+    def __init__(self, mode=MODE.NONE):
+        BasicHandler.__init__(self, mode=mode)
+        self.source_type = None
+        self.source = None
+        self._tempfile = None
+        self._stream = None
 
     def set_file(self, filename):
         """Set source as file name"""
         self.source_type = SOURCE_TYPE.FILE
         self.source = os.path.abspath(filename)
-        self._check_valid()
+        self.check_valid()
 
     def get_file(self):
         """ Get file if source is file type
@@ -82,7 +100,7 @@ class IOHandler:
         """Set source as stream object"""
         self.source_type = SOURCE_TYPE.STREAM
         self.source = stream
-        self._check_valid()
+        self.check_valid()
 
     def get_stream(self):
         """Get source as stream object"""
@@ -106,13 +124,13 @@ class IOHandler:
         """Set source as simple datatype e.g. string, number"""
         self.source_type = SOURCE_TYPE.DATA
         self.source = data
-        self._check_valid()
+        self.check_valid()
 
     def set_base64(self, data):
         """Set data encoded in base64"""
 
         self.data = base64.b64decode(data)
-        self._check_valid()
+        self.check_valid()
 
     def get_data(self):
         """Get source as simple data object"""
@@ -125,15 +143,6 @@ class IOHandler:
         elif self.source_type == SOURCE_TYPE.DATA:
             return self.source
 
-    @property
-    def validator(self):
-        """Return the function suitable for validation
-        This method should be overridden by class children
-
-        :return: validating function
-        """
-
-        return emptyvalidator
 
     def get_base64(self):
         return base64.b64encode(self.data)
@@ -145,34 +154,16 @@ class IOHandler:
     base64  = property(fget=get_base64, fset=set_base64)
 
 
-class SimpleHandler(IOHandler):
+class SimpleHandler(BasicHandler):
     """Data handler for Literal In- and Outputs
-
-    >>> class Int_type:
-    ...     @staticmethod
-    ...     def convert(value): return int(value)
-    >>>
-    >>> class MyValidator:
-    ...     @staticmethod
-    ...     def validate(inpt): return 0 < inpt.data < 3
-    >>>
-    >>> inpt = SimpleHandler(data_type = Int_type)
-    >>> inpt.validator = MyValidator
-    >>>
-    >>> inpt.data = 1
-    >>> inpt.validator.validate(inpt)
-    True
-    >>> inpt.data = 5
-    >>> inpt.validator.validate(inpt)
-    False
     """
-
     def __init__(self, data_type=None, mode=MODE.NONE):
-        IOHandler.__init__(self, mode=mode)
+        BasicHandler.__init__(self, mode=mode)
         self.data_type = data_type
+        self._data = None
 
     def get_data(self):
-        return IOHandler.get_data(self)
+        return self._data
 
     def set_data(self, data):
         """Set data value. input data are converted into target format
@@ -180,7 +171,8 @@ class SimpleHandler(IOHandler):
         if self.data_type:
             data = convert(self.data_type, data)
 
-        IOHandler.set_data(self, data)
+        self._data = data
+        self.check_valid()
 
     data = property(fget=get_data, fset=set_data)
 
@@ -197,46 +189,41 @@ class BasicIO:
 class BasicLiteral:
     """Basic literal input/output class
     """
-
-    def __init__(self, data_type="integer", uoms=None):
+    def __init__(self, data_type, uoms=None):
         assert data_type in LITERAL_DATA_TYPES
         self.data_type = data_type
-        # list of uoms
-        self.uoms = []
         # current uom
-        self._uom = None
+        self.uom = None
 
         # add all uoms (upcasting to UOM)
         if uoms is not None:
-            for uom in uoms:
-                if not isinstance(uom, UOM):
-                    uom = UOM(uom)
-                self.uoms.append(uom)
+            self.uoms = list(map(lambda uom: uom if isinstance(uom, UOM) else UOM(uom), uoms))
+        else:
+            self.uoms = []
 
         if self.uoms:
             # default/current uom
             self.uom = self.uoms[0]
 
-    @property
-    def uom(self):
-        return self._uom
-
-    @uom.setter
-    def uom(self, uom):
-        self._uom = uom
+        def get_uom(self, code: str) -> UOM:
+            """ 
+            """
+            for uom in self.uoms:
+                if uom.uom == code or uom.ogcunit() == code:
+                    return uom
+            else:
+                return None
 
 
 class BasicComplex:
     """Basic complex input/output class
 
     """
-
-    def __init__(self, data_format=None, supported_formats=None):
+    def __init__(self, data_format=None, supported_formats: List[Format]=None):
         self._data_format = None
-        self._supported_formats = None
+        self._supported_formats = []
         if supported_formats:
             self.supported_formats = supported_formats
-        if self.supported_formats:
             # not an empty list, set the default/current format to the first
             self.data_format = supported_formats[0]
 
@@ -245,7 +232,6 @@ class BasicComplex:
         :param mime_type: given mimetype
         :return: Format
         """
-
         for frmt in self.supported_formats:
             if frmt.mime_type == mime_type:
                 return frmt
@@ -256,7 +242,6 @@ class BasicComplex:
     def validator(self):
         """Return the proper validator for given data_format
         """
-
         return self.data_format.validate
 
     @property
@@ -267,7 +252,6 @@ class BasicComplex:
     def supported_formats(self, supported_formats):
         """Setter of supported formats
         """
-
         def set_format_validator(supported_format):
             if not supported_format.validate or \
                supported_format.validate == emptyvalidator:
@@ -349,9 +333,10 @@ class LiteralInput(BasicIO, BasicLiteral, SimpleHandler):
         SimpleHandler.__init__(self, data_type, mode=mode)
 
         self.any_value = is_anyvalue(allowed_values)
-        self.allowed_values = []
         if not self.any_value:
-            self.allowed_values = make_allowedvalues(allowed_values)
+            self.allowed_values = allowed_values
+        else:
+            self.allowed_values = None
 
     @property
     def validator(self):
@@ -374,7 +359,7 @@ class LiteralInput(BasicIO, BasicLiteral, SimpleHandler):
             'abstract': self.abstract,
             'type': 'literal',
             'data_type': self.data_type,
-            'allowed_values': [value.json for value in self.allowed_values],
+            'allowed_values': self.allowed_values.json if self.allowed_values else None,
             'uoms': self.uoms,
             'uom': self.uom,
             'mode': self.valid_mode,
@@ -402,15 +387,14 @@ class LiteralOutput(BasicIO, BasicLiteral, SimpleHandler):
         return validate_anyvalue
 
 
-class BBoxInput(BasicIO, BasicBoundingBox, IOHandler):
+class BBoxInput(BasicIO, BasicBoundingBox):
     """Basic Bounding box input abstract class
     """
 
     def __init__(self, identifier, title=None, abstract=None, crss=None,
-                 dimensions=None, mode=MODE.NONE):
+                 dimensions=None):
         BasicIO.__init__(self, identifier, title, abstract)
         BasicBoundingBox.__init__(self, crss, dimensions)
-        IOHandler.__init__(self, mode=mode)
 
     @property
     def json(self):
@@ -421,7 +405,7 @@ class BBoxInput(BasicIO, BasicBoundingBox, IOHandler):
             * title
             * abstract
             * type
-            * crs
+            * crss
             * bbox
             * dimensions
             * mode
@@ -431,23 +415,20 @@ class BBoxInput(BasicIO, BasicBoundingBox, IOHandler):
             'title': self.title,
             'abstract': self.abstract,
             'type': 'bbox',
-            'crs': self.crss,
+            'crss': self.crss,
             'bbox': self.data,
             'dimensions': self.dimensions,
-            'mode': self.valid_mode
         }
 
 
-class BBoxOutput(BasicIO, BasicBoundingBox, SimpleHandler):
+class BBoxOutput(BasicIO, BasicBoundingBox):
     """Basic BoundingBox output class
     """
 
     def __init__(self, identifier, title=None, abstract=None, crss=None,
-                 dimensions=None, mode=MODE.NONE):
+                 dimensions=None):
         BasicIO.__init__(self, identifier, title, abstract)
         BasicBoundingBox.__init__(self, crss, dimensions)
-        SimpleHandler.__init__(self, mode=mode)
-
 
 
 class ComplexInput(BasicIO, BasicComplex, IOHandler):
@@ -494,9 +475,11 @@ class UOM(*ogc.exports.UOM):
     :param uom: unit of measure
     """
 
-    def __init__(self, uom=''):
+    def __init__(self, uom: str=None):
         self.uom = uom
+    
+    def ogcunit(self) -> str:
+        """ OGC urn definition """
+        return ogc.OGCUNIT.get(self.uom)
 
-    def ogcunit(self):
-        return ogc.ows.OGCUNIT[self.uom]
 

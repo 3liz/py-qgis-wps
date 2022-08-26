@@ -12,6 +12,7 @@ import logging
 
 from pyqgiswps.app.common import Metadata
 from pyqgiswps.exceptions import InvalidParameterValue
+from pyqgiswps.inout.literaltypes import AllowedValues
 
 from pyqgiswps.inout import (LiteralInput,
                              ComplexInput,
@@ -34,6 +35,19 @@ from .processingcontext import MapContext, ProcessingContext
 from typing import Any, Union, Tuple, Generator
 
 from .io import filesio, layersio, datetimeio, geometryio
+
+# Distance UOM conversion to normalized units
+DISTANCE_UOMS = {
+    QgsUnitTypes.DistanceMeters: 'meter',
+    QgsUnitTypes.DistanceKilometers: 'kilometer',
+    QgsUnitTypes.DistanceFeet: 'feet', 
+    QgsUnitTypes.DistanceNauticalMiles: 'nautical miles' ,
+    QgsUnitTypes.DistanceYards: 'yards',
+    QgsUnitTypes.DistanceMiles: 'miles' , 
+    QgsUnitTypes.DistanceDegrees: 'degrees',
+    QgsUnitTypes.DistanceCentimeters: 'centimeter',
+    QgsUnitTypes.DistanceMillimeters: 'millimeter', 
+}
 
 WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
 WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
@@ -79,7 +93,7 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
     elif typ == 'enum':
         options = param.options()
         kwargs['data_type'] = 'string'
-        kwargs['allowed_values'] = options
+        kwargs['allowed_values'] = AllowedValues(values=options)
         kwargs['max_occurs'] = len(options) if param.allowMultiple() else 1
         default_value = param.defaultValue()
         if default_value is not None:
@@ -96,21 +110,27 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
 
     elif typ == 'number':
         kwargs['data_type'] = _number_data_type(param)
-        kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
+        kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
     elif typ == 'distance':
         kwargs['data_type'] = 'length'
-        kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
+        kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
+
         kwargs['metadata'].extend((
             Metadata('processing:parentParameterName', param.parentParameterName()),
             Metadata('processing:defaultUnit', QgsUnitTypes.toString(param.defaultUnit())),
         ))
+        uom = DISTANCE_UOMS.get(param.defaultUnit())
+        if uom is not None:
+            kwargs['uoms']=[uom] 
     elif typ == 'scale':
         kwargs['data_type'] = 'scale'
-        kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
+        kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
+
     elif typ == 'duration':
         # XXX OGC duration is defined as time dataType
         kwargs['data_type'] = 'time'
-        kwargs['allowed_values'] = [(param.minimum(),param.maximum())]
+        kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
+
         kwargs['metadata'].append(
             Metadata('processing:defaultUnit', QgsUnitTypes.toString(param.defaultUnit())),
         )
@@ -125,7 +145,8 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
             QgsProcessingParameterField.DateTime: 'DateTime',
         }[param.dataType()]))
     elif typ == 'band':
-        kwargs['data_type'] = 'nonNegativeInteger'
+        kwargs['data_type'] = 'integer',
+        kwargs['allowed_values'] = AllowedValues.nonNegativeValue(),
     else:
         return None
 

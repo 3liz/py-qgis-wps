@@ -14,11 +14,10 @@
 """Validator classes are used for ComplexInputs, to validate the content
 """
 
-
 import logging
 
 from pyqgiswps.validator.mode import MODE
-from pyqgiswps.inout.formats import FORMATS
+from pyqgiswps.validator.formats import FORMATS
 import mimetypes
 import os
 

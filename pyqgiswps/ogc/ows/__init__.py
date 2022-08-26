@@ -27,8 +27,6 @@ from .outputs import (BoundingBoxOutput, # noqa E402,F401
                       ComplexOutput,     # noqa E402,F401
                       LiteralOutput,)    # noqa E402,F401
 
-from .request import OWSRequest # noqa E402,F401
-
 # Import stub variable
 stub = None
 

@@ -90,6 +90,15 @@ class Supervisor:
     def run(self):
         self._task = asyncio.ensure_future(self._run_async())
 
+    def kill_worker_busy(self, pid: int) -> bool:
+        """ Kill job  if in BUSY state
+        """
+        if pid in self._busy:
+            LOGGER.info("Process dismissal requested for pid = %s", pid)
+            del self._busy[pid]
+            self._killfunc(pid)
+            return True
+
     async def _run_async(self) -> None:
         """ Run supervisor
         """

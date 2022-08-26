@@ -16,6 +16,7 @@ from .schema import E, OWS, WPS, NAMESPACES, XMLElement
 from ..ogc import OGCUNIT, OGCTYPE
 from ..traits import register_trait
 
+from pyqgiswps.validator.base import to_json_serializable
 
 @register_trait
 class Metadata:
@@ -157,7 +158,6 @@ class ComplexInput:
     def execute_xml(self) -> XMLElement:
         """Render Execute response XML node
 
-
         :return: node
         :rtype: ElementMaker
         """
@@ -251,11 +251,10 @@ class LiteralInput:
 
         doc.append(literal_data_doc)
 
-        # TODO: refer to table 29 and 30
         if self.any_value:
             literal_data_doc.append(OWS.AnyValue())
         else:
-            literal_data_doc.append(self._describe_xml_allowedvalues())
+            literal_data_doc.append(self.allowed_values.describe_xml())
 
         if self.default is not None:
             literal_data_doc.append(E.DefaultValue(str(self.default)))
@@ -280,14 +279,6 @@ class LiteralInput:
 
         return doc
 
-    def _describe_xml_allowedvalues(self) -> XMLElement:
-        """Return AllowedValues node
-        """
-        doc = OWS.AllowedValues()
-        for value in self.allowed_values:
-            doc.append(value.describe_xml())
-        return doc
-
     def _execute_xml_data(self) -> XMLElement:
         """Return Data node
         """
@@ -303,21 +294,28 @@ class LiteralInput:
 
 
 @register_trait
-class AllowedValue:
+class AllowedValues:
     
+    def _describe_range_xml(self) -> XMLElement:
+        doc = OWS.Range()
+        doc.set('{%s}rangeClosure' % NAMESPACES['ows'], self.range_closure)
+        if self.minval is not None:
+            doc.append(OWS.MinimumValue(str(to_json_serializable(self.minval))))
+        if self.maxval is not None:
+            doc.append(OWS.MaximumValue(str(to_json_serializable(self.maxval))))
+        if self.spacing:
+            doc.append(OWS.Spacing(str(self.spacing)))
+        return doc
+
     def describe_xml(self) -> XMLElement:
-        """Return back Element for DescribeProcess response
+        """ Return back Element for DescribeProcess response
         """
-        doc = None
+        doc = OWS.AllowedValues()
         if self.is_range:
-            doc = OWS.Range()
-            doc.set('{%s}rangeClosure' % NAMESPACES['ows'], self.range_closure)
-            doc.append(OWS.MinimumValue(str(self.to_json_serializable(self.minval))))
-            doc.append(OWS.MaximumValue(str(self.to_json_serializable(self.maxval))))
-            if self.spacing:
-                doc.append(OWS.Spacing(str(self.spacing)))
+            doc.append(self._describe_range_xml())
         else:
-            doc = OWS.Value(str(self.to_json_serializable(self.value)))
+            for value in self.values:
+                doc.append(OWS.Value(str(to_json_serializable(value))))
         return doc
 
 

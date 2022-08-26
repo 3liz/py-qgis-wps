@@ -43,10 +43,9 @@ def test_datetime_input():
     assert isinstance(inp, LiteralInput)
     assert inp.identifier == "TEST"
     assert inp.data_type == "dateTime"
-    assert len(inp.allowed_values) == 1
-    assert inp.allowed_values[0].allowed_type == ALLOWEDVALUETYPE.RANGE
-    assert isinstance(inp.allowed_values[0].minval, datetime.datetime)
-    assert isinstance(inp.allowed_values[0].maxval, datetime.datetime)
+    assert inp.allowed_values.allowed_type == ALLOWEDVALUETYPE.RANGE
+    assert isinstance(inp.allowed_values.minval, datetime.datetime)
+    assert isinstance(inp.allowed_values.maxval, datetime.datetime)
 
     assert isinstance(inp.default, datetime.datetime)
     assert inp.default == param.defaultValue().toPyDateTime()
@@ -68,10 +67,9 @@ def test_time_input():
     assert isinstance(inp, LiteralInput)
     assert inp.identifier == "TEST"
     assert inp.data_type == "time"
-    assert len(inp.allowed_values) == 1
-    assert inp.allowed_values[0].allowed_type == ALLOWEDVALUETYPE.RANGE
-    assert isinstance(inp.allowed_values[0].minval, datetime.time)
-    assert isinstance(inp.allowed_values[0].maxval, datetime.time)
+    assert inp.allowed_values.allowed_type == ALLOWEDVALUETYPE.RANGE
+    assert isinstance(inp.allowed_values.minval, datetime.time)
+    assert isinstance(inp.allowed_values.maxval, datetime.time)
 
     assert isinstance(inp.default, datetime.time)
 
@@ -98,10 +96,9 @@ def test_date_input():
     assert isinstance(inp, LiteralInput)
     assert inp.identifier == "TEST"
     assert inp.data_type == "date"
-    assert len(inp.allowed_values) == 1
-    assert inp.allowed_values[0].allowed_type == ALLOWEDVALUETYPE.RANGE
-    assert isinstance(inp.allowed_values[0].minval, datetime.date)
-    assert isinstance(inp.allowed_values[0].maxval, datetime.date)
+    assert inp.allowed_values.allowed_type == ALLOWEDVALUETYPE.RANGE
+    assert isinstance(inp.allowed_values.minval, datetime.date)
+    assert isinstance(inp.allowed_values.maxval, datetime.date)
 
     assert isinstance(inp.default, datetime.date)
     assert inp.default == QDateTime(param.defaultValue()).toPyDateTime().date()
@@ -130,6 +127,3 @@ def test_datetime_json():
 
     json = request.json
     assert json['inputs']['datetime'][0]['data'] == inp.default.replace(microsecond=0).isoformat()
-
-
-

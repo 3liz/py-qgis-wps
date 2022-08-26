@@ -46,7 +46,7 @@ from ..processingcontext import MapContext, ProcessingContext
 from pyqgiswps.app.common import Metadata
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 from pyqgiswps.inout.formats import Format, FORMATS
-from pyqgiswps.inout.literaltypes import AllowedValue
+from pyqgiswps.inout.literaltypes import AllowedValues
 from pyqgiswps.inout import (LiteralInput,
                              ComplexInput,
                              BoundingBoxInput,
@@ -162,10 +162,8 @@ def get_layers_from_context(kwargs, context: MapContext, datatypes) -> None:
                 or QgsProcessing.TypeMapLayer in datatypes
         return False
             
-    def _allowed_layer( lyr: QgsMapLayer ) -> bool: 
-        return AllowedValue(value=lyr.name(), allowed_type=ALLOWEDVALUETYPE.LAYER)
-
-    kwargs['allowed_values'] = [_allowed_layer(lyr) for lyr in project.mapLayers().values() if _is_allowed(lyr)]
+    allowed_layers = [lyr.name() for lyr in project.mapLayers().values() if _is_allowed(lyr)]
+    kwargs['allowed_values'] = AllowedValues(values=allowed_layers, allowed_type=ALLOWEDVALUETYPE.LAYER)
   
 
 def is_vector_type( datatypes ):
@@ -280,7 +278,7 @@ def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs,
             get_layers_from_context(kwargs, context, datatypes)
             # Set max occurs accordingly
             if typ == 'multilayer':
-                kwargs['max_occurs'] = len(kwargs['allowed_values'])
+                kwargs['max_occurs'] = len(kwargs['allowed_values'].values or 0)
         return LiteralInput(**kwargs)
 
     elif isinstance(param, DESTINATION_LAYER_TYPES):

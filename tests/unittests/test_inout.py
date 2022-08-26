@@ -17,7 +17,7 @@ from pyqgiswps.ogc.ows import NAMESPACES
 from pyqgiswps.inout.basic import IOHandler, SOURCE_TYPE, SimpleHandler, BBoxInput, BBoxOutput, \
     ComplexInput, ComplexOutput, LiteralInput, LiteralOutput
 from pyqgiswps.inout import BoundingBoxInput as BoundingBoxInputXML
-from pyqgiswps.inout.literaltypes import convert, AllowedValue
+from pyqgiswps.inout.literaltypes import convert, AllowedValues
 from pyqgiswps.validator.base import emptyvalidator
 from pyqgiswps.exceptions import InvalidParameterValue
 from pyqgiswps.validator.mode import MODE
@@ -185,17 +185,15 @@ class TestLiteralInput:
 
     def setup_method(self, me):
         self.literal_input = LiteralInput(
-                identifier="literalinput",
-                mode=2,
-                allowed_values=(1, 2, (3, 3, 12)))
+            identifier="literalinput",
+            mode=2,
+            allowed_values=AllowedValues(values=(1, 2))
+        )
 
     def test_contruct(self):
         assert isinstance(self.literal_input, LiteralInput)
-        assert len(self.literal_input.allowed_values) == 3
-        assert isinstance(self.literal_input.allowed_values[0], AllowedValue)
-        assert isinstance(self.literal_input.allowed_values[2], AllowedValue)
-        assert self.literal_input.allowed_values[2].spacing == 3
-        assert self.literal_input.allowed_values[2].minval == 3
+        assert isinstance(self.literal_input.allowed_values, AllowedValues)
+        assert self.literal_input.allowed_values.values == (1, 2)
 
     def test_valid(self):
         self.literal_input.data = 1
@@ -210,24 +208,20 @@ class TestLiteralInput:
         with pytest.raises(InvalidParameterValue):
             self.literal_input.data = 15
 
-        self.literal_input.data = 6
-        assert self.literal_input.data == 6
-
     def test_json_out(self):
-        self.literal_input.data = 9
+        self.literal_input.data = 2
         out = self.literal_input.json
 
         assert not out['uoms'], 'UOMs exist'
         assert out['data_type'] == 'integer', 'Data type is integer'
         assert not out['abstract'], 'abstract exist'
         assert not out['title'], 'title exist'
-        assert out['data'] == 9, 'data set'
+        assert out['data'] == 2, 'data set'
         assert out['mode'] == MODE.STRICT, 'Mode set'
         assert out['identifier'] == 'literalinput', 'identifier set'
         assert out['type'] == 'literal', 'it\'s literal input'
         assert not out['uom'], 'uom exists'
-        assert len(out['allowed_values']) == 3, '3 allowed values'
-        assert out['allowed_values'][0]['value'] == 1, 'allowed value 1'
+        assert out['allowed_values']['values'] == [1,2], 'allowed values [1, 2]'
 
 
 class TestLiteralOutput:

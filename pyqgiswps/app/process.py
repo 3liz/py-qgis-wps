@@ -26,7 +26,10 @@ class WPSProcess( *ogc.exports.WPSProcess ):
                  inputs=[],
                  outputs=[],
                  version='None',
+                 keywords=[],
                  **kwargs):
+
+        #TODO remove unusued `profile` property
 
         self.handler = handler
         self.identifier = identifier
@@ -38,10 +41,7 @@ class WPSProcess( *ogc.exports.WPSProcess ):
         self.inputs = inputs
         self.outputs = outputs
         self.workdir = None
-
-        # Keep this for test compatibility
-        self.store_supported = True
-        self.status_supported = True
+        self.keywords = keywords
 
     def clean(self):
         """ Clean the process working dir and other temporary files

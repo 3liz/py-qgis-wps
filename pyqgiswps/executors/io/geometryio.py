@@ -58,6 +58,7 @@ def parse_extent_input( param: QgsProcessingParameterDefinition, kwargs,
                         context: MapContext=None ) -> BoundingBoxInput:
     """ Convert extent processing input to bounding box input"
     """
+    crsid = None
     if context:
         project = context.project()
         # Get the crs from the project
@@ -65,7 +66,8 @@ def parse_extent_input( param: QgsProcessingParameterDefinition, kwargs,
         crs = project.crs()
         if crs and crs.isValid():
             crsid = crs.authid()
-    else:
+
+    if not crsid:
         # Default CRS
         crsid = 'EPSG:4326'
 
