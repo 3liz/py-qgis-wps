@@ -13,7 +13,7 @@
 #
 
 from .schema import E, OWS, WPS, NAMESPACES, XMLElement
-from ..ogc import OGCUNIT, OGCTYPE
+from ..ogc import OGCTYPE
 from ..traits import register_trait
 
 from pyqgiswps.validator.base import to_json_serializable
@@ -50,12 +50,11 @@ class Format:
 
 @register_trait
 class UOM:
-
     def describe_xml(self) -> XMLElement:
         elem = OWS.UOM(
-            self.uom
+            self.code
         )
-        elem.attrib['{%s}reference' % NAMESPACES['ows']] = OGCUNIT[self.uom]
+        elem.attrib['{%s}reference' % NAMESPACES['ows']] = self.ref
         return elem
 
 
@@ -238,9 +237,9 @@ class LiteralInput:
                              NAMESPACES['ows']] = OGCTYPE[self.data_type]
             literal_data_doc.append(data_type)
 
-        if self.uoms:
-            default_uom_element = self.uoms[0].describe_xml()
-            supported_uom_elements = [u.describe_xml() for u in self.uoms]
+        if self.supported_uoms:
+            default_uom_element = self.uom.describe_xml()
+            supported_uom_elements = [u.describe_xml() for u in self.supported_uoms]
 
             literal_data_doc.append(
                 E.UOMs(

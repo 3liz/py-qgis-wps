@@ -18,8 +18,6 @@ from enum import Enum
 import os
 import logging
 
-import pyqgiswps.ogc as ogc
-
 from pyqgiswps.inout.literaltypes import (LITERAL_DATA_TYPES, 
                                           convert,
                                           is_anyvalue,  
@@ -31,10 +29,11 @@ from pyqgiswps.validator.literalvalidator import (validate_anyvalue,
                                                   validate_allowed_values)
 from pyqgiswps.exceptions import InvalidParameterValue
 from pyqgiswps.inout.formats import Format
+from pyqgiswps.inout.uoms import UOM
 
 import base64
 
-from typing import List
+from typing import List, Optional
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -193,26 +192,55 @@ class BasicLiteral:
         assert data_type in LITERAL_DATA_TYPES
         self.data_type = data_type
         # current uom
-        self.uom = None
+        self.supported_uoms = uoms
 
-        # add all uoms (upcasting to UOM)
-        if uoms is not None:
-            self.uoms = list(map(lambda uom: uom if isinstance(uom, UOM) else UOM(uom), uoms))
+    def get_supported_uom(self, code_or_ref: str) -> UOM:
+        """ Get the uom code either from a code a from
+            reference
+        """
+        for uom in self._supported_uoms:
+            if uom.code == code_or_ref or uom.ref() == code_or_ref:
+                return uom
         else:
-            self.uoms = []
+            return None
 
-        if self.uoms:
-            # default/current uom
-            self.uom = self.uoms[0]
+    @property
+    def supported_uoms(self):
+        return self._supported_uoms
 
-        def get_uom(self, code: str) -> UOM:
-            """ 
-            """
-            for uom in self.uoms:
-                if uom.uom == code or uom.ogcunit() == code:
-                    return uom
-            else:
-                return None
+    @supported_uoms.setter
+    def supported_uoms(self, uoms):
+        """Setter of supported uoms
+        """
+        if uoms:
+            self._supported_uoms = list(map(lambda uom: uom if isinstance(uom, UOM) else UOM(uom), uoms))
+        else:
+            self._supported_uoms = []
+        self.set_default_uom()
+
+    @property
+    def uom(self):
+        return self._uom
+
+    @uom.setter
+    def uom(self, uom: Optional[str]):
+        """ Set and check uom
+        """
+        if uom is not None:
+            if isinstance(uom, UOM):
+                uom = uom.code
+            uom = self.get_supported_uom(uom)
+            if uom is None:
+                raise InvalidParameterValue(
+                    f"Requested unit '{uom}' not supported"
+                )
+        self._uom = uom
+
+    def set_default_uom(self):
+        if self._supported_uoms:
+            self._uom = self._supported_uoms[0]
+        else:
+            self._uom = None
 
 
 class BasicComplex:
@@ -360,8 +388,8 @@ class LiteralInput(BasicIO, BasicLiteral, SimpleHandler):
             'type': 'literal',
             'data_type': self.data_type,
             'allowed_values': self.allowed_values.json if self.allowed_values else None,
-            'uoms': self.uoms,
-            'uom': self.uom,
+            'uoms': [uom.json for uom in self._supported_uoms],
+            'uom': self._uom.json if self._uom is not None else None,
             'mode': self.valid_mode,
             'data': to_json_serializable(self.data)
         }
@@ -451,7 +479,7 @@ class ComplexInput(BasicIO, BasicComplex, IOHandler):
             'title': self.title,
             'abstract': self.abstract,
             'type': 'complex',
-            'data_format': self.data_format.json,
+            'data_format': self.data_format.json if self.data_format else None,
             'supported_formats': [frmt.json for frmt in self.supported_formats],
             'file': self.file,
             'mode': self.valid_mode
@@ -469,17 +497,5 @@ class ComplexOutput(BasicIO, BasicComplex, IOHandler):
         IOHandler.__init__(self, mode=mode)
         BasicComplex.__init__(self, data_format, supported_formats)
 
-
-class UOM(*ogc.exports.UOM):
-    """
-    :param uom: unit of measure
-    """
-
-    def __init__(self, uom: str=None):
-        self.uom = uom
-    
-    def ogcunit(self) -> str:
-        """ OGC urn definition """
-        return ogc.OGCUNIT.get(self.uom)
 
 

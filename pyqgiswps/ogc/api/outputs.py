@@ -39,7 +39,6 @@ class BasicOutputDescription:
         return doc
 
 
-
 @register_trait
 class LiteralOutput(BasicOutputDescription):
     
@@ -49,9 +48,9 @@ class LiteralOutput(BasicOutputDescription):
         doc = self.ogcapi_description()
 
         schema = OGCTYPE_SCHEMA[self.data_type]
-        if self.uoms:
+        if self.supported_uoms:
             schema.update(uom={
-                'oneOf': [uom.ogcapi_description() for uom in self.uoms],
+                'oneOf': [uom.ogcapi_description() for uom in self.supported_uoms],
             })
         doc.update(schema=schema, typeHint=TypeHint.LiteralData.value)
         return doc

@@ -3,9 +3,10 @@
 ## Unreleased
 
 * Support for ogc processes open api
+* Improve UOM validation
 * Use of UCUM references for UOM
     - See https://ucum.org/
-* Massive code cleanup 
+* Code cleaning
 * Support options `DISABLE_GETPRINT` and `TRUST_LAYER_METADATA`
 * Skip capabilities check for Qgis >= 3.26.1
 

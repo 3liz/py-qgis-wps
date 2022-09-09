@@ -215,12 +215,9 @@ class LiteralInput(basic.LiteralInput, *ogc.exports.LiteralInput):
         """
         code = inpt.get('uom')
         if code:
-            code = self.get_uom(code)
-            if not code:
-                raise InvalidParameterValue(
-                    f"Invalid uom value '{code}' for input {self.identifier}")
-        elif self.uoms:
-            self.uom = self.uoms[0]
+            self.uom = code
+        else:
+            self.set_default_uom()
 
         self.data = inpt.get('data')
         return self

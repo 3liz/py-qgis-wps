@@ -204,9 +204,9 @@ class LiteralOutput:
             data_type.attrib['{%s}reference' % NAMESPACES['ows']] = OGCTYPE[self.data_type]
             literal_data_doc.append(data_type)
 
-        if self.uoms:
+        if self.supported_uoms:
             default_uom_element = self.uom.describe_xml()
-            supported_uom_elements = [u.describe_xml() for u in self.uoms]
+            supported_uom_elements = [u.describe_xml() for u in self.supported_uoms]
 
             literal_data_doc.append(
                 E.UOMs(
@@ -244,7 +244,7 @@ class LiteralOutput:
         literal_data_doc = WPS.LiteralData(str(self.data))
         literal_data_doc.attrib['dataType'] = OGCTYPE[self.data_type]
         if self.uom:
-            literal_data_doc.attrib['uom'] = self.uom.ogcunit()
+            literal_data_doc.attrib['uom'] = self.uom.ref
         data_doc.append(literal_data_doc)
 
         doc.append(data_doc)

@@ -101,9 +101,10 @@ class LiteralInput(BasicInputDescription):
         if self.default is not None:
             schema.update(default=to_json_serializable(self.default))
         
-        if self.uoms:
+        uoms = self.supported_uoms
+        if uoms:
             schema.update(uom={
-                'oneOf': [uom.ogcapi_description() for uom in self.uoms],
+                'oneOf': [uom.ogcapi_description() for uom in uoms],
             })
         doc.update(schema=schema, typeHint=TypeHint.LiteralData.value)
         return doc
@@ -133,8 +134,8 @@ class UOM:
         """ Return ogc api uom description (unspecified)
         """
         return {
-            'uom': self.uom,
-            'reference': self.ogcunit(),
+            'uom': self.code,
+            'reference': self.ref,
         }
 
 
