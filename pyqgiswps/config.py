@@ -112,6 +112,9 @@ def load_configuration():
     CONFIG.set('server', 'ssl_cert'      , getenv('QGSWPS_SERVER_SSL_CERT', ''))
     CONFIG.set('server', 'ssl_key'       , getenv('QGSWPS_SERVER_SSL_KEY' , ''))
 
+    # Administrator token for accessing job list with ogc api
+    CONFIG.set('server', 'admin_token', getenv('QGSWPS_SERVER_ADMIN_TOKEN', ''))
+
     #
     # Logging
     #

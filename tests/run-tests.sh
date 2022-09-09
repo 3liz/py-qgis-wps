@@ -25,6 +25,7 @@ export QGIS_NO_OVERRIDE_IMPORT=1
 # Do no resart workers on each run
 export QGSWPS_SERVER_PROCESSLIFECYCLE=0
 
+# see https://docs.python.org/3/library/faulthandler.html
 export PYTHONFAULTHANDLER=1
 
 cd tests/unittests && exec $VENV_PATH/bin/pytest -v $@

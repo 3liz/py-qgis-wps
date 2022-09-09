@@ -13,8 +13,21 @@ from pyqgiswps.validator.allowed_value import RANGECLOSURETYPE
 from pyqgiswps.validator.base import to_json_serializable
 
 from typing import TypeVar
+from enum import Enum
 
 Json = TypeVar('Json')
+
+
+class TypeHint(str, Enum):
+    #
+    # Not part of api spec.
+    #
+    # Used for helping client to deal
+    # with schema
+    #
+    LiteralData = 'literalData'
+    ComplexData = 'complexData'
+    BoundingBoxData = 'boundingboxData'
 
 
 class BasicInputDescription:
@@ -92,7 +105,7 @@ class LiteralInput(BasicInputDescription):
             schema.update(uom={
                 'oneOf': [uom.ogcapi_description() for uom in self.uoms],
             })
-        doc.update(schema=schema)
+        doc.update(schema=schema, typeHint=TypeHint.LiteralData.value)
         return doc
 
 
@@ -160,7 +173,7 @@ class BoundingBoxInput(BasicInputDescription):
             },
         }
         
-        doc.update(schema=schema)
+        doc.update(schema=schema, typeHint=TypeHint.BoundingBoxData.value)
         return doc
 
 
@@ -184,6 +197,6 @@ class ComplexInput(BasicInputDescription):
                 schema['type'] = 'string'
         else:
             schema = { 'type': 'string' }
-        doc.update(schema=schema)
+        doc.update(schema=schema, typeHint=TypeHint.ComplexData.value)
         return doc
 

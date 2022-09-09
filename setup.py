@@ -67,9 +67,7 @@ setup(
             'wpsserver = pyqgiswps.wpsserver:main',
             'wpsserver-check = pyqgiswps.healthcheck:main'
         ],
-        'py_qgis_wps.access_policy': [
-            'lizmap_acl = pyqgisservercontrib.lizmapacl.filters:register_policy',
-        ],
+        'py_qgis_wps.access_policy': builtin_access_policies,
     },
 
     **kwargs

@@ -45,10 +45,11 @@ class Process:
                 'async-execute',  
                 'dismiss',  
             ],
-            outputTransmission=[
-                'value',
-                'reference',
-            ],
+
+            # outputTransmission=[
+            #     'value',
+            #     'reference',
+            # ],
         )
         return doc
 

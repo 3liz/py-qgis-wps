@@ -93,6 +93,8 @@ class Service():
 
         return status_url.format(host_url=proxy_host,uuid=uuid)
 
+
+
     async def execute(self, identifier: str, wps_request: WPSRequest, uuid: str, 
                       map_uri: Optional[str]=None) -> bytes:
         """Parse and perform Execute WPS request call
@@ -102,7 +104,11 @@ class Service():
         :param uuid: string identifier of the request
         """
         process = self.get_process(identifier, map_uri=map_uri)
+        return await self.execute_process(process, wps_request, uuid)
 
+    async def execute_process(self, process: WPSProcess, wps_request: WPSRequest, uuid: str) -> bytes:
+        """Parse and perform Execute WPS request call
+        """
         # make deep copy of the process instance
         # so that processes are not overriding each other
         # just for execute

@@ -19,6 +19,8 @@ from pyqgiswps.validator.base import to_json_serializable
 
 from typing import TypeVar
 
+from .inputs import TypeHint
+
 Json = TypeVar('Json')
 
 
@@ -51,7 +53,7 @@ class LiteralOutput(BasicOutputDescription):
             schema.update(uom={
                 'oneOf': [uom.ogcapi_description() for uom in self.uoms],
             })
-        doc.update(schema=schema)
+        doc.update(schema=schema, typeHint=TypeHint.LiteralData.value)
         return doc
 
     def ogcapi_output_result(self) -> Json:
@@ -96,7 +98,7 @@ class BoundingBoxOutput(BasicOutputDescription):
             },
         }
        
-        doc.update(schema=schema)
+        doc.update(schema=schema, typeHint=TypeHint.BoundingBoxData.value)
         return doc
 
     def ogcapi_output_result(self):
@@ -123,21 +125,24 @@ class ComplexOutput(BasicOutputDescription):
     
     def ogcapi_output_description(self) -> Json:
 
+        def _schema(fmt):
+            schema = fmt.ogcapi_description()
+            schema['type'] = 'string'
+            if self.as_reference:
+                schema['format']="uri"
+            return schema
+
         doc = self.ogcapi_description()
         if self.supported_formats:
             if len(self.supported_formats) > 1:
-                def schemas():
-                    for fmt in self.supported_formats:
-                        schema = fmt.ogcapi_description()
-                        schema['type'] = 'string'
-                        yield schema
-                schema={'oneOf': list(schemas())}
+                schema={'oneOf': [_schema(fmt) for fmt in self.supported_formats]}
             else:
-                schema = self.supported_formats[0].ogcapi_description()
-                schema['type'] = 'string'
+                schema=_schema(self.supported_formats[0])
         else:
             schema = { 'type': 'string' }
-        doc.update(schema=schema)
+        doc.update(schema=schema, typeHint=TypeHint.ComplexData.value)
+        # Set transmission mode
+        doc['transmissionMode'] = 'reference' if self.as_reference else 'value'
         return doc
 
     def ogcapi_output_result(self) -> Json:

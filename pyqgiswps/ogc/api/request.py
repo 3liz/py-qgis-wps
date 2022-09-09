@@ -24,6 +24,14 @@ from typing import TypeVar, Optional
 
 from .response import OgcApiResponse, JOBSTATUS
 
+from pyqgiswps.inout import (
+    BoundingBoxOutput, 
+    BoundingBoxInput, 
+    ComplexInput, 
+    ComplexOutput, 
+    LiteralOutput,
+    LiteralInput
+)
 
 AccessPolicy = TypeVar('AccessPolicy')
 Service      = TypeVar('Service')
@@ -105,21 +113,27 @@ class OgcApiRequest(WPSRequest):
     #
     # /processes/{id}/execution
     #
-    def execution(self, ident: str, job_id: UUID, doc: Json, service: Service,
-                  timeout: Optional[int] = None, 
-                  expire: Optional[int] = None,
-                  execute_async: bool = True) -> Json:
+    async def execute(self, ident: str, job_id: UUID, doc: Json, service: Service,
+                      timeout: Optional[int] = None, 
+                      expire: Optional[int] = None,
+                      execute_async: bool = True) -> Json:
 
+        # Raise if process is not found
+        process = service.get_process(ident, map_uri=self.map_uri)
+        
         self.identifier = ident
         self.execute_async = execute_async
 
-        self.inputs = get_inputs_from_document(doc)
-        self.outputs = get_outputs_from_document(doc)
-
         self.check_and_set_timeout(timeout)
         self.check_and_set_expiration(expire)
-      
-        return self.execute(service, job_id, map_uri=self.map_uri)
+
+        def _typeclasses(items):
+            return { i.identifier: type(i) for i in items }
+
+        self.inputs = get_inputs_from_document(doc,   _typeclasses(process.inputs))
+        self.outputs = get_outputs_from_document(doc, _typeclasses(process.outputs))
+
+        return await service.execute_process(process, self, job_id)
 
     # Validation
 
@@ -294,78 +308,96 @@ class OgcApiRequest(WPSRequest):
         return doc        
 
 
-def get_inputs_from_document(doc):
+def get_inputs_from_document(doc, typeclasses):
     """  Parse inputs data
     """
-    def _input(ident, data):
-        # Check if literal input
+    def _input(ident, data, typeclass):
+
         inpt = { 'identifier': ident }
 
-        if isinstance(data, dict):
-
-            # Get qualified value
+        if typeclass == LiteralInput:
+            if isinstance(data, dict):
+                # Get qualified value
+                inpt['data'] = data['value']
+                inpt['uom'] = data.get('uom')
+            else:
+                # Get raw value
+                inpt['data'] = data
+        elif typeclass == ComplexInput:
             value = data.get('value')
             if value is not None:
                 # Check format
                 inpt['mimeType'] = data.get('mediaType')
                 inpt['schema'] = data.get('schema')
- 
                 # Get raw value
                 encoding = data.get('encoding')
                 if encoding == 'base64':
                     value = base64.b64decode(value)
                 else:
                     inpt['encoding'] = encoding
-
                 inpt['data'] = value
-
-                # Get uom
-                inpt['uom'] = data.get('uom')
-            elif 'bbox' in data:
-                # Check bounding box
-                inpt['data'] = data['bbox']
-                # Check coordinate reference
-                inpt['crs'] = data.get('crs')
             else:
                 # Check reference data
-                inpt['href'] = data.get('href')
+                inpt['href'] = data['href']
                 inpt['method'] = data.get('method', 'GET').upper()
                 inpt['body'] = data.get('body')
                 inpt['mimeType'] = data.get('type')
-        else:
-            # Raw value
-            inpt['data'] = data
+        elif typeclass == BoundingBoxInput:
+            # Check bounding box
+            inpt['data'] = data['bbox']
+            inpt['crs'] = data.get('crs')
 
         return inpt
 
-    def _inputs(ident, el):
-        if isinstance(el, list):
-            return [_input(ident,data) for data in el]
-        else:
-            return [_input(ident,el)]
+    def _inputs():
+        for ident, inpts in doc.get('inputs', {}).items():
+            typeclass = typeclasses.get(ident)
+            if typeclass is None:
+                continue
+            try:
+                if isinstance(inpts, list):
+                    inpts = [_input(ident, data, typeclass) for data in inpts]
+                else:
+                    inpts = [_input(ident, inpts, typeclass)]
+                yield ident, inpts
+            except KeyError as err:
+                raise InvalidParameterValue(
+                    f"Missing property '{err}' for input '{ident}'"
+                ) from None
 
-    return {ident: _inputs(ident, el) for ident, el in doc.get('inputs', {}).items()}
+    return dict(_inputs())
 
 
-def get_outputs_from_document(doc): 
+def get_outputs_from_document(doc, typeclasses): 
     """ Parse outputs specs
 
         Note that we ignore 'transmissionMode' since we 
         do not allow client to change it.
     """
-    def _output(ident, el):
-        outpt = { 'identifier' : ident }
+    def _outputs():
 
-        # Formats may be an output choice
-        output_format = el.get('format')
-        if output_format:
-            outpt['format'] = output_format
-        return outpt
+        for ident, outp in doc.get('outputs', {}).items():
 
-        # As well as UOM
-        output_uom = el.get('uom')
-        if output_uom:
-            outpt['uom'] = output_uom
-        return outpt
+            typeclass = typeclasses.get(ident)
+            if typeclass is None:
+                continue
+ 
+            output = { 'identifier' : ident }
 
-    return {ident: _output(ident, el) for ident, el in doc.get('outputs', {}).items()}
+            if typeclass == LiteralOutput:
+                # UOM may be an output choice
+                output_uom = outp.get('uom')
+                if output_uom:
+                    output['uom'] = output_uom
+            elif typeclass == ComplexOutput:            
+                # Formats may be an output choice
+                output_format = outp.get('format')
+                if output_format:
+                    output['format'] = output_format
+                return output
+            elif typeclass == BoundingBoxOutput:
+                pass
+
+            yield  ident, output
+
+    return dict(_outputs())

@@ -164,7 +164,7 @@ class ExecuteHandler(ApiHandler):
 
         try:
             job_id = uuid.uuid1()
-            content = await wpsrequest.execution(
+            content = await wpsrequest.execute(
                 process_id, job_id, doc, service,
                 execute_async=prefs.execute_async,
                 timeout=prefs.timeout,

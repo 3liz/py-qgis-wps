@@ -31,7 +31,7 @@ from pyqgiswps.ogc.api.request import get_inputs_from_document, get_outputs_from
 
 def test_empty():
     request_doc = {}
-    assert get_inputs_from_document(request_doc) == {}
+    assert get_inputs_from_document(request_doc, {}) == {}
 
 
 def test_multiple_raw_input():
@@ -40,7 +40,7 @@ def test_multiple_raw_input():
             'name': [ 'foo', 'bar' ],
         }
     }
-    rv = get_inputs_from_document(request_doc)
+    rv = get_inputs_from_document(request_doc, {'name': LiteralInput})
     assert 'name' in rv
     assert isinstance(rv['name'], list)
     assert len(rv['name']) == 2
@@ -57,7 +57,7 @@ def test_multiple_qualified_input():
             ],
         }
     }
-    rv = get_inputs_from_document(request_doc)
+    rv = get_inputs_from_document(request_doc, {'name': LiteralInput})
     assert 'name' in rv
     inpt = rv['name']
     assert isinstance(inpt, list)
@@ -74,7 +74,13 @@ def test_two_raw_inputs():
             'name2': 'bar',
         }
     }
-    rv = get_inputs_from_document(request_doc)
+
+    typeclasses = {
+        'name1': LiteralInput, 
+        'name2': LiteralInput,
+    }
+
+    rv = get_inputs_from_document(request_doc, typeclasses) 
     assert rv['name1'][0]['data'] == 'foo'
     assert rv['name2'][0]['data'] == 'bar'
 
@@ -89,7 +95,7 @@ def test_complex_string_input():
             }
         }
     }
-    rv = get_inputs_from_document(request_doc)
+    rv = get_inputs_from_document(request_doc, {'name': ComplexInput})
     inpt = rv['name']
     assert isinstance(inpt, list)
     assert len(inpt) == 1
@@ -108,7 +114,7 @@ def test_complex_input_json_value():
             }
         }
     }
-    rv = get_inputs_from_document(request_doc)
+    rv = get_inputs_from_document(request_doc, {'json': ComplexInput})
     inpt = rv['json']
     assert isinstance(inpt, list)
     assert len(inpt) == 1
@@ -131,7 +137,7 @@ def test_complex_input_base64_value():
         }
     }
  
-    rv = get_inputs_from_document(request_doc)
+    rv = get_inputs_from_document(request_doc, {'json': ComplexInput})
     inpt = rv['json']
     assert isinstance(inpt, list)
     assert len(inpt) == 1
@@ -149,7 +155,7 @@ def test_bbox_input():
             },
         },
     }
-    rv = get_inputs_from_document(request_doc)
+    rv = get_inputs_from_document(request_doc, {'mybbox': BoundingBoxInput})
     inpt = rv['mybbox']
     assert isinstance(inpt, list)
     assert len(inpt) == 1
@@ -169,7 +175,7 @@ def test_reference_post_input():
         }
     }
 
-    rv = get_inputs_from_document(request_doc)
+    rv = get_inputs_from_document(request_doc, {'name': ComplexInput})
     inpt = rv['name']
     assert len(inpt) == 1
     assert isinstance(inpt[0],dict)

@@ -78,7 +78,7 @@ class WPSRequest:
     async def execute(self, service: Service, uuid: UUID, 
                       map_uri: Optional[str]=None) -> bytes:
         
-        return await service.execute( self.identifier, self, uuid, map_uri)
+        return await service.execute(self.identifier, self, uuid, map_uri)
 
 
 
