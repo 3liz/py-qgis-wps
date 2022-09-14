@@ -98,7 +98,7 @@ class OWSResponse(WPSResponse):
             '?service=WPS&request=GetCapabilities'
         )
 
-        doc.attrib['statusLocation'] = self.status_url
+        doc.attrib['statusLocation'] = self.wps_request.status_url
 
         # Process XML
         process_doc = WPS.Process(

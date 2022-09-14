@@ -28,14 +28,14 @@ class StatusHandler(BaseHandler):
             return
 
         # Replace the status url with the proxy_url if any
-        proxy_url = self.proxy_url()
+        proxy_url = self.proxy_url().rstrip('/')
 
         # Add additional informations
-        cfg = self.application.config
         def repl( s ):
-            s['status_url'] = cfg['status_url'].format(host_url=proxy_url, uuid=s['uuid'])
-            s['store_url']  = cfg['store_url'].format(host_url=proxy_url, uuid=s['uuid'], file="")
-            s['request']    = f"{proxy_url}status/{s['uuid']}?key=request"
+            s['status_url'] = f"{proxy_url}{s['status_link']}"
+            s['store_url']  = f"{proxy_url}/store/{s['uuid']}/"
+            s['request']    = f"{proxy_url}/status/{s['uuid']}?key=request"
+            del s['status_link']
             return s
 
         if uuid is not None:

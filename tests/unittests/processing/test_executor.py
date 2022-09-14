@@ -103,6 +103,7 @@ class TestsExecutor(HTTPTestCase):
         status_url = rv.xpath('/wps:ExecuteResponse')[0].attrib['statusLocation']
 
         rv = self.client.get(status_url, path='')
+
         assert rv.status_code == 200 
         assert rv.xpath('/wps:ExecuteResponse')  is not None
 

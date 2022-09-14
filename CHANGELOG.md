@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+* Implement Job realm support
 * Support for ogc processes open api
 * Improve UOM validation
 * Use of UCUM references for UOM

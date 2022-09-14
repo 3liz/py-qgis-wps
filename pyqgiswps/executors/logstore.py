@@ -9,7 +9,7 @@ import uuid
 
 from datetime import datetime
 from enum import IntEnum
-from typing import Optional
+from typing import Optional, Iterator
 
 from pyqgiswps.config import confservice
 
@@ -29,6 +29,7 @@ class STATUS(IntEnum):
     DONE_STATUS = 30
     ERROR_STATUS = 40
     DISMISS_STATUS = 50
+
 
 class LogStore:
 
@@ -53,7 +54,9 @@ class LogStore:
             'time_start': utcnow().isoformat()+'Z',
             'time_end': None,
             'pinned': False,
-            'timeout': wps_request.timeout
+            'timeout': wps_request.timeout,
+            'realm': wps_request.realm,
+            'status_link': wps_request.status_link,
         }
 
         # Record status
@@ -178,7 +181,7 @@ class LogStore:
             return data
 
     @property
-    def records(self):
+    def records(self) -> Iterator:
         """ Iterate through records
         """
         return ((k, json.loads(v.decode('utf-8'))) for k,v in self._db.hscan_iter(self._hstatus))

@@ -13,7 +13,7 @@ import shutil
 import logging
 
 from glob import glob
-from typing import Iterable, Any, Optional
+from typing import Iterable, Any, Optional, Iterator
 
 try:
     # XXX On android userland, /proc/stat is not readable
@@ -100,13 +100,13 @@ class ProcessingExecutor:
             self._reload_handler = watchfiles(self._restart_files, callback, check_time)
             self._reload_handler.start()
 
-    def get_status( self, uuid=None, **kwargs ):
+    def get_status( self, uuid=None, **kwargs ) -> Iterator:
         """ Return status of the stored processes
 
             :param uuid: the uuid of the required process. 
              If set to None, return all the stored status.
 
-            :return: The status or the list of status.
+            :return: The status or an iterator to the list of status.
         """
         return logstore.get_status(uuid, **kwargs)
 

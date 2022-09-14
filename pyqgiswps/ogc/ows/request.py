@@ -501,11 +501,11 @@ class OWSRequest(WPSRequest):
 
         
     # Create response
-    def create_response( self, process, uuid, status_url=None) -> OWSResponse:
+    def create_response(self, process, uuid) -> OWSResponse:
         """ Create the response for execute request for
             handling OWS Response
         """
-        return OWSResponse(process, self, uuid, status_url)
+        return OWSResponse(process, self, uuid)
 
 #
 # Utilities

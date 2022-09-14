@@ -33,6 +33,15 @@ class OWSHandler(BaseHandler):
    
         self.accesspolicy = access_policy
 
+    def get_job_realm(self):
+        """ Get or create a job realm token
+        """
+        realm = self.request.headers.get('X-Job-Realm')
+        # Generate new token
+        if realm is None:
+            realm = uuid.uuid4().hex
+        return realm
+
     async def handle_wps_request(self, method_parser):
         """ Handle a wps request
         """
@@ -58,7 +67,18 @@ class OWSHandler(BaseHandler):
         elif wpsrequest.operation == 'execute':
             if not self.accesspolicy.allow(wpsrequest.identifier):
                 raise HTTPError(403,reason="Unauthorized operation")
-            response = await wpsrequest.execute(service, uuid.uuid1(), map_uri=wpsrequest.map_uri)
+
+            job_id = uuid.uuid1()
+
+            # Assign job realm
+            wpsrequest.realm = self.get_job_realm()
+            # Status link
+            wpsrequest.status_link = f"/ows/?service=WPS&request=GetResults&uuid={job_id}"
+
+            response = await wpsrequest.execute(service, job_id, map_uri=wpsrequest.map_uri)
+
+            # Return job realm
+            self.set_header('X-Job-Realm', wpsrequest.realm)
         else:
             raise OperationNotSupported("Unknown operation %r" % wpsrequest.operation)
 

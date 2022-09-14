@@ -144,6 +144,15 @@ class ExecuteHandler(ApiHandler):
  
         return ExecutePrefs(**kwargs)
 
+    def get_job_realm(self):
+        """ Get or create a job realm token
+        """
+        realm = self.request.headers.get('X-Job-Realm')
+        # Generate new token
+        if realm is None:
+            realm = uuid.uuid4().hex
+        return realm
+
     async def post(self, process_id):
         """ Execute process asynchronously
         """
@@ -164,6 +173,7 @@ class ExecuteHandler(ApiHandler):
 
         try:
             job_id = uuid.uuid1()
+            wpsrequest.realm = self.get_job_realm()
             content = await wpsrequest.execute(
                 process_id, job_id, doc, service,
                 execute_async=prefs.execute_async,
@@ -175,6 +185,8 @@ class ExecuteHandler(ApiHandler):
 
         # Set the job id as X header
         self.set_header("X-Job-Id", str(job_id))
+        # Return the job realm
+        self.set_header("X-Job-Realm", wpsrequest.realm)
 
         # Asyncchronous response must return the status
         if prefs.execute_async:
@@ -208,10 +220,19 @@ class ExecuteHandler(ApiHandler):
 class JobHandler(ApiHandler): 
     """ Handle /jobs
     """
+    def get_job_realm(self):
+        # Get the job realm
+        realm = self.request.headers.get('X-Job-Realm')
+        if realm is None:
+            # Fallback to query param
+            realm = self.get_argument('REALM', default=None)
+        return realm
+
     def get(self, job_id: Optional[str]=None):
         """ Job status
         """
         wpsrequest = self.create_request()
+        wpsrequest.realm = self.get_job_realm()
         if job_id is None:
             content = wpsrequest.get_ogcapi_job_list(self.application.wpsservice)
         else:
@@ -225,6 +246,7 @@ class JobHandler(ApiHandler):
         """ Delete results
         """
         wpsrequest = self.create_request()
+        wpsrequest.realm = self.get_job_realm()
         content =  wpsrequest.get_ogcapi_job_dismiss(job_id, self.application.wpsservice)
         if content is None: 
             raise HTTPError(404, reason="Job not found")        

@@ -73,10 +73,7 @@ def load_configuration():
     CONFIG.set('server', 'maxinputsize'         , getenv('QGSWPS_SERVER_MAXINPUTSIZE' ,'100m'))
     # Max request size 
     CONFIG.set('server', 'maxbuffersize'        , getenv('QGSWPS_SERVER_MAXBUFFERSIZE','1m'))
-    # Storage url for retrieving reference files
-    CONFIG.set('server', 'store_url'            , '{host_url}store/{uuid}/{file}?service=WPS')
-    # URL for retrieving status
-    CONFIG.set('server', 'status_url'           , '{host_url}ows/?service=WPS&request=GetResults&uuid={uuid}') 
+    CONFIG.set('server', 'store_url'            , '{host_url}store/{uuid}/{file}')
     # Path to workdir where process are executed"
     CONFIG.set('server', 'workdir'              , getenv('QGSWPS_SERVER_WORKDIR',tempfile.gettempdir()))
     # Configure host if the server is behind a proxy
@@ -112,8 +109,9 @@ def load_configuration():
     CONFIG.set('server', 'ssl_cert'      , getenv('QGSWPS_SERVER_SSL_CERT', ''))
     CONFIG.set('server', 'ssl_key'       , getenv('QGSWPS_SERVER_SSL_KEY' , ''))
 
-    # Administrator token for accessing job list with ogc api
+    # Administrator token realm for accessing job list with ogc api
     CONFIG.set('server', 'admin_token', getenv('QGSWPS_SERVER_ADMIN_TOKEN', ''))
+    CONFIG.set('server', 'enable_job_realm', getenv('QGSWPS_SERVER_ENABLE_JOB_REALM', 'no'))
 
     #
     # Logging

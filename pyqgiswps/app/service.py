@@ -23,7 +23,7 @@ from pyqgiswps.executors.processingexecutor import ProcessingExecutor
 import os
 import copy
 
-from typing import Iterable, Optional, Union, Any, TypeVar
+from typing import Iterable, Optional, Union, Any, TypeVar, Iterator
 
 Json = TypeVar('Json')
 
@@ -66,7 +66,7 @@ class Service():
 
         return doc
 
-    def get_status(self, uuid: Optional[str]=None, **kwargs) -> Json:
+    def get_status(self, uuid: Optional[str]=None, **kwargs) -> Union[Json,Iterator]:
         """ Return the status of the stored processes
         """
         return self.executor.get_status(uuid, **kwargs)
@@ -80,20 +80,6 @@ class Service():
         """ Kill process job
         """
         return self.executor.kill_job(uuid, pid)
-
-    def _status_url(self, uuid: str, request: WPSRequest):
-        """ Return the status_url for the process <uuid>
-        """
-        cfg = confservice['server']
-        status_url = cfg['status_url']
-        proxy_host = cfg['host_proxy'] 
-        if not proxy_host:
-            # Need to return the 'real' host
-            proxy_host = request.host_url if request else '{host_url}'
-
-        return status_url.format(host_url=proxy_host,uuid=uuid)
-
-
 
     async def execute(self, identifier: str, wps_request: WPSRequest, uuid: str, 
                       map_uri: Optional[str]=None) -> bytes:
@@ -124,11 +110,8 @@ class Service():
         
         process.set_workdir(workdir)
    
-        # Get status url
-        status_url = self._status_url(uuid, wps_request)
-
         # Create response object
-        wps_response = wps_request.create_response( process, uuid, status_url=status_url)
+        wps_response = wps_request.create_response(process, uuid)
         
         document = await self.executor.execute(wps_request, wps_response)
 

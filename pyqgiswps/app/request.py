@@ -42,11 +42,31 @@ class WPSRequest:
         self.map_uri = None
         self.host_url = None
 
+        self.realm = None
+
+        # The url path + query used
+        # for retrieving the job status
+        self.status_link = None
+
         cfg = confservice['server']
 
         self.timeout    = cfg.getint('response_timeout')
         self.expiration = cfg.getint('response_expiration')
+    
+    @property
+    def status_url(self) -> Optional[str]:
+        if self.status_link:
+            return f"{self.host_url.rstrip('/')}{self.status_link}"
+        else:
+            return None
 
+    def realm_enabled(self):
+        cfg = confservice['server']
+        if cfg.getboolean('enable_job_realm'):
+            return self.realm != cfg['admin_token']
+        else:
+            return self.realm is not None
+            
     @property
     def json(self):
         """Return JSON encoded representation of the request
@@ -81,18 +101,16 @@ class WPSRequest:
         return await service.execute(self.identifier, self, uuid, map_uri)
 
 
-
 class WPSResponse:
 
     STATUS = STATUS
 
-    def __init__(self, process, wps_request, uuid, status_url=None):
+    def __init__(self, process, wps_request, uuid):
         """constructor
 
         :param pyqgiswps.app.process.Process process:
         :param pyqgiswps.app.request.WPSRequest wps_request:
         :param uuid: string this request uuid
-        :param status_url: url to retrieve the status from
         """
 
         store_url = confservice.get('server','store_url')
@@ -105,7 +123,6 @@ class WPSResponse:
         self.message = ''
         self.status = WPSResponse.STATUS.NO_STATUS
         self.status_percentage = 0
-        self.status_url = status_url
         self.store_url  = store_url
         self.uuid = uuid
         self.document = None

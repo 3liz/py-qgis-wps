@@ -18,6 +18,7 @@ from datetime import datetime
 
 from pyqgiswps.app.request import WPSRequest, WPSResponse
 from pyqgiswps.exceptions import (
+    NoApplicableCode,
     InvalidParameterValue,
 )
 from typing import TypeVar, Optional
@@ -47,11 +48,11 @@ SCHEMA_VERSIONS = ('1.0.0',)
 class OgcApiRequest(WPSRequest):
    
     # Create response
-    def create_response( self, process, uuid, status_url=None) -> OgcApiResponse:
+    def create_response( self, process, uuid) -> OgcApiResponse:
         """ Create the response for execute request for
             handling OGC api Response
         """
-        return OgcApiResponse(process, self, uuid, status_url)
+        return OgcApiResponse(process, self, uuid)
 
     #
     # /processes
@@ -123,6 +124,7 @@ class OgcApiRequest(WPSRequest):
         
         self.identifier = ident
         self.execute_async = execute_async
+        self.status_link = f"/jobs/{job_id}"
 
         self.check_and_set_timeout(timeout)
         self.check_and_set_expiration(expire)
@@ -206,8 +208,10 @@ class OgcApiRequest(WPSRequest):
             doc.update(started=jobstart)
 
         if status >= WPSResponse.STATUS.DONE_STATUS:
-            time_end = store['time_end']
-            doc.update(finished=time_end)
+            doc.update(
+                finished=store['time_end'],
+                expire=store['expire_at'],
+            )
 
         if status == WPSResponse.STATUS.ACCEPTED_STATUS:
             doc.update(status=JOBSTATUS.ACCEPTED.value)
@@ -240,12 +244,17 @@ class OgcApiRequest(WPSRequest):
     
         return doc
 
+
     def get_ogcapi_job_status(self, ident: str, service: Service) -> Json:
         """ Return job status  
         """
         store = service.get_status(ident)
         if store is None:
             return None
+
+        if self.realm_enabled():
+            if self.realm != store['realm']:
+                raise NoApplicableCode("Unauthorized", code=401)
 
         return self._create_job_document(store)
 
@@ -259,6 +268,10 @@ class OgcApiRequest(WPSRequest):
             'rel': "self",
             'type': "application/json",
         }]
+
+        if self.realm_enabled():
+            # Filter by realm
+            jobs = filter(lambda s: s['realm'] == self.realm, jobs)
 
         doc = {
             'jobs': list(map(self._create_job_document, jobs)),
@@ -274,6 +287,10 @@ class OgcApiRequest(WPSRequest):
         if store is None:
             # Non-existent job
             return None
+
+        if self.realm_enabled():
+            if self.realm != store['realm']:
+                raise NoApplicableCode("Unauthorized", code=401)
 
         status = WPSResponse.STATUS[store['status']]
         if status < WPSResponse.STATUS.DONE_STATUS:
