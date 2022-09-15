@@ -4,7 +4,7 @@ lxml
 python-dateutil
 redis
 psutil
-pyzmq >= 17
+pyzmq >= 17, < 24
 PyYAML
 OWSLib
 
