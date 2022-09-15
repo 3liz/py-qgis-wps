@@ -11,6 +11,7 @@ Welcome to py-qgis-wps's documentation!
    configuration 
    qgisprocessing
    styles
+   accesscontrol
 
 Indices and tables
 ==================

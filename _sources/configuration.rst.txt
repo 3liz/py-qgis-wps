@@ -219,7 +219,7 @@ SERVER_RESULTS_MAP_URI
 
 Base uri used for the MAP argument in WMS/WFS response references.
 Define a base URI to use for 'MAP' arguments in WMS/WFS responses, this uri may
-corresponds to an 'alias in py-qgis-server <https://docs.3liz.org/py-qgis-server/schemes.html#scheme-aliases>' _.
+corresponds to an 'alias in py-qgis-server <https://py-qgis-server.readthedocs.io/en/latest/schemes.html#scheme-aliases>' _.
 
 
 
@@ -309,6 +309,42 @@ Path to the SSL key file
 :Section: server
 :Key: ssl_key
 :Env: QGSRV_SERVER_SSL_KEY
+
+
+
+.. _SERVER_ENABLE_JOB_REALM:
+
+SERVER_ENABLE_JOB_REALM
+-----------------------
+
+Enable job access control by associating a realm token
+to each job. Realm token are set by setting the 'X-Job-Realm'
+header to the token.
+
+
+:Type: boolean
+:Default: no
+:Version Added: 1.8
+:Section: server
+:Key: enable_job_realm
+:Env: QGSRV_SERVER_ENABLE_JOB_REALM
+
+
+
+.. _SERVER_ADMIN_REALM:
+
+SERVER_ADMIN_REALM
+------------------
+
+Administrator realm token.
+It allows bearer to bypass any other token 
+
+
+:Type: path
+:Version Added: 1.8
+:Section: server
+:Key: ssl_key
+:Env: QGSRV_SERVER_ADMIN_REALM
 
 
 

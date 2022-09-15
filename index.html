@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -46,6 +47,7 @@
 <li class="toctree-l1"><a class="reference internal" href="qgisprocessing.html">Running QGIS processing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="qgisprocessing.html#exposing-processing-algorithms">Exposing processing algorithms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="styles.html">Styling output layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="accesscontrol.html">Job access control</a></li>
 </ul>
 
         </div>
@@ -73,7 +75,7 @@
            <div itemprop="articleBody">
              
   <section id="welcome-to-py-qgis-wps-s-documentation">
-<h1>Welcome to py-qgis-wps’s documentation!<a class="headerlink" href="#welcome-to-py-qgis-wps-s-documentation" title="Permalink to this headline"></a></h1>
+<h1>Welcome to py-qgis-wps’s documentation!<a class="headerlink" href="#welcome-to-py-qgis-wps-s-documentation" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -113,6 +115,8 @@
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#server-ssl">SERVER_SSL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#server-ssl-cert">SERVER_SSL_CERT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#server-ssl-key">SERVER_SSL_KEY</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#server-enable-job-realm">SERVER_ENABLE_JOB_REALM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#server-admin-realm">SERVER_ADMIN_REALM</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#logging-level">LOGGING_LEVEL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#redis-host">REDIS_HOST</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html#redis-port">REDIS_PORT</a></li>
@@ -147,11 +151,16 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="styles.html">Styling output layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="accesscontrol.html">Job access control</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="accesscontrol.html#using-realm-token">Using realm token</a></li>
+<li class="toctree-l2"><a class="reference internal" href="accesscontrol.html#administrative-realm">Administrative realm</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </section>
 <section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline"></a></h1>
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>

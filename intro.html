@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -60,6 +61,7 @@
 <li class="toctree-l1"><a class="reference internal" href="qgisprocessing.html">Running QGIS processing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="qgisprocessing.html#exposing-processing-algorithms">Exposing processing algorithms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="styles.html">Styling output layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="accesscontrol.html">Job access control</a></li>
 </ul>
 
         </div>
@@ -87,18 +89,19 @@
            <div itemprop="articleBody">
              
   <section id="description">
-<span id="server-description"></span><h1>Description<a class="headerlink" href="#description" title="Permalink to this headline"></a></h1>
+<span id="server-description"></span><h1>Description<a class="headerlink" href="#description" title="Permalink to this heading"></a></h1>
 <p>Py-QGIS-WPS is an implementation of the [Web Processing Service](<a class="reference external" href="https://www.ogc.org/standards/wps">https://www.ogc.org/standards/wps</a>)
 standard from the Open Geospatial Consortium based on the QGIS Processing API.</p>
+<p>It also implements the [processes OGC REST api](<a class="reference external" href="https://ogcapi.ogc.org/processes/">https://ogcapi.ogc.org/processes/</a>)</p>
 <p>This implementation allows you to expose and run on a server:
 * QGISQGIS Processing algorithms available on Desktop
 * QGIS Processing models and scripts
 * QGIS plugins having a Processing provider according to their <cite>metadata.txt</cite> file</p>
 <p>It’s is written in Python and is a fork of [PyWPS](<a class="reference external" href="https://pywps.org/">https://pywps.org/</a>).</p>
 <section id="requirements-and-limitations">
-<span id="server-requirements"></span><h2>Requirements and limitations<a class="headerlink" href="#requirements-and-limitations" title="Permalink to this headline"></a></h2>
+<span id="server-requirements"></span><h2>Requirements and limitations<a class="headerlink" href="#requirements-and-limitations" title="Permalink to this heading"></a></h2>
 <ul class="simple">
-<li><p>Python 3.5+ only</p></li>
+<li><p>Python 3.7+ only</p></li>
 <li><p>Windows not officially supported</p></li>
 <li><p>Redis server</p></li>
 </ul>
@@ -106,7 +109,7 @@ standard from the Open Geospatial Consortium based on the QGIS Processing API.</
 in a web interface using [Lizmap WPS module](<a class="reference external" href="https://github.com/3liz/lizmap-wps-web-client-module">https://github.com/3liz/lizmap-wps-web-client-module</a>).</p>
 </section>
 <section id="features">
-<span id="server-features"></span><h2>Features<a class="headerlink" href="#features" title="Permalink to this headline"></a></h2>
+<span id="server-features"></span><h2>Features<a class="headerlink" href="#features" title="Permalink to this heading"></a></h2>
 <ul class="simple">
 <li><p>Asynchronous requests and parellel tasks execution</p></li>
 <li><p>Execution timeout</p></li>
@@ -116,9 +119,9 @@ in a web interface using [Lizmap WPS module](<a class="reference external" href=
 </section>
 </section>
 <section id="installation">
-<span id="server-installation"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h1>
+<span id="server-installation"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
 <section id="install-from-source">
-<span id="server-source-install"></span><h2>Install from source<a class="headerlink" href="#install-from-source" title="Permalink to this headline"></a></h2>
+<span id="server-source-install"></span><h2>Install from source<a class="headerlink" href="#install-from-source" title="Permalink to this heading"></a></h2>
 <ul>
 <li><p>Install from sources:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
@@ -135,7 +138,7 @@ in a web interface using [Lizmap WPS module](<a class="reference external" href=
 </section>
 </section>
 <section id="running-the-server">
-<span id="server-running"></span><h1>Running the server<a class="headerlink" href="#running-the-server" title="Permalink to this headline"></a></h1>
+<span id="server-running"></span><h1>Running the server<a class="headerlink" href="#running-the-server" title="Permalink to this heading"></a></h1>
 <p>The server does not run as a daemon by itself, there is several way to run a command as a daemon.</p>
 <p>For example:</p>
 <ul class="simple">
@@ -145,11 +148,11 @@ in a web interface using [Lizmap WPS module](<a class="reference external" href=
 <li><p>…</p></li>
 </ul>
 <section id="synopsis">
-<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline"></a></h2>
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading"></a></h2>
 <p><strong>pyqgiswps</strong> [<em>options</em>]</p>
 </section>
 <section id="options">
-<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline"></a></h2>
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this heading"></a></h2>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-d">
 <span id="cmdoption-debug"></span><span class="sig-name descname"><span class="pre">-d</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">--debug</span></span><span class="sig-prename descclassname"></span><a class="headerlink" href="#cmdoption-d" title="Permalink to this definition"></a></dt>
@@ -170,13 +173,13 @@ in a web interface using [Lizmap WPS module](<a class="reference external" href=
 
 </section>
 <section id="running-with-docker">
-<span id="server-docker-running"></span><h2>Running with Docker<a class="headerlink" href="#running-with-docker" title="Permalink to this headline"></a></h2>
+<span id="server-docker-running"></span><h2>Running with Docker<a class="headerlink" href="#running-with-docker" title="Permalink to this heading"></a></h2>
 <p>Docker image is available on <a class="reference external" href="https://hub.docker.com/r/3liz/qgis-wps">docker-hub</a>.</p>
 <p>All options are passed with environment variables. See the <a class="reference internal" href="configuration.html#configuration-settings"><span class="std std-ref">Configuration settings</span></a>
 for a description of the options.</p>
 </section>
 <section id="requests-to-ows-services">
-<h2>Requests to OWS services<a class="headerlink" href="#requests-to-ows-services" title="Permalink to this headline"></a></h2>
+<h2>Requests to OWS services<a class="headerlink" href="#requests-to-ows-services" title="Permalink to this heading"></a></h2>
 <p>The OWS requests use the following format:  <code class="docutils literal notranslate"><span class="pre">/ows/?&lt;ows_query_params&gt;</span></code></p>
 <p>Example:</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>http://localhost:8080/ows/?SERVICE=WPS&amp;VERSION=1.0.0&amp;REQUEST=GetCapabilities

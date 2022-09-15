@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Styling output layers &mdash; py-qgis-wps 1.5 documentation</title>
+  <title>Job access control &mdash; py-qgis-wps 1.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Job access control" href="accesscontrol.html" />
-    <link rel="prev" title="Running QGIS processing" href="qgisprocessing.html" /> 
+    <link rel="prev" title="Styling output layers" href="styles.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,8 +46,12 @@
 <li class="toctree-l1"><a class="reference internal" href="configuration.html#common-configuration-options">Common Configuration Options</a></li>
 <li class="toctree-l1"><a class="reference internal" href="qgisprocessing.html">Running QGIS processing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="qgisprocessing.html#exposing-processing-algorithms">Exposing processing algorithms</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Styling output layers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="accesscontrol.html">Job access control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="styles.html">Styling output layers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Job access control</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-realm-token">Using realm token</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#administrative-realm">Administrative realm</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -65,9 +68,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Styling output layers</li>
+      <li>Job access control</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/styles.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/accesscontrol.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -75,28 +78,40 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="styling-output-layers">
-<span id="qgis-styles"></span><h1>Styling output layers<a class="headerlink" href="#styling-output-layers" title="Permalink to this heading"></a></h1>
-<p>Py-qgis-wps use the <code class="docutils literal notranslate"><span class="pre">RenderingStyle</span></code> manager defined in <code class="docutils literal notranslate"><span class="pre">processing.gui.RenderingStyle</span></code>.</p>
-<p>The basic way to define styles for layer outputs is to define a <code class="docutils literal notranslate"><span class="pre">styles.json</span></code> files at each provider’s
-root directory that associate output to a <code class="docutils literal notranslate"><span class="pre">.qml</span></code> file applied to the output layer</p>
-<p>Structure of <code class="docutils literal notranslate"><span class="pre">styles.json</span></code> file:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-    <span class="s2">&quot;algid&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;OUTPUT_NAME&quot;</span><span class="p">:</span> <span class="s2">&quot;mystyle.qml&quot;</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>The style defined in <code class="docutils literal notranslate"><span class="pre">mystyle.qml</span></code> will be applied to the output layer defined with <code class="docutils literal notranslate"><span class="pre">OUTPUT_NAME</span></code></p>
+  <section id="job-access-control">
+<span id="access-control"></span><h1>Job access control<a class="headerlink" href="#job-access-control" title="Permalink to this heading"></a></h1>
+<p>Access control to job list may be enforced by using realm token associated to jobs.</p>
+<p>When a job is created a token (a <cite>realm</cite>) may be associated to with it: this token
+will be required used in subsequent requests  for
+accessing job’s status and results or executing <cite>dismiss</cite> opération.</p>
+<p>This feature is optional and is activated with the <a class="reference internal" href="configuration.html#server-enable-job-realm"><span class="std std-ref">SERVER_ENABLE_JOB_REALM</span></a>
+configuration option.</p>
+<section id="using-realm-token">
+<h2>Using realm token<a class="headerlink" href="#using-realm-token" title="Permalink to this heading"></a></h2>
+<p>By default, when a job is created, a realm token is created and associated to the job.</p>
+<p>This token is either defined implicitely by creating a unique uuid and returning the value
+in the <cite>X-Job-Realm</cite> header of the execution response or set explicitely using the same header
+in the request.</p>
+<p>This token may then be inspected by the client and used in subsequent requests  for
+accessing job’s status and results or executing <cite>dismiss</cite> opération.</p>
+<p>It may be set by middleware proxy by sending the <cite>X-Job-Realm</cite> header together with specifie authentification
+procedure.</p>
+<p>For convenience, it may be send as query parameter <cite>?realm=&lt;token&gt;</cite> when accessing job status but value from header
+will always have precedence.</p>
+</section>
+<section id="administrative-realm">
+<h2>Administrative realm<a class="headerlink" href="#administrative-realm" title="Permalink to this heading"></a></h2>
+<p>When enabling realm, a administrator may be defined. Requesting job’s control using such a token will bypass
+any other tokens and will give full access to job’s list.</p>
+<p>This admin token is defined with the <a class="reference internal" href="configuration.html#server-admin-realm"><span class="std std-ref">SERVER_ADMIN_REALM</span></a> configuration option.</p>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="qgisprocessing.html" class="btn btn-neutral float-left" title="Running QGIS processing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="accesscontrol.html" class="btn btn-neutral float-right" title="Job access control" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="styles.html" class="btn btn-neutral float-left" title="Styling output layers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

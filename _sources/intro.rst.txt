@@ -8,6 +8,7 @@ Description
 Py-QGIS-WPS is an implementation of the [Web Processing Service](https://www.ogc.org/standards/wps)
 standard from the Open Geospatial Consortium based on the QGIS Processing API.
 
+It also implements the [processes OGC REST api](https://ogcapi.ogc.org/processes/)
 
 This implementation allows you to expose and run on a server:
 * QGISQGIS Processing algorithms available on Desktop
@@ -21,7 +22,7 @@ It's is written in Python and is a fork of [PyWPS](https://pywps.org/).
 Requirements and limitations
 ----------------------------
 
-- Python 3.5+ only
+- Python 3.7+ only
 - Windows not officially supported
 - Redis server
 
