@@ -266,7 +266,7 @@ def test_file_output_mimetypes():
     """
     outdef  = QgsProcessingOutputFile("OUTPUT","test output file") 
     context = QgsProcessingContext()
-    context.store_url = "store:{file}"
+    context.store_url = "store:"
     context.workdir   = "/path/to/workdir"
 
     out = parse_output_definition(outdef)

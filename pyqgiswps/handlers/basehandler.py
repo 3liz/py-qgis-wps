@@ -142,7 +142,6 @@ class BaseHandler(tornado.web.RequestHandler):
             }
         })
 
-
     def proxy_url(self, **kwargs: Any) -> str:
         """ Return the proxy_url
         """

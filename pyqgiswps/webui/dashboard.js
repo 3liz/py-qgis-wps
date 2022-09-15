@@ -8,20 +8,33 @@
 //
 
 PROCESSES = new Map()
+REALM = ""
+
+function get_realm() {
+    REALM = document.head.querySelector('[name=realm]').content
+} 
+
+
+function get_default_headers() {
+    let headers = new Headers();
+    if(REALM)
+        headers.append('X-Job-Realm', REALM)
+    return headers
+}
 
 
 function get_pr_status( pr_data ) {
     // Return the status of
-    if (pr_data.status == 'ERROR_STATUS') {
+    if (pr_data.status == 'failed') {
         return 'error';
     }
-    if (pr_data.status == 'DONE_STATUS') {
+    if (pr_data.status == 'successful') {
         return 'done'
     }
-    if (pr_data.percent_done == -1) {
+    if (pr_data.status == 'accepted') {
         return 'wait'
     }
-    if (pr_data.percent_done >= 0) {
+    if (pr_data.status == 'running') {
         return 'run'        
     }
     return 'none';
@@ -55,24 +68,30 @@ function add_process( pr_data ) {
     let fragment = t.content.cloneNode(true)
     // Update attributes
     let pr = fragment.firstElementChild
-    pr.setAttribute("id"    , pr_data.uuid)
+    pr.setAttribute("id"    , pr_data.jobID)
     pr.setAttribute("status", get_pr_status(pr_data))
     // Update tooltip
     pr.querySelector(".pr-st-box").setAttribute("title" , pr_data.message)
     // Alg identifier 
-    let link = set_label( pr, 'alg-name', pr_data.identifier)
-    link.setAttribute('href', 'details.html?uuid='+ pr_data.uuid)
+    let link = set_label( pr, 'alg-name', pr_data.processID)
+    if (REALM) {
+        query = "?realm=" + REALM
+    } else {
+        query = ""
+    }
+    link.setAttribute('href', '../jobs/' + pr_data.jobID + '.html' + query)
+
     // Get the start-date label
-    set_label( pr, 'start-date' , format_iso_date(pr_data.time_start))
-    set_label( pr, 'finish-date', format_iso_date(pr_data.time_end))
+    set_label( pr, 'start-date' , format_iso_date(pr_data.created))
+    set_label( pr, 'finish-date', format_iso_date(pr_data.finished))
 
     // Set actions 
     pr.querySelector("[role=pr-delete]").addEventListener('click', function() {
-        delete_process(pr_data.uuid)
+        delete_process(pr_data.jobID)
     })
 
     // Progress
-    update_progressbar( pr, pr_data.percent_done )
+    update_progressbar( pr, pr_data.progress )
     // Insert it
     let pr_list = document.getElementById("pr-list")
     pr_list.appendChild(fragment)
@@ -81,7 +100,7 @@ function add_process( pr_data ) {
 
 function update_process( pr_data ) {
     // Get our template
-    let pr  = document.getElementById(pr_data.uuid)
+    let pr  = document.getElementById(pr_data.jobID)
     if (pr) {
         // Update attributes
         st = get_pr_status(pr_data)
@@ -89,11 +108,11 @@ function update_process( pr_data ) {
         if (pr.getAttribute("status") != st) {
             pr.setAttribute("status", st)
             pr.setAttribute("title" , pr_data.message)
-            set_label( pr, 'finish-date', format_iso_date(pr_data.time_end))
-            set_label( pr, 'start-date' , format_iso_date(pr_data.time_start))
+            set_label( pr, 'start-date' , format_iso_date(pr_data.created))
+            set_label( pr, 'finish-date', format_iso_date(pr_data.finished))
         }
         // update progress bar
-        update_progressbar( pr, pr_data.percent_done )
+        update_progressbar( pr, pr_data.progress )
     } else {
         add_process( pr_data )
     }
@@ -103,9 +122,10 @@ function update_process( pr_data ) {
 
 async function delete_process( uuid, dontask = false) {
    if(confirm(`Are you sure to delete results:\n${ uuid } ?`)) {
-        response = await fetch("../status/"+uuid, {
+        response = await fetch("../jobs/"+uuid, {
             credentials: 'same-origin',
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: get_default_headers()
         })
        // Remove element
        pr = document.getElementById(uuid)
@@ -135,8 +155,13 @@ function update_summary() {
 }
 
 
+/*
+ * Details
+ */
+
+
 function show_details( pr_data ) {
-    document.getElementById('pr-raw-link').setAttribute('href','../status/' + pr_data.uuid)
+    document.getElementById('pr-raw-link').setAttribute('href','../' + pr_data.jobID)
     for(let key in pr_data) {
         el = document.querySelector('#lbl-'+key)
         if (el) {
@@ -151,21 +176,20 @@ function show_details( pr_data ) {
 }
 
 
-/*
- * Details
- */
-
 async function get_details_status(uuid) {
     console.log("Refreshing status: " + uuid)
-    let response = await fetch('../status/' + uuid, { credentials: 'same-origin' })
+    let response = await fetch('../' + uuid, { 
+        credentials: 'same-origin',
+        headers: get_default_headers()
+    })
     if (! response.ok) {
         return
     }    
-    let pr_data = (await response.json())['status'];
+    let pr_data = await response.json()
     show_details(pr_data)
-    refresh_store(pr_data.uuid)
-    refresh_log(pr_data.uuid)
-    refresh_inputs(pr_data.uuid)
+    refresh_store(pr_data.jobID)
+    refresh_log(pr_data.jobID)
+    refresh_inputs(pr_data.jobID)
 }
 
 
@@ -173,12 +197,15 @@ async function refresh_store( uuid ) {
     /* Update file list */
     $("#store-table tbody").empty()
     console.log("Refreshing store: " + uuid)
-    let response = await fetch('../store/' + uuid + '/', { credentials: 'same-origin' })
+    let response = await fetch('../' + uuid + '/files/', { 
+        credentials: 'same-origin', 
+        headers: get_default_headers()
+    })
     if (! response.ok) {
         return
     }
     data = await response.json()
-    for (let res of data['files']) {
+    for (let res of data['links']) {
          insert_resource_details(res)
     }
 }
@@ -189,10 +216,10 @@ function insert_resource_details( res ) {
     let fragment = t.content.cloneNode(true)
     // Update attributes
     let tr = fragment.firstElementChild
-    set_label( tr, 'f-name', res.name).setAttribute('href', res.store_url)
+    set_label( tr, 'f-name', res.name).setAttribute('href', res.href)
     // Get the start-date label
-    set_label( tr, 'f-type' , 'file')
-    set_label( tr, 'f-size' , res.display_size)
+    set_label(tr, 'f-type' , 'file')
+    set_label(tr, 'f-size' , res.display_size)
     // Insert it
     document.getElementById("store-table-body").appendChild(fragment)
 }
@@ -200,7 +227,10 @@ function insert_resource_details( res ) {
 
 async function refresh_log( uuid ) {
     console.log("Refreshing log: " + uuid)
-    let response = await fetch('../store/' + uuid + '/processing.log', { credentials: 'same-origin' })
+    let response = await fetch('../' + uuid + '/files/processing.log', { 
+        credentials: 'same-origin',
+        headers: get_default_headers()
+    })
     if (! response.ok) {
         return
     }
@@ -212,25 +242,26 @@ async function refresh_log( uuid ) {
 
 async function refresh_inputs( uuid ) {
     console.log("Refreshing inputs: " + uuid)
-    let response = await fetch('../status/' + uuid + '?key=request', { credentials: 'same-origin' })
+    let response = await fetch('../' + uuid + '?key=inputs', { 
+        credentials: 'same-origin',
+        headers: get_default_headers()
+    })
     if (! response.ok) {
         return
     }
     let data = await response.json()
-    data = JSON.stringify( data['request']['inputs'], undefined, 2)
+    data = JSON.stringify(data, undefined, 2)
     el   = document.getElementById('pane-inputs')
     set_label( el, 'inputs-content' , data )
 }
 
 
-
 async function refresh_details() {
-    let params = (new URL(document.location)).searchParams;
-    let uuid   = params.get('uuid')
+    get_realm()
+    let path = (new URL(document.location)).pathname
+    let uuid = path.split('/')[2].split('.')[0]
     await get_details_status(uuid)
 }
-
-
 
 /*
  * Dashboard
@@ -238,7 +269,10 @@ async function refresh_details() {
 
 async function get_status(sort=false) {
     console.log("Refreshing status")
-    let response = await fetch('../status/', { credentials: 'same-origin' })
+    let response = await fetch('../jobs/', { 
+        credentials: 'same-origin',
+        headers: get_default_headers()
+    })
     if (! response.ok) {
         return
     }
@@ -247,11 +281,11 @@ async function get_status(sort=false) {
     let newMap = new Map()
     // Sort data by start date
     if (sort) {
-        data['status'].sort(function(a,b){return a.time_start.localeCompare(b.time_start)})
+        data['jobs'].sort(function(a,b){return a.created.localeCompare(b.created)})
     }
-    for (let pr_data of data['status']) {
+    for (let pr_data of data['jobs']) {
          update_process(pr_data)
-         newMap.set(pr_data.uuid,pr_data)
+         newMap.set(pr_data.jobID, pr_data)
     } 
     // Clean up unreferenced data
     for (let key of PROCESSES.keys()) {
@@ -268,6 +302,8 @@ async function get_status(sort=false) {
 
 async function run_dashboard()
 {
+    // Retrieve job's realm
+    get_realm()
     await get_status(true)
     setInterval( get_status, 5000 )
 }

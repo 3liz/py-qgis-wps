@@ -175,12 +175,19 @@ class OgcApiRequest(WPSRequest):
         """
         ident = store['uuid']
 
-        links = [{
-            'href': f"{self.host_url}jobs/{ident}",
-            'rel': 'self',
-            'type': 'application/json',
-            'title': "This document"
-        }]
+        links = [
+            {
+                'href': f"{self.host_url}jobs/{ident}",
+                'rel': 'self',
+                'type': 'application/json',
+                'title': "This document"
+            },
+            {
+                'href': f"{self.host_url}jobs/{ident}.html",
+                'rel': 'alternate',
+                'type': 'text/html',
+            },
+        ]
 
         percent_done = store['percent_done']
 
@@ -191,6 +198,7 @@ class OgcApiRequest(WPSRequest):
             'message': store['message'],
             'created': store['time_start'],
             'type' : 'process',
+            'map': store['map'],
             'progress': max(0, percent_done),
             'links': links,
         }
@@ -263,11 +271,18 @@ class OgcApiRequest(WPSRequest):
         """
         jobs = service.get_status()
        
-        links = [{
-            'href': f"{self.host_url}jobs",
-            'rel': "self",
-            'type': "application/json",
-        }]
+        links = [
+            {
+                'href': f"{self.host_url}jobs",
+                'rel': "self",
+                'type': "application/json",
+            },
+            {
+                'href': f"{self.host_url}jobs.html",
+                'rel': 'alternate',
+                'type': 'text/html',
+            },
+        ]
 
         if self.realm_enabled():
             # Filter by realm

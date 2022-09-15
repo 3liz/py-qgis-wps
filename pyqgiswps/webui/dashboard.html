@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="realm" content="%META%">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>WPS Status Dashboard</title>
+    <title>Jobs Status Dashboard</title>
 
     <!-- Bootstrap -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -47,7 +48,7 @@
     <!-- document -->
 
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-      <a class="navbar-brand" href="#">WPS Status</a>
+      <a class="navbar-brand" href="#">Py-Qgis-WPS</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -71,7 +72,7 @@
     <div class="container">
       <div class="d-flex align-items-baseline" >
           <h2 class="sub-header">Processes</h2>
-          <a id="pr-raw-link" href="../status/">(raw)</a>
+          <a id="pr-raw-link" href="../jobs/">(json)</a>
       </div>
       <div class="row pr-summary" id="pr-summary">
           <div class="col-3">Waiting:<span class="data-label" data-value="0" name="pr-wait-count"></span></div>

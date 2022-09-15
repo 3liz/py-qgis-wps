@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Deprecate apis in favor of ogc api:
+    - Deprecate `/status/` in favor of `/jobs/<uuid>/status/`
+    - Deprecate `/store/` in favor of `/jobs/<uuid>/files`
+    - Deprecate `/ui/` in favor of `/jobs.html`
+    Deprecated apis will be removed in 1.9
 * Implement Job realm support
 * Support for ogc processes open api
 * Improve UOM validation

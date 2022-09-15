@@ -4,19 +4,23 @@
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/py-qgis-wps)](https://pypi.org/project/py-qgis-wps/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/py-qgis-wps)](https://pypi.org/project/py-qgis-wps/)
 
+**New in 1.8: OGC api `processes` support** 
+
 Py-QGIS-WPS is an implementation of the [Web Processing Service](https://www.ogc.org/standards/wps)
 standard from the Open Geospatial Consortium based on the QGIS Processing API.
+
+Since 1.8 Py-QGIS-WPS supports [OGC API REST processes api](https://ogcapi.ogc.org/processes/)
 
 This implementation allows you to expose and run on a server:
 * QGIS Processing algorithms available on Desktop
 * QGIS Processing models and scripts
 * QGIS plugins having a Processing provider according to their `metadata.txt`file
 
-It is written in Python and is a fork of [PyWPS](https://pywps.org/).
+It is written in Python and was originally a fork of [PyWPS](https://pywps.org/).
 
 Requirements and limitations :
 
-- Python 3.6 minimum
+- Python 3.7 minimum
 - Windows not officially supported
 - Redis server 
 
@@ -29,17 +33,15 @@ Latest documentation is available on [docs.3liz.org](https://docs.3liz.org/py-qg
 Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following: 
 
 * QGIS centric
-* Handle all request in asynchronous way: all jobs should run in a non-blocking way, even
-  with `storeExecuteResponse=true`
+* Handle all request in asynchronous way: all jobs run in a non-blocking way, even
+  when synchronous operation is requested.
 * Use multiprocessing Pool to handle task queue instead instantiating a new process each time.
 * Uniform Logging with the 'logging' module
-* Serve response status
+* Implements OGC `processes` api.
 * Use Redis for asynchronous status storage.
-* Support python3 asyncio (and thus drop python2 supports)
-* Support streamed/chunked requests 
+* Support streamed/chunked requests for stored data
 * Add extensions to WPS: TIMEOUT and EXPIRE
-* Drop MS Windows specifics
-* Drop Python 2 support
+* No Windows support
 
 All these changes where not easy to implement without some drastic changes of the original code and we think
 that it  deviates too much from the PyWPS original intentions.
@@ -52,7 +54,7 @@ to start quickly this project.
 ## Why moving to Tornado instead WSGI
 
 * We need to support asyncio: asyncio requires a blocking running loop. This cannot be achieved simply in a WSGI architecture.
-* Tornado has a better and better integration with native python asyncio and provide a great framework for developing a http server.
+* Tornado is fully integrated with native python `asyncio` library and provide a great framework for developing a http server.
 
 ## Extensions to WPS
 
@@ -82,16 +84,25 @@ The server may configure maximum expiration value.
 
 ### Status API
 
+Now implemented with the processes api:
 The status REST api will return the list of the stored status for all running and terminated wps processes.
 
 Example for returning all stored status:
 ```
-http://localhost:8080/ows/status/?SERVICE=WPS
+http://localhost:8080/jobs
 ```
 
-Example for returning status for one given process from its uuid:
+Example for returning status for one given job from its id:
 ```
-http://localhost:8080/ows/status/<uuid>?SERVICE=WPS
+http://localhost:8080/jobs/<job_id>
+```
+
+## Extensions to `processes` api:
+
+### Files
+
+```
+http://localhost:8080/jobs/<job_id>/files
 ```
 
 # Running QGIS processing
@@ -180,7 +191,7 @@ optional arguments:
                         uid to switch to
 ```
 
-### Requests to OWS services
+### Requests to OWS services 
 
 The OWS requests use the following format:  `/ows/?<ows_query_params>`
 
@@ -271,5 +282,6 @@ Parameters with the flag [FlagHidden](https://qgis.org/pyqgis/latest/core/QgsPro
 # References
 
 * [OGC standards](https://www.ogc.org/standards)
+* [OGC Api processes](https://ogcapi.ogc.org/processes/)
 * [Introduction to WPS](http://opengeospatial.github.io/e-learning/wps/text/basic-index.html)
 * [Py-qgis-server at FOSS4G 2019](https://www.youtube.com/watch?v=YL1tdcJwimA).

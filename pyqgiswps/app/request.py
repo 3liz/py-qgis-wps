@@ -63,7 +63,12 @@ class WPSRequest:
     def realm_enabled(self):
         cfg = confservice['server']
         if cfg.getboolean('enable_job_realm'):
-            return self.realm != cfg['admin_token']
+            admin_realm =  cfg['admin_realm']
+            if not admin_realm:
+                LOGGER.warning("Admin realm token not set !")
+                return True
+            else:
+                return self.realm != admin_realm
         else:
             return self.realm is not None
             
@@ -112,10 +117,8 @@ class WPSResponse:
         :param pyqgiswps.app.request.WPSRequest wps_request:
         :param uuid: string this request uuid
         """
-
-        store_url = confservice.get('server','store_url')
-        store_url = store_url.format(host_url = wps_request.host_url, uuid = uuid,
-                                     file = '{file}')
+        
+        store_url = f"{wps_request.host_url}/jobs/{uuid}/files/"
 
         self.process = process
         self.wps_request = wps_request

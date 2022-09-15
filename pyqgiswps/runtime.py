@@ -14,19 +14,21 @@ import tornado.process
 import signal
 import pkg_resources
 
-from tornado.web import StaticFileHandler, RedirectHandler
+from tornado.web import RedirectHandler, StaticFileHandler
 
 from .logger import log_request
 from .config import confservice, get_size_bytes
 from .handlers import (
-    RootHandler, 
+    RootHandler,
+    ConformanceHandler,
     ProcessHandler,
     ExecuteHandler,
     JobHandler,
     ResultHandler,
     OWSHandler, 
     StoreHandler, 
-    StatusHandler, 
+    StatusHandler,
+    HtmlHandler,
     DownloadHandler,
     NotFoundHandler
 )
@@ -54,6 +56,8 @@ def configure_handlers():
         'access_policy': default_access_policy,
     }
 
+    #json_end = '(?:\.json)'
+
     handlers = [ 
         (r"/", RootHandler),
         # OWS Api
@@ -62,24 +66,42 @@ def configure_handlers():
         (r"/processes/([^/]+)/execution", ExecuteHandler, ogcapi_init_args),
         (r"/processes/([^/]+)", ProcessHandler, ogcapi_init_args),
         (r"/processes/?", ProcessHandler, ogcapi_init_args),
+        
         (r"/jobs/?", JobHandler, ogcapi_init_args),
-        (r"/jobs/([^/]+)", JobHandler, ogcapi_init_args),
-        (r"/jobs/([^/]+)/results", ResultHandler, ogcapi_init_args),
-        # Add theses as shortcuts
-        (r"/store/([^/]+)/(.*)?", StoreHandler, {'workdir': workdir}),
-        (r"/status/([^/]+)?", StatusHandler),
-        # Temporary download url api
-        (r"/dnl/(_)/([^/]+)", DownloadHandler, {'workdir': workdir}),
-        (r"/dnl/([^/]+)/(.*)", DownloadHandler, { 'workdir': workdir, 'query': True, 'ttl': dnl_ttl }),
-        # Web ui anagement
-        (r"/ui/(.*)", StaticFileHandler, {
-            'path': staticpath, 
-            'default_filename':"dashboard.html"
-        }),
+        (r"/jobs/([^/\.]+)", JobHandler, ogcapi_init_args),
+        (r"/jobs/([^/\.]+)/results", ResultHandler, ogcapi_init_args),
 
-        # Deprecated: redirect
-        (r"/ows/store/([^/]+)/(.*)?", RedirectHandler, { 'url': "/store/{0}/{1}" }),
-        (r"/ows/status/([^/]+)?", RedirectHandler, { 'url': "/status/{0}" }),
+        # HTML jobs handler
+
+        (r"/jobs\.html/?", HtmlHandler,  {
+            'path': staticpath, 
+            'filename':"dashboard.html",
+        }),
+        (r"/jobs\.html/(.+)", StaticFileHandler, { 'path': staticpath }),
+
+        (r"/jobs/[^/\.]+\.html/?", HtmlHandler, {
+            'path': staticpath, 
+            'filename':"details.html",
+        }),
+        (r"/jobs/[^/\.]+\.html/(.+)", StaticFileHandler, { 'path': staticpath }),
+
+        # Job Resources
+        (r"/jobs/([^/]+)/files(?:/(.*))?", StoreHandler, {'workdir': workdir, 'ttl': dnl_ttl}),
+
+        # Conformance
+        (r"/conformance/?", ConformanceHandler),
+
+        # Temporary download url api
+        (r"/dnl/([^/]+)", DownloadHandler, {'workdir': workdir}),
+
+        # XXX Deprecated
+        (r"/status/([^/]+)?", StatusHandler),
+        (r"/store/([^/]+)/(.*)?", StoreHandler, {'workdir': workdir, 'legacy': True}),
+
+        # XXX Deprecated: redirect
+        (r"/ui/", RedirectHandler, {'url': "/jobs.html"}),
+        (r"/ows/store/([^/]+)/(.*)?", RedirectHandler, {'url': "/store/{0}/{1}"}),
+        (r"/ows/status/([^/]+)?", RedirectHandler, {'url': "/status/{0}"}),
     ]
 
     return handlers

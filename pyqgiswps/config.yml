@@ -191,6 +191,30 @@ config_options:
       type: path
       version_added: "1.6.4"
 
+    - name: SERVER_ENABLE_JOB_REALM
+      label: Enable job realm access control
+      description: |
+        Enable job access control by associating a realm token
+        to each job. Realm token are set by setting the 'X-Job-Realm'
+        header to the token.
+      tags: [ http, security ]
+      section: server
+      key: enable_job_realm
+      type: boolean
+      default: 'no'
+      version_added: "1.8"
+
+    - name: SERVER_ADMIN_REALM
+      label: Administrator realm token
+      description: |
+          Administrator realm token.
+          It allows bearer to bypass any other token 
+      default: ''
+      tags: [ http, security ]
+      section: server
+      key: ssl_key
+      type: path
+      version_added: "1.8"
 
     #==========
     # Logging  

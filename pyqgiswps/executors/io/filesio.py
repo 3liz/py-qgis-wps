@@ -12,6 +12,12 @@ import os
 import logging
 import mimetypes
 
+from urllib.parse import (
+    urlparse,
+    urlunparse,
+    urljoin,
+)
+
 from os.path import normpath, basename
 from pathlib import Path
 
@@ -146,9 +152,11 @@ def to_output_file( file_name: str, out: ComplexOutput, context: ProcessingConte
     """ Output file
     """
     if out.as_reference:
-        out.url = context.store_url.format(file=file_name)
+        url = urlparse(context.store_url)
+        url = url._replace(path=urljoin(url.path,file_name))
+        out.url = urlunparse(url)
     else:
-        out.file = os.path.join(context.workdir,file_name)
+        out.file = os.path.join(context.workdir, file_name)
     return out
 
 

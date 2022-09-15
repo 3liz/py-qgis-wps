@@ -60,6 +60,23 @@ class ApiHandler(BaseHandler):
         self.write_json(body)
 
 
+class ConformanceHandler(BaseHandler):
+    """ Conformance request
+    """
+    def get(self):
+        """ Return conformance specifications
+        """
+        content = {
+            "conformsTo": [
+                "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/core",
+                "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/json",
+                "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/job-list",
+                "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/dismiss",
+            ]               
+        }
+        self.write_json(content)
+
+
 class ProcessHandler(ApiHandler):
     """ Handle /process
     """
@@ -228,6 +245,13 @@ class JobHandler(ApiHandler):
             realm = self.get_argument('REALM', default=None)
         return realm
 
+    def get_inputs(self, job_id: str):
+        content = self.application.wpsservice.get_status(job_id, key='request')
+        if content is not None:
+            content = content.get('inputs', {})
+
+        return content
+
     def get(self, job_id: Optional[str]=None):
         """ Job status
         """
@@ -236,7 +260,11 @@ class JobHandler(ApiHandler):
         if job_id is None:
             content = wpsrequest.get_ogcapi_job_list(self.application.wpsservice)
         else:
-            content = wpsrequest.get_ogcapi_job_status(job_id, self.application.wpsservice)
+            key = self.get_argument('KEY', default=None)
+            if key == 'inputs':
+                content = self.get_inputs(job_id)
+            else:
+                content = wpsrequest.get_ogcapi_job_status(job_id, self.application.wpsservice)
             if content is None: 
                 raise HTTPError(404, reason="Job not found")        
 
