@@ -32,7 +32,6 @@ from .handlers import (
     HtmlHandler,
     DownloadHandler,
     NotFoundHandler,
-    ErrorHandler,
 )
 
 from .accesspolicy import init_access_policy, new_access_policy
