@@ -13,7 +13,7 @@ from .basehandler import BaseHandler
 from ..version import __version__
 from ..config import config_to_dict
 
-class RootHandler(BaseHandler):
+class ServerInfosHandler(BaseHandler):
     def get(self):
         try:
             from qgis.core import Qgis
@@ -40,5 +40,66 @@ class RootHandler(BaseHandler):
         QGIS_VERSION="{} ({})".format(Qgis.QGIS_VERSION_INT,Qgis.QGIS_RELEASE_NAME)
         
         self.set_header("X-Qgis-version", QGIS_VERSION)
-    
 
+
+class LandingPageHandler(BaseHandler):
+    """ Landing page 
+    """
+    def get(self):
+        root = self.proxy_url()
+        doc = {
+            'title': "OGC processes API services for Qgis Processing",
+            'page-type': "web-api-overview",
+            'tags': [
+                'API',
+                'Reference',
+                'Landing',
+                'Qgis',
+                'Qgis Processing',
+                'Experimental',
+            ],
+            "links": [
+                {
+                    'href': f'{root}',
+                    'rel': 'self',
+                    'type': 'application/json',
+                    'title': 'This document'
+                },
+                {
+                    'href': f'{root}conformance',
+                    'rel': 'http://www.opengis.net/def/rel/ogc/1.0/conformance',
+                    'type': 'application/json',
+                    'title': 'OGC API - Processes conformance classes implemented by this server'
+                },
+                {
+                    'href': f'{root}processes',
+                    'rel': 'http://www.opengis.net/def/rel/ogc/1.0/processes',
+                    'type': 'application/json',
+                    'title': 'Metadata about the processes'
+                },
+                {
+                    'href': f'{root}jobs',
+                    'type': 'application/json',
+                    'rel': 'http://www.opengis.net/def/rel/ogc/1.0/job-list',
+                    'title': 'The endpoint for job monitoring'
+                },
+                {
+                    'href': f'{root}jobs.html',
+                    'type': 'text/html',
+                    'rel': 'http://www.opengis.net/def/rel/ogc/1.0/job-list',
+                    'title': 'The endpoint for job monitoring as HTML'
+                },
+            ],
+        }
+
+        # Get QGIS version
+        try:
+            from qgis.core import Qgis
+            doc.update(qgis = {
+                'version':  Qgis.QGIS_VERSION_INT,
+                'release': Qgis.QGIS_RELEASE_NAME,
+            })
+        except ImportError:
+            pass
+
+        self.write_json(doc)

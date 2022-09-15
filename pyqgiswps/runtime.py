@@ -19,7 +19,8 @@ from tornado.web import RedirectHandler, StaticFileHandler
 from .logger import log_request
 from .config import confservice, get_size_bytes
 from .handlers import (
-    RootHandler,
+    ServerInfosHandler,
+    LandingPageHandler,
     ConformanceHandler,
     ProcessHandler,
     ExecuteHandler,
@@ -30,7 +31,8 @@ from .handlers import (
     StatusHandler,
     HtmlHandler,
     DownloadHandler,
-    NotFoundHandler
+    NotFoundHandler,
+    ErrorHandler,
 )
 
 from .accesspolicy import init_access_policy, new_access_policy
@@ -59,7 +61,7 @@ def configure_handlers():
     #json_end = '(?:\.json)'
 
     handlers = [ 
-        (r"/", RootHandler),
+        (r"/", LandingPageHandler),
         # OWS Api
         (r"/ows/", OWSHandler, {'access_policy': default_access_policy}),
         # OGC Api
@@ -93,16 +95,20 @@ def configure_handlers():
 
         # Temporary download url api
         (r"/dnl/([^/]+)", DownloadHandler, {'workdir': workdir}),
+    ]
 
-        # XXX Deprecated
+    # XXX Deprecated apis
+    handlers.extend((
         (r"/status/([^/]+)?", StatusHandler),
         (r"/store/([^/]+)/(.*)?", StoreHandler, {'workdir': workdir, 'legacy': True}),
 
-        # XXX Deprecated: redirect
         (r"/ui/", RedirectHandler, {'url': "/jobs.html"}),
         (r"/ows/store/([^/]+)/(.*)?", RedirectHandler, {'url': "/store/{0}/{1}"}),
         (r"/ows/status/([^/]+)?", RedirectHandler, {'url': "/status/{0}"}),
-    ]
+    ))
+
+    if cfg.getboolean('expose_server_infos'):
+        handlers.append((r"/server/?", ServerInfosHandler))
 
     return handlers
 

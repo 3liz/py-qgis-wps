@@ -15,6 +15,7 @@ services:
       QGIS_OPTIONS_PATH: /src/tests/qgis
       QGSWPS_LOGLEVEL: DEBUG
       QGSWPS_REDIS_HOST: redis
+      QGSWPS_EXPOSE_SERVER_INFOS: 'yes'
       PYTEST_ADDOPTS: ${PYTEST_ADDOPTS}
     user: "${BECOME_USER}:${BECOME_USER}"
     volumes:

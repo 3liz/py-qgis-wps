@@ -9,10 +9,12 @@
 
 from .basehandler import ( # noqa F401
     NotFoundHandler,
-    ErrorHandler
+    ErrorHandler,
 )
-
-from .roothandler import RootHandler  # noqa F401
+from .roothandler import ( # noqa F401
+    ServerInfosHandler,
+    LandingPageHandler,
+)
 from .owshandler import OWSHandler    # noqa F401
 from .apihandler import ( # noqa F401
     ProcessHandler,

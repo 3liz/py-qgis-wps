@@ -112,6 +112,9 @@ def load_configuration():
     CONFIG.set('server', 'admin_realm', getenv('QGSWPS_SERVER_ADMIN_REALM', ''))
     CONFIG.set('server', 'enable_job_realm', getenv('QGSWPS_SERVER_ENABLE_JOB_REALM', 'no'))
 
+    # Expose server infos
+    CONFIG.set('server', 'expose_server_infos', getenv('QGSWPS_EXPOSE_SERVER_INFOS', 'no'))
+
     #
     # Logging
     #
