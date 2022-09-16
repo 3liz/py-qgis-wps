@@ -8,19 +8,6 @@
 //
 
 PROCESSES = new Map()
-REALM = ""
-
-function get_realm() {
-    REALM = document.head.querySelector('[name=realm]').content
-} 
-
-
-function get_default_headers() {
-    let headers = new Headers();
-    if(REALM)
-        headers.append('X-Job-Realm', REALM)
-    return headers
-}
 
 
 function get_pr_status( pr_data ) {
@@ -74,12 +61,8 @@ function add_process( pr_data ) {
     pr.querySelector(".pr-st-box").setAttribute("title" , pr_data.message)
     // Alg identifier 
     let link = set_label( pr, 'alg-name', pr_data.processID)
-    if (REALM) {
-        query = "?realm=" + REALM
-    } else {
-        query = ""
-    }
-    link.setAttribute('href', '../jobs/' + pr_data.jobID + '.html' + query)
+ 
+    link.setAttribute('href', '../jobs/' + pr_data.jobID + '.html')
 
     // Get the start-date label
     set_label( pr, 'start-date' , format_iso_date(pr_data.created))
@@ -124,8 +107,7 @@ async function delete_process( uuid, dontask = false) {
    if(confirm(`Are you sure to delete results:\n${ uuid } ?`)) {
         response = await fetch("../jobs/"+uuid, {
             credentials: 'same-origin',
-            method: 'DELETE',
-            headers: get_default_headers()
+            method: 'DELETE'
         })
        // Remove element
        pr = document.getElementById(uuid)
@@ -179,8 +161,7 @@ function show_details( pr_data ) {
 async function get_details_status(uuid) {
     console.log("Refreshing status: " + uuid)
     let response = await fetch('../' + uuid, { 
-        credentials: 'same-origin',
-        headers: get_default_headers()
+        credentials: 'same-origin'
     })
     if (! response.ok) {
         return
@@ -198,8 +179,7 @@ async function refresh_store( uuid ) {
     $("#store-table tbody").empty()
     console.log("Refreshing store: " + uuid)
     let response = await fetch('../' + uuid + '/files/', { 
-        credentials: 'same-origin', 
-        headers: get_default_headers()
+        credentials: 'same-origin'
     })
     if (! response.ok) {
         return
@@ -227,9 +207,8 @@ function insert_resource_details( res ) {
 
 async function refresh_log( uuid ) {
     console.log("Refreshing log: " + uuid)
-    let response = await fetch('../' + uuid + '/files/processing.log', { 
-        credentials: 'same-origin',
-        headers: get_default_headers()
+    let response = await fetch('../' + uuid + '/logs', { 
+        credentials: 'same-origin'
     })
     if (! response.ok) {
         return
@@ -243,8 +222,7 @@ async function refresh_log( uuid ) {
 async function refresh_inputs( uuid ) {
     console.log("Refreshing inputs: " + uuid)
     let response = await fetch('../' + uuid + '?key=inputs', { 
-        credentials: 'same-origin',
-        headers: get_default_headers()
+        credentials: 'same-origin'
     })
     if (! response.ok) {
         return
@@ -257,7 +235,6 @@ async function refresh_inputs( uuid ) {
 
 
 async function refresh_details() {
-    get_realm()
     let path = (new URL(document.location)).pathname
     let uuid = path.split('/')[2].split('.')[0]
     await get_details_status(uuid)
@@ -270,8 +247,7 @@ async function refresh_details() {
 async function get_status(sort=false) {
     console.log("Refreshing status")
     let response = await fetch('../jobs/', { 
-        credentials: 'same-origin',
-        headers: get_default_headers()
+        credentials: 'same-origin'
     })
     if (! response.ok) {
         return
@@ -303,7 +279,6 @@ async function get_status(sort=false) {
 async function run_dashboard()
 {
     // Retrieve job's realm
-    get_realm()
     await get_status(true)
     setInterval( get_status, 5000 )
 }

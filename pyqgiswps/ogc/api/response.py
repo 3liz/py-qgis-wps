@@ -62,7 +62,7 @@ class OgcApiResponse(WPSResponse):
         # Create response document
         if self.status == WPSResponse.STATUS.DONE_STATUS:
             # Process outputs
-            doc = { o.identifier: o.ogcapi_output_result() for o in self.outputs.values() }
+            doc = { o.identifier: o.ogcapi_output_result(self) for o in self.outputs.values() }
             return doc
  
         # Return creation status

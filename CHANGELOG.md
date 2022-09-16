@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Landing page as root location
+* Optional server infos page (disabled by default)
 * Deprecate apis in favor of ogc api:
     - Deprecate `/status/` in favor of `/jobs/<uuid>/status/`
     - Deprecate `/store/` in favor of `/jobs/<uuid>/files`

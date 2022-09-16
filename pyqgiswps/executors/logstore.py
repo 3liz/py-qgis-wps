@@ -120,6 +120,7 @@ class LogStore:
         record['timestamp']    = timestamp
 
         if wps_response.status >= STATUS.DONE_STATUS:
+            record['output_files'] = wps_response.output_files
             record['time_end']  = now.isoformat()+'Z'
             record['expire_at'] = datetime.fromtimestamp(now.timestamp()+record['expiration']).isoformat()+'Z'
 

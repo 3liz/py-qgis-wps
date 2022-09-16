@@ -83,9 +83,11 @@ def worker_handler( router: str, broadcastaddr: str, maxcycles: int = None,
                 try:
                     result = (True, func( *args, **kwargs ))
                 except Exception as exc:
-                    LOGGER.error("Worker Error: %s\n%s", exc, traceback.format_exc())
+                    LOGGER.error(
+                        "Worker exception: >>>>>>>>>>\n%s<<<<<<<<<<", 
+                        traceback.format_exc()
+                    )
                     result = (False, exc)
-
                 supervisor.notify_done()
                 set( jobid, result )
                 completed += 1

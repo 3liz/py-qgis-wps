@@ -14,6 +14,12 @@
 import logging
 import json
 
+from urllib.parse import (
+    urlparse,
+    urlunparse,
+    urljoin,
+)
+
 from pyqgiswps.executors.logstore import STATUS, logstore
 from pyqgiswps.exceptions import NoApplicableCode
 from pyqgiswps.config import confservice
@@ -60,7 +66,11 @@ class WPSRequest:
         else:
             return None
 
-    def realm_enabled(self):
+    @staticmethod
+    def must_check_realm(realm: str) -> bool:
+        """ Return True if realm must be validated
+            against ressource realm
+        """
         cfg = confservice['server']
         if cfg.getboolean('enable_job_realm'):
             admin_realm =  cfg['admin_realm']
@@ -68,9 +78,13 @@ class WPSRequest:
                 LOGGER.warning("Admin realm token not set !")
                 return True
             else:
-                return self.realm != admin_realm
+                # Ok, realm is admin realm
+                return realm != admin_realm
         else:
-            return self.realm is not None
+            return realm is not None
+ 
+    def realm_enabled(self) -> bool:
+        return self.must_check_realm(self.realm)
             
     @property
     def json(self):
@@ -118,7 +132,7 @@ class WPSResponse:
         :param uuid: string this request uuid
         """
         
-        store_url = f"{wps_request.host_url}/jobs/{uuid}/files/"
+        store_url = f"{wps_request.host_url}jobs/{uuid}/files/"
 
         self.process = process
         self.wps_request = wps_request
@@ -129,6 +143,21 @@ class WPSResponse:
         self.store_url  = store_url
         self.uuid = uuid
         self.document = None
+        self.output_files = []
+
+    def resolve_store_url(self, url: str, as_output: bool=False) -> str:
+        """ Resolve 'store:' uri
+        """
+        if not url.startswith('store:'):
+            return url
+        path = url[6:]
+        # Save as legitimate output
+        if as_output and path not in self.output_files:
+            self.output_files.append(path)
+
+        url = urlparse(self.store_url)
+        url = url._replace(path=urljoin(url.path, path))
+        return urlunparse(url)
 
     def get_document_bytes(self) -> Optional[bytes]:
         """ Return bytes encoded document

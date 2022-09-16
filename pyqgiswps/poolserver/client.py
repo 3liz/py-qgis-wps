@@ -113,7 +113,7 @@ class _Client:
                     try:
                         success, response = pickle.loads(rest[1])
                     except Exception as exc:
-                        LOGGER.error(traceback.format_exc())
+                        LOGGER.error("Pickle exception:\n%s",traceback.format_exc())
                         handler.set_exception(exc)
                         continue
                     LOGGER.debug("Receveid %s, success %s", msgid, success)

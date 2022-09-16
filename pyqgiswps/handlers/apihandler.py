@@ -88,7 +88,7 @@ class ProcessHandler(ApiHandler):
         wpsrequest = self.create_request()
         if process_id:
             if not self.accesspolicy.allow(process_id):
-                raise HTTPError(403, reason="Unauthorized operation")
+                raise HTTPError(401, reason="Unauthorized operation")
             try:
                 response = wpsrequest.get_process_description(process_id, service)
             except UnknownProcessError:
@@ -176,7 +176,7 @@ class ExecuteHandler(ApiHandler):
         service = self.application.wpsservice
         wpsrequest = self.create_request()
         if not self.accesspolicy.allow(process_id):
-            raise HTTPError(403, reason="Unauthorized operation")
+            raise HTTPError(401, reason="Unauthorized operation")
 
         try:
             # Parse json body
@@ -234,17 +234,25 @@ class ExecuteHandler(ApiHandler):
         self.set_option_headers('POST, OPTIONS')
 
 
-class JobHandler(ApiHandler): 
-    """ Handle /jobs
-    """
+class RealmController:
+
     def get_job_realm(self):
         # Get the job realm
-        realm = self.request.headers.get('X-Job-Realm')
-        if realm is None:
-            # Fallback to query param
-            realm = self.get_argument('REALM', default=None)
-        return realm
+        return self.request.headers.get('X-Job-Realm')
 
+    def realm_enabled(self) -> bool:
+        realm = self.get_job_realm()
+        return OgcApiRequest.must_check_realm(realm)
+
+    def validate_realm(self, resource_realm: str):
+        realm = self.get_job_realm()
+        if OgcApiRequest.must_check_realm(realm) and realm != resource_realm:
+            raise HTTPError(401, "You are not allowed to access this resource")
+ 
+
+class JobHandler(ApiHandler, RealmController): 
+    """ Handle /jobs
+    """
     def get_inputs(self, job_id: str):
         content = self.application.wpsservice.get_status(job_id, key='request')
         if content is not None:
@@ -290,7 +298,6 @@ class JobHandler(ApiHandler):
 class ResultHandler(ApiHandler): 
     """ Handle /jobs/{job_id}/results
     """
-
     def get(self, job_id: str):
         content = self.application.wpsservice.get_results(job_id)
         self.set_header("X-Job-Id", job_id)

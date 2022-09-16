@@ -92,14 +92,4 @@ class LandingPageHandler(BaseHandler):
             ],
         }
 
-        # Get QGIS version
-        try:
-            from qgis.core import Qgis
-            doc.update(qgis = {
-                'version':  Qgis.QGIS_VERSION_INT,
-                'release': Qgis.QGIS_RELEASE_NAME,
-            })
-        except ImportError:
-            pass
-
         self.write_json(doc)

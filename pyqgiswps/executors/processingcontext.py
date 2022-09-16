@@ -90,9 +90,7 @@ class ProcessingContext(QgsProcessingContext):
             the the cache root directory
         """
         try:
-            # XXX Resolve do not support 'strict' with python 3.5
-            #path = Path('/'+path).resolve(strict=False)
-            path = Path(os.path.normpath('/'+path)).relative_to('/')
+            path = Path('/'+path).resolve(strict=False).relative_to('/')
             path = self.rootdir / path
             if not path.exists():
                 raise FileNotFoundError(path.as_posix())

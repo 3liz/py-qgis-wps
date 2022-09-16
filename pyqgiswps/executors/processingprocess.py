@@ -359,8 +359,7 @@ class QgsProcess(WPSProcess):
         # Build WMS output url
         output_url = confservice.get('server', 'wms_response_url').format(map_url=output_map_url)
 
-        context.store_url = response.store_url
-        context.wms_url   = output_url
+        context.wms_url = output_url
 
         run_algorithm(alg, parameters, feedback=feedback, context=context, 
                       outputs=response.outputs,

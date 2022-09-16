@@ -12,12 +12,6 @@ import os
 import logging
 import mimetypes
 
-from urllib.parse import (
-    urlparse,
-    urlunparse,
-    urljoin,
-)
-
 from os.path import normpath, basename
 from pathlib import Path
 
@@ -152,9 +146,9 @@ def to_output_file( file_name: str, out: ComplexOutput, context: ProcessingConte
     """ Output file
     """
     if out.as_reference:
-        url = urlparse(context.store_url)
-        url = url._replace(path=urljoin(url.path,file_name))
-        out.url = urlunparse(url)
+        # Use generic store uri, will be resolved when processing
+        # outputs
+        out.url = f"store:{file_name}"
     else:
         out.file = os.path.join(context.workdir, file_name)
     return out

@@ -49,7 +49,7 @@ class BoundingBoxOutput:
 
         return doc
 
-    def execute_xml(self) -> XMLElement:
+    def execute_xml(self, context) -> XMLElement:
         doc = E.Output(
             OWS.Identifier(self.identifier),
             OWS.Title(self.title)
@@ -111,7 +111,7 @@ class ComplexOutput:
 
         return doc
 
-    def execute_xml(self) -> XMLElement:
+    def execute_xml(self, context) -> XMLElement:
         """Render Execute response XML node
 
         :return: node
@@ -122,7 +122,7 @@ class ComplexOutput:
 
         node = None
         if self.as_reference:
-            node = self._execute_xml_reference()
+            node = self._execute_xml_reference(context)
         else:
             node = self._execute_xml_data()
 
@@ -136,7 +136,7 @@ class ComplexOutput:
 
         return doc
 
-    def _execute_xml_reference(self):
+    def _execute_xml_reference(self, context) -> XMLElement:
         """Return Reference node
         """
         if self.url is None:
@@ -144,7 +144,7 @@ class ComplexOutput:
 
         doc = WPS.Reference()
 
-        doc.attrib['href'] = self.url
+        doc.attrib['href'] = context.resolve_store_url(self.url, as_output=True)
         if self.data_format:
             if self.data_format.mime_type:
                 doc.attrib['mimeType'] = self.data_format.mime_type
@@ -154,7 +154,7 @@ class ComplexOutput:
                 doc.attrib['schema'] = self.data_format.schema
         return doc
 
-    def _execute_xml_data(self):
+    def _execute_xml_data(self) -> XMLElement:
         """Return Data node
         """
         doc = WPS.Data()
@@ -185,7 +185,7 @@ class ComplexOutput:
 @register_trait
 class LiteralOutput:
 
-    def describe_xml(self):
+    def describe_xml(self) -> XMLElement:
         doc = E.Output(
             OWS.Identifier(self.identifier),
             OWS.Title(self.title)
@@ -219,7 +219,7 @@ class LiteralOutput:
 
         return doc
 
-    def execute_xml_lineage(self):
+    def execute_xml_lineage(self) -> XMLElement:
         doc = WPS.Output(
             OWS.Identifier(self.identifier),
             OWS.Title(self.title)
@@ -230,7 +230,7 @@ class LiteralOutput:
 
         return doc
 
-    def execute_xml(self):
+    def execute_xml(self, context) -> XMLElement:
         doc = WPS.Output(
             OWS.Identifier(self.identifier),
             OWS.Title(self.title)

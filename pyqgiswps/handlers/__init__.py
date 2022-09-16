@@ -23,6 +23,9 @@ from .apihandler import ( # noqa F401
     ResultHandler,
     ConformanceHandler,
 )
-from .statushandler import StatusHandler                 # noqa F401
-from .storehandler import StoreHandler, DownloadHandler  # noqa F401
-from .htmlhandler import HtmlHandler # noqa F401
+from .statushandler import StatusHandler # noqa F401
+from .storehandler import ( # noqa F401
+    StoreHandler, 
+    DownloadHandler,
+    LogsHandler,
+)

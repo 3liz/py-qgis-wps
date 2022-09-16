@@ -134,8 +134,6 @@ class OWSResponse(WPSResponse):
             doc.append(status_doc)
             return doc
 
-        # TODO: add paused status
-
         if self.status == WPSResponse.STATUS.DONE_STATUS:
             status_doc = self.get_process_succeeded()
             doc.append(status_doc)
@@ -149,6 +147,6 @@ class OWSResponse(WPSResponse):
                 doc.append(WPS.OutputDefinitions(*output_definitions))
 
             # Process outputs XML
-            output_elements = [self.outputs[o].execute_xml() for o in self.outputs]
+            output_elements = [self.outputs[o].execute_xml(self) for o in self.outputs]
             doc.append(WPS.ProcessOutputs(*output_elements))
         return doc

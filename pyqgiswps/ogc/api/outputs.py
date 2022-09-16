@@ -55,7 +55,7 @@ class LiteralOutput(BasicOutputDescription):
         doc.update(schema=schema, typeHint=TypeHint.LiteralData.value)
         return doc
 
-    def ogcapi_output_result(self) -> Json:
+    def ogcapi_output_result(self, context) -> Json:
         """ Return Json formated result 
         """
         data = to_json_serializable(self.data)
@@ -100,7 +100,7 @@ class BoundingBoxOutput(BasicOutputDescription):
         doc.update(schema=schema, typeHint=TypeHint.BoundingBoxData.value)
         return doc
 
-    def ogcapi_output_result(self):
+    def ogcapi_output_result(self, context) -> Json:
         """ OGC api json result 
         """
         bbox = self.data
@@ -144,14 +144,14 @@ class ComplexOutput(BasicOutputDescription):
         doc['transmissionMode'] = 'reference' if self.as_reference else 'value'
         return doc
 
-    def ogcapi_output_result(self) -> Json:
+    def ogcapi_output_result(self, context) -> Json:
         """ OGC api json result
         """
         if self.as_reference:
             if self.url is None:
                 raise ValueError("Missing url")
             doc = {
-                'href': self.url,
+                'href': context.resolve_store_url(self.url, as_output=True),
                 'type': self.data_format.mime_type,
             }
         else:

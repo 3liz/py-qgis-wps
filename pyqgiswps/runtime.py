@@ -27,11 +27,14 @@ from .handlers import (
     JobHandler,
     ResultHandler,
     OWSHandler, 
-    StoreHandler, 
-    StatusHandler,
-    HtmlHandler,
+    StoreHandler,
+    LogsHandler,
     DownloadHandler,
     NotFoundHandler,
+)
+
+from .handlers import (
+    StatusHandler,
 )
 
 from .accesspolicy import init_access_policy, new_access_policy
@@ -59,42 +62,62 @@ def configure_handlers():
 
     #json_end = '(?:\.json)'
 
-    handlers = [ 
+    handlers = [
+        #
+        # Landing page
+        #
         (r"/", LandingPageHandler),
-        # OWS Api
+
+        #
+        # OWS 
+        #
         (r"/ows/", OWSHandler, {'access_policy': default_access_policy}),
-        # OGC Api
+
+        #
+        # /processes
+        #
         (r"/processes/([^/]+)/execution", ExecuteHandler, ogcapi_init_args),
         (r"/processes/([^/]+)", ProcessHandler, ogcapi_init_args),
         (r"/processes/?", ProcessHandler, ogcapi_init_args),
-        
+
+        #
+        # /jobs
+        #
         (r"/jobs/?", JobHandler, ogcapi_init_args),
         (r"/jobs/([^/\.]+)", JobHandler, ogcapi_init_args),
         (r"/jobs/([^/\.]+)/results", ResultHandler, ogcapi_init_args),
 
         # HTML jobs handler
-
-        (r"/jobs\.html/?", HtmlHandler,  {
-            'path': staticpath, 
-            'filename':"dashboard.html",
+        (r"/jobs\.html/?(.*)", StaticFileHandler, {
+            'path': staticpath,
+            'default_filename': "dashboard.html",
         }),
-        (r"/jobs\.html/(.+)", StaticFileHandler, { 'path': staticpath }),
 
-        (r"/jobs/[^/\.]+\.html/?", HtmlHandler, {
+        (r"/jobs/[^/\.]+\.html/?(.*)", StaticFileHandler, {
             'path': staticpath, 
-            'filename':"details.html",
+            'default_filename':"details.html",
         }),
-        (r"/jobs/[^/\.]+\.html/(.+)", StaticFileHandler, { 'path': staticpath }),
+
+        # XXX Thoses are sensible apis
 
         # Job Resources
         (r"/jobs/([^/]+)/files(?:/(.*))?", StoreHandler, {'workdir': workdir, 'ttl': dnl_ttl}),
 
-        # Conformance
-        (r"/conformance/?", ConformanceHandler),
-
+        # Logs
+        (r"/jobs/([^/]+)/logs/?", LogsHandler, {'workdir': workdir}),
+ 
         # Temporary download url api
         (r"/dnl/([^/]+)", DownloadHandler, {'workdir': workdir}),
+       
+        #
+        # Conformance
+        #
+        (r"/conformance/?", ConformanceHandler),
+
     ]
+
+    if cfg.getboolean('expose_server_infos'):
+        handlers.append((r"/server/?", ServerInfosHandler))
 
     # XXX Deprecated apis
     handlers.extend((
@@ -106,9 +129,6 @@ def configure_handlers():
         (r"/ows/status/([^/]+)?", RedirectHandler, {'url': "/status/{0}"}),
     ))
 
-    if cfg.getboolean('expose_server_infos'):
-        handlers.append((r"/server/?", ServerInfosHandler))
-
     return handlers
 
 
@@ -117,7 +137,7 @@ class Application(tornado.web.Application):
     def __init__(self, processes=[]):
         from pyqgiswps.app.service import Service
         self.wpsservice = Service(processes=processes)
-        self.config     = confservice['server']
+        self.config = confservice['server']
 
         super().__init__(configure_handlers(), default_handler_class=NotFoundHandler)
 
