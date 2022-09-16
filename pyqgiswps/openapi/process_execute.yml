@@ -1,0 +1,29 @@
+post:
+  summary: execute a process.
+  description: Submits a new job.
+  operationId: execute
+  tags:
+    - Execute
+  parameters:
+    - $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/parameters/processIDPathParam.yaml"
+  requestBody:
+    description: Mandatory execute request JSON
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/schemas/execute.yaml"
+  responses:
+    '200':
+      $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ExecuteSync.yaml"
+    '201':
+      $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ExecuteAsync.yaml"
+    '404':
+      $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/NotFound.yaml"
+    default:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ServerError.yaml"
+

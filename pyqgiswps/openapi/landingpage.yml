@@ -1,0 +1,19 @@
+get:
+  operationId: getLandingPage
+  summary: landing page of this API
+  description: |-
+    The landing page provides links to the API definition, the conformance
+    declaration and the metadata about the processes offered by this
+    service.
+  tags:
+    - Capabilities
+  responses:
+    '200':
+      $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/LandingPage.yaml"
+    default:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ServerError.yaml"
+

@@ -25,11 +25,7 @@ in the request.
 This token may then be inspected by the client and used in subsequent requests  for 
 accessing job's status and results or executing `dismiss` opération. 
 
-It may be set by middleware proxy by sending the `X-Job-Realm` header together with specifie authentification
-procedure. 
-
-For convenience, it may be send as query parameter `?realm=<token>` when accessing job status but value from header
-will always have precedence.
+Typical usage is to have a middleware proxy that sets the `X-Job-Realm` header together with specifie authentification procedure. 
 
 
 Administrative realm

@@ -1,0 +1,39 @@
+get:
+  summary: retrieve the status of a job
+  description: Shows the status of a job.
+  operationId: getStatus
+  tags:
+    - JobStatus
+  parameters:
+    - $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/parameters/jobID.yaml"
+  responses:
+    '200':
+      $ref: "https://github.com/opengeospatial/ogcapi-processes/blob/master/core/openapi/responses/Status.yaml"
+    '404':
+      $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/NotFound.yaml"
+    default:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ServerError.yaml"
+delete:
+  summary: cancel a job execution, remove a finished job
+  description: Cancel a job execution and remove it from the jobs list.
+  operationId: dismiss
+  tags:
+    - DismissJob
+  parameters:
+    - $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/parameters/jobID.yaml"
+  responses:
+    '200':
+      $ref: "https://github.com/opengeospatial/ogcapi-processes/blob/master/core/openapi/responses/Status.yaml"
+    '404':
+      $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/NotFound.yaml"
+    default:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ServerError.yaml"
+

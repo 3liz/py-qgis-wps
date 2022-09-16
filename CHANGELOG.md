@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+* Add OpenAPI description
 * Landing page as root location
 * Optional server infos page (disabled by default)
 * Deprecate apis in favor of ogc api:

@@ -1,0 +1,24 @@
+get:
+  summary: retrieve the processing results of a job
+  description: |-
+    Retrieves all or some of the process results of a job.  By default all
+    processing results are fetched from this endpoint.  However, a subset
+    can be specified using the outputs query parameter.
+  operationId: getResults
+  tags:
+    - JobResults
+  parameters:
+    - $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/parameters/jobID.yaml"
+    - $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/parameters/outputs.yaml"
+  responses:
+    '200':
+      $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ExecuteSync.yaml"
+    '404':
+      $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/NotFound.yaml"
+    default:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ServerError.yaml"
+

@@ -66,6 +66,12 @@ class LandingPageHandler(BaseHandler):
                     'title': 'This document'
                 },
                 {
+                    'href': f'{root}api',
+                    'rel': 'service-desc',
+                    'type': 'application/json',
+                    'title': 'API definition for this endpoint'
+                },
+                {
                     'href': f'{root}conformance',
                     'rel': 'http://www.opengis.net/def/rel/ogc/1.0/conformance',
                     'type': 'application/json',

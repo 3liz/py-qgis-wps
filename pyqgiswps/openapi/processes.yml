@@ -1,0 +1,19 @@
+get:
+  operationId: getProcesses
+  summary: retrieve available processes
+  description: |-
+    Lists all available processes this server offers.
+  tags:
+    - ProcessList
+  parameters:
+    - $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/parameters/limit.yaml"        
+  responses:
+    '200':
+      $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ProcessList.yaml"
+    default:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ServerError.yaml"
+

@@ -308,7 +308,7 @@ class OWSRequest(WPSRequest):
         # TODO: check Table 7 in OGC 05-007r7
         doc.attrib['updateSequence'] = '1'
 
-        metadata = confservice['metadata:main']
+        metadata = confservice['metadata:ows']
 
         # Service Identification
         service_ident_doc = OWS.ServiceIdentification(

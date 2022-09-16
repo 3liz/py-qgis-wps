@@ -17,7 +17,7 @@ from datetime import datetime
 from pyqgiswps.executors.logstore import logstore
 
 from .basehandler import BaseHandler
-from .apihandler import RealmController
+from .processeshandler import RealmController
 
 from typing import (
     Optional,

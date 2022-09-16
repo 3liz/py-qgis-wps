@@ -1,0 +1,16 @@
+'/':  
+    $ref: "./landingpage.yml"
+'/conformance': 
+    $ref: "./conformance.yml"
+'/processes': 
+    $ref: "./processes.yml"
+'/processes/{processID}': 
+    $ref: "./process_description.yml"
+'/processes/{processID}/execution': 
+    $ref: "./process_execute.yml"
+'/jobs': 
+    $ref: "./jobs.yml"
+'/jobs/{jobID}': 
+    $ref: "./job_status.yml"
+'/jobs/{jobID}/results': 
+    $ref: "./job_results.yml"

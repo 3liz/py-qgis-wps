@@ -31,6 +31,7 @@ from .handlers import (
     LogsHandler,
     DownloadHandler,
     NotFoundHandler,
+    OpenApiHandler,
 )
 
 from .handlers import (
@@ -45,7 +46,8 @@ LOGGER = logging.getLogger('SRVLOG')
 def configure_handlers():
     """ Set up request handlers
     """
-    staticpath = pkg_resources.resource_filename("pyqgiswps", "webui")
+    staticpath  = pkg_resources.resource_filename("pyqgiswps", "html")
+    openapipath = pkg_resources.resource_filename("pyqgiswps", "openapi") 
 
     cfg = confservice['server']
 
@@ -114,6 +116,10 @@ def configure_handlers():
         #
         (r"/conformance/?", ConformanceHandler),
 
+        #
+        # Open api
+        #
+        (r"/api(?:/(.*))?", OpenApiHandler, { 'path': openapipath }), 
     ]
 
     if cfg.getboolean('expose_server_infos'):

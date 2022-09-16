@@ -16,7 +16,7 @@ from .roothandler import ( # noqa F401
     LandingPageHandler,
 )
 from .owshandler import OWSHandler    # noqa F401
-from .apihandler import ( # noqa F401
+from .processeshandler import ( # noqa F401
     ProcessHandler,
     JobHandler,
     ExecuteHandler,
@@ -29,3 +29,4 @@ from .storehandler import ( # noqa F401
     DownloadHandler,
     LogsHandler,
 )
+from .oapihandler import OpenApiHandler # noqa F401

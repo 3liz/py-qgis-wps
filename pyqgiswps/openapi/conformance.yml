@@ -1,0 +1,18 @@
+get:
+  operationId: getConformanceClasses
+  summary: information about standards that this API conforms to
+  description: |-
+    Lists all requirements classes specified in the standard (e.g.,
+    OGC API - Processes - Part 1: Core) that the server conforms to
+  tags:
+    - ConformanceDeclaration
+  responses:
+    '200':
+      $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ConformanceDeclaration.yaml"
+    default:
+      description: unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/core/openapi/responses/ServerError.yaml"
+
