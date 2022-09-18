@@ -16,7 +16,7 @@ from datetime import datetime
 
 from pyqgiswps.executors.logstore import logstore
 
-from .basehandler import BaseHandler
+from .basehandler import BaseHandler, DownloadMixIn
 from .processeshandler import RealmController
 
 from typing import (
@@ -38,7 +38,7 @@ def _format_size( size ):
     return '%.fT' % size
 
 
-class StoreShellMixIn():
+class StoreShellMixIn(DownloadMixIn):
     """ Store api implementation
     """
 
@@ -120,43 +120,11 @@ class StoreShellMixIn():
 
     async def dnl( self, uuid, filename, content_type: Optional[str]=None):
         """ Return output file from process working dir
-        """
-        full_path  = os.path.join(self._workdir, uuid, filename)
-        if not os.path.isfile(full_path):
-            LOGGER.error("File '%s' not found", full_path)
-            raise HTTPError(404,reason="Resource not found")
-
-        # Check modification time
-        stat  = os.stat(full_path)
-        mtime = str(stat.st_mtime)
-
-        etag = f"'{mtime}'"
-        if self.request.headers.get('If-None-Match') == etag:
-            self.set_header('Etag', etag)
-            self.set_status(304)
-            return
-
-        # Set headers
-        if content_type is None:
-            content_type = mimetypes.types_map.get(os.path.splitext(full_path)[1]) or "application/octet-stream"
-
-        self.set_header("Content-Type", content_type)       
-        self.set_header("Etag", etag)
-
+       """
+        path = Path(self._workdir, uuid, filename)
         # Set aggresive browser caching since the resource
         # is not going to change
-        self.set_header("Cache-Control", "max-age=" + str(86400))
-
-        # Push data
-        chunk_size = self._chunk_size
-        with open(full_path,'rb') as fp:
-            while True:
-                chunk = fp.read(chunk_size)
-                if chunk:
-                    self.write(chunk)
-                    await self.flush()
-                else:
-                    break
+        await self.download(path, content_type, cache_control="max-age=86400")
 
     async def archive(self, uuid):
         """ Archive the result storage

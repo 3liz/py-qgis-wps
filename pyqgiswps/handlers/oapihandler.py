@@ -7,11 +7,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import logging
-import mimetypes
 
 from pathlib import Path
 
-from .basehandler import BaseHandler, HTTPError
+from .basehandler import BaseHandler, DownloadMixIn
 from ..version import __version__
 from ..config import confservice
 
@@ -21,7 +20,7 @@ LOGGER = logging.getLogger('SRVLOG')
 
 
 
-class OpenApiHandler(BaseHandler):
+class OpenApiHandler(BaseHandler, DownloadMixIn):
     """ Open api interface
     """
     def initialize(self, path: str):
@@ -46,46 +45,16 @@ class OpenApiHandler(BaseHandler):
             )
             self.write_json(doc)
         else:
-            await self.download(resource)
-
-    async def download(self, resource):
-        """ Download file
-        """
-        path = self._path.joinpath(resource)
-        if not path.is_file():
-            LOGGER.error("File '%s' not found", path)
-            raise HTTPError(404,reason="Resource not found")
-
-        # Check modification time
-        mtime = str(path.stat().st_mtime)
-
-        etag = f"'{mtime}'"
-        if self.request.headers.get('If-None-Match') == etag:
-            self.set_header('Etag', etag)
-            self.set_status(304)
-            return
-
-        # Set headers
-        suffix = path.suffix
-        if suffix in ('.yml', '.yaml'):
-            content_type = "text/plain; charset=utf-8"
-        else:
-            content_type = mimetypes.types_map.get(suffix) or "application/octet-stream"
-
-        self.set_header("Content-Type", content_type)       
-        self.set_header("Etag", etag)
-        self.set_header("Cache-Control", "max-age=300")
-
-        # Push data
-        chunk_size = 64 * 1024
-        with path.open('rb') as fp:
-            while True:
-                chunk = fp.read(chunk_size)
-                if chunk:
-                    self.write(chunk)
-                    await self.flush()
-                else:
-                    break
+            resource = self._path.joinpath(resource)
+            if resource.suffix in ('.yml','.yaml'):
+                content_type = 'text/plain; charset=utf-8'
+            else:
+                content_type = None
+            await self.download(
+                resource,
+                content_type=content_type,
+                cache_control="max-age=300",
+            )
 
     def qgis_version_info(self):
         try:

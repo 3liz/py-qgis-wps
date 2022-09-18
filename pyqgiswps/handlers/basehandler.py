@@ -12,6 +12,8 @@ import tornado.web
 import logging
 import json
 import lxml
+import mimetypes
+from pathlib import Path
 from tornado.web import HTTPError  # noqa F401
 
 from ..exceptions import NoApplicableCode
@@ -19,7 +21,7 @@ from ..exceptions import NoApplicableCode
 from ..version import __version__
 from ..config import confservice
 
-from typing import Any,Union,Optional
+from typing import Any, Union, Optional, Awaitable
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -170,3 +172,47 @@ class ErrorHandler(BaseHandler):
 
     def prepare(self) -> None:
         raise HTTPError(self._status_code, reason=self.reason)
+
+
+class DownloadMixIn:
+
+    async def download(self, path: Path, content_type=None, chunk_size=65536,
+                       cache_control=None) -> Awaitable[None]:
+        """ Download file
+        """
+        if not path.is_file():
+            LOGGER.error("File '%s' not found", path)
+            raise HTTPError(404,reason="Resource not found")
+
+        # Check modification time
+        mtime = str(path.stat().st_mtime)
+
+        etag = f"'{mtime}'"
+        if self.request.headers.get('If-None-Match') == etag:
+            self.set_header('Etag', etag)
+            self.set_status(304)
+            return
+
+        # Set headers
+        if not content_type:
+            content_type = mimetypes.types_map.get(path.suffix) or "application/octet-stream"
+
+        self.set_header("Content-Type", content_type)       
+        self.set_header("Etag", etag)
+
+        if cache_control:
+            self.set_header("Cache-Control", cache_control)
+
+        # Push data
+        with path.open('rb') as fp:
+            while True:
+                chunk = fp.read(chunk_size)
+                if chunk:
+                    self.write(chunk)
+                    await self.flush()
+                else:
+                    break
+
+
+
+
