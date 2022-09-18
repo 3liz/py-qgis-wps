@@ -94,10 +94,7 @@ in the <cite>X-Job-Realm</cite> header of the execution response or set explicit
 in the request.</p>
 <p>This token may then be inspected by the client and used in subsequent requests  for
 accessing job’s status and results or executing <cite>dismiss</cite> opération.</p>
-<p>It may be set by middleware proxy by sending the <cite>X-Job-Realm</cite> header together with specifie authentification
-procedure.</p>
-<p>For convenience, it may be send as query parameter <cite>?realm=&lt;token&gt;</cite> when accessing job status but value from header
-will always have precedence.</p>
+<p>Typical usage is to have a middleware proxy that sets the <cite>X-Job-Realm</cite> header together with specifie authentification procedure.</p>
 </section>
 <section id="administrative-realm">
 <h2>Administrative realm<a class="headerlink" href="#administrative-realm" title="Permalink to this heading"></a></h2>
