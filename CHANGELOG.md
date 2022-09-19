@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.8.0 - 2022-09-19
+
 * Add OpenAPI description
 * Landing page as root location
 * Optional server infos page (disabled by default)
