@@ -66,20 +66,25 @@ if __name__ == '__main__':
     try:
         client = create_client( args.maxqueue )
 
-        loop = asyncio.get_event_loop()
-        loop.add_signal_handler(signal.SIGINT ,  loop.stop)
-        loop.add_signal_handler(signal.SIGTERM,  loop.stop)
-        loop.run_until_complete(asyncio.wait([
-            run_test(job_ok  , client, timeout),
-            run_test(job_fail, client, timeout),
-        ]))
+        async def _main():
+            loop = asyncio.get_running_loop()
+            loop.add_signal_handler(signal.SIGTERM, loop.stop)
+            loop.add_signal_handler(signal.SIGINT, loop.stop)
 
-        server.restart()
-        loop.run_until_complete(asyncio.wait([
-            run_test(job_ok, client, timeout),
-            run_test(job_timeout, client, timeout),
-        ]))
-        
+            await asyncio.wait([
+                run_test(job_ok  , client, timeout),
+                run_test(job_fail, client, timeout),
+            ])
+
+            server.restart()
+
+            await asyncio.wait([
+                run_test(job_ok, client, timeout),
+                run_test(job_timeout, client, timeout),
+            ])
+            
+        asyncio.run(_main())
+
         client.close()
     except (KeyboardInterrupt, SystemExit):
         LOGGER.info("Server interrupted")

@@ -205,32 +205,52 @@ def run_server( port, address=None, user=None ):
     # Allow x-forward headers
     kwargs['xheaders'] = True
 
-    # Run
-    LOGGER.info("Running WPS server on port %s:%s", address, port)
+    application = None
+    pr_factory = None
 
-    from pyqgiswps.executors import processfactory
+    # Since python 3.10 and deprecation of `get_event_loop()`
+    # This is now the preferred way to start tornado application
+    # See https://www.tornadoweb.org/en/stable/guide/running.html
+    async def _main():
+        # Run
+        LOGGER.info("Running WPS server on port %s:%s", address, port)
 
-    pr_factory = processfactory.get_process_factory() 
-    processes = pr_factory.initialize(True)
+        from pyqgiswps.executors import processfactory
 
-    max_buffer_size = get_size_bytes(confservice.get('server', 'maxbuffersize'))
+        nonlocal pr_factory
+        pr_factory = processfactory.get_process_factory() 
+        processes = pr_factory.initialize(True)
 
-    application = Application(processes)
-    server = HTTPServer(initialize_middleware(application), max_buffer_size=max_buffer_size, **kwargs)
-    server.listen(port, address=address)
+        max_buffer_size = get_size_bytes(confservice.get('server', 'maxbuffersize'))
 
-    # Setup the supervisor timeout killer
-    pr_factory.start_supervisor()
+        nonlocal application
+        application = Application(processes)
+        server = HTTPServer(initialize_middleware(application), max_buffer_size=max_buffer_size, **kwargs)
+        server.listen(port, address=address)
+
+        # Setup the supervisor timeout killer
+        pr_factory.start_supervisor()
+
+        event = asyncio.Event()
+
+        loop = asyncio.get_running_loop()
+        loop.add_signal_handler(signal.SIGINT , event.set)
+        loop.add_signal_handler(signal.SIGTERM, event.set)
+
+        LOGGER.info("WPS Server ready")
+
+        # Wait forever until event is set
+        # see https://www.tornadoweb.org/en/stable/guide/running.html
+        await event.wait()
 
     try:
-        loop = asyncio.get_event_loop()
-        loop.add_signal_handler(signal.SIGINT , loop.stop)
-        loop.add_signal_handler(signal.SIGTERM, loop.stop)
         LOGGER.info("WPS Server ready")
-        loop.run_forever()
+        asyncio.run(_main())
     except (KeyboardInterrupt, SystemExit):
         LOGGER.info("Server interrupted")
     finally:
-        application.terminate()
-        pr_factory.terminate()
+        if application:
+            application.terminate()
+        if pr_factory:
+            pr_factory.terminate()
 
