@@ -145,8 +145,8 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
             QgsProcessingParameterField.DateTime: 'DateTime',
         }[param.dataType()]))
     elif typ == 'band':
-        kwargs['data_type'] = 'integer',
-        kwargs['allowed_values'] = AllowedValues.nonNegativeValue(),
+        kwargs['data_type'] = 'integer'
+        kwargs['allowed_values'] = AllowedValues.nonNegativeValue()
     else:
         return None
 

@@ -189,7 +189,7 @@ class BasicLiteral:
     """Basic literal input/output class
     """
     def __init__(self, data_type, uoms=None):
-        assert data_type in LITERAL_DATA_TYPES
+        assert data_type in LITERAL_DATA_TYPES, f"data type {data_type} no supported"
         self.data_type = data_type
         # current uom
         self.supported_uoms = uoms
