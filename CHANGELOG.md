@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+
+## 1.8.1 - 2022-09-27
+
+* Fix errors when handlings 'band' parameters
+    - Was preventing publishing `gdal` internal provider 
+* Replace calls to asyncio.get\_event\_loop()
+
 ## 1.8.0 - 2022-09-19
 
 * Add OpenAPI description
