@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.8.2- 2022-09-28
+
+* Fix packaging of html elements 
+    - Was preventing alternate html link to work
+      (fix https://github.com/3liz/py-qgis-wps/issues/29)
 
 ## 1.8.1 - 2022-09-27
 
