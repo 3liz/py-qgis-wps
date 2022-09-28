@@ -131,12 +131,12 @@ env:
 
 run: stop env
 	@echo "NOTE: Pour redémarrer un service, considérez plutôt:"
-	@echo "  > docker-compose restart <service>"
-	docker-compose up
+	@echo "  > docker compose restart <service>"
+	docker compose up
 
 stop:
-	docker-compose stop  || true
-	docker-compose rm -f || true
+	docker compose stop  || true
+	docker compose rm -f || true
 
 # Client tests, run the service first
 test:

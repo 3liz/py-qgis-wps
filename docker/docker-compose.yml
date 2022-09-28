@@ -11,13 +11,15 @@ services:
       QGSWPS_SERVER_WORKDIR: /srv/data
       QGSWPS_USER: ${BECOME_USER}
       QGSWPS_LOGLEVEL: DEBUG
+      QGSWPS_SERVER_RESTARTMON: /src/.qgis-restart
     volumes:
       - ${RUNDIR}:/processing
       - ${RUNDIR}/data:/projects
       - ${PWD}/__workdir__:/srv/data
       - ${PWD}/.home:/home/qgis
+      - ${SRCDIR}:/src
     ports:
       - 127.0.0.1:8888:8080
   redis:
-      image: redis:5-alpine
+      image: redis:6-alpine
 
