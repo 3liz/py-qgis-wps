@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-## 1.8.2- 2022-09-28
+* Fix rel link to XML results from job description
+    - Links to WPS GetResults request
+    - `jobs/<id>/results` now return 404 for OWS/WPS results
+    - fix https://github.com/3liz/py-qgis-wps/issues/30
+
+## 1.8.2 - 2022-09-28
 
 * Fix packaging of html elements 
     - Was preventing alternate html link to work

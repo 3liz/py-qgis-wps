@@ -30,6 +30,8 @@ from pyqgiswps.exceptions import (NoApplicableCode,
 from .schema import OWS, WPS, BoundingBox, xpath_ns, XMLDocument
 from .response import OWSResponse
 
+from ..ogc import OGC_CONFORMANCE_NS
+
 from typing import TypeVar, Optional, Iterable
 
 AccessPolicy = TypeVar('AccessPolicy')
@@ -53,6 +55,10 @@ class OWSRequest(WPSRequest):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.lineage = False
+
+    @staticmethod
+    def conformance() -> str:
+        return OGC_CONFORMANCE_NS.OWS_WPS.value
 
     @staticmethod
     def parse_get_request(handler) -> WPSRequest:

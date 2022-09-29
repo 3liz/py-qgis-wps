@@ -300,6 +300,11 @@ class ResultHandler(ApiHandler):
     """
     def get(self, job_id: str):
         content = self.application.wpsservice.get_results(job_id)
+        # We should not serve OWS/WPS results with this api 
+        # This is somewhat hackish but quite effective
+        if not content.startswith(b"{"):
+            raise HTTPError(404, reason="Results not available from this api")
+        
         self.set_header("X-Job-Id", job_id)
         self.write_json(content)
 

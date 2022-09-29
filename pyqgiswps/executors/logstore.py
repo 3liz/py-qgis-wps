@@ -42,6 +42,7 @@ class LogStore:
 
         LOGGER.debug("LOGSTORE: logging request %s", uuid_str)
         record = {
+            'conformance': wps_request.conformance(),
             'uuid': uuid_str,
             'version': wps_request.version,
             'identifier': wps_request.identifier,

@@ -25,6 +25,8 @@ from typing import TypeVar, Optional
 
 from .response import OgcApiResponse, JOBSTATUS
 
+from ..ogc import OGC_CONFORMANCE_NS
+
 from pyqgiswps.inout import (
     BoundingBoxOutput, 
     BoundingBoxInput, 
@@ -53,6 +55,11 @@ class OgcApiRequest(WPSRequest):
             handling OGC api Response
         """
         return OgcApiResponse(process, self, uuid)
+
+    # conformance namespace
+    @staticmethod
+    def conformance() -> str:
+        return OGC_CONFORMANCE_NS.OAPI_PROCESSES.value
 
     #
     # /processes
@@ -229,13 +236,21 @@ class OgcApiRequest(WPSRequest):
         elif status == WPSResponse.STATUS.DONE_STATUS:
             doc.update(status=JOBSTATUS.SUCCESS.value)
             # Append link to results
-            links.append({
-                'href': f"{self.host_url}jobs/{ident}/results",
-                'rel': "http://www.opengis.net/def/rel/ogc/1.0/results",
-                'type': 'application/json',
-                'title': "Job results"
-            })
-
+            conformance = store['conformance']
+            if conformance == OGC_CONFORMANCE_NS.OAPI_PROCESSES:
+                links.append({
+                    'href': f"{self.host_url}jobs/{ident}/results",
+                    'rel': "http://www.opengis.net/def/rel/ogc/1.0/results",
+                    'type': 'application/json',
+                    'title': "Job results"
+                })
+            elif conformance == OGC_CONFORMANCE_NS.OWS_WPS:
+                links.append({
+                    'href': f"{self.host_url}ows/?service=WPS&request=GetResults&uuid={ident}",
+                    'rel': "http://www.opengis.net/wps/1.0.0",
+                    'type': 'text/xml',
+                    'title': "Job results"
+                })
         elif status == WPSResponse.STATUS.ERROR_STATUS:
             doc.update(status=JOBSTATUS.FAILED.value)
         

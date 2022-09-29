@@ -11,6 +11,8 @@
 # and released under MIT license.                                
 # Please consult PYWPS_LICENCE.txt for details
 #
+from enum import Enum
+
 
 OGCTYPE = {
     'length': 'urn:ogc:def:dataType:OGC:1.1:length',
@@ -86,3 +88,6 @@ OGCUNIT = {
 }
 
 
+class OGC_CONFORMANCE_NS(str, Enum):
+    OAPI_PROCESSES = 'http://www.opengis.net/spec/ogcapi-processes-1/1.0'
+    OWS_WPS = 'http://www.opengis.net/wps/1.0.0'
