@@ -18,7 +18,6 @@ from datetime import datetime
 from lxml import etree
 
 from pyqgiswps.app.request import WPSResponse
-from pyqgiswps.config import confservice
 
 from .schema import WPS, OWS, XMLDocument
 
@@ -87,18 +86,17 @@ class OWSResponse(WPSResponse):
     def get_execute_response(self) -> XMLDocument:
         """ Construct the execute XML response
         """
+        service_url = self.wps_request.service_url
+
         doc = WPS.ExecuteResponse()
         doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
             'http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_response.xsd'
         doc.attrib['service'] = 'WPS'
         doc.attrib['version'] = '1.0.0'
         doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
-        doc.attrib['serviceInstance'] = '%s%s' % (
-            confservice.get('server','url').format(host_url=self.wps_request.host_url),
-            '?service=WPS&request=GetCapabilities'
-        )
-
-        doc.attrib['statusLocation'] = self.wps_request.status_url
+        doc.attrib['serviceInstance'] = f"{service_url}?service=WPS&request=GetCapabilities"
+        if self.wps_request.status_uuid:
+            doc.attrib['statusLocation'] = f"{service_url}?service=WPS&request=GetResults&uuid={self.wps_request.status_uuid}"
 
         # Process XML
         process_doc = WPS.Process(

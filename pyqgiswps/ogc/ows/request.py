@@ -55,6 +55,10 @@ class OWSRequest(WPSRequest):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.lineage = False
+        # Replacement url used either with 
+        # X-Qgis-Service-Url
+        # X-Qgis-Wps-Service-Url
+        self.service_url = None
 
     @staticmethod
     def conformance() -> str:
@@ -418,7 +422,7 @@ class OWSRequest(WPSRequest):
 
         doc.append(service_prov_doc)
 
-        server_href = {'{http://www.w3.org/1999/xlink}href': confservice.get('server','url').format(host_url=self.host_url)}
+        server_href = {'{http://www.w3.org/1999/xlink}href': self.service_url}
 
         # Operations Metadata
         operations_metadata_doc = OWS.OperationsMetadata(

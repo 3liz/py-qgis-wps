@@ -64,6 +64,12 @@ def configure_handlers():
 
     #json_end = '(?:\.json)'
 
+    # WPS service URL
+    # This follow the convention used in Qgis server
+    ows_service_url = \
+        os.getenv('QGIS_SERVER_SERVICE_URL') or \
+        os.getenv('QGIS_SERVER_WPS_SERVICE_URL')
+
     handlers = [
         #
         # Landing page
@@ -73,7 +79,7 @@ def configure_handlers():
         #
         # OWS 
         #
-        (r"/ows/", OWSHandler, {'access_policy': default_access_policy}),
+        (r"/ows/", OWSHandler, {'access_policy': default_access_policy, 'service_url': ows_service_url}),
 
         #
         # /processes

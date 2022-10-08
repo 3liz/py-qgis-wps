@@ -150,3 +150,23 @@ class TestsExecutor(HTTPTestCase):
         assert ok
         assert value.startswith(proxy_loc)
 
+    def test_service_url( self ):
+        """ Test service url header
+        """
+        uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0'
+                               '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
+        proxy_loc = 'http://test.proxy.loc:8080/anyhwere/'
+       
+        headers = { 'X-Qgis-Service-Url': proxy_loc }
+
+        rv = self.client.get(uri, path='', headers=headers)
+        assert rv.status_code == 200
+
+        # Get the status url
+        status_url = rv.xpath('/wps:ExecuteResponse')[0].attrib['statusLocation']
+
+        url = urlparse(status_url)
+ 
+        assert url.path == '/anyhwere/'
+        assert url.netloc == 'test.proxy.loc:8080'
+

@@ -59,12 +59,6 @@ class WPSRequest:
         self.timeout    = cfg.getint('response_timeout')
         self.expiration = cfg.getint('response_expiration')
     
-    @property
-    def status_url(self) -> Optional[str]:
-        if self.status_link:
-            return f"{self.host_url.rstrip('/')}{self.status_link}"
-        else:
-            return None
 
     @staticmethod
     def must_check_realm(realm: str) -> bool:

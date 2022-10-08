@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Support overriding service url for OWS requests 
+    - Follow Qgis server convention for passing service url
 * Fix rel link to XML results from job description
     - Links to WPS GetResults request
     - `jobs/<id>/results` now return 404 for OWS/WPS results

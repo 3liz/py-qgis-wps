@@ -28,9 +28,10 @@ LOGGER = logging.getLogger('SRVLOG')
 class OWSHandler(BaseHandler):
     """ Handle WPS requests
     """
-    def initialize(self, access_policy):
+    def initialize(self, access_policy, service_url):
         super().initialize()
-   
+
+        self.service_url = service_url
         self.accesspolicy = access_policy
 
     def get_job_realm(self):
@@ -49,6 +50,12 @@ class OWSHandler(BaseHandler):
 
         wpsrequest.map_uri  = self.get_argument('MAP', default=None)
         wpsrequest.host_url = self.proxy_url()
+
+        # Check for service url
+        wpsrequest.service_url = self.service_url \
+            or self.request.headers.get('X-Qgis-Wps-Service-Url', default=None) \
+            or self.request.headers.get('X-Qgis-Service-Url', default=None) \
+            or f"{wpsrequest.host_url}ows/"
 
         service = self.application.wpsservice
         LOGGER.debug('Request: %s', wpsrequest.operation)
@@ -72,7 +79,9 @@ class OWSHandler(BaseHandler):
 
             # Assign job realm
             wpsrequest.realm = self.get_job_realm()
-            # Status link
+            wpsrequest.status_uuid = job_id
+
+            # Canonical status link
             wpsrequest.status_link = f"/ows/?service=WPS&request=GetResults&uuid={job_id}"
 
             response = await wpsrequest.execute(service, job_id, map_uri=wpsrequest.map_uri)
