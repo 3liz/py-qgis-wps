@@ -38,7 +38,7 @@ def _format_size( size ):
     return '%.fT' % size
 
 
-class StoreShellMixIn(DownloadMixIn):
+class StoreShellMixIn(DownloadMixIn, RealmController):
     """ Store api implementation
     """
 
@@ -79,7 +79,9 @@ class StoreShellMixIn(DownloadMixIn):
         store_url = f"{self.proxy_url()}jobs/{uuid}/files"
 
         if self.realm_enabled():
-
+            #
+            # List only allowed output files
+            #
             job_status = self.application.wpsservice.get_status(uuid)
             if job_status is None:
                 raise HTTPError(404, reason="The resource does not exists") 
@@ -118,10 +120,12 @@ class StoreShellMixIn(DownloadMixIn):
             
         self.write_json({"links": data})    
 
-    async def dnl( self, uuid, filename, content_type: Optional[str]=None):
+    async def dnl(self, uuid: str, resource: str, content_type: Optional[str]=None):
         """ Return output file from process working dir
-       """
-        path = Path(self._workdir, uuid, filename)
+        """
+        self.check_resource_acl(uuid, resource)
+
+        path = Path(self._workdir, uuid, resource)
         # Set aggresive browser caching since the resource
         # is not going to change
         await self.download(path, content_type, cache_control="max-age=86400")
@@ -148,8 +152,23 @@ class StoreShellMixIn(DownloadMixIn):
             'expire_at': datetime.fromtimestamp(now+self._ttl).isoformat()+'Z',
         })
 
+    def check_resource_acl(self, uuid: str, resource: str):
+        """ Check if is allowed resource
+        """
+        if not self.realm_enabled():
+            return
 
-class StoreHandlerBase(BaseHandler, StoreShellMixIn, RealmController):
+        # Get the status for uuid
+        job_status = self.application.wpsservice.get_status(uuid)
+        if job_status is None:
+            raise HTTPError(404, reason="The resource does not exists")
+
+        allowed_files = job_status.get('output_files',[])
+        if resource not in allowed_files:
+            raise HTTPError(401)
+
+
+class StoreHandlerBase(BaseHandler, StoreShellMixIn):
 
     def initialize(self, workdir, chunk_size=65536, legacy: bool=False, ttl=30):
         super().initialize()
@@ -176,21 +195,13 @@ class StoreHandler(StoreHandlerBase):
         if not uuid:
             raise HTTPError(400, reason="Missing job ID")
 
-        # Get the status for uuid
-        job_status = self.application.wpsservice.get_status(uuid)
-        if job_status is None:
-            raise HTTPError(404, reason="The resource does not exists") 
-
-        if self.realm_enabled():
-            allowed_files = job_status.get('output_files',[])
-            if resource not in allowed_files:
-                raise HTTPError(401)
+        self.check_resource_acl(uuid, resource)
 
         command = self.get_argument('COMMAND', default="").lower()
         if command == 'geturl':
             self.create_dnl_url(uuid, resource)
         else:
-            raise HTTPError(400, reason=f"Invalid command parameter {command}")
+            raise HTTPError(400, reason=f"Invalid command parameter: '{command}'")
 
 
 class DownloadHandler(StoreHandlerBase):

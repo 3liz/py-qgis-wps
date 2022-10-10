@@ -76,7 +76,7 @@ class MiddleWareRouter(Router):
                 # Find the first filter that match the path
                 match, path = filt.match(request.path)
                 if match:
-                    LOGGER.debug("Found matching filter for %s -> %s:\n%s", request.path, path, filt)
+                    LOGGER.debug("Found matching filter for %s -> %s: %s", request.path, path, filt)
                     request.path = path
                     try:
                         wps_policy_defs = filt.apply(request)

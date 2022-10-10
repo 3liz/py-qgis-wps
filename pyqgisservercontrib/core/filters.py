@@ -58,6 +58,7 @@ class _FilterBase:
 
     def __str__(self) -> str:
         return f"_FilterBase<{hex(id(self))}>(match={self.pattern}, repl={self.repl})"
+
     def match(self, path: str) -> Tuple[bool,str]:
         """ Check uri against pattern
         """
