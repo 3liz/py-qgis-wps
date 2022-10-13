@@ -40,7 +40,10 @@ def _log( *args ):
 def getenv2( env1, env2, default):
     """ Get value from alternate env variable
     """
-    return getenv(env1,getenv(env2,default))
+    value = getenv(env1)
+    if value is None:
+        value = getenv(env2,default)
+    return value
 
 
 def load_configuration():
@@ -73,7 +76,9 @@ def load_configuration():
     # Path to workdir where process are executed"
     CONFIG.set('server', 'workdir'              , getenv('QGSWPS_SERVER_WORKDIR',tempfile.gettempdir()))
     # Configure host if the server is behind a proxy
-    CONFIG.set('server', 'host_proxy'           , getenv('QGSWPS_SERVER_HOST_PROXY',''))
+    # XXX DEPRECATED -> Use 'proxy_url'
+    CONFIG.set('server', 'host_proxy', getenv('QGSWPS_SERVER_HOST_PROXY',''))
+    CONFIG.set('server', 'proxy_url' , getenv('QGSWPS_SERVER_PROXY_URL', '${host_proxy}'))
     # Allow proxyfication
     CONFIG.set('server', 'http_proxy'           , getenv('QGSWPS_SERVER_HTTP_PROXY','yes'))
     # Number of parallel processes that are allowed to run algorithms

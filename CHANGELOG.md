@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+* Deprecate `host_proxy` in favor of `proxy_url` option
 * Define explicit `HTTP\_PROXY` option
     - Handling of proxyfied urls may be disabled
 * Check access control (realm) for direct resource download

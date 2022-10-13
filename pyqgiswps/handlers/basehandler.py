@@ -150,7 +150,7 @@ class BaseHandler(tornado.web.RequestHandler):
         req = self.request
         if self.application.http_proxy:
             # Replace the status url with the proxy_url if any
-            proxy_url = self.application.config.get('host_proxy') or \
+            proxy_url = self.application.config.get('proxy_url') or \
                 req.headers.get('X-Forwarded-Url')
             if proxy_url:
                 if proxy_url[-1] != '/':

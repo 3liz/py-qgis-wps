@@ -21,6 +21,38 @@ config_options:
       key: interfaces
       tags: [ http ]
 
+    - name: SERVER_ENABLE_FILTERS
+      label: Enable filters
+      description: Enable filters as python extension 
+      default: 'yes'
+      type: boolean
+      section: server
+      key: enable_filters
+      tags: [ filters ] 
+
+    - name: SERVER_HTTP_PROXY
+      label: http proxy 
+      description: |
+          Indicates that the server is behind a reverse proxy.
+          Set this to 'yes' if you are planning to use Forwarded Headers
+          or set a static proxy url with `QGIS_SERVER_<SERVICE>_URL`
+      default: 'no'
+      section: server
+      key: http_proxy
+      type: boolean
+      tags: [ http, proxy ]
+
+    - name: SERVER_PROXY_URL
+      label: Proxy URL 
+      description: |
+          The url that must be seen by the client when the server is behind a proxy.
+          Note that this option will be overidden by `QGIS_SERVER_<SERVICE>_URL` or  
+          by `X-Qgis-<service>-Url` headers.
+      default: ''
+      section: server
+      key: proxy_url
+      tags: [ http, proxy ]
+
     - name: SERVER_OUTPUTFILE_AS_REFERENCE
       label: Outpufile as reference
       description: |
