@@ -144,16 +144,20 @@ class BaseHandler(tornado.web.RequestHandler):
             }
         })
 
-    def proxy_url(self, **kwargs: Any) -> str:
+    def proxy_url(self) -> str:
         """ Return the proxy_url
         """
-        # Replace the status url with the proxy_url if any
         req = self.request
-        proxy_url = self.application.config.get('host_proxy') or \
-            req.headers.get('X-Forwarded-Url') or \
-            "{0.protocol}://{0.host}/".format(req)
-        proxy_url = proxy_url.format(**kwargs)
-        return proxy_url
+        if self.application.http_proxy:
+            # Replace the status url with the proxy_url if any
+            proxy_url = self.application.config.get('host_proxy') or \
+                req.headers.get('X-Forwarded-Url')
+            if proxy_url:
+                if proxy_url[-1] != '/':
+                    proxy_url = f"{proxy_url}/"
+                return proxy_url
+        
+        return f"{req.protocol}://{req.host}/"
 
 
 class NotFoundHandler(BaseHandler):

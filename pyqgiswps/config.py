@@ -74,6 +74,8 @@ def load_configuration():
     CONFIG.set('server', 'workdir'              , getenv('QGSWPS_SERVER_WORKDIR',tempfile.gettempdir()))
     # Configure host if the server is behind a proxy
     CONFIG.set('server', 'host_proxy'           , getenv('QGSWPS_SERVER_HOST_PROXY',''))
+    # Allow proxyfication
+    CONFIG.set('server', 'http_proxy'           , getenv('QGSWPS_SERVER_HTTP_PROXY','yes'))
     # Number of parallel processes that are allowed to run algorithms
     CONFIG.set('server', 'parallelprocesses'    , getenv('QGSWPS_SERVER_PARALLELPROCESSES','1'))
     # Maximal number of executions can run in the same worker before beeing restarted
@@ -246,8 +248,8 @@ def load_configuration():
     CONFIG.set('metadata:oapi', 'contact_address', '${metadata:contact_address}')
     CONFIG.set('metadata:oapi', 'contact_email', '${metadata:contact_email}')
     CONFIG.set('metadata:oapi', 'contact_url', '${metadata:contact_url}')
-    CONFIG.set('metadata:oapi', 'licence_name','${metadata:licence_url}')
-    CONFIG.set('metadata:oapi', 'licence_url','${metadata:licence_name}')
+    CONFIG.set('metadata:oapi', 'licence_name','${metadata:licence_name}')
+    CONFIG.set('metadata:oapi', 'licence_url','${metadata:licence_url}')
     CONFIG.set('metadata:oapi', 'contact_role','${metadata:contact_role}')
     CONFIG.set('metadata:oapi', 'external_doc_description','Py-qgis-wps server documentation')
     CONFIG.set('metadata:oapi', 'external_doc_url','https://docs.3liz.org/py-qgis-wps/')

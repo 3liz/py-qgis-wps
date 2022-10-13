@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Define explicit `HTTP\_PROXY` option
+    - Handling of proxyfied urls may be disabled
+* Check access control (realm) for direct resource download
 * Support overriding service url for OWS requests 
     - Follow Qgis server convention for passing service url
 * Fix rel link to XML results from job description

@@ -49,11 +49,12 @@ def configure_handlers():
     staticpath  = pkg_resources.resource_filename("pyqgiswps", "html")
     openapipath = pkg_resources.resource_filename("pyqgiswps", "openapi") 
 
+
     cfg = confservice['server']
 
     workdir = cfg['workdir']
     dnl_ttl = cfg.getint('download_ttl')
-
+    
     init_access_policy()
 
     default_access_policy = new_access_policy()
@@ -79,7 +80,10 @@ def configure_handlers():
         #
         # OWS 
         #
-        (r"/ows/", OWSHandler, {'access_policy': default_access_policy, 'service_url': ows_service_url}),
+        (r"/ows/", OWSHandler, {
+            'access_policy': default_access_policy, 
+            'service_url': ows_service_url,
+        }),
 
         #
         # /processes
@@ -150,6 +154,7 @@ class Application(tornado.web.Application):
         from pyqgiswps.app.service import Service
         self.wpsservice = Service(processes=processes)
         self.config = confservice['server']
+        self.http_proxy = self.config.getboolean('http_proxy')
 
         super().__init__(configure_handlers(), default_handler_class=NotFoundHandler)
 
@@ -208,8 +213,10 @@ def run_server( port, address=None, user=None ):
         LOGGER.info("SSL enabled")
         kwargs['ssl_options'] = create_ssl_options()
 
-    # Allow x-forward headers
-    kwargs['xheaders'] = True
+    if confservice.getboolean('server','http_proxy'):
+        # Allow x-forward headers
+        LOGGER.info("Proxy configuration enabled")
+        kwargs['xheaders'] = True
 
     application = None
     pr_factory = None

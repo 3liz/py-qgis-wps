@@ -8,15 +8,16 @@
 #
 """ Processing utilities
 """
-
 import os
 import json
 import logging
 
+from pathlib import Path
+
 LOGGER = logging.getLogger('SRVLOG')
 
 
-def load_styles(styledef_path: str) -> None:
+def load_styles(styledef_path: os.PathLike) -> None:
     """ Load styles definitions
 
         The json structure should be the following:
@@ -29,22 +30,22 @@ def load_styles(styledef_path: str) -> None:
             ...
         }
     """
-    filepath = os.path.join(styledef_path,'styles.json')
-    if not os.path.exists(filepath):
+    filepath = Path(styledef_path,'styles.json')
+    if not filepath.is_file():
         return
 
     LOGGER.info("Found styles file description at %s", filepath)
 
     from processing.core.Processing import RenderingStyles
-    with open(filepath,'r') as fp:
+    with filepath.open('r') as fp:
         data = json.load(fp)
         # Replace style name with full path
         for alg in data:
             for key in data[alg]:
-                qml = os.path.join(styledef_path,'qml',data[alg][key])
-                if not os.path.exists(qml):
+                qml = styledef_path.joinpath('qml',data[alg][key])
+                if not qml.exists():
                     LOGGER.warning("Style '%s' not found", qml)
-                data[alg][key] = qml
+                data[alg][key] = str(qml)
         # update processing rendering styles
         RenderingStyles.styles.update(data)
 
