@@ -30,7 +30,7 @@ class BadRequestTest(HTTPTestCase):
 
     def test_bad_request_type_with_post(self):
         request_doc = WPS.Foo()
-        resp = self.client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         assert resp.status_code == 400
 
 
@@ -95,7 +95,7 @@ class CapabilitiesTest(HTTPTestCase):
 
     def test_post_request(self):
         request_doc = WPS.GetCapabilities()
-        resp = self.client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         self.check_capabilities_response(resp)
 
     def test_get_bad_version(self):
@@ -109,7 +109,7 @@ class CapabilitiesTest(HTTPTestCase):
         acceptedVersions_doc = OWS.AcceptVersions(
                 OWS.Version('2001-123'))
         request_doc = WPS.GetCapabilities(acceptedVersions_doc)
-        resp = self.client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         exception = resp.xpath('/ows:ExceptionReport'
                                 '/ows:Exception')
 

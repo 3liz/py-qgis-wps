@@ -125,7 +125,7 @@ class ExecuteTest(HTTPTestCase):
             OWS.Identifier('ultimate_question'),
             version='1.0.0'
         )
-        resp = self.client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         assert_response_success(resp)
         assert get_output(resp.xml) == {'outvalue': '42'}
 
@@ -140,7 +140,7 @@ class ExecuteTest(HTTPTestCase):
             ),
             version='1.0.0'
         )
-        resp = self.client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         assert_response_success(resp)
         assert get_output(resp.xml) == {'message': "Hello foo!"}
 
@@ -158,7 +158,7 @@ class ExecuteTest(HTTPTestCase):
             ),
             version='1.0.0'
         )
-        resp = self.client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         assert_response_success(resp)
 
         [output] = xpath_ns(resp.xml, '/wps:ExecuteResponse'

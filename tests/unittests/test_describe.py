@@ -90,7 +90,7 @@ class DescribeProcessTest(HTTPTestCase):
 
     def test_post_request_zero_args(self):
         request_doc = WPS.DescribeProcess()
-        resp = self.client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         assert resp.status_code == 400
 
     def test_get_one_arg(self):
@@ -102,7 +102,7 @@ class DescribeProcessTest(HTTPTestCase):
             OWS.Identifier('hello'),
             version='1.0.0'
         )
-        resp = self.client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         assert [pr.identifier for pr in get_describe_result(self, resp)] == ['hello']
 
     def test_get_two_args(self):
@@ -119,7 +119,7 @@ class DescribeProcessTest(HTTPTestCase):
             OWS.Identifier('ping'),
             version='1.0.0'
         )
-        resp = self.client.post_xml(doc=request_doc)
+        resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         result = get_describe_result(self, resp)
         assert [pr.identifier for pr in result] == ['hello', 'ping']
 

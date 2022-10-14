@@ -177,8 +177,8 @@ class WpsClient:
         return WpsTestResponse(self._testcase.fetch(path, method='PUT', 
                                body=data, raise_error=False, headers=headers))
 
-    def post_xml(self, doc) -> WpsTestResponse:
-        return self.post(data=lxml.etree.tostring(doc, pretty_print=True))
+    def post_xml(self, doc, path='/ows/') -> WpsTestResponse:
+        return self.post(data=lxml.etree.tostring(doc, pretty_print=True), path=path)
 
     def options( self, headers: Optional[Dict]=None, path: str='/ows/') -> WpsTestResponse:
         return WpsTestResponse(self._testcase.fetch(path, method='OPTIONS',

@@ -43,6 +43,12 @@ class OWSHandler(BaseHandler):
             realm = uuid.uuid4().hex
         return realm
 
+    def check_service(self) -> None:
+        # Require SERVICE argument
+        service = self.get_argument('SERVICE')
+        if service.upper() != 'WPS':
+            raise InvalidParameterValue('parameter SERVICE [%s] not supported' % service, 'service')
+
     async def handle_wps_request(self, method_parser):
         """ Handle a wps request
         """
@@ -96,10 +102,7 @@ class OWSHandler(BaseHandler):
     async def get(self):
         """ Handle Get Method
         """
-        service = self.get_argument('SERVICE')
-        if service.lower() != 'wps':
-            raise InvalidParameterValue('parameter SERVICE [%s] not supported' % service, 'service')
-
+        self.check_service()
         document = await self.handle_wps_request(OWSRequest.parse_get_request)
 
         self.write_xml(document)
@@ -110,6 +113,7 @@ class OWSHandler(BaseHandler):
             XXX Do not forget to set the max_buffer_size in HTTPServer arguments
             see http://www.tornadoweb.org/en/stable/tcpserver.html?highlight=max_buffer_size
         """
+        self.check_service()
         document = await self.handle_wps_request(OWSRequest.parse_post_request)
         
         self.write_xml(document)
