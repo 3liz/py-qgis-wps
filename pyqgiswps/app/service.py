@@ -16,7 +16,12 @@ import logging
 from pyqgiswps.app.request import WPSRequest
 from pyqgiswps.app.process import WPSProcess
 from pyqgiswps.config import confservice
-from pyqgiswps.exceptions import (MissingParameterValue, NoApplicableCode)
+from pyqgiswps.exceptions import (
+    MissingParameterValue, 
+    NoApplicableCode, 
+    InvalidParameterValue, 
+    UnknownProcessError
+)
 from pyqgiswps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
 from pyqgiswps.executors.processingexecutor import ProcessingExecutor
 
@@ -57,12 +62,15 @@ class Service():
         return self.get_processes((ident,), map_uri=map_uri)[0]
 
     def get_processes(self, idents: Iterable[str], map_uri: Optional[str]=None) -> Iterable[WPSProcess]:
-        return self.executor.get_processes(idents, map_uri=map_uri)
+        try:
+            return self.executor.get_processes(idents, map_uri=map_uri)
+        except UnknownProcessError as exc:
+            raise InvalidParameterValue(f"Invalid process '{exc}'")
 
     def get_results(self, uuid: str) -> Any:
         doc = self.executor.get_results(uuid)
         if doc is None:
-            raise NoApplicableCode('No results found for %s' % uuid, code=404)
+            raise NoApplicableCode(f"No results found for {uuid}", code=404)
 
         return doc
 

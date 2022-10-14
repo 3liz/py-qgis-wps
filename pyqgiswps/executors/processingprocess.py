@@ -241,7 +241,7 @@ def run_processing_algorithm( alg: QgsProcessingAlgorithm,
         return results
     except Exception as err:
         LOGGER.critical(traceback.format_exc())
-        raise ProcessException(f"Algorithm failed with error {err}")
+        raise ProcessException(f"Algorithm failed with error {err}") from None
 
 
 def run_algorithm( alg: QgsProcessingAlgorithm, 

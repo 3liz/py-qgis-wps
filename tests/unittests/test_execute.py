@@ -111,10 +111,6 @@ class ExecuteTest(HTTPTestCase):
             create_bbox_process(),
         ]
 
-    def test_missing_process_error(self):
-        resp = self.client.get('?Request=Execute&identifier=foo')
-        assert resp.status_code == 400
-
     def test_get_with_no_inputs(self):
         resp = self.client.get('?service=wps&version=1.0.0&Request=Execute&identifier=ultimate_question')
         assert_response_success(resp)
@@ -167,6 +163,11 @@ class ExecuteTest(HTTPTestCase):
             './ows:Identifier')[0].text)
         self.assertEqual('15.0 50.0', xpath_ns(output,
             './ows:BoundingBox/ows:LowerCorner')[0].text)
+
+    def test_unknownprocess_return_400(self):
+        resp = self.client.get("?SERVICE=WPS&Request=Execute&Identifier=pyqgiswps_test:testidonotexists&Version=1.0.0"
+                              "&MAP=france_parts&DATAINPUTS=INPUT=wtf")
+        assert resp.status_code == 400
 
 #
 # Tests for Execute request XML Parser

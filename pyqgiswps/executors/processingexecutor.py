@@ -197,7 +197,7 @@ class ProcessingExecutor:
         try:
             processes = [self.processes[ident] for ident in identifiers]
         except KeyError as exc:
-            raise UnknownProcessError(str(exc))
+            raise UnknownProcessError(str(exc)) from None
 
         # TODO Allow create contextualized processes from non-processing processes
         if self._factory.qgis_enabled and map_uri is not None:
