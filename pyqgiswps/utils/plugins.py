@@ -47,11 +47,12 @@ class WPSServerInterfaceImpl:
     def initialize(self, path: str) -> None:
         """  Collect wps plugins
         """
+        path = Path(path)
         plugins = { p:None for p in find_plugins(path) }
         if not plugins:
             LOGGER.warning("No WPS plugin found in %s", path)
         else:
-            self._paths.append(path)
+            self._paths.append(str(path))
 
         self._plugins.update(plugins)
         load_styles(path)
@@ -137,11 +138,10 @@ def checkQgisVersion(minver: str, maxver: str) -> bool:
     return minver <= version <= maxver
 
     
-def find_plugins(path: str) -> Generator[str,None,None]:
+def find_plugins(path: Path) -> Generator[str,None,None]:
     """ return list of plugins in given path
     """
     LOGGER.debug("Looking for plugins in %s", path)
-    path = Path(path)
 
     for plugin in path.glob("*"):
         if not plugin.is_dir():

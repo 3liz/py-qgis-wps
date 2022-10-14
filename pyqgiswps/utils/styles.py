@@ -8,7 +8,6 @@
 #
 """ Processing utilities
 """
-import os
 import json
 import logging
 
@@ -17,7 +16,7 @@ from pathlib import Path
 LOGGER = logging.getLogger('SRVLOG')
 
 
-def load_styles(styledef_path: os.PathLike) -> None:
+def load_styles(styledef_path: Path) -> None:
     """ Load styles definitions
 
         The json structure should be the following:
@@ -30,7 +29,7 @@ def load_styles(styledef_path: os.PathLike) -> None:
             ...
         }
     """
-    filepath = Path(styledef_path,'styles.json')
+    filepath = styledef_path.joinpath('styles.json')
     if not filepath.is_file():
         return
 
