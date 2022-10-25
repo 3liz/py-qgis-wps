@@ -19,8 +19,6 @@ from pyqgiswps.config import confservice
 from pyqgiswps.exceptions import (
     MissingParameterValue, 
     NoApplicableCode, 
-    InvalidParameterValue, 
-    UnknownProcessError
 )
 from pyqgiswps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
 from pyqgiswps.executors.processingexecutor import ProcessingExecutor
@@ -62,10 +60,7 @@ class Service():
         return self.get_processes((ident,), map_uri=map_uri)[0]
 
     def get_processes(self, idents: Iterable[str], map_uri: Optional[str]=None) -> Iterable[WPSProcess]:
-        try:
-            return self.executor.get_processes(idents, map_uri=map_uri)
-        except UnknownProcessError as exc:
-            raise InvalidParameterValue(f"Invalid process '{exc}'")
+        return self.executor.get_processes(idents, map_uri=map_uri)
 
     def get_results(self, uuid: str) -> Any:
         doc = self.executor.get_results(uuid)
@@ -89,16 +84,6 @@ class Service():
         """
         return self.executor.kill_job(uuid, pid)
 
-    async def execute(self, identifier: str, wps_request: WPSRequest, uuid: str, 
-                      map_uri: Optional[str]=None) -> bytes:
-        """Parse and perform Execute WPS request call
-        
-        :param identifier: process identifier string
-        :param wps_request: pyqgiswps.WPSRequest structure with parsed inputs, still in memory
-        :param uuid: string identifier of the request
-        """
-        process = self.get_process(identifier, map_uri=map_uri)
-        return await self.execute_process(process, wps_request, uuid)
 
     async def execute_process(self, process: WPSProcess, wps_request: WPSRequest, uuid: str) -> bytes:
         """Parse and perform Execute WPS request call

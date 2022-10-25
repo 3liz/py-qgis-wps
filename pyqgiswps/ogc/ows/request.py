@@ -37,6 +37,8 @@ from typing import TypeVar, Optional, Iterable
 AccessPolicy = TypeVar('AccessPolicy')
 Service      = TypeVar('Service')
 WPSProcess   = TypeVar('WPSProcess')
+UUID         = TypeVar('UUID')
+
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -63,6 +65,8 @@ class OWSRequest(WPSRequest):
     @staticmethod
     def conformance() -> str:
         return OGC_CONFORMANCE_NS.OWS_WPS.value
+
+
 
     @staticmethod
     def parse_get_request(handler) -> WPSRequest:
@@ -478,10 +482,19 @@ class OWSRequest(WPSRequest):
         try:
             return service.get_processes(idents, map_uri)
         except UnknownProcessError as exc:
-            raise InvalidParameterValue("Unknown process %s" % exc, "identifier") from None
+            raise InvalidParameterValue(f"Unknown process '{exc}'", "identifier") from None
         except Exception as e:
             LOGGER.critical("Exception:\n%s",traceback.format_exc())
             raise NoApplicableCode(str(e), code=500) from None
+
+    async def execute(self, service: Service, uuid: UUID, 
+                      map_uri: Optional[str]=None) -> bytes:
+        try:        
+            process = service.get_process(self.identifier, map_uri=map_uri)
+        except UnknownProcessError as exc:
+            raise InvalidParameterValue(f"Invalid process '{exc}'", "identifier") from None
+
+        return await service.execute_process(process, self, uuid)
 
     #
     # Describe
@@ -534,15 +547,9 @@ def _get_dataelement_value(value_el):
 
 def _get_rawvalue_value(data, encoding=None):
     """Return real value of CDATA section"""
-
-    try:
-        if encoding is None or encoding == "":
-            return data
-        elif encoding == 'base64':
-            return base64.b64decode(data)
+    if encoding == 'base64':
         return base64.b64decode(data)
-    except Exception:
-        return data
+    return data
 
 
 def _get_reference_body(body_element):

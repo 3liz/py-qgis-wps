@@ -257,7 +257,7 @@ def test_complex_input_base64_value():
                         mimeType='application/json')))))
     rv = get_inputs_from_xml(request_doc)
     assert rv['json'][0]['mimeType'] == 'application/json'
-    json_data = json.loads(rv['json'][0]['data'].decode())
+    json_data = json.loads(rv['json'][0]['data'])
     assert json_data['plot']['Version'] == '0.1'
 
 

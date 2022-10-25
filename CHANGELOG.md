@@ -1,7 +1,10 @@
 # Changes
 
+
 ## Unreleased
 
+* Fix invalid decoding of complex data as base64
+    - Fix https://github.com/3liz/py-qgis-wps/issues/31
 * Fix mandatory SERVICE parameters for POST WPS requests
 * Deprecate `host_proxy` in favor of `proxy_url` option
 * Define explicit `HTTP\_PROXY` option

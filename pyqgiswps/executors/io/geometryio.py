@@ -138,6 +138,8 @@ def json_to_geometry( data: str ) -> Geometry:
             data = data['geometry'] 
         geom = ogr.CreateGeometryFromJson(json.dumps(data))
         if geom:
+            # XXX There is no method for direct import 
+            # from json
             geom = QgsGeometry.fromWkt(geom.ExportToWkt())
             if crs and crs.isValid():
                 geom = QgsReferencedGeometry(geom,crs)

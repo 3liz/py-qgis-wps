@@ -105,14 +105,6 @@ class WPSRequest:
     def dumps( self ):
         return json.dumps(self.json, allow_nan=False)
 
-    #
-    # Execute
-    #
-    async def execute(self, service: Service, uuid: UUID, 
-                      map_uri: Optional[str]=None) -> bytes:
-        
-        return await service.execute(self.identifier, self, uuid, map_uri)
-
 
 class WPSResponse:
 
