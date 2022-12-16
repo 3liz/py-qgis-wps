@@ -3,8 +3,11 @@
 
 ## Unreleased
 
+## 1.8.4 - 2022-12-16
+
+* PEP8 Code style
 * Fix schemas in ogc api /processes description.
-* Load layer default styles with `loadDefaultStyle
+* Fix: load layer default styles with `loadDefaultStyle`
 
 ## 1.8.3 - 2022-12-08
 
