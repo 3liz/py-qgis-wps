@@ -101,6 +101,9 @@ def _set_output_layer_style( layerName: str, layer: QgsMapLayer, alg: QgsProcess
 
     # Get defaults styles
     if style is None:
+        # Load default styles
+        layer.loadDefaultStyle()
+
         if layer.type() == QgsMapLayer.RasterLayer:
             style = ProcessingConfig.getSetting(ProcessingConfig.RASTER_STYLE)
         else:

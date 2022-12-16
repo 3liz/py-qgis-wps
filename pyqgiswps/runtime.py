@@ -49,7 +49,6 @@ def configure_handlers():
     staticpath  = pkg_resources.resource_filename("pyqgiswps", "html")
     openapipath = pkg_resources.resource_filename("pyqgiswps", "openapi") 
 
-
     cfg = confservice['server']
 
     workdir = cfg['workdir']

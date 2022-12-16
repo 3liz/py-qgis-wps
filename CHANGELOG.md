@@ -3,6 +3,7 @@
 
 ## Unreleased
 
+* Load layer default styles with `loadDefaultStyle`
 * Fix invalid decoding of complex data as base64
     - Fix https://github.com/3liz/py-qgis-wps/issues/31
 * Fix mandatory SERVICE parameters for POST WPS requests
