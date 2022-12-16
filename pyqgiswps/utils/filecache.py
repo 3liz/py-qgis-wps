@@ -13,16 +13,17 @@ import re
 from collections import namedtuple
 from .lru import lrucache
 
-CacheDetails=namedtuple("CacheDetails",('value','timestamp'))
+CacheDetails = namedtuple("CacheDetails", ('value', 'timestamp'))
 
 
 def get_valid_filename(s: str) -> str:
     """ Return a valid filename from input str
-    
-        Removes all characters which are not letters, not numbers (0-9), not the underscore ('_'), not the dash ('-'), and not the period ('.'). 
+
+        Removes all characters which are not letters, not numbers (0-9),
+        not the underscore ('_'), not the dash ('-'), and not the period ('.').
     """
     s = str(s).strip().replace(' ', '_')
-    return re.sub(r'(?u)[^-\w.]', '_', s)    
+    return re.sub(r'(?u)[^-\w.]', '_', s)
 
 
 class FileCache():
@@ -30,7 +31,7 @@ class FileCache():
         """ Initialize file cache
 
             :param size: size of the lru cache
-            :param store: data store for paths and validation 
+            :param store: data store for paths and validation
         """
         from qgis.core import QgsProject
 
@@ -60,10 +61,10 @@ class FileCache():
         project = QgsProject()
         project.read(path)
         self.cache[key] = CacheDetails(project, timestamp)
-        self.on_cache_update( key, path )
+        self.on_cache_update(key, path)
         return True
 
-    def on_cache_update(self, key, path ):
+    def on_cache_update(self, key, path):
         """ Called when cache is updated
         """
         pass
@@ -71,4 +72,3 @@ class FileCache():
     def lookup(self, key):
         self.validate(key)
         return self.cache[key].value
-

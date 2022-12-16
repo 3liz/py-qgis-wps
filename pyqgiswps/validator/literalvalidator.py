@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -153,7 +153,7 @@ def _validate_layer(allowed_values, data):
     :param value: list or tuple with allowed data
     :param data: the data itself (string or number)
     """
-    if data.find('layer:',0,6) == 0:
+    if data.find('layer:', 0, 6) == 0:
         data = urlparse(data).path
-   
+
     return data in allowed_values.values

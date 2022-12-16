@@ -8,7 +8,7 @@
 
 """ Pool client
 
-    Implement a ROUTER 
+    Implement a ROUTER
 """
 
 import asyncio
@@ -23,21 +23,25 @@ from typing import Callable, Any
 
 from .utils import _get_ipc, WORKER_READY, WORKER_DONE
 
-LOGGER=logging.getLogger('SRVLOG')
+LOGGER = logging.getLogger('SRVLOG')
+
 
 class RequestTimeoutError(Exception):
     pass
 
+
 class RequestGatewayError(Exception):
     pass
+
 
 class RequestBackendError(Exception):
     def __init__(self, response):
         super().__init__(response)
-    
+
     @property
     def response(self):
         return self.args[0]
+
 
 class MaxRequestsExceeded(Exception):
     pass
@@ -45,24 +49,24 @@ class MaxRequestsExceeded(Exception):
 
 class _Client:
 
-    def __init__( self, bindaddr: str, maxqueue: int = 100 ) -> None:
+    def __init__(self, bindaddr: str, maxqueue: int = 100) -> None:
 
         context = zmq.asyncio.Context.instance()
 
         socket = context.socket(zmq.ROUTER)
         socket.setsockopt(zmq.LINGER, 500)
-        socket.setsockopt(zmq.ROUTER_MANDATORY,1)
-        socket.bind(bindaddr)                
+        socket.setsockopt(zmq.ROUTER_MANDATORY, 1)
+        socket.bind(bindaddr)
 
-        self._running  = False
+        self._running = False
         self._handlers = {}
-        self._socket   = socket
+        self._socket = socket
         self._maxqueue = maxqueue
 
         # Get track of available workers
-        self._worker_q  = asyncio.Queue()
-        self._worker_s  = []
-        
+        self._worker_q = asyncio.Queue()
+        self._worker_s = []
+
         # Start polling
         self._polling = asyncio.ensure_future(self._poll())
 
@@ -108,12 +112,12 @@ class _Client:
 
                 msgid = rest[0]
                 # Get if there is a future pending for that message
-                handler = self._handlers.pop(msgid,None)
+                handler = self._handlers.pop(msgid, None)
                 if handler is not None:
                     try:
                         success, response = pickle.loads(rest[1])
                     except Exception as exc:
-                        LOGGER.error("Pickle exception:\n%s",traceback.format_exc())
+                        LOGGER.error("Pickle exception:\n%s", traceback.format_exc())
                         handler.set_exception(exc)
                         continue
                     LOGGER.debug("Receveid %s, success %s", msgid, success)
@@ -125,28 +129,27 @@ class _Client:
                 else:
                     LOGGER.warning("No pending future found for message %s", msgid)
             except zmq.ZMQError as err:
-                LOGGER.error("zmq error: %s (%s)", zmq.strerror(err.errno),err.errno)
+                LOGGER.error("zmq error: %s (%s)", zmq.strerror(err.errno), err.errno)
             except asyncio.CancelledError:
                 LOGGER.debug("polling stopped")
                 cancelled = True
             except Exception:
                 LOGGER.error("Polling error\n%s", traceback.format_exc())
 
-
     def close(self) -> None:
         LOGGER.debug("Closing pool client")
         self._polling.cancel()
         self._socket.close()
 
-    def apply_async( self, target: Callable[[None], None], args=(), kwargs={}, timeout: int = 5 ) -> Any:
+    def apply_async(self, target: Callable[[None], None], args=(), kwargs={}, timeout: int = 5) -> Any:
         """ Run job asynchronously
         """
         # Pickle data, if it fails, then error will be raised before
-        # entering async 
+        # entering async
         request = pickle.dumps((target, args, kwargs))
-        return self._apply_async( request, timeout )
+        return self._apply_async(request, timeout)
 
-    async def _apply_async( self, request: bytes, timeout: int = 5) -> Any:
+    async def _apply_async(self, request: bytes, timeout: int = 5) -> Any:
         """ Run job asynchronously
         """
         if len(self._handlers) > self._maxqueue:
@@ -155,7 +158,7 @@ class _Client:
         # Wait for available worker
         LOGGER.debug("*** Waiting worker")
         worker_id = await self._get_worker(timeout)
- 
+
         # Send request
         correlation_id = uuid.uuid1().bytes
         try:
@@ -175,13 +178,12 @@ class _Client:
             return await asyncio.wait_for(handler, timeout)
         finally:
             # Remove the handler
-            self._handlers.pop(correlation_id,None)
+            self._handlers.pop(correlation_id, None)
 
 
-def create_client( maxqueue: int=100 ) -> _Client:
+def create_client(maxqueue: int = 100) -> _Client:
 
     # Create ROUTER socket
     bindaddr = _get_ipc('pooladdr')
 
-    return _Client( bindaddr, maxqueue )          
-
+    return _Client(bindaddr, maxqueue)

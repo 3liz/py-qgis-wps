@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -30,6 +30,7 @@ from typing import TypeVar
 
 Json = TypeVar('Json')
 Self = TypeVar('Self')
+
 
 class BoundingBoxInput(basic.BBoxInput, *ogc.exports.BoundingBoxInput):
 
@@ -107,21 +108,21 @@ class ComplexInput(basic.ComplexInput, *ogc.exports.ComplexInput):
         self.min_occurs = int(min_occurs)
         self.max_occurs = int(max_occurs)
         self.as_reference = False
-        self.url  = None
+        self.url = None
         self.body = None
         self.method = ''
         self.max_size = int(0)
 
-    def download_ref( self, filename: os.PathLike ) -> None: 
+    def download_ref(self, filename: os.PathLike) -> None:
         """ Download reference/data as filename
         """
         if self.source_type is basic.SOURCE_TYPE.FILE:
             return
-        
+
         if self.as_reference:
-            openurl(self.url, filename=filename,  method=self.method, body=self.body)
+            openurl(self.url, filename=filename, method=self.method, body=self.body)
         else:
-            with open(filename,'wb') as fh:
+            with open(filename, 'wb') as fh:
                 data = self.data
                 if isinstance(data, str):
                     data = data.encode()
@@ -135,7 +136,7 @@ class ComplexInput(basic.ComplexInput, *ogc.exports.ComplexInput):
 
         :return: maximum file size bytes
         """
-        max_size = confservice.get('server','maxinputsize')
+        max_size = confservice.get('server', 'maxinputsize')
         self.max_size = get_size_bytes(max_size)
         return self.max_size
 
@@ -184,7 +185,8 @@ class LiteralInput(basic.LiteralInput, *ogc.exports.LiteralInput):
     :param int min_occurs: minimum occurence
     :param int max_occurs: maximum occurence
     :param pyqgiswps.validator.mode.MODE mode: validation mode (none to strict)
-    :param pyqgiswps.inout.literaltypes.AnyValue allowed_values: or :py:class:`pyqgiswps.inout.literaltypes.AllowedValue` object
+    :param pyqgiswps.inout.literaltypes.AnyValue allowed_values: or
+           :py:class:`pyqgiswps.inout.literaltypes.AllowedValue` object
     :param metadata: List of metadata advertised by this process. They
                      should be :class:`pyqgiswps.app.common.Metadata` objects.
     """
@@ -221,5 +223,3 @@ class LiteralInput(basic.LiteralInput, *ogc.exports.LiteralInput):
 
         self.data = inpt.get('data')
         return self
-
- 

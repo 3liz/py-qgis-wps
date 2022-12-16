@@ -8,24 +8,23 @@
 #
 import pyqgiswps.ogc as ogc
 
+
 class UOM(*ogc.exports.UOM):
     """
     :param uom: unit of measure
     """
 
-    def __init__(self, code: str=None):
+    def __init__(self, code: str = None):
         self.code = code
-   
+
     @property
     def ref(self) -> str:
         """ OGC urn definition """
         return ogc.OGCUNIT.get(self.code)
 
-    @property 
+    @property
     def json(self):
         return {
             'code': self.code,
             'ref': self.ref,
         }
-
-

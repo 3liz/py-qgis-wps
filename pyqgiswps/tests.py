@@ -6,10 +6,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
-# 
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
+#
 
 from tornado.testing import AsyncHTTPTestCase
 from contextlib import contextmanager
@@ -27,6 +27,7 @@ from pyqgiswps.executors import processfactory
 from pyqgiswps.config import load_configuration, confservice
 
 from typing import Any, Optional, Dict
+
 
 @contextmanager
 def temp_dir():
@@ -64,47 +65,47 @@ class TestRuntime:
         self.cachemanager = cacheservice
 
         # Ensure Qgis is initialized
-        self.factory.start_qgis() 
+        self.factory.start_qgis()
         self.started = True
 
     def stop(self) -> None:
         if not self.started:
             return
-        # Clear cache earlier in order to prevent memory corruption 
+        # Clear cache earlier in order to prevent memory corruption
         # when projects are freed
         self.cachemanager.clear()
         self.started = False
-        self.factory.terminate()        
+        self.factory.terminate()
 
     @classmethod
     def instance(cls) -> 'TestRuntime':
-        if not hasattr(cls,'_instance'):
+        if not hasattr(cls, '_instance'):
             cls._instance = TestRuntime()
-        return cls._instance        
+        return cls._instance
+
 
 @contextmanager
 def chconfig(section, key, value):
     """ Use configuration setting
     """
-    prev = confservice.get(section,key)
+    prev = confservice.get(section, key)
     try:
-        confservice.set(section,key,value)
+        confservice.set(section, key, value)
         yield prev
     finally:
-        confservice.set(section,key,prev)
+        confservice.set(section, key, prev)
 
 
 class HTTPTestCase(AsyncHTTPTestCase):
- 
-    def get_app(self) ->  Application:
+
+    def get_app(self) -> Application:
         configure_log_levels()
-        self._application =  Application(processes=self.get_processes())
+        self._application = Application(processes=self.get_processes())
         return initialize_middleware(self._application, filters=self.get_filters())
 
     def tearDown(self) -> None:
         self._application.terminate()
         super().tearDown()
-
 
     @property
     def client(self):
@@ -127,7 +128,7 @@ class WpsTestResponse:
 
     def __init__(self, http_response):
         self.http_response = http_response
-        if self.headers.get('Content-Type','').find('text/xml')==0:
+        if self.headers.get('Content-Type', '').find('text/xml') == 0:
             self.xml = lxml.etree.fromstring(self.get_data())
 
     def get_data(self) -> Any:
@@ -165,24 +166,24 @@ class WpsClient:
     def __init__(self, testcase):
         self._testcase = testcase
 
-    def post(self, data, headers: Optional[Dict]=None, path: str='/ows/') -> WpsTestResponse:
-        return WpsTestResponse(self._testcase.fetch(path, method='POST', 
+    def post(self, data, headers: Optional[Dict] = None, path: str = '/ows/') -> WpsTestResponse:
+        return WpsTestResponse(self._testcase.fetch(path, method='POST',
                                body=data, raise_error=False, headers=headers))
 
-    def get(self, query, headers: Optional[Dict]=None, path: str='/ows/') -> WpsTestResponse:
+    def get(self, query, headers: Optional[Dict] = None, path: str = '/ows/') -> WpsTestResponse:
         return WpsTestResponse(self._testcase.fetch(path + query, raise_error=False,
                                headers=headers))
 
-    def put(self, data, headers: Optional[Dict]=None, path: str='/ows/') -> WpsTestResponse:
-        return WpsTestResponse(self._testcase.fetch(path, method='PUT', 
+    def put(self, data, headers: Optional[Dict] = None, path: str = '/ows/') -> WpsTestResponse:
+        return WpsTestResponse(self._testcase.fetch(path, method='PUT',
                                body=data, raise_error=False, headers=headers))
 
     def post_xml(self, doc, path='/ows/') -> WpsTestResponse:
         return self.post(data=lxml.etree.tostring(doc, pretty_print=True), path=path)
 
-    def options( self, headers: Optional[Dict]=None, path: str='/ows/') -> WpsTestResponse:
+    def options(self, headers: Optional[Dict] = None, path: str = '/ows/') -> WpsTestResponse:
         return WpsTestResponse(self._testcase.fetch(path, method='OPTIONS',
-                               raise_error=False, headers=headers)) 
+                               raise_error=False, headers=headers))
 
 
 def assert_response_accepted(resp):
@@ -245,7 +246,7 @@ class HttpResponse:
 
     @property
     def json(self):
-        if self.headers.get('Content-Type','').find('application/json')==0:
+        if self.headers.get('Content-Type', '').find('application/json') == 0:
             return json.loads(self.body)
 
 
@@ -254,21 +255,21 @@ class HttpClient:
     def __init__(self, testcase):
         self._testcase = testcase
 
-    def post(self, path: str, data: Any, headers: Optional[Dict]=None) -> HttpResponse:
-        return HttpResponse(self._testcase.fetch(path, method='POST', 
+    def post(self, path: str, data: Any, headers: Optional[Dict] = None) -> HttpResponse:
+        return HttpResponse(self._testcase.fetch(path, method='POST',
                             body=data, raise_error=False, headers=headers))
 
-    def get(self, path, headers: Optional[Dict]=None) -> HttpResponse:
+    def get(self, path, headers: Optional[Dict] = None) -> HttpResponse:
         return HttpResponse(self._testcase.fetch(path, raise_error=False,
                             headers=headers))
 
-    def put(self, path, data, headers: Optional[Dict]=None) -> HttpResponse:
-        return HttpResponse(self._testcase.fetch(path, method='PUT', 
+    def put(self, path, data, headers: Optional[Dict] = None) -> HttpResponse:
+        return HttpResponse(self._testcase.fetch(path, method='PUT',
                             body=data, raise_error=False, headers=headers))
 
-    def options(self, path, headers: Optional[Dict]=None) -> HttpResponse:
+    def options(self, path, headers: Optional[Dict] = None) -> HttpResponse:
         return HttpResponse(self._testcase.fetch(path, method='OPTIONS',
                             raise_error=False, headers=headers))
 
-    def post_json(self, path, data, headers: Optional[Dict]=None) -> HttpResponse:
+    def post_json(self, path, data, headers: Optional[Dict] = None) -> HttpResponse:
         return self.post(path, json.dumps(data), headers=headers)

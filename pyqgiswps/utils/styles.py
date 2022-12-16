@@ -41,12 +41,9 @@ def load_styles(styledef_path: Path) -> None:
         # Replace style name with full path
         for alg in data:
             for key in data[alg]:
-                qml = styledef_path.joinpath('qml',data[alg][key])
+                qml = styledef_path.joinpath('qml', data[alg][key])
                 if not qml.exists():
                     LOGGER.warning("Style '%s' not found", qml)
                 data[alg][key] = str(qml)
         # update processing rendering styles
         RenderingStyles.styles.update(data)
-
-
-

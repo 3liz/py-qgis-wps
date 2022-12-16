@@ -1,11 +1,11 @@
 #
 # Copyright 2018 3liz
 # Author: David Marteau
-# 
+#
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-# 
+#
 
 """ Healthcheck command
 """
@@ -13,6 +13,7 @@ import sys
 import argparse
 import http.client as http
 import ssl
+
 
 def main():
     parser = argparse.ArgumentParser(description="py-qgis-wps healthcheck")
@@ -25,10 +26,10 @@ def main():
         ssl_context = ssl.create_default_context()
         h = http.HTTPSConnection(args.uri, context=ssl_context)
     else:
-        h = http.HTTPConnection(args.uri)    
-    
+        h = http.HTTPConnection(args.uri)
+
     try:
-        h.request( 'HEAD', '/')
+        h.request('HEAD', '/')
 
         rv = h.getresponse()
         print("Response status:", rv.status)
@@ -38,5 +39,3 @@ def main():
         print("Connection error: %s" % e, file=sys.stderr)
 
     sys.exit(1)
-
-

@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -17,8 +17,8 @@ from pyqgiswps.app.request import WPSRequest
 from pyqgiswps.app.process import WPSProcess
 from pyqgiswps.config import confservice
 from pyqgiswps.exceptions import (
-    MissingParameterValue, 
-    NoApplicableCode, 
+    MissingParameterValue,
+    NoApplicableCode,
 )
 from pyqgiswps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
 from pyqgiswps.executors.processingexecutor import ProcessingExecutor
@@ -45,7 +45,7 @@ class Service():
 
     """
 
-    def __init__(self, processes: Iterable[WPSProcess]=[] ) -> None:
+    def __init__(self, processes: Iterable[WPSProcess] = []) -> None:
         # Get and start executor
         self.executor = ProcessingExecutor(processes)
 
@@ -56,10 +56,10 @@ class Service():
     def processes(self) -> Iterable[WPSProcess]:
         return self.executor.list_processes()
 
-    def get_process(self, ident: str, map_uri: Optional[str]=None) -> WPSProcess:
+    def get_process(self, ident: str, map_uri: Optional[str] = None) -> WPSProcess:
         return self.get_processes((ident,), map_uri=map_uri)[0]
 
-    def get_processes(self, idents: Iterable[str], map_uri: Optional[str]=None) -> Iterable[WPSProcess]:
+    def get_processes(self, idents: Iterable[str], map_uri: Optional[str] = None) -> Iterable[WPSProcess]:
         return self.executor.get_processes(idents, map_uri=map_uri)
 
     def get_results(self, uuid: str) -> Any:
@@ -69,13 +69,13 @@ class Service():
 
         return doc
 
-    def get_status(self, uuid: Optional[str]=None, **kwargs) -> Union[Json,Iterator]:
+    def get_status(self, uuid: Optional[str] = None, **kwargs) -> Union[Json, Iterator]:
         """ Return the status of the stored processes
         """
         return self.executor.get_status(uuid, **kwargs)
 
-    def delete_results(self, uuid: str, force: bool=False) -> bool:
-        """ Delete process results and status 
+    def delete_results(self, uuid: str, force: bool = False) -> bool:
+        """ Delete process results and status
         """
         return self.executor.delete_results(uuid, force)
 
@@ -83,7 +83,6 @@ class Service():
         """ Kill process job
         """
         return self.executor.kill_job(uuid, pid)
-
 
     async def execute_process(self, process: WPSProcess, wps_request: WPSRequest, uuid: str) -> bytes:
         """Parse and perform Execute WPS request call
@@ -93,19 +92,19 @@ class Service():
         # just for execute
         process = copy.deepcopy(process)
 
-        self.validate_request_inputs( process, wps_request )
+        self.validate_request_inputs(process, wps_request)
 
-        workdir = os.path.abspath(confservice.get('server','workdir'))
+        workdir = os.path.abspath(confservice.get('server', 'workdir'))
         workdir = os.path.join(workdir, str(uuid))
 
         # Create working directory if it does not exists
         os.makedirs(workdir, exist_ok=True)
-        
+
         process.set_workdir(workdir)
-   
+
         # Create response object
         wps_response = wps_request.create_response(process, uuid)
-        
+
         document = await self.executor.execute(wps_request, wps_response)
 
         return document
@@ -127,10 +126,10 @@ class Service():
                     LOGGER.error('Missing parameter value: %s', inpt.identifier)
                     raise MissingParameterValue(inpt.identifier, inpt.identifier)
                 else:
-                    # Do not add the input 
+                    # Do not add the input
                     pass
             else:
-                inputs = wps_request.inputs[inpt.identifier] 
+                inputs = wps_request.inputs[inpt.identifier]
                 if len(inputs) < inpt.min_occurs:
                     raise MissingParameterValue(description='Missing input data', locator=inpt.identifier)
 

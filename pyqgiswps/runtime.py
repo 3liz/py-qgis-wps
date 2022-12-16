@@ -26,7 +26,7 @@ from .handlers import (
     ExecuteHandler,
     JobHandler,
     ResultHandler,
-    OWSHandler, 
+    OWSHandler,
     StoreHandler,
     LogsHandler,
     DownloadHandler,
@@ -46,14 +46,14 @@ LOGGER = logging.getLogger('SRVLOG')
 def configure_handlers():
     """ Set up request handlers
     """
-    staticpath  = pkg_resources.resource_filename("pyqgiswps", "html")
-    openapipath = pkg_resources.resource_filename("pyqgiswps", "openapi") 
+    staticpath = pkg_resources.resource_filename("pyqgiswps", "html")
+    openapipath = pkg_resources.resource_filename("pyqgiswps", "openapi")
 
     cfg = confservice['server']
 
     workdir = cfg['workdir']
     dnl_ttl = cfg.getint('download_ttl')
-    
+
     init_access_policy()
 
     default_access_policy = new_access_policy()
@@ -62,7 +62,7 @@ def configure_handlers():
         'access_policy': default_access_policy,
     }
 
-    #json_end = '(?:\.json)'
+    # json_end = '(?:\.json)'
 
     # WPS service URL
     # This follow the convention used in Qgis server
@@ -77,10 +77,10 @@ def configure_handlers():
         (r"/", LandingPageHandler),
 
         #
-        # OWS 
+        # OWS
         #
         (r"/ows/", OWSHandler, {
-            'access_policy': default_access_policy, 
+            'access_policy': default_access_policy,
             'service_url': ows_service_url,
         }),
 
@@ -105,8 +105,8 @@ def configure_handlers():
         }),
 
         (r"/jobs/[^/\.]+\.html/?(.*)", StaticFileHandler, {
-            'path': staticpath, 
-            'default_filename':"details.html",
+            'path': staticpath,
+            'default_filename': "details.html",
         }),
 
         # XXX Thoses are sensible apis
@@ -116,10 +116,10 @@ def configure_handlers():
 
         # Logs
         (r"/jobs/([^/]+)/logs/?", LogsHandler, {'workdir': workdir}),
- 
+
         # Temporary download url api
         (r"/dnl/([^/]+)", DownloadHandler, {'workdir': workdir}),
-       
+
         #
         # Conformance
         #
@@ -128,7 +128,7 @@ def configure_handlers():
         #
         # Open api
         #
-        (r"/api(?:/(.*))?", OpenApiHandler, { 'path': openapipath }), 
+        (r"/api(?:/(.*))?", OpenApiHandler, {'path': openapipath}),
     ]
 
     if cfg.getboolean('expose_server_infos'):
@@ -181,14 +181,14 @@ def create_ssl_options():
     import ssl
     cfg = confservice['server']
     ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    ssl_ctx.load_cert_chain(cfg['ssl_cert'],cfg['ssl_key'])
+    ssl_ctx.load_cert_chain(cfg['ssl_cert'], cfg['ssl_key'])
     return ssl_ctx
 
 
-def initialize_middleware( app, filters=None ): 
+def initialize_middleware(app, filters=None):
     """ Initialize the middleware
     """
-    if confservice.getboolean('server','enable_filters'):
+    if confservice.getboolean('server', 'enable_filters'):
         from .middleware import MiddleWareRouter
         router = MiddleWareRouter(app, filters)
     else:
@@ -197,7 +197,7 @@ def initialize_middleware( app, filters=None ):
     return router
 
 
-def run_server( port, address=None, user=None ):
+def run_server(port, address=None, user=None):
     """ Run the server
     """
     from tornado.httpserver import HTTPServer
@@ -208,11 +208,11 @@ def run_server( port, address=None, user=None ):
     kwargs = {}
 
     # Setup ssl config
-    if confservice.getboolean('server','ssl'):
+    if confservice.getboolean('server', 'ssl'):
         LOGGER.info("SSL enabled")
         kwargs['ssl_options'] = create_ssl_options()
 
-    if confservice.getboolean('server','http_proxy'):
+    if confservice.getboolean('server', 'http_proxy'):
         # Allow x-forward headers
         LOGGER.info("Proxy configuration enabled")
         kwargs['xheaders'] = True
@@ -230,7 +230,7 @@ def run_server( port, address=None, user=None ):
         from pyqgiswps.executors import processfactory
 
         nonlocal pr_factory
-        pr_factory = processfactory.get_process_factory() 
+        pr_factory = processfactory.get_process_factory()
         processes = pr_factory.initialize(True)
 
         max_buffer_size = get_size_bytes(confservice.get('server', 'maxbuffersize'))
@@ -246,7 +246,7 @@ def run_server( port, address=None, user=None ):
         event = asyncio.Event()
 
         loop = asyncio.get_running_loop()
-        loop.add_signal_handler(signal.SIGINT , event.set)
+        loop.add_signal_handler(signal.SIGINT, event.set)
         loop.add_signal_handler(signal.SIGTERM, event.set)
 
         LOGGER.info("WPS Server ready")
@@ -265,4 +265,3 @@ def run_server( port, address=None, user=None ):
             application.terminate()
         if pr_factory:
             pr_factory.terminate()
-

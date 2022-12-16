@@ -4,10 +4,10 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-# 
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+#
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -30,7 +30,7 @@ LOGGER = logging.getLogger('SRVLOG')
 
 
 Service = TypeVar('Service')
-UUID    = TypeVar('UUID')
+UUID = TypeVar('UUID')
 
 
 class WPSRequest:
@@ -56,9 +56,8 @@ class WPSRequest:
 
         cfg = confservice['server']
 
-        self.timeout    = cfg.getint('response_timeout')
+        self.timeout = cfg.getint('response_timeout')
         self.expiration = cfg.getint('response_expiration')
-    
 
     @staticmethod
     def must_check_realm(realm: str) -> bool:
@@ -67,7 +66,7 @@ class WPSRequest:
         """
         cfg = confservice['server']
         if cfg.getboolean('enable_job_realm'):
-            admin_realm =  cfg['admin_realm']
+            admin_realm = cfg['admin_realm']
             if not admin_realm:
                 LOGGER.warning("Admin realm token not set !")
                 return True
@@ -76,10 +75,10 @@ class WPSRequest:
                 return realm != admin_realm
         else:
             return realm is not None
- 
+
     def realm_enabled(self) -> bool:
         return self.must_check_realm(self.realm)
-            
+
     @property
     def json(self):
         """Return JSON encoded representation of the request
@@ -90,9 +89,9 @@ class WPSRequest:
             'version': self.version,
             'language': self.language,
             'identifiers': self.identifiers,
-            'identifier' : self.identifier,
+            'identifier': self.identifier,
             'execute_async': self.execute_async,
-            'inputs': { i:[inpt.json for inpt in self.inputs[i]] for i in self.inputs },
+            'inputs': {i: [inpt.json for inpt in self.inputs[i]] for i in self.inputs},
             'outputs': self.outputs,
             'timeout': self.timeout,
         }
@@ -100,9 +99,10 @@ class WPSRequest:
         return obj
 
     def __repr__(self) -> str:
-        return f"AllowedValue(values={self.values}, minval={self.minval}, maxval={self.maxval}, range_closure={self.range_closure})"
+        return (f"AllowedValue(values={self.values}, minval={self.minval},"
+                f" maxval={self.maxval}, range_closure={self.range_closure})")
 
-    def dumps( self ):
+    def dumps(self):
         return json.dumps(self.json, allow_nan=False)
 
 
@@ -117,7 +117,7 @@ class WPSResponse:
         :param pyqgiswps.app.request.WPSRequest wps_request:
         :param uuid: string this request uuid
         """
-        
+
         store_url = f"{wps_request.host_url}jobs/{uuid}/files/"
 
         self.process = process
@@ -126,12 +126,12 @@ class WPSResponse:
         self.message = ''
         self.status = WPSResponse.STATUS.NO_STATUS
         self.status_percentage = 0
-        self.store_url  = store_url
+        self.store_url = store_url
         self.uuid = uuid
         self.document = None
         self.output_files = []
 
-    def resolve_store_url(self, url: str, as_output: bool=False) -> str:
+    def resolve_store_url(self, url: str, as_output: bool = False) -> str:
         """ Resolve 'store:' uri
         """
         if not url.startswith('store:'):
@@ -147,12 +147,12 @@ class WPSResponse:
 
     def get_document_bytes(self) -> Optional[bytes]:
         """ Return bytes encoded document
-            Raises exception if no document is availabe 
+            Raises exception if no document is availabe
         """
         if self.document is None:
             raise NoApplicableCode('No document available', code=500)
         return self.encode_response(self.document)
-    
+
     def update_status(self, message=None, status_percentage=None, status=None):
         """
         Update status report of currently running process instance
@@ -194,8 +194,3 @@ class WPSResponse:
         """ Log input request
         """
         logstore.update_response(request_uuid, self)
-
-
-
-
-

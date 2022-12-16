@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -36,6 +36,7 @@ class BoundingBoxOutput(basic.BBoxInput, *ogc.exports.BoundingBoxOutput):
     :param metadata: List of metadata advertised by this process. They
                      should be :class:`pyqgiswps.app.common.Metadata` objects.
     """
+
     def __init__(self, identifier, title, crss, abstract='',
                  dimensions=2, metadata=[], min_occurs='1',
                  max_occurs='1'):
@@ -51,7 +52,7 @@ class BoundingBoxOutput(basic.BBoxInput, *ogc.exports.BoundingBoxOutput):
         """  Set parameter from json definition
         """
         return self
- 
+
 
 class ComplexOutput(basic.ComplexOutput, *ogc.exports.ComplexOutput):
     """
@@ -83,7 +84,7 @@ class ComplexOutput(basic.ComplexOutput, *ogc.exports.ComplexOutput):
         """  Set parameter from json definition
         """
         return self
- 
+
 
 class LiteralOutput(basic.LiteralOutput, *ogc.exports.LiteralOutput):
     """
@@ -110,4 +111,3 @@ class LiteralOutput(basic.LiteralOutput, *ogc.exports.LiteralOutput):
         """  Set parameter from json definition
         """
         return self
- 

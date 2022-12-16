@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -17,9 +17,11 @@ import pyqgiswps.ogc as ogc
 
 LOGGER = logging.getLogger('SRVLOG')
 
-class WPSProcess( *ogc.exports.WPSProcess ):
+
+class WPSProcess(*ogc.exports.WPSProcess):
     """ Define a process descriptor
     """
+
     def __init__(self, handler, identifier, title, abstract='',
                  profile=[],
                  metadata=[],
@@ -29,7 +31,7 @@ class WPSProcess( *ogc.exports.WPSProcess ):
                  keywords=[],
                  **kwargs):
 
-        #TODO remove unusued `profile` property
+        # TODO remove unusued `profile` property
 
         self.handler = handler
         self.identifier = identifier
@@ -48,11 +50,11 @@ class WPSProcess( *ogc.exports.WPSProcess ):
         """
         pass
 
-        #LOGGER.info("Removing temporary working directory: %s" % self.workdir)
-        #try:
+        # LOGGER.info("Removing temporary working directory: %s" % self.workdir)
+        # try:
         #    if os.path.isdir(self.workdir):
         #        shutil.rmtree(self.workdir)
-        #except Exception as err:
+        # except Exception as err:
         #    LOGGER.error('Unable to remove directory: %s', err)
 
     def set_workdir(self, workdir):
@@ -67,5 +69,3 @@ class WPSProcess( *ogc.exports.WPSProcess ):
 
         for outpt in self.outputs:
             outpt.workdir = workdir
-
-

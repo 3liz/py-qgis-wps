@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -24,17 +24,17 @@ LOGGER = logging.getLogger('SRVLOG')
 USER_AGENT = "QYWPS Server %s" % __version__
 
 
-def openurl( url: str, filename: os.PathLike, max_bytes: int=0, **kwargs ) -> None:
+def openurl(url: str, filename: os.PathLike, max_bytes: int = 0, **kwargs) -> None:
     """ Open url
     """
     LOGGER.info("Fetching URL %s", url)
-    
-    num_bytes=0
+
+    num_bytes = 0
     fail = False
     try:
-        with open(filename,'wb') as fh:
+        with open(filename, 'wb') as fh:
 
-            def _callback( chunk: bytes ) -> None:
+            def _callback(chunk: bytes) -> None:
                 nonlocal num_bytes
                 num_bytes += len(chunk)
                 if num_bytes > max_bytes:
@@ -53,4 +53,3 @@ def openurl( url: str, filename: os.PathLike, max_bytes: int=0, **kwargs ) -> No
     finally:
         if fail and os.path.exists(filename):
             os.unlink(filename)
-

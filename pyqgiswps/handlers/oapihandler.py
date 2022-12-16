@@ -19,22 +19,22 @@ from typing import Optional
 LOGGER = logging.getLogger('SRVLOG')
 
 
-
 class OpenApiHandler(BaseHandler, DownloadMixIn):
     """ Open api interface
     """
+
     def initialize(self, path: str):
         super().initialize()
 
         self._path = Path(path)
         self._metadata = confservice['metadata:oapi']
 
-    async def get(self, resource: Optional[str]=None):
+    async def get(self, resource: Optional[str] = None):
         """
         """
         if not resource:
             self._server = self.proxy_url()
-            doc = self.oapi_root()                
+            doc = self.oapi_root()
             doc.update(
                 servers=[{
                     'url': self._server,
@@ -46,7 +46,7 @@ class OpenApiHandler(BaseHandler, DownloadMixIn):
             self.write_json(doc)
         else:
             resource = self._path.joinpath(resource)
-            if resource.suffix in ('.yml','.yaml'):
+            if resource.suffix in ('.yml', '.yaml'):
                 content_type = 'text/plain; charset=utf-8'
             else:
                 content_type = None
@@ -60,18 +60,18 @@ class OpenApiHandler(BaseHandler, DownloadMixIn):
         try:
             from qgis.core import Qgis
             qgis_version = Qgis.QGIS_VERSION_INT
-            qgis_release = Qgis.QGIS_RELEASE_NAME  
+            qgis_release = Qgis.QGIS_RELEASE_NAME
         except ImportError:
             LOGGER.critical("Failed to import Qgis module !")
             qgis_version = qgis_release = 'n/a'
 
         return (
             ('x-qgis-version', qgis_version),
-            ('x-qgis-release', qgis_release),   
+            ('x-qgis-release', qgis_release),
         )
 
     def oapi_root(self):
-        return { 'openapi': self._metadata['openapi'] }
+        return {'openapi': self._metadata['openapi']}
 
     def oapi_info(self):
         _m = self._metadata.get
@@ -101,15 +101,15 @@ class OpenApiHandler(BaseHandler, DownloadMixIn):
         }
 
     def oapi_paths(self):
-        """  See 
+        """  See
         """
         url = f"{self._server}api"
 
         def _ref(p):
-            return { '$ref': f"{url}/{p}" }
+            return {'$ref': f"{url}/{p}"}
 
         return {
-            '/':  _ref("landingpage.yml"),
+            '/': _ref("landingpage.yml"),
             '/conformance': _ref("conformance.yml"),
             '/processes': _ref("processes.yml"),
             '/processes/{processID}': _ref("process_description.yml"),

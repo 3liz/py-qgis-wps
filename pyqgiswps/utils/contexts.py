@@ -13,8 +13,9 @@ import os
 
 from contextlib import contextmanager
 
+
 @contextmanager
-def chdir( directory ):
+def chdir(directory):
     """ Change directory and restore initial dir
     """
     pwd = os.getcwd()
@@ -23,5 +24,3 @@ def chdir( directory ):
         yield
     finally:
         os.chdir(pwd)
-
-

@@ -40,40 +40,45 @@ from .io import filesio, layersio, datetimeio, geometryio
 DISTANCE_UOMS = {
     QgsUnitTypes.DistanceMeters: 'meter',
     QgsUnitTypes.DistanceKilometers: 'kilometer',
-    QgsUnitTypes.DistanceFeet: 'feet', 
-    QgsUnitTypes.DistanceNauticalMiles: 'nautical miles' ,
+    QgsUnitTypes.DistanceFeet: 'feet',
+    QgsUnitTypes.DistanceNauticalMiles: 'nautical miles',
     QgsUnitTypes.DistanceYards: 'yards',
-    QgsUnitTypes.DistanceMiles: 'miles' , 
+    QgsUnitTypes.DistanceMiles: 'miles',
     QgsUnitTypes.DistanceDegrees: 'degrees',
     QgsUnitTypes.DistanceCentimeters: 'centimeter',
-    QgsUnitTypes.DistanceMillimeters: 'millimeter', 
+    QgsUnitTypes.DistanceMillimeters: 'millimeter',
 }
 
-WPSInput  = Union[LiteralInput, ComplexInput, BoundingBoxInput]
+WPSInput = Union[LiteralInput, ComplexInput, BoundingBoxInput]
 WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
 
 LOGGER = logging.getLogger('SRVLOG')
 
+
 class ProcessingTypeParseError(Exception):
     pass
 
+
 class ProcessingInputTypeNotSupported(ProcessingTypeParseError):
     pass
+
 
 class ProcessingOutputTypeNotSupported(ProcessingTypeParseError):
     pass
 
 
-def _is_optional( param: QgsProcessingParameterDefinition ) -> bool:
-    return (int(param.flags()) & QgsProcessingParameterDefinition.FlagOptional) !=0
+def _is_optional(param: QgsProcessingParameterDefinition) -> bool:
+    return (int(param.flags()) & QgsProcessingParameterDefinition.FlagOptional) != 0
 
-def _is_hidden( param: QgsProcessingParameterDefinition ) -> bool:
-    return (int(param.flags()) & QgsProcessingParameterDefinition.FlagHidden) !=0
 
-def _number_data_type( param: QgsProcessingParameterNumber ) -> str:
-    return { 
-        QgsProcessingParameterNumber.Double :'float',
-        QgsProcessingParameterNumber.Integer:'integer',
+def _is_hidden(param: QgsProcessingParameterDefinition) -> bool:
+    return (int(param.flags()) & QgsProcessingParameterDefinition.FlagHidden) != 0
+
+
+def _number_data_type(param: QgsProcessingParameterNumber) -> str:
+    return {
+        QgsProcessingParameterNumber.Double: 'float',
+        QgsProcessingParameterNumber.Integer: 'integer',
     }[param.dataType()]
 
 
@@ -81,8 +86,8 @@ def _number_data_type( param: QgsProcessingParameterNumber ) -> str:
 # Inputs converters
 # ==================
 
-def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> LiteralInput:
-    """ Convert processing input to Literal Input 
+def parse_literal_input(param: QgsProcessingParameterDefinition, kwargs) -> LiteralInput:
+    """ Convert processing input to Literal Input
     """
     typ = param.type()
 
@@ -101,11 +106,12 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
             if isinstance(default_value, list):
                 default_value = default_value[0]
             if not isinstance(default_value, int):
-                raise InvalidParameterValue('Unsupported default value for parameter %s: %s' % (param.name(), default_value))
+                raise InvalidParameterValue('Unsupported default value for parameter %s: %s' %
+                                            (param.name(), default_value))
             if default_value < 0 or default_value >= len(options):
-                LOGGER.error("Out of range default value for enum parameter %s: %s",param.name(),default_value)
+                LOGGER.error("Out of range default value for enum parameter %s: %s", param.name(), default_value)
                 default_value = 0
- 
+
             kwargs['default'] = options[default_value]
 
     elif typ == 'number':
@@ -121,7 +127,7 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
         ))
         uom = DISTANCE_UOMS.get(param.defaultUnit())
         if uom is not None:
-            kwargs['uoms']=[uom] 
+            kwargs['uoms'] = [uom]
     elif typ == 'scale':
         kwargs['data_type'] = 'scale'
         kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
@@ -134,11 +140,11 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
         kwargs['metadata'].append(
             Metadata('processing:defaultUnit', QgsUnitTypes.toString(param.defaultUnit())),
         )
-    elif typ =='field':
+    elif typ == 'field':
         kwargs['data_type'] = 'string'
         kwargs['metadata'].append(Metadata('processing:parentLayerParameterName',
                                   param.parentLayerParameterName()))
-        kwargs['metadata'].append(Metadata('processing:dataType', { 
+        kwargs['metadata'].append(Metadata('processing:dataType', {
             QgsProcessingParameterField.Any: 'Any',
             QgsProcessingParameterField.Numeric: 'Numeric',
             QgsProcessingParameterField.String: 'String',
@@ -153,29 +159,29 @@ def parse_literal_input( param: QgsProcessingParameterDefinition, kwargs ) -> Li
     return LiteralInput(**kwargs)
 
 
-def parse_metadata( param: QgsProcessingParameterDefinition, kwargs ) -> None:
+def parse_metadata(param: QgsProcessingParameterDefinition, kwargs) -> None:
     """ Parse freeform metadata
     """
-    kwargs['metadata'].extend(Metadata('processing:meta:%s' % k, str(v)) for k,v in param.metadata().items())
+    kwargs['metadata'].extend(Metadata('processing:meta:%s' % k, str(v)) for k, v in param.metadata().items())
 
 
-def parse_input_definition( param: QgsProcessingParameterDefinition, alg: QgsProcessingAlgorithm=None,  
-                            context: MapContext=None ) -> WPSInput:
+def parse_input_definition(param: QgsProcessingParameterDefinition, alg: QgsProcessingAlgorithm = None,
+                           context: MapContext = None) -> WPSInput:
     """ Create WPS input from QgsProcessingParamDefinition
 the description is used in QGIS UI as the title in WPS.
         see https://qgis.org/api/qgsprocessingparameters_8h_source.html#l01312
     """
     kwargs = {
-        'identifier': param.name() ,
-        'title'     : param.description() or param.name().replace('_',' '),
-        'abstract'  : param.help(),
-        'metadata'  : [
-            Metadata('processing:type',param.type()),
+        'identifier': param.name(),
+        'title': param.description() or param.name().replace('_', ' '),
+        'abstract': param.help(),
+        'metadata': [
+            Metadata('processing:type', param.type()),
         ]
     }
 
     # Handle defaultValue
-    # XXX In some case QVariant are 
+    # XXX In some case QVariant are
     # not converted to python object (SIP bug ?)
     # Problem stated in getting QgsProcessingParameterFeatureSource
     # from processing.core.parameters.getParameterFromString
@@ -189,37 +195,37 @@ the description is used in QGIS UI as the title in WPS.
     if _is_optional(param):
         kwargs['min_occurs'] = 0
 
-    inp = parse_literal_input(param,kwargs) \
+    inp = parse_literal_input(param, kwargs) \
         or layersio.parse_input_definition(param, kwargs, context) \
         or geometryio.parse_input_definition(param, kwargs, context) \
         or filesio.parse_input_definition(param, kwargs) \
         or datetimeio.parse_input_definition(param, kwargs)
     if inp is None:
-        raise ProcessingInputTypeNotSupported("%s:'%s'" %(type(param),param.type()))
+        raise ProcessingInputTypeNotSupported("%s:'%s'" % (type(param), param.type()))
 
     parse_metadata(param, kwargs)
 
     return inp
 
 
-def parse_input_definitions( alg: QgsProcessingAlgorithm, context: MapContext  ) -> Generator[WPSInput,None,None]:
-    """ Parse algorithm inputs definitions 
+def parse_input_definitions(alg: QgsProcessingAlgorithm, context: MapContext) -> Generator[WPSInput, None, None]:
+    """ Parse algorithm inputs definitions
     """
     for param in alg.parameterDefinitions():
         try:
             if not _is_hidden(param):
                 yield parse_input_definition(param, alg, context=context)
             else:
-                LOGGER.info("%s: dropping hidden param: %s", alg.id(),param.name())
+                LOGGER.info("%s: dropping hidden param: %s", alg.id(), param.name())
         except ProcessingTypeParseError as e:
-            LOGGER.error("%s: unsupported param %s",alg.id(),e)
+            LOGGER.error("%s: unsupported param %s", alg.id(), e)
 
 
 # ==================
 # Output converters
 # ==================
 
-def parse_literal_output( outdef: QgsProcessingOutputDefinition, kwargs ) -> LiteralOutput:
+def parse_literal_output(outdef: QgsProcessingOutputDefinition, kwargs) -> LiteralOutput:
     """
     """
     typ = outdef.type()
@@ -235,38 +241,37 @@ def parse_literal_output( outdef: QgsProcessingOutputDefinition, kwargs ) -> Lit
     return LiteralOutput(**kwargs)
 
 
-def parse_output_definition( outdef: QgsProcessingOutputDefinition, alg: QgsProcessingAlgorithm=None, 
-                             context: MapContext=None ) -> WPSOutput:
+def parse_output_definition(outdef: QgsProcessingOutputDefinition, alg: QgsProcessingAlgorithm = None,
+                            context: MapContext = None) -> WPSOutput:
     """ Create WPS output
 
         XXX Create more QgsProcessingOutputDefinition for handling:
             - output matrix
             - output json vector
     """
-    kwargs = { 
-        'identifier': outdef.name() ,
-        'title'     : outdef.description(),
-        'abstract'  : outdef.description() 
+    kwargs = {
+        'identifier': outdef.name(),
+        'title': outdef.description(),
+        'abstract': outdef.description()
     }
 
-    output = parse_literal_output( outdef, kwargs) \
-        or layersio.parse_output_definition( outdef, kwargs ) \
-        or filesio.parse_output_definition( outdef, kwargs, alg )
+    output = parse_literal_output(outdef, kwargs) \
+        or layersio.parse_output_definition(outdef, kwargs) \
+        or filesio.parse_output_definition(outdef, kwargs, alg)
     if output is None:
         raise ProcessingOutputTypeNotSupported(outdef.type())
 
     return output
 
 
-def parse_output_definitions( alg: QgsProcessingAlgorithm, context: MapContext  ) -> Generator[WPSOutput,None,None]:
-    """ Parse algorithm inputs definitions 
+def parse_output_definitions(alg: QgsProcessingAlgorithm, context: MapContext) -> Generator[WPSOutput, None, None]:
+    """ Parse algorithm inputs definitions
     """
     for param in alg.outputDefinitions():
         try:
             yield parse_output_definition(param, alg, context=context)
         except ProcessingTypeParseError as e:
-            LOGGER.error("%s: unsupported output param %s",alg.id(),e)
-
+            LOGGER.error("%s: unsupported output param %s", alg.id(), e)
 
 
 # ==================================================
@@ -274,8 +279,8 @@ def parse_output_definitions( alg: QgsProcessingAlgorithm, context: MapContext  
 # ==================================================
 
 
-def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput,
-                          context: ProcessingContext) -> Any:
+def get_processing_value(param: QgsProcessingParameterDefinition, inp: WPSInput,
+                         context: ProcessingContext) -> Any:
     """ Return processing value from wps inputs
 
         Processes other inputs than layers
@@ -284,8 +289,8 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput
     if typ == 'enum':
         # XXX Processing wants the index of the value in option list
         if param.allowMultiple() and len(inp) > 1:
-            opts  = param.options()
-            value = [opts.index(d.data) for d in inp] 
+            opts = param.options()
+            value = [opts.index(d.data) for d in inp]
         else:
             value = param.options().index(inp[0].data)
     elif len(inp):
@@ -300,8 +305,8 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: WPSInput
     return value
 
 
-def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgorithm, 
-                         context: ProcessingContext ) -> Tuple[str, Any]:
+def input_to_processing(identifier: str, inp: WPSInput, alg: QgsProcessingAlgorithm,
+                        context: ProcessingContext) -> Tuple[str, Any]:
     """ Convert wps input to processing param
 
         see https://qgis.org/api/classQgsProcessingOutputLayerDefinition.html
@@ -318,7 +323,7 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
         datetimeio.get_processing_value(param, inp, context) or \
         geometryio.get_processing_value(param, inp, context) or \
         get_processing_value(param, inp, context)
-            
+
     return param.name(), value
 
 
@@ -326,18 +331,17 @@ def input_to_processing( identifier: str, inp: WPSInput, alg: QgsProcessingAlgor
 # Convert processing outputs to WPS output responses
 # ==================================================
 
-def raw_response( value: Any, out: WPSOutput) -> WPSOutput:
+def raw_response(value: Any, out: WPSOutput) -> WPSOutput:
     """ Return raw value
     """
     out.data = value
     return out
 
 
-def processing_to_output( value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOutput, 
-                          context: ProcessingContext ) -> WPSOutput:
+def processing_to_output(value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOutput,
+                         context: ProcessingContext) -> WPSOutput:
     """ Map processing output to WPS
     """
     return layersio.parse_response(value, outdef, out, context) or \
         filesio.parse_response(value, outdef, out, context) or \
         raw_response(value, out)
-

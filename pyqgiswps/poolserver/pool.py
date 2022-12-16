@@ -6,7 +6,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-""" Pool server 
+""" Pool server
 """
 import os
 import logging
@@ -31,7 +31,7 @@ LOGGER = logging.getLogger('SRVLOG')
 class Pool:
 
     def __init__(self, router: str, broadcastaddr: str, numworkers: int,
-                 initializer: Callable[[None],None] = None, initargs=(),
+                 initializer: Callable[[None], None] = None, initargs=(),
                  maxcycles: int = None) -> None:
 
         self.critical_failure = False
@@ -48,7 +48,7 @@ class Pool:
         # Ensure that pool is terminated is called
         # at process exit
         self._terminate = Finalize(
-            self, self._terminate_pool, 
+            self, self._terminate_pool,
             args=(self._pool,),
             exitpriority=15
         )
@@ -57,19 +57,19 @@ class Pool:
 
     def _join_exited_workers(self) -> bool:
         """Cleanup after any worker processes which have exited due to reaching
-           their specified lifetime.  
-           
+           their specified lifetime.
+
            Returns True if any workers were cleaned up.
         """
         cleaned = False
         for i in reversed(range(len(self._pool))):
             worker = self._pool[i]
             if worker.exitcode is not None:
-                # Handle special case when 
+                # Handle special case when
                 # Return is not zero
                 if worker.exitcode != 0:
                     # Handle early failure by killing current process
-                    LOGGER.warning("Qgis Worker exited with code %s", worker.exitcode) 
+                    LOGGER.warning("Qgis Worker exited with code %s", worker.exitcode)
                     if time.time() - self._start_time < EARLY_FAILURE_DELAY:
                         # Critical exit
                         LOGGER.critical("Critical worker failure. Aborting...")
@@ -87,9 +87,9 @@ class Pool:
         """
         for _ in range(self._num_workers - len(self._pool)):
             w = Process(target=worker_handler, args=(self._router, self._broadcastaddr),
-                        kwargs=dict( maxcycles   = self._maxcycles,
-                                     initializer = self._initializer,
-                                     initargs    = self._initargs))
+                        kwargs=dict(maxcycles=self._maxcycles,
+                                    initializer=self._initializer,
+                                    initargs=self._initargs))
             self._pool.append(w)
             w.name = w.name.replace('Process', 'PoolWorker')
             w.start()
@@ -101,7 +101,7 @@ class Pool:
             self._repopulate_pool()
 
     @classmethod
-    def _terminate_pool(cls, pool: 'Pool') -> None: 
+    def _terminate_pool(cls, pool: 'Pool') -> None:
 
         # Send terminate to workers
         if pool and hasattr(pool[0], 'terminate'):
@@ -123,5 +123,3 @@ class Pool:
 
     def terminate(self) -> None:
         self._terminate()
-
-      

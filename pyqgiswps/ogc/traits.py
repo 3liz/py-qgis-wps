@@ -9,11 +9,12 @@
 
 registry = {}
 
+
 def register_trait(cls):
     """ Register trait class according
         to class name
     """
-    registry.setdefault(cls.__name__,[]).append(cls)
+    registry.setdefault(cls.__name__, []).append(cls)
     return cls
 
 
@@ -22,7 +23,7 @@ def register_trait_for(name):
         to given name
     """
     def wrapper(cls):
-        registry.setdefault(name,[]).append(cls)
+        registry.setdefault(name, []).append(cls)
         return cls
     return wrapper
 
@@ -30,6 +31,7 @@ def register_trait_for(name):
 class __Exports:
     def __getattr__(self, name):
         # Search mixins for class name
-        return  registry[name]
+        return registry[name]
+
 
 exports = __Exports()

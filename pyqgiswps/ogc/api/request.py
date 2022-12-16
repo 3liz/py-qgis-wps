@@ -5,10 +5,10 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-# 
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+#
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 import logging
@@ -28,18 +28,18 @@ from .response import OgcApiResponse, JOBSTATUS
 from ..ogc import OGC_CONFORMANCE_NS
 
 from pyqgiswps.inout import (
-    BoundingBoxOutput, 
-    BoundingBoxInput, 
-    ComplexInput, 
-    ComplexOutput, 
+    BoundingBoxOutput,
+    BoundingBoxInput,
+    ComplexInput,
+    ComplexOutput,
     LiteralOutput,
     LiteralInput
 )
 
 AccessPolicy = TypeVar('AccessPolicy')
-Service      = TypeVar('Service')
-UUID         = TypeVar('UUID')
-Json         = TypeVar('Json')
+Service = TypeVar('Service')
+UUID = TypeVar('UUID')
+Json = TypeVar('Json')
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -48,9 +48,9 @@ SCHEMA_VERSIONS = ('1.0.0',)
 
 
 class OgcApiRequest(WPSRequest):
-   
+
     # Create response
-    def create_response( self, process, uuid) -> OgcApiResponse:
+    def create_response(self, process, uuid) -> OgcApiResponse:
         """ Create the response for execute request for
             handling OGC api Response
         """
@@ -97,7 +97,7 @@ class OgcApiRequest(WPSRequest):
     # /processes/{id}
     #
     def get_process_description(self, ident: str, service: Service) -> Json:
-        
+
         self.identifiers = [ident]
         process = service.get_processes(self.identifiers, map_uri=self.map_uri)[0]
 
@@ -115,20 +115,20 @@ class OgcApiRequest(WPSRequest):
                 'type': "application/json",
                 'title': "Process description"
             },
-        ]        
+        ]
         return content
 
     #
     # /processes/{id}/execution
     #
     async def execute(self, ident: str, job_id: UUID, doc: Json, service: Service,
-                      timeout: Optional[int] = None, 
+                      timeout: Optional[int] = None,
                       expire: Optional[int] = None,
                       execute_async: bool = True) -> Json:
 
         # Raise if process is not found
         process = service.get_process(ident, map_uri=self.map_uri)
-        
+
         self.identifier = ident
         self.execute_async = execute_async
         self.status_link = f"/jobs/{job_id}"
@@ -137,9 +137,9 @@ class OgcApiRequest(WPSRequest):
         self.check_and_set_expiration(expire)
 
         def _typeclasses(items):
-            return { i.identifier: type(i) for i in items }
+            return {i.identifier: type(i) for i in items}
 
-        self.inputs = get_inputs_from_document(doc,   _typeclasses(process.inputs))
+        self.inputs = get_inputs_from_document(doc, _typeclasses(process.inputs))
         self.outputs = get_outputs_from_document(doc, _typeclasses(process.outputs))
 
         return await service.execute_process(process, self, job_id)
@@ -157,7 +157,7 @@ class OgcApiRequest(WPSRequest):
                 self.timeout = min(self.timeout, _timeout)
         except ValueError:
             raise InvalidParameterValue(
-                'TIMEOUT param must be an integer > 0 value, not "%s"', 
+                'TIMEOUT param must be an integer > 0 value, not "%s"',
                 timeout) from None
 
     def check_and_set_expiration(self, expire: Optional[int]):
@@ -171,14 +171,13 @@ class OgcApiRequest(WPSRequest):
                 self.expiration = _expire
         except ValueError:
             raise InvalidParameterValue(
-                'EXPIRE param must be an integer > 0 value, not "%s"', 
+                'EXPIRE param must be an integer > 0 value, not "%s"',
                 expire) from None
 
     # Jobs
 
-
     def _create_job_document(self, store) -> Json:
-        """ Return job status  
+        """ Return job status
         """
         ident = store['uuid']
 
@@ -204,7 +203,7 @@ class OgcApiRequest(WPSRequest):
             'processID': store['identifier'],
             'message': store['message'],
             'created': store['time_start'],
-            'type' : 'process',
+            'type': 'process',
             'map': store['map'],
             'progress': max(0, percent_done),
             'links': links,
@@ -215,7 +214,7 @@ class OgcApiRequest(WPSRequest):
         # Must be utc timestamp
         timestamp = store.get('timestamp')
         if timestamp:
-            updated = datetime.fromtimestamp(timestamp).isoformat()+'Z'
+            updated = datetime.fromtimestamp(timestamp).isoformat() + 'Z'
             doc.update(updated=updated)
 
         jobstart = store.get('job_start')
@@ -253,7 +252,7 @@ class OgcApiRequest(WPSRequest):
                 })
         elif status == WPSResponse.STATUS.ERROR_STATUS:
             doc.update(status=JOBSTATUS.FAILED.value)
-        
+
         elif status == WPSResponse.STATUS.DISMISS_STATUS:
             doc.update(
                 status=JOBSTATUS.DISMISSED.value,
@@ -264,12 +263,11 @@ class OgcApiRequest(WPSRequest):
                     'title': "Job list"
                 }]
             )
-    
+
         return doc
 
-
     def get_ogcapi_job_status(self, ident: str, service: Service) -> Json:
-        """ Return job status  
+        """ Return job status
         """
         store = service.get_status(ident)
         if store is None:
@@ -285,7 +283,7 @@ class OgcApiRequest(WPSRequest):
         """ Return job list
         """
         jobs = service.get_status()
-       
+
         links = [
             {
                 'href': f"{self.host_url}jobs",
@@ -311,7 +309,7 @@ class OgcApiRequest(WPSRequest):
         return doc
 
     def get_ogcapi_job_dismiss(self, ident: str, service: Service) -> Json:
-        """ Return job status  
+        """ Return job status
         """
         store = service.get_status(ident)
         if store is None:
@@ -348,11 +346,11 @@ class OgcApiRequest(WPSRequest):
             'status': JOBSTATUS.DISMISSED.value,
             'processID': store['identifier'],
             'message': "Job dismissed",
-            'progress': max(0, store.get('percent_done',-1)),
+            'progress': max(0, store.get('percent_done', -1)),
             'links': links,
         }
 
-        return doc        
+        return doc
 
 
 def get_inputs_from_document(doc, typeclasses):
@@ -360,7 +358,7 @@ def get_inputs_from_document(doc, typeclasses):
     """
     def _input(ident, data, typeclass):
 
-        inpt = { 'identifier': ident }
+        inpt = {'identifier': ident}
 
         if typeclass == LiteralInput:
             if isinstance(data, dict):
@@ -415,10 +413,10 @@ def get_inputs_from_document(doc, typeclasses):
     return dict(_inputs())
 
 
-def get_outputs_from_document(doc, typeclasses): 
+def get_outputs_from_document(doc, typeclasses):
     """ Parse outputs specs
 
-        Note that we ignore 'transmissionMode' since we 
+        Note that we ignore 'transmissionMode' since we
         do not allow client to change it.
     """
     def _outputs():
@@ -428,15 +426,15 @@ def get_outputs_from_document(doc, typeclasses):
             typeclass = typeclasses.get(ident)
             if typeclass is None:
                 continue
- 
-            output = { 'identifier' : ident }
+
+            output = {'identifier': ident}
 
             if typeclass == LiteralOutput:
                 # UOM may be an output choice
                 output_uom = outp.get('uom')
                 if output_uom:
                     output['uom'] = output_uom
-            elif typeclass == ComplexOutput:            
+            elif typeclass == ComplexOutput:
                 # Formats may be an output choice
                 output_format = outp.get('format')
                 if output_format:
@@ -445,6 +443,6 @@ def get_outputs_from_document(doc, typeclasses):
             elif typeclass == BoundingBoxOutput:
                 pass
 
-            yield  ident, output
+            yield ident, output
 
     return dict(_outputs())

@@ -27,13 +27,13 @@ from typing import (
 LOGGER = logging.getLogger('SRVLOG')
 
 
-def _format_size( size ):
-    for u in ['B','K','M','G']:
+def _format_size(size):
+    for u in ['B', 'K', 'M', 'G']:
         if size < 1024.0:
             if size < 10.0:
-                return "%.1f%s" % (size,u)
+                return "%.1f%s" % (size, u)
             else:
-                return "%.f%s" % (size,u)
+                return "%.f%s" % (size, u)
         size /= 1024.0
     return '%.fT' % size
 
@@ -49,22 +49,22 @@ class StoreShellMixIn(DownloadMixIn, RealmController):
             raise HTTPError(401)
         # Legacy json schema
         store_url = f"{self.proxy_url()}store/{uuid}/"
-    
+
         def file_records(rootdir, dirs, files, rootfd):
             root = Path(rootdir)
             for file in files:
-                stat  = os.stat(file, dir_fd=rootfd)
-                name  = (root / file).relative_to(workdir).as_posix()
+                stat = os.stat(file, dir_fd=rootfd)
+                name = (root / file).relative_to(workdir).as_posix()
                 yield {
                     'name': name,
                     'content_length': stat.st_size,
-                    'store_url'     : f"{store_url}{name}",
-                    'display_size'  : _format_size(stat.st_size),
+                    'store_url': f"{store_url}{name}",
+                    'display_size': _format_size(stat.st_size),
                 }
         data = [f for args in os.fwalk(workdir) for f in file_records(*args)]
-        self.write_json({"files":data})       
+        self.write_json({"files": data})
 
-    async def ls( self, uuid: str):
+    async def ls(self, uuid: str):
         """ List all files in workdir
         """
         workdir = Path(self._workdir, uuid)
@@ -84,7 +84,7 @@ class StoreShellMixIn(DownloadMixIn, RealmController):
             #
             job_status = self.application.wpsservice.get_status(uuid)
             if job_status is None:
-                raise HTTPError(404, reason="The resource does not exists") 
+                raise HTTPError(404, reason="The resource does not exists")
 
             # Restrict to output files
             def file_records(files):
@@ -99,9 +99,9 @@ class StoreShellMixIn(DownloadMixIn, RealmController):
                         'type': content_type or "application/octet-stream",
                         'name': name,
                         'content_length': size,
-                        'display_size'  : _format_size(size),
+                        'display_size': _format_size(size),
                     }
-            data = list(file_records(job_status.get('output_files',[])))
+            data = list(file_records(job_status.get('output_files', [])))
         else:
             def file_records(rootdir, dirs, files, rootfd):
                 root = Path(rootdir)
@@ -114,13 +114,13 @@ class StoreShellMixIn(DownloadMixIn, RealmController):
                         'type': content_type or "application/octet-stream",
                         'name': path.as_posix(),
                         'content_length': stat.st_size,
-                        'display_size'  : _format_size(stat.st_size),
+                        'display_size': _format_size(stat.st_size),
                     }
             data = [f for args in os.fwalk(workdir) for f in file_records(*args)]
-            
-        self.write_json({"links": data})    
 
-    async def dnl(self, uuid: str, resource: str, content_type: Optional[str]=None):
+        self.write_json({"links": data})
+
+    async def dnl(self, uuid: str, resource: str, content_type: Optional[str] = None):
         """ Return output file from process working dir
         """
         self.check_resource_acl(uuid, resource)
@@ -134,9 +134,9 @@ class StoreShellMixIn(DownloadMixIn, RealmController):
         """ Archive the result storage
         """
         # Note implemented
-        raise HTTPError(501, reason="Sorry, the method is not implemented yet")  
+        raise HTTPError(501, reason="Sorry, the method is not implemented yet")
 
-    def create_dnl_url(self, job_id: str, resource: Optional[str]=None):
+    def create_dnl_url(self, job_id: str, resource: Optional[str] = None):
         """ Store the request and create a download url
         """
         token = logstore.set_json({
@@ -145,11 +145,11 @@ class StoreShellMixIn(DownloadMixIn, RealmController):
         }, self._ttl)
 
         proxy_url = self.proxy_url()
-        now       = datetime.utcnow().timestamp()
+        now = datetime.utcnow().timestamp()
         self.write_json({
             'name': resource,
             'href': f"{proxy_url}dnl/{token}",
-            'expire_at': datetime.fromtimestamp(now+self._ttl).isoformat()+'Z',
+            'expire_at': datetime.fromtimestamp(now + self._ttl).isoformat() + 'Z',
         })
 
     def check_resource_acl(self, uuid: str, resource: str):
@@ -163,14 +163,14 @@ class StoreShellMixIn(DownloadMixIn, RealmController):
         if job_status is None:
             raise HTTPError(404, reason="The resource does not exists")
 
-        allowed_files = job_status.get('output_files',[])
+        allowed_files = job_status.get('output_files', [])
         if resource not in allowed_files:
             raise HTTPError(401)
 
 
 class StoreHandlerBase(BaseHandler, StoreShellMixIn):
 
-    def initialize(self, workdir, chunk_size=65536, legacy: bool=False, ttl=30):
+    def initialize(self, workdir, chunk_size=65536, legacy: bool = False, ttl=30):
         super().initialize()
         self._chunk_size = chunk_size
         self._workdir = workdir
@@ -181,7 +181,7 @@ class StoreHandlerBase(BaseHandler, StoreShellMixIn):
 class StoreHandler(StoreHandlerBase):
     """ Handle store requests
     """
-    async def get(self, uuid: str, resource: Optional[str]=None) -> Awaitable[None]:
+    async def get(self, uuid: str, resource: Optional[str] = None) -> Awaitable[None]:
         """ Handle GET request
         """
         if resource:
@@ -236,8 +236,5 @@ class LogsHandler(StoreHandlerBase):
         if self.realm_enabled():
             raise HTTPError(403)
 
-        await self.dnl(job_id, "processing.log", 
+        await self.dnl(job_id, "processing.log",
                        content_type="text/plain; charset=utf-8")
-
-
-

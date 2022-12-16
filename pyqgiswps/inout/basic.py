@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -18,9 +18,9 @@ from enum import Enum
 import os
 import logging
 
-from pyqgiswps.inout.literaltypes import (LITERAL_DATA_TYPES, 
+from pyqgiswps.inout.literaltypes import (LITERAL_DATA_TYPES,
                                           convert,
-                                          is_anyvalue,  
+                                          is_anyvalue,
                                           to_json_serializable)
 from pyqgiswps.validator.mode import MODE
 from pyqgiswps.validator.base import emptyvalidator
@@ -47,6 +47,7 @@ class SOURCE_TYPE(Enum):
 class BasicHandler:
     """ Basic validator handler
     """
+
     def __init__(self, mode=MODE.NONE):
         self.valid_mode = mode
 
@@ -142,20 +143,20 @@ class IOHandler(BasicHandler):
         elif self.source_type == SOURCE_TYPE.DATA:
             return self.source
 
-
     def get_base64(self):
         return base64.b64encode(self.data)
 
     # Properties
-    file    = property(fget=get_file, fset=set_file)
-    stream  = property(fget=get_stream, fset=set_stream)
-    data    = property(fget=get_data, fset=set_data)
-    base64  = property(fget=get_base64, fset=set_base64)
+    file = property(fget=get_file, fset=set_file)
+    stream = property(fget=get_stream, fset=set_stream)
+    data = property(fget=get_data, fset=set_data)
+    base64 = property(fget=get_base64, fset=set_base64)
 
 
 class SimpleHandler(BasicHandler):
     """Data handler for Literal In- and Outputs
     """
+
     def __init__(self, data_type=None, mode=MODE.NONE):
         BasicHandler.__init__(self, mode=mode)
         self.data_type = data_type
@@ -179,6 +180,7 @@ class SimpleHandler(BasicHandler):
 class BasicIO:
     """Basic Input or Output class
     """
+
     def __init__(self, identifier, title=None, abstract=None):
         self.identifier = identifier
         self.title = title
@@ -188,6 +190,7 @@ class BasicIO:
 class BasicLiteral:
     """Basic literal input/output class
     """
+
     def __init__(self, data_type, uoms=None):
         assert data_type in LITERAL_DATA_TYPES, f"data type {data_type} no supported"
         self.data_type = data_type
@@ -247,7 +250,8 @@ class BasicComplex:
     """Basic complex input/output class
 
     """
-    def __init__(self, data_format=None, supported_formats: List[Format]=None):
+
+    def __init__(self, data_format=None, supported_formats: List[Format] = None):
         self._data_format = None
         self._supported_formats = []
         if supported_formats:
@@ -310,7 +314,7 @@ class BasicComplex:
                                         'mimeType')
 
     def _is_supported(self, data_format):
-        """ Always return True if 
+        """ Always return True if
             no supported formats are defined
         """
         if self.supported_formats:
@@ -486,6 +490,3 @@ class ComplexOutput(BasicIO, BasicComplex, IOHandler):
         BasicIO.__init__(self, identifier, title, abstract)
         IOHandler.__init__(self, mode=mode)
         BasicComplex.__init__(self, data_format, supported_formats)
-
-
-

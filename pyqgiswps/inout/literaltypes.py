@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 """Literaltypes are used for LiteralInputs, to make sure, input data are OK
@@ -36,7 +36,7 @@ Json = TypeVar('Json')
 LiteralInputValue = TypeVar('LiteralInputValue')
 
 # Comparable type for value range
-LiteralNumeric = TypeVar('LiteralNumeric',int,float)
+LiteralNumeric = TypeVar('LiteralNumeric', int, float)
 
 # Literal data types
 LITERAL_DATA_TYPES = ogc.OGCTYPE.keys()
@@ -62,11 +62,11 @@ class AllowedValues(*ogc.exports.AllowedValues):
     :param pyqgiswps.input.literaltypes.RANGECLOSURETYPE range_closure:
     """
 
-    def __init__(self, allowed_type: ALLOWEDVALUETYPE = ALLOWEDVALUETYPE.VALUE, 
-                 values: Optional[List[Any]]=None,
-                 minval: Optional[LiteralNumeric]=None, 
-                 maxval: Optional[LiteralNumeric]=None, 
-                 spacing: Optional[LiteralNumeric]=None,
+    def __init__(self, allowed_type: ALLOWEDVALUETYPE = ALLOWEDVALUETYPE.VALUE,
+                 values: Optional[List[Any]] = None,
+                 minval: Optional[LiteralNumeric] = None,
+                 maxval: Optional[LiteralNumeric] = None,
+                 spacing: Optional[LiteralNumeric] = None,
                  range_closure: RANGECLOSURETYPE = RANGECLOSURETYPE.CLOSED) -> None:
 
         AnyValue.__init__(self)
@@ -91,7 +91,7 @@ class AllowedValues(*ogc.exports.AllowedValues):
         return {
             'type': 'allowedvalues',
             'allowed_type': self.allowed_type,
-            'values' : values,
+            'values': values,
             'minval': to_json_serializable(self.minval),
             'maxval': to_json_serializable(self.maxval),
             'spacing': self.spacing,
@@ -101,19 +101,19 @@ class AllowedValues(*ogc.exports.AllowedValues):
     @staticmethod
     def positiveValue() -> 'AllowedValues':
         """ Define range for value > 0 """
-        return AllowedValues(ALLOWEDVALUETYPE.RANGE, 
-                             minval=0, 
+        return AllowedValues(ALLOWEDVALUETYPE.RANGE,
+                             minval=0,
                              range_closure=RANGECLOSURETYPE.OPEN)
 
     @staticmethod
-    def nonNegativeValue() -> 'AllowedValues': 
+    def nonNegativeValue() -> 'AllowedValues':
         """ Define range for value >= 0 """
-        return AllowedValues(ALLOWEDVALUETYPE.RANGE, 
-                             minval=0, 
+        return AllowedValues(ALLOWEDVALUETYPE.RANGE,
+                             minval=0,
                              range_closure=RANGECLOSURETYPE.CLOSED)
 
     @staticmethod
-    def range(minval, maxval, spacing=None, 
+    def range(minval, maxval, spacing=None,
               range_closure: RANGECLOSURETYPE = RANGECLOSURETYPE.CLOSED) -> 'AllowedValues':
         """ Define range of values """
         return AllowedValues(ALLOWEDVALUETYPE.RANGE,
@@ -236,7 +236,7 @@ def convert_anyURI(inpt: LiteralInputValue) -> str:
             'The value "{}" does not seem to be of type anyURI'.format(inpt))
 
 
-def convert_time(inpt: LiteralInputValue ) -> datetime.time:
+def convert_time(inpt: LiteralInputValue) -> datetime.time:
     """Return value of input
     time formating assumed according to ISO standard:
 
@@ -266,7 +266,7 @@ def convert_date(inpt: LiteralInputValue) -> datetime.date:
     return inpt
 
 
-def convert_datetime(inpt: LiteralInputValue ) -> datetime.datetime:
+def convert_datetime(inpt: LiteralInputValue) -> datetime.datetime:
     """Return value of input
     dateTime formating assumed according to ISO standard:
 
@@ -304,6 +304,3 @@ def is_anyvalue(value: Any) -> bool:
     """Check for any value object of given value
     """
     return (value == AnyValue) or (value is None) or isinstance(value, AnyValue)
-
-
-

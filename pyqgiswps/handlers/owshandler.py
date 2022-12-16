@@ -14,8 +14,8 @@ from tornado.escape import xhtml_escape as escape
 
 from .basehandler import HTTPError, BaseHandler
 
-from pyqgiswps.exceptions import (NoApplicableCode, 
-                                  InvalidParameterValue, 
+from pyqgiswps.exceptions import (NoApplicableCode,
+                                  InvalidParameterValue,
                                   OperationNotSupported)
 
 from pyqgiswps.ogc.ows.request import OWSRequest
@@ -28,6 +28,7 @@ LOGGER = logging.getLogger('SRVLOG')
 class OWSHandler(BaseHandler):
     """ Handle WPS requests
     """
+
     def initialize(self, access_policy, service_url):
         super().initialize()
 
@@ -54,7 +55,7 @@ class OWSHandler(BaseHandler):
         """
         wpsrequest = method_parser(self)
 
-        wpsrequest.map_uri  = self.get_argument('MAP', default=None)
+        wpsrequest.map_uri = self.get_argument('MAP', default=None)
         wpsrequest.host_url = self.proxy_url()
 
         # Check for service url
@@ -73,13 +74,13 @@ class OWSHandler(BaseHandler):
             response = wpsrequest.get_capabilities(service, self.accesspolicy)
 
         elif wpsrequest.operation == 'describeprocess':
-            if any( not self.accesspolicy.allow(ident) for ident in wpsrequest.identifiers ):
-                raise HTTPError(403,reason="Unauthorized operation")
+            if any(not self.accesspolicy.allow(ident) for ident in wpsrequest.identifiers):
+                raise HTTPError(403, reason="Unauthorized operation")
             response = wpsrequest.describe(service, map_uri=wpsrequest.map_uri)
 
         elif wpsrequest.operation == 'execute':
             if not self.accesspolicy.allow(wpsrequest.identifier):
-                raise HTTPError(403,reason="Unauthorized operation")
+                raise HTTPError(403, reason="Unauthorized operation")
 
             job_id = uuid.uuid1()
 
@@ -115,10 +116,10 @@ class OWSHandler(BaseHandler):
         """
         self.check_service()
         document = await self.handle_wps_request(OWSRequest.parse_post_request)
-        
+
         self.write_xml(document)
 
-    def options(self, endpoint: Optional[str]=None) -> None:
+    def options(self, endpoint: Optional[str] = None) -> None:
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('GET, POST, OPTIONS')
@@ -131,9 +132,12 @@ class OWSHandler(BaseHandler):
             description = f'<ows:ExceptionText>{escape(exc.description)}</ows:ExceptionText>'
         else:
             description = ''
-        
+
         body = (  # noqa
-            '<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/ows/1.1 http://schemas.opengis.net/ows/1.1.0/owsExceptionReport.xsd" version="1.0.0">\n'
+            '<ows:ExceptionReport xmlns:ows="http://www.opengis.net/ows/1.1" '
+            'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+            'xsi:schemaLocation="http://www.opengis.net/ows/1.1 '
+            'http://schemas.opengis.net/ows/1.1.0/owsExceptionReport.xsd" version="1.0.0">\n'
             '  <ows:Exception exceptionCode="%(name)s" locator="%(locator)s" >\n'
             '      %(description)s\n'
             '  </ows:Exception>\n'

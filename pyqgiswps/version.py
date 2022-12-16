@@ -9,11 +9,12 @@
 
 import sys
 
+
 def read_manifest() -> None:
     from pkg_resources import resource_stream
 
     # Read build manifest
-    manifest = { 'commitid':'n/a', 'buildid':'n/a', 'version':'n/a' }
+    manifest = {'commitid': 'n/a', 'buildid': 'n/a', 'version': 'n/a'}
     try:
         manifest.update(line.decode().strip().split('=')[:2] for line in resource_stream('pyqgiswps',
                                                                                          'build.manifest').readlines())
@@ -22,9 +23,8 @@ def read_manifest() -> None:
 
     return manifest
 
+
 __manifest__ = read_manifest()
 
-__version__    = __manifest__['version'] 
-__description__="QGIS/Processing WPS server"
-
-
+__version__ = __manifest__['version']
+__description__ = "QGIS/Processing WPS server"

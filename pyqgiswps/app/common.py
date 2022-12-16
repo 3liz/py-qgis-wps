@@ -6,13 +6,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
 import pyqgiswps.ogc as ogc
+
 
 class Metadata(*ogc.exports.Metadata):
     """
@@ -28,4 +29,3 @@ class Metadata(*ogc.exports.Metadata):
         self.href = href
         self.role = role
         self.type = type_
-       

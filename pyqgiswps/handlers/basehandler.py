@@ -25,9 +25,11 @@ from typing import Any, Union, Optional, Awaitable
 
 LOGGER = logging.getLogger('SRVLOG')
 
+
 class BaseHandler(tornado.web.RequestHandler):
     """ Base class for HTTP request hanlers
     """
+
     def initialize(self) -> None:
         super().initialize()
         self.connection_closed = False
@@ -35,9 +37,9 @@ class BaseHandler(tornado.web.RequestHandler):
         self._cross_origin = self._cfg.getboolean('cross_origin')
 
     def prepare(self) -> None:
-        self.has_body_arguments = len(self.request.body_arguments)>0
+        self.has_body_arguments = len(self.request.body_arguments) > 0
         # Replace query arguments to upper case:
-        self.request.arguments = { k.upper():v for (k,v) in self.request.arguments.items() }
+        self.request.arguments = {k.upper(): v for (k, v) in self.request.arguments.items()}
 
     def compute_etag(self) -> None:
         # Disable etag computation
@@ -54,11 +56,11 @@ class BaseHandler(tornado.web.RequestHandler):
         self.connection_closed = True
         LOGGER.warning("Connection closed by client: {}".format(self.request.uri))
 
-    def set_option_headers(self, allow_header: Optional[str]=None) -> None:
+    def set_option_headers(self, allow_header: Optional[str] = None) -> None:
         """  Set correct headers for 'OPTION' method
         """
         if not allow_header:
-            allow_header = ', '.join( me for me in self.SUPPORTED_METHODS if hasattr(self, me.lower()) )
+            allow_header = ', '.join(me for me in self.SUPPORTED_METHODS if hasattr(self, me.lower()))
 
         self.set_header("Allow", allow_header)
         if self.set_access_control_headers():
@@ -99,7 +101,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(wps_version_comment)
         self.write(xml)
 
-    def write_json(self, chunk: Union[dict,str]) -> None:
+    def write_json(self, chunk: Union[dict, str]) -> None:
         """ Write body as json
 
             The method will also set CORS implicitely for any origin
@@ -120,18 +122,18 @@ class BaseHandler(tornado.web.RequestHandler):
         if "exc_info" in kwargs:
             exception = kwargs['exc_info'][1]
             # Error was caused by a exception
-            if  not isinstance(exception, NoApplicableCode ):
+            if not isinstance(exception, NoApplicableCode):
                 exception = NoApplicableCode(message or str(exception), code=status_code)
         else:
             exception = NoApplicableCode(message, code=status_code)
 
         LOGGER.debug('Request failed with message: %s %s', message, str(exception))
- 
+
         self.format_exception(exception)
         self.finish()
 
     def format_exception(self, exc: NoApplicableCode) -> None:
-        """ Format exception 
+        """ Format exception
             Override this in handler
         """
         self.write_json({
@@ -156,7 +158,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 if proxy_url[-1] != '/':
                     proxy_url = f"{proxy_url}/"
                 return proxy_url
-        
+
         return f"{req.protocol}://{req.host}/"
 
 
@@ -169,7 +171,7 @@ class NotFoundHandler(BaseHandler):
 
 
 class ErrorHandler(BaseHandler):
-    def initialize(self, status_code: int, reason: Optional[str]=None) -> None:
+    def initialize(self, status_code: int, reason: Optional[str] = None) -> None:
         super().initialize()
         self.set_status(status_code)
         self.reason = reason
@@ -186,7 +188,7 @@ class DownloadMixIn:
         """
         if not path.is_file():
             LOGGER.error("File '%s' not found", path)
-            raise HTTPError(404,reason="Resource not found")
+            raise HTTPError(404, reason="Resource not found")
 
         # Check modification time
         mtime = str(path.stat().st_mtime)
@@ -201,7 +203,7 @@ class DownloadMixIn:
         if not content_type:
             content_type = mimetypes.types_map.get(path.suffix) or "application/octet-stream"
 
-        self.set_header("Content-Type", content_type)       
+        self.set_header("Content-Type", content_type)
         self.set_header("Etag", etag)
 
         if cache_control:
@@ -216,7 +218,3 @@ class DownloadMixIn:
                     await self.flush()
                 else:
                     break
-
-
-
-

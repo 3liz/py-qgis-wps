@@ -27,7 +27,6 @@ HandlerDelegate = TypeVar('HandlerDelegate')
 LOGGER = logging.getLogger('SRVLOG')
 
 
-
 class _Policy(NamedTuple):
     pri: int
     filters: List[_FilterBase]
@@ -42,18 +41,18 @@ def load_policies() -> List[_FilterBase]:
         @staticmethod
         def add_filters(filters, pri=0):
             if LOGGER.isEnabledFor(logging.DEBUG):
-                LOGGER.debug("Adding policy filter(s):\n%s", '\n'.join(str(f) for f in filters)) 
-            collection.append(_Policy(pri, [p for p in filters if isinstance(p,_FilterBase)]))
+                LOGGER.debug("Adding policy filter(s):\n%s", '\n'.join(str(f) for f in filters))
+            collection.append(_Policy(pri, [p for p in filters if isinstance(p, _FilterBase)]))
 
     import pyqgisservercontrib.core.componentmanager as cm
-    cm.register_entrypoints('py_qgis_wps.access_policy', policy_service) 
+    cm.register_entrypoints('py_qgis_wps.access_policy', policy_service)
 
     return collection
 
 
 class MiddleWareRouter(Router):
 
-    def __init__(self, app: tornado.web.Application, filters: List[_FilterBase]=None) -> None:
+    def __init__(self, app: tornado.web.Application, filters: List[_FilterBase] = None) -> None:
         """ Initialize middleware filters
         """
         LOGGER.info("Initializing middleware filters")
@@ -61,13 +60,13 @@ class MiddleWareRouter(Router):
         self.policies = load_policies()
 
         if filters:
-            self.policies.append(_Policy(0, [p for p in filters if isinstance(p,_FilterBase)]))
+            self.policies.append(_Policy(0, [p for p in filters if isinstance(p, _FilterBase)]))
 
         # Sort filters
         self.policies.sort(key=lambda p: p.pri, reverse=True)
 
     def find_handler(self, request, **kwargs) -> HandlerDelegate:
-        """ Define middleware prerocessing 
+        """ Define middleware prerocessing
         """
         wps_policy_defs = None
         # Find matching paths
@@ -87,7 +86,7 @@ class MiddleWareRouter(Router):
                     except Exception:
                         LOGGER.critical(traceback.format_exc())
                         return self.app.get_handler_delegate(request, ErrorHandler, {'status_code': 500})
-        
+
         delegate = self.app.find_handler(request, **kwargs)
 
         if wps_policy_defs:
@@ -98,7 +97,7 @@ class MiddleWareRouter(Router):
                 access_policy = new_access_policy()
                 for policy_def in wps_policy_defs:
                     access_policy.add_policy(**policy_def)
-                    
+
                 handler_kwargs.update(access_policy=access_policy)
 
         return delegate

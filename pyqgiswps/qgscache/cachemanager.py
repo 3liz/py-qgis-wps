@@ -22,7 +22,7 @@ from ..config import confservice
 
 from qgis.core import (Qgis,
                        QgsApplication,
-                       QgsProjectBadLayerHandler, 
+                       QgsProjectBadLayerHandler,
                        QgsProject)
 
 from qgis.server import QgsServerProjectUtils
@@ -30,9 +30,10 @@ from qgis.server import QgsServerProjectUtils
 from pyqgisservercontrib.core import componentmanager
 
 # Import default handlers for auto-registration
-from .handlers import * # noqa: F403,F401
+from .handlers import *  # noqa: F403,F401
 
 LOGGER = logging.getLogger('SRVLOG')
+
 
 class CacheDetails(NamedTuple):
     project: QgsProject
@@ -50,44 +51,45 @@ class PathNotAllowedError(Exception):
 CACHE_MANAGER_CONTRACTID = '@3liz.org/cache-manager;1'
 
 
-def _merge_qs( query1: str, query2: str ) -> str:
+def _merge_qs(query1: str, query2: str) -> str:
     """ Merge query1 with query2 but coerce values
-        from query1 
+        from query1
     """
     params_1 = parse_qs(query1)
     params_2 = parse_qs(query2)
     params_2.update(params_1)
-    return '&'.join('%s=%s' % (k,v[0]) for k,v in params_2.items())
+    return '&'.join('%s=%s' % (k, v[0]) for k, v in params_2.items())
 
 
 class QgisStorageHandler:
     """ Handler for handling Qgis supported storage
         throught the `QgsProjectStorage` api.
     """
+
     def __init__(self):
         pass
 
-    def get_storage_metadata( self, uri: str ):
+    def get_storage_metadata(self, uri: str):
         # Check out for storage
         storage = QgsApplication.projectStorageRegistry().projectStorageFromUri(uri)
         if not storage:
             LOGGER.error("No project storage found for %s", uri)
             raise FileNotFoundError(uri)
-        res, metadata = storage.readProjectStorageMetadata( uri )
+        res, metadata = storage.readProjectStorageMetadata(uri)
         if not res:
             LOGGER.error("Failed to read storage metadata for %s", uri)
             raise FileNotFoundError(uri)
         return metadata
 
-    def get_modified_time( self, url: urllib.parse.ParseResult) -> datetime:
+    def get_modified_time(self, url: urllib.parse.ParseResult) -> datetime:
         """ Return the modified date time of the project referenced by its url
         """
         metadata = self.get_storage_metadata(urlunparse(url))
         return metadata.lastModified.toPyDateTime()
 
-    def get_project( self, url: urllib.parse.ParseResult,
-                     project: Optional[QgsProject]=None,
-                     timestamp: Optional[datetime]=None) -> Tuple[QgsProject, datetime]:
+    def get_project(self, url: urllib.parse.ParseResult,
+                    project: Optional[QgsProject] = None,
+                    timestamp: Optional[datetime] = None) -> Tuple[QgsProject, datetime]:
         """ Create or return a project
         """
         uri = urlunparse(url)
@@ -96,8 +98,8 @@ class QgisStorageHandler:
         modified_time = metadata.lastModified.toPyDateTime()
 
         if timestamp is None or timestamp < modified_time:
-            cachmngr  = componentmanager.get_service('@3liz.org/cache-manager;1')
-            project   = cachmngr.read_project(uri)
+            cachmngr = componentmanager.get_service('@3liz.org/cache-manager;1')
+            project = cachmngr.read_project(uri)
             timestamp = modified_time
 
         return project, timestamp
@@ -105,7 +107,7 @@ class QgisStorageHandler:
 
 @componentmanager.register_factory(CACHE_MANAGER_CONTRACTID)
 class QgsCacheManager:
-    """ Handle Qgis project cache 
+    """ Handle Qgis project cache
     """
 
     def __init__(self) -> None:
@@ -123,7 +125,7 @@ class QgsCacheManager:
         self._trust_layer_metadata = cnf.getboolean('trust_layer_metadata')
         self._disable_getprint = cnf.getboolean('disable_getprint')
         self._aliases = {}
-        self._default_scheme = cnf.get('default_handler',fallback='file')
+        self._default_scheme = cnf.get('default_handler', fallback='file')
 
         allowed_schemes = cnf.get('allow_storage_schemes')
         if allowed_schemes != '*':
@@ -156,17 +158,17 @@ class QgsCacheManager:
         """
         del self._cache[key]
 
-    def resolve_alias(self, key: str ) -> urllib.parse.ParseResult:
+    def resolve_alias(self, key: str) -> urllib.parse.ParseResult:
         """ Resolve scheme from configuration variables
         """
-        url    = urlparse(key)
+        url = urlparse(key)
         scheme = url.scheme or self._default_scheme
         LOGGER.debug("Resolving '%s' protocol", scheme)
         baseurl = self._aliases.get(scheme)
         if not baseurl:
             try:
                 # Check for user-defined scheme
-                baseurl = confservice.get('projects.schemes',scheme.replace('-','_').lower())
+                baseurl = confservice.get('projects.schemes', scheme.replace('-', '_').lower())
             except KeyError:
                 pass
             else:
@@ -177,15 +179,15 @@ class QgsCacheManager:
                 url = urlparse(baseurl.format(path=url.path))
             else:
                 baseurl = urlparse(baseurl)
-                # Build a new query from coercing with base url params 
+                # Build a new query from coercing with base url params
                 query = _merge_qs(baseurl.query, url.query)
                 # XXX Note that the path of the base url must be terminated by '/'
                 # otherwise urljoin() will replace the base name - may be not what we want
-                url = urlparse(urljoin(baseurl.geturl(),url.path+'?'+query))
+                url = urlparse(urljoin(baseurl.geturl(), url.path + '?' + query))
 
         return url
 
-    def get_project_factory( self, key: str ):
+    def get_project_factory(self, key: str):
         """ Return project store create function for the given key
         """
         url = self.resolve_alias(key)
@@ -203,8 +205,8 @@ class QgsCacheManager:
             LOGGER.warning("No protocol handler found for %s: using Qgis storage handler", scheme)
             # Fallback to Qgis storage handler
             store = QgisStorageHandler()
-       
-        return partial(store.get_project,url)
+
+        return partial(store.get_project, url)
 
     def update_entry(self, key: str) -> bool:
         """ Update the cache
@@ -219,7 +221,7 @@ class QgsCacheManager:
         # Get details for the project
         details = self._cache.peek(key)
         if details is not None:
-            project, timestamp  = get_project(**details._asdict())
+            project, timestamp = get_project(**details._asdict())
             updated = timestamp != details.timestamp
         else:
             project, timestamp = get_project()
@@ -272,17 +274,17 @@ class BadLayerHandler(QgsProjectBadLayerHandler):
         super().__init__()
         self.badLayerNames = set()
 
-    def handleBadLayers( self, layers ) -> None:
+    def handleBadLayers(self, layers) -> None:
         """ See https://qgis.org/pyqgis/3.0/core/Project/QgsProjectBadLayerHandler.html
         """
-        super().handleBadLayers( layers )
+        super().handleBadLayers(layers)
 
         nameElements = (lyr.firstChildElement("layername") for lyr in layers if lyr)
         self.badLayerNames = set(elem.text() for elem in nameElements if elem)
 
-    def validateLayers( self, project: QgsProject ) -> bool:
+    def validateLayers(self, project: QgsProject) -> bool:
         """ Check layers
-            
+
             If layers are excluded do not count them as bad layers
             see https://github.com/qgis/QGIS/pull/33668
         """
@@ -294,4 +296,3 @@ class BadLayerHandler(QgsProjectBadLayerHandler):
 
 
 cacheservice = componentmanager.get_service(CACHE_MANAGER_CONTRACTID)
-

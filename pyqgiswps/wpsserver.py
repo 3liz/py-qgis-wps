@@ -13,19 +13,19 @@ import logging
 
 from .version import __manifest__, __description__
 from .runtime import run_server
-from .config import (load_configuration, 
-                     read_config_file, 
+from .config import (load_configuration,
+                     read_config_file,
                      confservice,
                      warn_unsafe_options)
 from .logger import setup_log_handler
 
-LOGGER=logging.getLogger('SRVLOG')
+LOGGER = logging.getLogger('SRVLOG')
 
 
 def print_version() -> None:
 
     program = os.path.basename(sys.argv[0])
-    print("{program} {version} (build {buildid},commit {commitid})".format(program=program,**__manifest__),
+    print("{program} {version} (build {buildid},commit {commitid})".format(program=program, **__manifest__),
           file=sys.stderr)
 
 
@@ -41,19 +41,19 @@ def read_configuration(args=None):
 
     config_file = None
 
-    cli_parser.add_argument('-d','--debug', action='store_true', default=False, help="Set debug mode")
-    cli_parser.add_argument('-c','--config', metavar='PATH', nargs='?', dest='config',
+    cli_parser.add_argument('-d', '--debug', action='store_true', default=False, help="Set debug mode")
+    cli_parser.add_argument('-c', '--config', metavar='PATH', nargs='?', dest='config',
                             default=config_file, help="Configuration file")
     cli_parser.add_argument('--version', action='store_true',
                             default=False, help="Return version number and exit")
-    cli_parser.add_argument('-p','--port'    , type=int, help="http port", dest='port', 
+    cli_parser.add_argument('-p', '--port', type=int, help="http port", dest='port',
                             default=argparse.SUPPRESS)
-    cli_parser.add_argument('-b','--bind'    , metavar='IP',  default=argparse.SUPPRESS, 
+    cli_parser.add_argument('-b', '--bind', metavar='IP', default=argparse.SUPPRESS,
                             help="Interfaces to bind to", dest='interfaces')
-    cli_parser.add_argument('-u','--setuid'  , default=None, help="uid to switch to", dest='setuid')
-    cli_parser.add_argument('-w','--workers' , metavar='NUM', type=int, default=argparse.SUPPRESS,
+    cli_parser.add_argument('-u', '--setuid', default=None, help="uid to switch to", dest='setuid')
+    cli_parser.add_argument('-w', '--workers', metavar='NUM', type=int, default=argparse.SUPPRESS,
                             help="number of parallel processes", dest='parallelprocesses')
-    cli_parser.add_argument('--dump-config'  , action='store_true', help="Dump the configuration and exit")
+    cli_parser.add_argument('--dump-config', action='store_true', help="Dump the configuration and exit")
 
     args = cli_parser.parse_args()
 
@@ -67,14 +67,14 @@ def read_configuration(args=None):
         read_config_file(args.config)
 
     # Override config
-    def set_arg( section:str, name:str ) -> None:
+    def set_arg(section: str, name: str) -> None:
         if name in args:
-            confservice.set( section, name, str(getattr(args,name)))
+            confservice.set(section, name, str(getattr(args, name)))
 
     set_arg('server', 'port')
     set_arg('server', 'interfaces')
     set_arg('server', 'parallelprocesses')
-    
+
     if args.debug:
         # Force debug mode
         confservice.set('logging', 'level', 'DEBUG')
@@ -91,7 +91,7 @@ def read_configuration(args=None):
     print("Log level set to {}\n".format(logging.getLevelName(LOGGER.level)), file=sys.stderr)
 
     conf = confservice['server']
-    args.port       = conf.getint('port')
+    args.port = conf.getint('port')
     args.interfaces = conf['interfaces']
     return args
 
@@ -100,8 +100,4 @@ def main():
     """ Run the server as cli command
     """
     args = read_configuration()
-    run_server( port=args.port, address=args.interfaces, user=args.setuid ) 
-
-
-
-
+    run_server(port=args.port, address=args.interfaces, user=args.setuid)

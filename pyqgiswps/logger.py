@@ -5,7 +5,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-""" Logger 
+""" Logger
 """
 import os
 import sys
@@ -17,11 +17,11 @@ from .config import confservice
 LOGGER = logging.getLogger('SRVLOG')
 
 REQ_LOG_TEMPLATE = u"{ip}\t{code}\t{method}\t{url}\t{time}\t{length}\t"
-REQ_FORMAT = REQ_LOG_TEMPLATE+'{agent}\t{referer}'
+REQ_FORMAT = REQ_LOG_TEMPLATE + '{agent}\t{referer}'
 RREQ_FORMAT = REQ_LOG_TEMPLATE
 
 # Lies between warning and error
-REQ  = 21
+REQ = 21
 RREQ = 22
 
 FORMATSTR = '%(asctime)s\t[%(process)d]\t%(levelname)s\t%(message)s'
@@ -32,16 +32,17 @@ def configure_log_levels():
     logging.addLevelName(RREQ, "RREQ")
 
 
-def setup_log_handler(log_level:str=None):
+def setup_log_handler(log_level: str = None):
     """ Initialize log handler with the given log level
     """
     configure_log_levels()
 
-    logger    = LOGGER
+    logger = LOGGER
     formatstr = FORMATSTR
-#   formatstr = '%(asctime)s] [%(levelname)s] file=%(pathname)s line=%(lineno)s module=%(module)s function=%(funcName)s %(message)s'
+#   formatstr = '%(asctime)s] [%(levelname)s] file=%(pathname)s line=%(lineno)s '
+#               'module=%(module)s function=%(funcName)s %(message)s'
 
-    log_level = log_level or confservice.get('logging','level', fallback='debug')
+    log_level = log_level or confservice.get('logging', 'level', fallback='debug')
     logger.setLevel(getattr(logging, log_level.upper()))
     channel = logging.StreamHandler(sys.stderr)
     formatter = logging.Formatter(formatstr)
@@ -50,11 +51,11 @@ def setup_log_handler(log_level:str=None):
 
 
 @contextmanager
-def logfile_context( workdir:str, basename:str ):
+def logfile_context(workdir: str, basename: str):
     """ Add a temporary file handler
     """
-    logfile   = os.path.join(workdir, "%s.log" % basename)
-    channel   = logging.FileHandler(logfile)
+    logfile = os.path.join(workdir, "%s.log" % basename)
+    channel = logging.FileHandler(logfile)
     formatter = logging.Formatter(FORMATSTR)
     channel.setFormatter(formatter)
     LOGGER.addHandler(channel)
@@ -75,12 +76,12 @@ def format_log_request(handler):
             length: the size of the payload
     """
     request = handler.request
-    code    = handler.get_status()
+    code = handler.get_status()
     reqtime = request.request_time()
 
-    length  = handler._headers.get('Content-Length') or -1
-    agent   = request.headers.get('User-Agent') or ""
-    referer = request.headers.get('Referer')  or ""
+    length = handler._headers.get('Content-Length') or -1
+    agent = request.headers.get('User-Agent') or ""
+    referer = request.headers.get('Referer') or ""
 
     fmt = REQ_FORMAT.format(
         ip=request.remote_ip,
@@ -124,7 +125,7 @@ def format_log_rrequest(response):
             length: the size of the payload
     """
     request = response.request
-    code    = response.code
+    code = response.code
     reqtime = response.request_time
 
     length = -1
@@ -155,4 +156,3 @@ def log_rrequest(response):
     fmt, code, reqtime, length = format_log_rrequest(response)
     LOGGER.log(RREQ, fmt)
     return code, reqtime, length
-

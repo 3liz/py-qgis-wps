@@ -6,7 +6,7 @@
 
 
 try:
-    from osgeo import gdal, ogr # noqa F401
+    from osgeo import gdal, ogr  # noqa F401
 except ImportError:
     from pyqgiswps.exceptions import NoApplicableCode
     raise NoApplicableCode('Complex validation requires GDAL/OGR support')

@@ -5,10 +5,10 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-# 
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+#
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -35,9 +35,9 @@ from ..ogc import OGC_CONFORMANCE_NS
 from typing import TypeVar, Optional, Iterable
 
 AccessPolicy = TypeVar('AccessPolicy')
-Service      = TypeVar('Service')
-WPSProcess   = TypeVar('WPSProcess')
-UUID         = TypeVar('UUID')
+Service = TypeVar('Service')
+WPSProcess = TypeVar('WPSProcess')
+UUID = TypeVar('UUID')
 
 
 LOGGER = logging.getLogger('SRVLOG')
@@ -49,7 +49,7 @@ SCHEMA_VERSIONS = ('1.0.0',)
 def _check_version(version):
     """ check given version
     """
-    return  version in SCHEMA_VERSIONS
+    return version in SCHEMA_VERSIONS
 
 
 class OWSRequest(WPSRequest):
@@ -57,7 +57,7 @@ class OWSRequest(WPSRequest):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.lineage = False
-        # Replacement url used either with 
+        # Replacement url used either with
         # X-Qgis-Service-Url
         # X-Qgis-Wps-Service-Url
         self.service_url = None
@@ -65,8 +65,6 @@ class OWSRequest(WPSRequest):
     @staticmethod
     def conformance() -> str:
         return OGC_CONFORMANCE_NS.OWS_WPS.value
-
-
 
     @staticmethod
     def parse_get_request(handler) -> WPSRequest:
@@ -92,7 +90,7 @@ class OWSRequest(WPSRequest):
         def parse_get_getcapabilities():
             """Parse GET GetCapabilities request
             """
-            acceptedversions =  _get_query_param('ACCEPTVERSIONS', None)
+            acceptedversions = _get_query_param('ACCEPTVERSIONS', None)
             wpsrequest.check_accepted_versions(acceptedversions)
 
         def parse_get_describeprocess():
@@ -116,7 +114,7 @@ class OWSRequest(WPSRequest):
             wpsrequest.check_and_set_language(language)
 
             wpsrequest.identifier = _get_query_param('IDENTIFIER')
-            
+
             timeout = _get_query_param('TIMEOUT', None)
             wpsrequest.check_and_set_timeout(timeout)
 
@@ -407,7 +405,8 @@ class OWSRequest(WPSRequest):
                 contact_info_doc.append(address_doc)
 
             if metadata.get('contact_url'):
-                contact_info_doc.append(OWS.OnlineResource({'{http://www.w3.org/1999/xlink}href': metadata.get('contact_url')}))
+                contact_info_doc.append(OWS.OnlineResource(
+                    {'{http://www.w3.org/1999/xlink}href': metadata.get('contact_url')}))
             if metadata.get('contact_hours'):
                 contact_info_doc.append(OWS.HoursOfService(metadata.get('contact_hours')))
             if metadata.get('contact_instructions'):
@@ -462,7 +461,7 @@ class OWSRequest(WPSRequest):
 
         doc.append(WPS.ProcessOfferings(*process_elements))
 
-        languages = confservice.get('server','language').split(',')
+        languages = confservice.get('server', 'language').split(',')
         languages_doc = WPS.Languages(
             WPS.Default(
                 OWS.Language(languages[0])
@@ -477,19 +476,19 @@ class OWSRequest(WPSRequest):
 
         return doc
 
-    def get_processes_for_request(self, service: Service,  idents: Iterable[str], 
-                                  map_uri: Optional[str]=None) -> Iterable[WPSProcess]:
+    def get_processes_for_request(self, service: Service, idents: Iterable[str],
+                                  map_uri: Optional[str] = None) -> Iterable[WPSProcess]:
         try:
             return service.get_processes(idents, map_uri)
         except UnknownProcessError as exc:
             raise InvalidParameterValue(f"Unknown process '{exc}'", "identifier") from None
         except Exception as e:
-            LOGGER.critical("Exception:\n%s",traceback.format_exc())
+            LOGGER.critical("Exception:\n%s", traceback.format_exc())
             raise NoApplicableCode(str(e), code=500) from None
 
-    async def execute(self, service: Service, uuid: UUID, 
-                      map_uri: Optional[str]=None) -> bytes:
-        try:        
+    async def execute(self, service: Service, uuid: UUID,
+                      map_uri: Optional[str] = None) -> bytes:
+        try:
             process = service.get_process(self.identifier, map_uri=map_uri)
         except UnknownProcessError as exc:
             raise InvalidParameterValue(f"Invalid process '{exc}'", "identifier") from None
@@ -499,7 +498,7 @@ class OWSRequest(WPSRequest):
     #
     # Describe
     #
-    def describe(self, service: Service, map_uri: Optional[str]=None) -> XMLDocument:
+    def describe(self, service: Service, map_uri: Optional[str] = None) -> XMLDocument:
         """ Return process description
         """
         identifiers = self.identifiers
@@ -512,7 +511,8 @@ class OWSRequest(WPSRequest):
             identifiers = [p.identifier for p in service.processes]
 
         identifier_elements = []
-        identifier_elements.extend(p.describe_xml() for p in self.get_processes_for_request(service, identifiers, map_uri=map_uri))
+        identifier_elements.extend(p.describe_xml()
+                                   for p in self.get_processes_for_request(service, identifiers, map_uri=map_uri))
 
         doc = WPS.ProcessDescriptions(*identifier_elements)
         doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
@@ -522,8 +522,8 @@ class OWSRequest(WPSRequest):
         doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
         return doc
 
-        
     # Create response
+
     def create_response(self, process, uuid) -> OWSResponse:
         """ Create the response for execute request for
             handling OWS Response
@@ -533,6 +533,7 @@ class OWSRequest(WPSRequest):
 #
 # Utilities
 #
+
 
 def _get_dataelement_value(value_el):
     """Return real value of XML Element (e.g. convert Element.FeatureCollection
@@ -638,7 +639,7 @@ def get_inputs_from_xml(doc):
 
 def get_output_from_xml(doc):
     """
-        Note that we ignore 'transmissionMode' since we 
+        Note that we ignore 'transmissionMode' since we
         do not allow client to change it.
     """
     return {}
@@ -686,6 +687,3 @@ def get_data_from_kvp(data, part=None):
             the_data[d] = {'identifier': d, 'data': ''}
 
     return the_data
-
-
-

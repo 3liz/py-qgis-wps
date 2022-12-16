@@ -5,10 +5,10 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-# 
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+#
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -29,7 +29,7 @@ LOGGER = logging.getLogger('SRVLOG')
 
 
 def utcnow_iso():
-    return datetime.utcnow().replace(microsecond=0).isoformat()+'Z'
+    return datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
 
 
 class OWSResponse(WPSResponse):
@@ -44,7 +44,7 @@ class OWSResponse(WPSResponse):
         return WPS.Status(
             WPS.ProcessStarted(
                 self.message,
-                percentCompleted=str(max(self.status_percentage,0))
+                percentCompleted=str(max(self.status_percentage, 0))
             ),
             creationTime=utcnow_iso()
         )
@@ -79,7 +79,7 @@ class OWSResponse(WPSResponse):
         )
 
     def encode_response(self, doc: XMLDocument) -> bytes:
-        """ Return response a bytes 
+        """ Return response a bytes
         """
         return etree.tostring(doc, pretty_print=True, encoding='utf-8')
 
@@ -96,7 +96,9 @@ class OWSResponse(WPSResponse):
         doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
         doc.attrib['serviceInstance'] = f"{service_url}?service=WPS&request=GetCapabilities"
         if self.wps_request.status_uuid:
-            doc.attrib['statusLocation'] = f"{service_url}?service=WPS&request=GetResults&uuid={self.wps_request.status_uuid}"
+            doc.attrib['statusLocation'] = (f"{service_url}?service=WPS"
+                                            f"&request=GetResults"
+                                            f"&uuid={self.wps_request.status_uuid}")
 
         # Process XML
         process_doc = WPS.Process(

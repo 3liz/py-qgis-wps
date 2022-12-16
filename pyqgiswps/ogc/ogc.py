@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 from enum import Enum
@@ -28,33 +28,36 @@ OGCTYPE = {
     'float': 'urn:ogc:def:dataType:OGC:1.1:float'
 }
 
-_NUMBER_SCHEMA = { 'type': 'number' }
+_NUMBER_SCHEMA = {'type': 'number'}
 
 OGCTYPE_SCHEMA_TEMPLATE = {
     'length': _NUMBER_SCHEMA,
     'scale': _NUMBER_SCHEMA,
-    'time': { 'type': 'string', 'format': 'date' },
-    'date': { 'type': 'string', 'format': 'date' },
-    'dateTime': { 'type': 'string', 'format': 'date-time' },
+    'time': {'type': 'string', 'format': 'date'},
+    'date': {'type': 'string', 'format': 'date'},
+    'dateTime': {'type': 'string', 'format': 'date-time'},
     'gridLength': _NUMBER_SCHEMA,
     'angle': _NUMBER_SCHEMA,
-    'string': { 'type': 'string' },
-    'boolean': { 'type': 'boolean' },
-    'anyURI': { 'type': 'string', 'format': 'uri' },
-    'integer': { 'type': 'integer' },
+    'string': {'type': 'string'},
+    'boolean': {'type': 'boolean'},
+    'anyURI': {'type': 'string', 'format': 'uri'},
+    'integer': {'type': 'integer'},
     'float': _NUMBER_SCHEMA,
 }
 
 # Poor man frozenmap
 # Prevent mutate the schema
+
+
 class __OgcTypeSchema:
-    def __getitem__(self, name:str):
+    def __getitem__(self, name: str):
         return OGCTYPE_SCHEMA_TEMPLATE[name].copy()
+
 
 OGCTYPE_SCHEMA = __OgcTypeSchema()
 
 
-# For UCUM references, 
+# For UCUM references,
 # see
 # * https://ucum.org/ucum-essence.xml
 # * https://ucum.org/trac
@@ -71,8 +74,8 @@ OGCUNIT = {
     'feet': 'urn:ogc:def:uom:OGC:1.0:feet',
     'gridspacing': 'urn:ogc:def:uom:OGC:1.0:gridspacing',
     'radians': 'urn:ogc:def:uom:UCUM:rad',
-    'radian' : 'urn:ogc:def:uom:UCUM:rad',
-    'rad' : 'urn:ogc:def:uom:UCUM:rad',
+    'radian': 'urn:ogc:def:uom:UCUM:rad',
+    'rad': 'urn:ogc:def:uom:UCUM:rad',
     'kilometer': 'urn:ogc:def:uom:UCUM:km',
     'kilometers': 'urn:ogc:def:uom:UCUM:km',
     'km': 'urn:ogc:def:uom:UCUM:km',

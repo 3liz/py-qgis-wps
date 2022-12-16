@@ -59,7 +59,7 @@ test-%:
 	$(MAKE) -C tests $* FLAVOR=$(FLAVOR)
 
 lint:
-	@flake8 --ignore=E123,E2,E3,E5,W2,W3  pyqgiswps pyqgisservercontrib
+	@flake8 pyqgiswps pyqgisservercontrib
 
 test: lint manifest test-test
 

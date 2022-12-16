@@ -14,7 +14,7 @@ from collections import OrderedDict
 class lrucache():
 
     def __init__(self, size):
-        self._table    = OrderedDict()
+        self._table = OrderedDict()
         self._capacity = size
 
         # Adjust the size
@@ -66,8 +66,8 @@ class lrucache():
 
     def __iter__(self):
         """ Return an iterator that returns the keys in the cache.
-        
-            Values are returned in order from the most recently to least recently used. 
+
+            Values are returned in order from the most recently to least recently used.
             Does not modify the cache order.
 
             Make the cache behaves like a dictionary
@@ -77,23 +77,23 @@ class lrucache():
     def items(self):
         """ Return an iterator that returns the (key, value) pairs in the cache.
 
-            Items are returned  in order from the most recently to least recently used. 
+            Items are returned  in order from the most recently to least recently used.
             Does not modify the cache order.
         """
         return reversed(self._table.items())
 
     def keys(self):
         """ Return an iterator that returns the keys in the cache.
-        
-            Keys are returned in order from the most recently to least recently used. 
+
+            Keys are returned in order from the most recently to least recently used.
             Does not modify the cache order.
         """
         return reversed(self._table.keys())
 
     def values(self):
         """ Return an iterator that returns the values in the cache.
-            
-            Values are returned  in order from the most recently to least recently used. 
+
+            Values are returned  in order from the most recently to least recently used.
             Does not modify the cache order.
         """
         return reversed(self._table.values())
@@ -113,4 +113,3 @@ class lrucache():
             self._capacity = size
 
         return self._capacity
-

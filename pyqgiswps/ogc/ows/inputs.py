@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -18,6 +18,7 @@ from ..traits import register_trait
 
 from pyqgiswps.validator.base import to_json_serializable
 
+
 @register_trait
 class Metadata:
 
@@ -25,8 +26,8 @@ class Metadata:
         attrs = (('{http://www.w3.org/1999/xlink}title', self.title),
                  ('{http://www.w3.org/1999/xlink}href', self.href),
                  ('{http://www.w3.org/1999/xlink}type', self.type),)
-        return OWS.Metadata({ns:val for ns,val in attrs if val is not None})
-        
+        return OWS.Metadata({ns: val for ns, val in attrs if val is not None})
+
 
 @register_trait
 class Format:
@@ -294,7 +295,7 @@ class LiteralInput:
 
 @register_trait
 class AllowedValues:
-    
+
     def _describe_range_xml(self) -> XMLElement:
         doc = OWS.Range()
         doc.set('{%s}rangeClosure' % NAMESPACES['ows'], self.range_closure)
@@ -316,5 +317,3 @@ class AllowedValues:
             for value in self.values:
                 doc.append(OWS.Value(str(to_json_serializable(value))))
         return doc
-
-

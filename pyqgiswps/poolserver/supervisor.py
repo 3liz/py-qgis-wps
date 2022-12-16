@@ -24,7 +24,7 @@ from typing import Callable
 
 from .utils import _get_ipc
 
-LOGGER=logging.getLogger('SRVLOG')
+LOGGER = logging.getLogger('SRVLOG')
 
 
 class Client:
@@ -36,12 +36,12 @@ class Client:
 
         ctx = zmq.Context.instance()
         self._sock = ctx.socket(zmq.PUSH)
-        self._sock.setsockopt(zmq.IMMEDIATE, 1) # Do no queue if no connection
+        self._sock.setsockopt(zmq.IMMEDIATE, 1)  # Do no queue if no connection
         self._sock.connect(address)
         self._pid = os.getpid()
         self._busy = False
 
-    def _send(self, data: bytes ) -> None: 
+    def _send(self, data: bytes) -> None:
         try:
             self._sock.send_multipart([str(self._pid).encode(), data], flags=zmq.DONTWAIT)
         except zmq.ZMQError as err:
@@ -66,10 +66,9 @@ class Client:
         self._sock.close()
 
 
-
 class Supervisor:
 
-    def __init__(self, timeout: int,  killfunc: Callable[[int],None])-> None:
+    def __init__(self, timeout: int, killfunc: Callable[[int], None]) -> None:
         """ Run supervisor
 
             :param timeout: timeout delay in seconds
@@ -79,7 +78,7 @@ class Supervisor:
         ctx = zmq.asyncio.Context.instance()
         self._sock = ctx.socket(zmq.PULL)
         self._sock.setsockopt(zmq.RCVTIMEO, 1000)
-        self._sock.bind( address )
+        self._sock.bind(address)
 
         self._timeout = timeout
         self._busy = {}
@@ -104,7 +103,7 @@ class Supervisor:
         """
         loop = asyncio.get_running_loop()
 
-        def kill(pid:int) -> None:
+        def kill(pid: int) -> None:
             LOGGER.critical("Killing stalled process %s", pid)
             del self._busy[pid]
             self._killfunc(pid)
@@ -116,7 +115,7 @@ class Supervisor:
                 pid, notif = await self._sock.recv_multipart()
                 pid = int(pid)
                 if notif == b'BUSY':
-                    self._busy[pid] = loop.call_later(self._timeout,kill,pid)
+                    self._busy[pid] = loop.call_later(self._timeout, kill, pid)
                 elif notif == b'DONE':
                     try:
                         self._busy.pop(pid).cancel()
@@ -141,5 +140,3 @@ class Supervisor:
         for th in self._busy.values():
             th.cancel()
         self._busy.clear()
-
-

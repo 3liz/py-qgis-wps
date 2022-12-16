@@ -8,6 +8,6 @@
 
 
 from .file_handler import *     # noqa: F403,F401
-from .postgres_handler import * # noqa: F403,F401
+from .postgres_handler import *  # noqa: F403,F401
 
-__all__=[]
+__all__ = []

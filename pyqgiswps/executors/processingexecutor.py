@@ -30,7 +30,7 @@ from pyqgiswps.app.request import STATUS
 from pyqgiswps.logger import logfile_context
 from pyqgiswps.utils.lru import lrucache
 from pyqgiswps.exceptions import (
-    NoApplicableCode, 
+    NoApplicableCode,
     ProcessException,
     UnknownProcessError,
 )
@@ -38,8 +38,8 @@ from pyqgiswps.exceptions import (
 from pyqgiswps.config import confservice
 from pyqgiswps.app.process import WPSProcess
 
-from pyqgiswps.poolserver.client import (create_client, 
-                                         RequestBackendError, 
+from pyqgiswps.poolserver.client import (create_client,
+                                         RequestBackendError,
                                          MaxRequestsExceeded)
 
 from pyqgisservercontrib.core.watchfiles import watchfiles
@@ -56,15 +56,15 @@ class ProcessingExecutor:
 
     def __init__(self, processes: Iterable[WPSProcess]):
 
-        maxqueuesize = confservice.getint('server','maxqueuesize')
+        maxqueuesize = confservice.getint('server', 'maxqueuesize')
 
-        self._pool = create_client( maxqueuesize )
+        self._pool = create_client(maxqueuesize)
         self._context_processes = lrucache(50)
         self._factory = get_process_factory()
         self._reload_handler = None
-        self._restart_files  = []
+        self._restart_files = []
 
-        self.processes = { p.identifier: p for p in processes }
+        self.processes = {p.identifier: p for p in processes}
 
         # Launch the cleanup task
         self.schedule_cleanup()
@@ -77,33 +77,33 @@ class ProcessingExecutor:
             workers
         """
         self._restart_files.clear()
-        restartmon = confservice.get('server','restartmon')
+        restartmon = confservice.get('server', 'restartmon')
         if restartmon:
             self._restart_files.append(restartmon)
             # Watch plugins
-            pluginpath = confservice.get('processing','providers_module_path')
+            pluginpath = confservice.get('processing', 'providers_module_path')
             if pluginpath:
-                plugins = glob(os.path.join(pluginpath,'*/.update-manifest'))
+                plugins = glob(os.path.join(pluginpath, '*/.update-manifest'))
                 self._restart_files.extend(plugins)
 
             LOGGER.debug("Updated monitored files %s", self._restart_files)
             return True
-            
+
     def init_restart_handler(self):
         if self.update_restart_files():
-            def callback( *_args ): 
+            def callback(*_args):
                 self.reload_qgis_processes()
                 self.update_restart_files()
 
             LOGGER.info("Initializing reload monitoring")
-            check_time = confservice.getint('server','restartmon_check_time', 3000)
+            check_time = confservice.getint('server', 'restartmon_check_time', 3000)
             self._reload_handler = watchfiles(self._restart_files, callback, check_time)
             self._reload_handler.start()
 
-    def get_status( self, uuid=None, **kwargs ) -> Iterator:
+    def get_status(self, uuid=None, **kwargs) -> Iterator:
         """ Return status of the stored processes
 
-            :param uuid: the uuid of the required process. 
+            :param uuid: the uuid of the required process.
              If set to None, return all the stored status.
 
             :return: The status or an iterator to the list of status.
@@ -113,7 +113,7 @@ class ProcessingExecutor:
     def kill_job(self, uuid, pid: Optional[int] = None) -> bool:
         """ Kill process job
 
-            This will have no effects if the worker 
+            This will have no effects if the worker
             is not in 'BUSY' state
         """
         if pid is None:
@@ -121,18 +121,17 @@ class ProcessingExecutor:
             store = self.get_status(uuid)
             if not store:
                 return False
-       
+
             pid = store.get('pid')
             if not pid:
                 return False
 
-        return self._factory.kill_worker_busy(pid) 
+        return self._factory.kill_worker_busy(pid)
 
+    def delete_results(self, uuid, force: bool = False) -> bool:
+        """ Delete process results and status
 
-    def delete_results(self, uuid, force: bool=False) -> bool:
-        """ Delete process results and status 
- 
-            :param uuid: the uuid of the required process. 
+            :param uuid: the uuid of the required process.
              If set to None, return all the stored status.
 
             :return: True if the status has been deleted.
@@ -148,9 +147,9 @@ class ProcessingExecutor:
                 # Handle legacy status
                 pass
         else:
-            LOGGER.warning("Forcing resources deletion for job '%s'", uuid) 
+            LOGGER.warning("Forcing resources deletion for job '%s'", uuid)
 
-        workdir = os.path.abspath(confservice.get('server','workdir'))
+        workdir = os.path.abspath(confservice.get('server', 'workdir'))
 
         # Delete the working directory
         uuid_str = str(uuid)
@@ -168,7 +167,7 @@ class ProcessingExecutor:
     def get_results(self, uuid):
         """ Return results status
         """
-        return logstore.get_results(uuid) 
+        return logstore.get_results(uuid)
 
     def terminate(self):
         """ Execute cleanup tasks
@@ -182,7 +181,7 @@ class ProcessingExecutor:
         if self._pool:
             self._pool.close()
 
-    def list_processes( self ):
+    def list_processes(self):
         """ List all available processes
 
             :param ident: process identifier
@@ -191,7 +190,7 @@ class ProcessingExecutor:
         """
         return self.processes.values()
 
-    def get_processes( self, identifiers, map_uri=None ):
+    def get_processes(self, identifiers, map_uri=None):
         """ Override executors.get_process
         """
         try:
@@ -205,26 +204,26 @@ class ProcessingExecutor:
             # Create a new instance of a process for the given context
             # Contextualized processes are stored in lru cache
             def _test(p):
-                return (map_uri,p.identifier) not in self._context_processes
+                return (map_uri, p.identifier) not in self._context_processes
 
             if any(_test(p) for p in processes):
                 processes = self._factory.create_contextualized_processes(identifiers, map_uri=map_uri)
                 # Update cache
                 for p in processes:
-                    self._context_processes[(map_uri,p.identifier)] = p 
+                    self._context_processes[(map_uri, p.identifier)] = p
             else:
                 # Get from cache
-                processes = [self._context_processes[(map_uri,p.identifier)] for p in processes]
+                processes = [self._context_processes[(map_uri, p.identifier)] for p in processes]
         return processes
 
     def reload_qgis_processes(self) -> None:
-        """ Reload Qgis processes 
+        """ Reload Qgis processes
         """
         factory = self._factory
         if factory.qgis_enabled:
             try:
                 LOGGER.info("Reloading Qgis providers")
-                self.processes = { p.identifier: p for p in factory.create_qgis_processes() }
+                self.processes = {p.identifier: p for p in factory.create_qgis_processes()}
                 self._context_processes.clear()
             except ProcessException:
                 LOGGER.error("Failed to reload Qgis processes")
@@ -232,7 +231,8 @@ class ProcessingExecutor:
     def schedule_cleanup(self) -> None:
         """ Schedule a periodic cleanup
         """
-        interval = confservice.getint('server','cleanup_interval')
+        interval = confservice.getint('server', 'cleanup_interval')
+
         async def _run_cleanup():
             while True:
                 await asyncio.sleep(interval)
@@ -243,7 +243,7 @@ class ProcessingExecutor:
                     LOGGER.error("Cleanup task failed: %s", e)
 
         # Schedule the task
-        self._cleanup_task = asyncio.ensure_future( _run_cleanup() )
+        self._cleanup_task = asyncio.ensure_future(_run_cleanup())
 
     async def execute(self, wps_request, wps_response) -> Any:
         """ Execute a process
@@ -269,7 +269,7 @@ class ProcessingExecutor:
 
             # Task accepted
             wps_response.update_status('Task accepted', None, STATUS.ACCEPTED_STATUS)
-            
+
             async def do_execute_async():
                 # Handle errors while we are going async
                 try:
@@ -283,19 +283,19 @@ class ProcessingExecutor:
                     LOGGER.error(traceback.format_exc())
                     wps_response.update_status("Internal Error", None, STATUS.ERROR_STATUS)
                     pass
-           
+
             # Fire and forget
             asyncio.ensure_future(do_execute_async())
 
-            return wps_response.document 
+            return wps_response.document
         else:
             # -------------------------------
-            # Run process and wait for response 
+            # Run process and wait for response
             # -------------------------------
 
             # Task accepted
             wps_response.update_status('Task accepted', None, STATUS.ACCEPTED_STATUS)
- 
+
             try:
                 return await apply_future
             except asyncio.TimeoutError:
@@ -321,13 +321,13 @@ class ProcessingExecutor:
             os.chdir(workdir)
 
             wps_response.update_status('Task started', 0, STATUS.STARTED_STATUS)
-            
+
             with logfile_context(workdir, 'processing'), memory_logger(wps_response):
                 handler(wps_request, wps_response)
 
-                wps_response.update_status('Task finished',100, STATUS.DONE_STATUS)
+                wps_response.update_status('Task finished', 100, STATUS.DONE_STATUS)
 
-                ## Return pickable response
+                # Return pickable response
                 if wps_response.document:
                     return wps_response.get_document_bytes()
 
@@ -338,13 +338,12 @@ class ProcessingExecutor:
             wps_response.update_status("Internal error", None, STATUS.ERROR_STATUS)
             raise
 
-
     @staticmethod
     def _clean_processes() -> None:
         """ Clean up all processes
             Remove status and delete processes workdir
 
-            Dangling tasks will be removed: these are tasks no marked finished but 
+            Dangling tasks will be removed: these are tasks no marked finished but
             for which the timeout has expired. Usually this is task for wich the process
             as died (memory exhaustion, segfault....)
         """
@@ -359,20 +358,20 @@ class ProcessingExecutor:
 
         for _, rec in list(logstore.records):
             timestamp = rec.get('timestamp')
-            dangling  = timestamp is None
+            dangling = timestamp is None
             try:
                 if not dangling and STATUS[rec['status']] < STATUS.DONE_STATUS:
                     # Check that the task is not in dangling state
-                    timeout  = rec.get('timeout')
+                    timeout = rec.get('timeout')
                     dangling = timeout is None or (now_ts - int(timestamp)) >= timeout
                     if not dangling:
                         continue
             except KeyError:
                 # Handle legacy status
                 pass
-            
+
             expiration = rec.get('expiration', expire_default)
-            notpinned  = not rec.get('pinned',False)
+            notpinned = not rec.get('pinned', False)
             if notpinned and (dangling or (now_ts - int(timestamp)) >= expiration):
                 # Delete the working directory
                 uuid_str = rec['uuid']
@@ -386,6 +385,7 @@ class ProcessingExecutor:
                 # Delete the record/response
                 logstore.delete_response(uuid_str)
 
+
 if HAVE_PSUTIL:
     @contextmanager
     def memory_logger(response) -> None:
@@ -394,23 +394,22 @@ if HAVE_PSUTIL:
         # Get the current process info
         process = psutil.Process(os.getpid())
         start_mem = process.memory_info().rss
-        mb = 1024*1024.0
+        mb = 1024 * 1024.0
         try:
             yield
         finally:
             # Log memory infos
             end_mem = process.memory_info().rss
             LOGGER.info(("{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb "
-                         "delta={3:.3f}Mb").format(str(response.uuid)[:8], 
-                                                   start_mem/mb, 
-                                                   end_mem/mb, 
-                                                   (end_mem - start_mem)/mb,
+                         "delta={3:.3f}Mb").format(str(response.uuid)[:8],
+                                                   start_mem / mb,
+                                                   end_mem / mb,
+                                                   (end_mem - start_mem) / mb,
                                                    response.process.identifier))
 else:
     @contextmanager
     def memory_logger(response) -> None:
         try:
-            yield 
+            yield
         finally:
             LOGGER.info("{4}:{0} memory stats not available")
-

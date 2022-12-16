@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -30,7 +30,7 @@ class BasicOutputDescription:
         doc = {
             'title': self.title,
             'keywords': [],
-            'metadata': [ m.ogcapi_metadata() for m in self.metadata ],
+            'metadata': [m.ogcapi_metadata() for m in self.metadata],
         }
 
         if self.abstract:
@@ -41,7 +41,7 @@ class BasicOutputDescription:
 
 @register_trait
 class LiteralOutput(BasicOutputDescription):
-    
+
     def ogcapi_output_description(self) -> Json:
         """ Ogc api output description
         """
@@ -56,17 +56,17 @@ class LiteralOutput(BasicOutputDescription):
         return doc
 
     def ogcapi_output_result(self, context) -> Json:
-        """ Return Json formated result 
+        """ Return Json formated result
         """
         data = to_json_serializable(self.data)
-        if self.uom: 
+        if self.uom:
             return {
                 'value': data,
                 'uom': self.uom.ogcapi_description(),
             }
         else:
             return data
-    
+
 
 @register_trait
 class BoundingBoxOutput(BasicOutputDescription):
@@ -76,7 +76,7 @@ class BoundingBoxOutput(BasicOutputDescription):
         doc = self.ogcapi_description()
 
         num_items = self.dimensions * 2
-        
+
         schema = {
             'type': 'object',
             'required': ['bbox'],
@@ -85,9 +85,9 @@ class BoundingBoxOutput(BasicOutputDescription):
             'properties': {
                 'bbox': {
                     'type': 'array',
-                    'minItems': num_items, 
+                    'minItems': num_items,
                     'maxItems': num_items,
-                    'items': { 'type': 'number' },
+                    'items': {'type': 'number'},
                 },
                 'crs': {
                     'type': 'string',
@@ -96,12 +96,12 @@ class BoundingBoxOutput(BasicOutputDescription):
                 },
             },
         }
-       
+
         doc.update(schema=schema, typeHint=TypeHint.BoundingBoxData.value)
         return doc
 
     def ogcapi_output_result(self, context) -> Json:
-        """ OGC api json result 
+        """ OGC api json result
         """
         bbox = self.data
         doc = {
@@ -113,32 +113,32 @@ class BoundingBoxOutput(BasicOutputDescription):
                 bbox[2],
                 bbox[3],
             ],
-        } 
-        if self.dimensions >= 3: 
+        }
+        if self.dimensions >= 3:
             doc.bbox.extend((bbox[4], bbox[5]))
         return doc
 
 
 @register_trait
 class ComplexOutput(BasicOutputDescription):
-    
+
     def ogcapi_output_description(self) -> Json:
 
         def _schema(fmt):
             schema = fmt.ogcapi_description()
             schema['type'] = 'string'
             if self.as_reference:
-                schema['format']="uri"
+                schema['format'] = "uri"
             return schema
 
         doc = self.ogcapi_description()
         if self.supported_formats:
             if len(self.supported_formats) > 1:
-                schema={'oneOf': [_schema(fmt) for fmt in self.supported_formats]}
+                schema = {'oneOf': [_schema(fmt) for fmt in self.supported_formats]}
             else:
-                schema=_schema(self.supported_formats[0])
+                schema = _schema(self.supported_formats[0])
         else:
-            schema = { 'type': 'string' }
+            schema = {'type': 'string'}
         doc.update(schema=schema, typeHint=TypeHint.ComplexData.value)
         # Set transmission mode
         doc['transmissionMode'] = 'reference' if self.as_reference else 'value'
@@ -162,10 +162,9 @@ class ComplexOutput(BasicOutputDescription):
                 if not isinstance(data, str):
                     data = self.base64
                     encoding = 'base64'
-            doc = { 'value': data, 'mediaType': self.data_format.mime_type }
+            doc = {'value': data, 'mediaType': self.data_format.mime_type}
             if encoding:
                 doc.update(encoding=encoding)
             if self.schema:
                 doc.update(schema=schema)
         return doc
-

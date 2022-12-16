@@ -35,7 +35,7 @@ LOGGER = logging.getLogger('SRVLOG')
 
 # Android does not support semaphores
 # and thus queue implementation will not work
-# 
+#
 # Borrow android detection from kivy:
 # On Android sys.platform returns 'linux2', so prefer to check the
 # presence of python-for-android environment variables (ANDROID_ARGUMENT
@@ -43,12 +43,12 @@ LOGGER = logging.getLogger('SRVLOG')
 _is_android = 'ANDROID_ARGUMENT' in os.environ
 
 
-# Delegate Qgis process loading in 
+# Delegate Qgis process loading in
 # another processes, this will enable live update
 # of Qgis providers/algorithms
 #
 # The delegate acts as a pool server: restarting the subprocess
-# 
+#
 #
 class _FactoryDelegate(Process):
 
@@ -56,7 +56,7 @@ class _FactoryDelegate(Process):
         super().__init__()
         self._queue = Queue()
         self._factory = factory
-        
+
     def stop(self):
         self._queue.put(None)
 
@@ -66,7 +66,7 @@ class _FactoryDelegate(Process):
             raise ProcessException("Failed to initialize Qgis processes")
         return processes
 
-    def create_contextualized_processes( self, identifiers: List[str], map_uri: str) -> List[WPSProcess]:
+    def create_contextualized_processes(self, identifiers: List[str], map_uri: str) -> List[WPSProcess]:
         self._queue.put((identifiers, map_uri))
         return self._queue.get()
 
@@ -75,7 +75,7 @@ class _FactoryDelegate(Process):
         """ Handle Qgis processes creation
             Run in detached process
         """
-        try: 
+        try:
             processes = factory._create_qgis_processes()
             q.put(processes)
         except Exception:
@@ -101,10 +101,10 @@ class _FactoryDelegate(Process):
     def run(self):
         """ Run in a subprocess
         """
-        def term( *args ):
+        def term(*args):
             raise SystemExit()
 
-        signal.signal(signal.SIGTERM,term)
+        signal.signal(signal.SIGTERM, term)
         try:
             while True:
                 # Create sub-process for handling processes creation
@@ -113,10 +113,10 @@ class _FactoryDelegate(Process):
                 p.start()
                 p.join()
                 # Test non-zero exitcode
-                # This happends on Qgs provider registration failure because PyQgis exception are not 
-                # propagated to python 
+                # This happends on Qgs provider registration failure because PyQgis exception are not
+                # propagated to python
                 if p.exitcode != 0:
-                    LOGGER.critical("Sub process exited with code %s",p.exitcode)
+                    LOGGER.critical("Sub process exited with code %s", p.exitcode)
                     self._queue.put(None)
                     break
                 p.close()
@@ -132,10 +132,10 @@ class QgsProcessFactory:
         self._initialized = False
         self.qgisapp = None
         self.qgis_enabled = False
-        
+
         self._delegate = None
 
-    def initialize(self, load_qgis_processing: bool=False) -> Optional[List[WPSProcess]]:
+    def initialize(self, load_qgis_processing: bool = False) -> Optional[List[WPSProcess]]:
         """ Initialize the factory
 
             Should be called once
@@ -144,9 +144,9 @@ class QgsProcessFactory:
 
         self._config = confservice['processing']
 
-        plugin_path       = self._config.get('providers_module_path')
-        default_path      = self._config.get('default_module_path')
-        exposed_providers = self._config.get('exposed_providers',fallback='').split(',')
+        plugin_path = self._config.get('providers_module_path')
+        default_path = self._config.get('default_module_path')
+        exposed_providers = self._config.get('exposed_providers', fallback='').split(',')
 
         setup_qgis_paths()
 
@@ -167,22 +167,22 @@ class QgsProcessFactory:
         """ Initialize the worker pool
         """
         cfg = confservice['server']
-        
-        maxparallel      = cfg.getint('parallelprocesses')
+
+        maxparallel = cfg.getint('parallelprocesses')
         processlifecycle = cfg.getint('processlifecycle')
         response_timeout = cfg.getint('response_timeout')
- 
+
         # Initialize logstore (redis)
         logstore.init_session()
- 
+
         # 0 mean eternal life
         if processlifecycle == 0:
-            processlifecycle=None
- 
+            processlifecycle = None
+
         # Need to be initialized as soon as possible
-        self._poolserver = create_poolserver( maxparallel, maxcycles = processlifecycle,
-                                              initializer = self.worker_initializer,
-                                              timeout     = response_timeout)
+        self._poolserver = create_poolserver(maxparallel, maxcycles=processlifecycle,
+                                             initializer=self.worker_initializer,
+                                             timeout=response_timeout)
         self._initialized = True
 
     def restart_pool(self):
@@ -191,13 +191,13 @@ class QgsProcessFactory:
         if self._initialized:
             self._poolserver.restart()
 
-    def _create_contextualized_processes( self, identifiers, map_uri ) -> List[WPSProcess]:
+    def _create_contextualized_processes(self, identifiers, map_uri) -> List[WPSProcess]:
         """ Create processes from context
         """
         from pyqgiswps.executors.processingprocess import QgsProcess
-        return [QgsProcess.createInstance(ident,map_uri=map_uri) for ident in identifiers]
+        return [QgsProcess.createInstance(ident, map_uri=map_uri) for ident in identifiers]
 
-    def create_contextualized_processes( self, identifiers, map_uri ) -> List[WPSProcess]:
+    def create_contextualized_processes(self, identifiers, map_uri) -> List[WPSProcess]:
         if self._delegate and self._delegate.is_alive():
             return self._delegate.create_contextualized_processes(identifiers, map_uri)
         else:
@@ -220,12 +220,12 @@ class QgsProcessFactory:
         iface = self._wps_interface
 
         # Do not publish hidden algorithm from toolbox
-        def _is_hidden( a: QgsProcessingAlgorithm ) -> bool: 
-            return (int(a.flags()) & QgsProcessingAlgorithm.FlagHideFromToolbox) !=0
+        def _is_hidden(a: QgsProcessingAlgorithm) -> bool:
+            return (int(a.flags()) & QgsProcessingAlgorithm.FlagHideFromToolbox) != 0
 
         for provider in iface.providers:
             LOGGER.debug("Loading processing algorithms from provider '%s'", provider.id())
-            processes.extend(QgsProcess( alg ) for alg in provider.algorithms() if not _is_hidden(alg))
+            processes.extend(QgsProcess(alg) for alg in provider.algorithms() if not _is_hidden(alg))
 
         if processes:
             LOGGER.info("Published processes:\n * %s", "\n * ".join(sorted(p.identifier for p in processes)))
@@ -235,9 +235,9 @@ class QgsProcessFactory:
         # Return the list of processes
         return processes
 
-    def create_qgis_processes(self) -> List[WPSProcess]: 
-        """ Create initial qgis processes objects in another process in order 
-            to prevent side effects from loading algorithms and 
+    def create_qgis_processes(self) -> List[WPSProcess]:
+        """ Create initial qgis processes objects in another process in order
+            to prevent side effects from loading algorithms and
             allow for live reload
         """
         self.qgis_enabled = True
@@ -253,10 +253,10 @@ class QgsProcessFactory:
                 self._delegate.stop()
             # Get processes list
             processes = self._delegate.create_qgis_processes()
-            # Restart pool so that workers may 
+            # Restart pool so that workers may
             # reload providers
             self.restart_pool()
-        
+
         return processes
 
     def worker_initializer(self):
@@ -264,7 +264,7 @@ class QgsProcessFactory:
         """
         # Init qgis application in worker
         self.start_qgis()
-   
+
     def start_qgis(self):
         """ Set up qgis
         """
@@ -275,13 +275,13 @@ class QgsProcessFactory:
         logprefix = "[qgis:%s]" % os.getpid()
 
         settings = {
-            "Processing/Configuration/PREFER_FILENAME_AS_LAYER_NAME":"false"      
+            "Processing/Configuration/PREFER_FILENAME_AS_LAYER_NAME": "false"
         }
 
-        def _folders_setting( setting, folders ):
+        def _folders_setting(setting, folders):
             folders = folders.split(';')
-            folders = chain( *(glob(f) for f in folders) )
-            folders = ';'.join( f for f in folders if os.path.isdir(f) )
+            folders = chain(*(glob(f) for f in folders))
+            folders = ';'.join(f for f in folders if os.path.isdir(f))
             if folders:
                 LOGGER.info("%s = %s", setting, folders)
                 settings[setting] = folders
@@ -289,15 +289,15 @@ class QgsProcessFactory:
         # Set up folder settings
         # XXX  Note that if scripts folder is not set then ScriptAlgorithmProvider will crash !
         for setting, value in confservice.items('qgis.settings.folders'):
-            LOGGER.debug("*** Folder settings: %s = %s", setting, value) 
+            LOGGER.debug("*** Folder settings: %s = %s", setting, value)
             _folders_setting(setting, value)
 
         # Load other settings from configuration file
 
         # Init qgis application
-        self.qgisapp = start_qgis_application( 
+        self.qgisapp = start_qgis_application(
             enable_processing=True,
-            verbose=confservice.get('logging','level')=='DEBUG',
+            verbose=confservice.get('logging', 'level') == 'DEBUG',
             logger=LOGGER, logprefix=logprefix,
             settings=settings
         )
@@ -317,9 +317,9 @@ class QgsProcessFactory:
             self._poolserver.terminate()
 
     def start_supervisor(self):
-        """ Start supervisor killer 
+        """ Start supervisor killer
 
-            Convenient proxy to pool server 
+            Convenient proxy to pool server
         """
         self._poolserver.start_supervisor()
 
@@ -328,10 +328,9 @@ class QgsProcessFactory:
         """
         return self._poolserver.kill_worker_busy(pid)
 
-
     @classmethod
     def instance(cls) -> 'QgsProcessFactory':
-        if not hasattr(cls,'_instance'):
+        if not hasattr(cls, '_instance'):
             cls._instance = QgsProcessFactory()
         return cls._instance
 
@@ -340,6 +339,3 @@ def get_process_factory():
     """ Return the current factory instance
     """
     return QgsProcessFactory.instance()
-    
-
-

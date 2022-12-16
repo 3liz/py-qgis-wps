@@ -14,27 +14,28 @@ import logging
 
 from typing import Dict
 
-version_info = (0,0,0)
+version_info = (0, 0, 0)
+
 
 def setup_qgis_paths() -> str:
-    """ Init qgis paths 
+    """ Init qgis paths
     """
-    qgisPrefixPath = os.environ.get('QGIS_PREFIX_PATH','/usr/')
+    qgisPrefixPath = os.environ.get('QGIS_PREFIX_PATH', '/usr/')
     sys.path.append(os.path.join(qgisPrefixPath, "share/qgis/python/plugins/"))
-    return qgisPrefixPath 
+    return qgisPrefixPath
 
 
-#XXX Apparently we need to keep a reference instance of the qgis_application object
+# XXX Apparently we need to keep a reference instance of the qgis_application object
 # And not make this object garbage collected
 qgis_application = None
 
 
-def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False, 
-                           verbose: bool=False, 
-                           cleanup: bool=True,
-                           logger: logging.Logger=None, 
-                           logprefix: str='Qgis:',
-                           settings: Dict=None) -> 'qgis.core.QgsApplication':   # noqa: F821
+def start_qgis_application(enable_gui: bool = False, enable_processing: bool = False,
+                           verbose: bool = False,
+                           cleanup: bool = True,
+                           logger: logging.Logger = None,
+                           logprefix: str = 'Qgis:',
+                           settings: Dict = None) -> 'qgis.core.QgsApplication':   # noqa: F821
     """ Start qgis application
 
         :param boolean enable_gui: Enable graphical interface, default to False
@@ -44,7 +45,7 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
             Note that prevents qgis to segfault when exiting. Default to True.
     """
 
-    os.environ['QGIS_NO_OVERRIDE_IMPORT']    = '1'
+    os.environ['QGIS_NO_OVERRIDE_IMPORT'] = '1'
     os.environ['QGIS_DISABLE_MESSAGE_HOOKS'] = '1'
 
     logger = logger or logging.getLogger()
@@ -53,7 +54,7 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
     from qgis.PyQt.QtCore import QCoreApplication
     from qgis.core import Qgis, QgsApplication
 
-    logger.info("Starting Qgis application: %s",Qgis.QGIS_VERSION)
+    logger.info("Starting Qgis application: %s", Qgis.QGIS_VERSION)
 
     global version_info
     version_info = tuple(int(n) for n in Qgis.QGIS_VERSION.split('-')[0].split('.'))
@@ -70,14 +71,14 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
 
     global qgis_application
 
-    qgis_application = QgsApplication([], enable_gui )
+    qgis_application = QgsApplication([], enable_gui)
     qgis_application.setPrefixPath(qgisPrefixPath, True)
 
     # From qgis server
     # Will enable us to read qgis setting file
-    QCoreApplication.setOrganizationName( QgsApplication.QGIS_ORGANIZATION_NAME )
-    QCoreApplication.setOrganizationDomain( QgsApplication.QGIS_ORGANIZATION_DOMAIN )
-    QCoreApplication.setApplicationName( QgsApplication.QGIS_APPLICATION_NAME )
+    QCoreApplication.setOrganizationName(QgsApplication.QGIS_ORGANIZATION_NAME)
+    QCoreApplication.setOrganizationDomain(QgsApplication.QGIS_ORGANIZATION_DOMAIN)
+    QCoreApplication.setApplicationName(QgsApplication.QGIS_APPLICATION_NAME)
 
     qgis_application.initQgis()
 
@@ -87,7 +88,7 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
         import atexit
 
         logger.info("%s Installing cleanup hook" % logprefix)
-    
+
         @atexit.register
         def exitQgis():
             global qgis_application
@@ -95,18 +96,17 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
                 qgis_application.exitQgis()
                 del qgis_application
 
-        
     optpath = os.getenv('QGIS_OPTIONS_PATH')
     if optpath:
-        # Log qgis settings 
-        load_qgis_settings( optpath, logger, verbose )
-    
+        # Log qgis settings
+        load_qgis_settings(optpath, logger, verbose)
+
     if settings:
         # Initialize settings
         from qgis.core import QgsSettings
         qgsettings = QgsSettings()
-        for k,v in settings.items():
-            qgsettings.setValue(k,v)
+        for k, v in settings.items():
+            qgsettings.setValue(k, v)
 
     if verbose:
         print(qgis_application.showSettings())
@@ -119,28 +119,29 @@ def start_qgis_application(enable_gui: bool=False, enable_processing: bool=False
     if enable_processing:
         init_qgis_processing()
         logger.info("%s QGis processing initialized" % logprefix)
-    
+
     return qgis_application
 
 
 def init_qgis_processing() -> None:
-    """ Initialize processing 
+    """ Initialize processing
     """
     from processing.core.Processing import Processing
     from qgis.analysis import QgsNativeAlgorithms
     from qgis.core import QgsApplication
-    
+
     QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
     Processing.initialize()
 
 
-def install_logger_hook( logger: logging.Logger, logprefix: str, verbose: bool=False ) -> None:
+def install_logger_hook(logger: logging.Logger, logprefix: str, verbose: bool = False) -> None:
     """ Install message log hook
     """
     from qgis.core import Qgis, QgsApplication
-    # Add a hook to qgis  message log 
+    # Add a hook to qgis  message log
+
     def writelogmessage(message, tag, level):
-        arg = '{} {}: {}'.format( logprefix, tag, message )
+        arg = '{} {}: {}'.format(logprefix, tag, message)
         if level == Qgis.Warning:
             logger.warning(arg)
         elif level == Qgis.Critical:
@@ -151,17 +152,15 @@ def install_logger_hook( logger: logging.Logger, logprefix: str, verbose: bool=F
             logger.info(arg)
 
     messageLog = QgsApplication.messageLog()
-    messageLog.messageReceived.connect( writelogmessage )
+    messageLog.messageReceived.connect(writelogmessage)
 
 
-def load_qgis_settings( optpath, logger, verbose=False ):
+def load_qgis_settings(optpath, logger, verbose=False):
     """ Load qgis settings
     """
     from qgis.PyQt.QtCore import QSettings
     from qgis.core import QgsSettings
 
-    QSettings.setDefaultFormat( QSettings.IniFormat )
-    QSettings.setPath( QSettings.IniFormat, QSettings.UserScope, optpath )
+    QSettings.setDefaultFormat(QSettings.IniFormat)
+    QSettings.setPath(QSettings.IniFormat, QSettings.UserScope, optpath)
     logger.info("Settings loaded from %s", QgsSettings().fileName())
-    
-

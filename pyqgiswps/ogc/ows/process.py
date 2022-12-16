@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -17,7 +17,7 @@ from ..traits import register_trait_for
 
 
 @register_trait_for('WPSProcess')
-class Process: 
+class Process:
     """ OWS traits for wPSProcess
     """
 
@@ -41,11 +41,10 @@ class Process:
 
         return doc
 
-
     def describe_xml(self) -> XMLElement:
         """ Return describe XML
         """
-        input_elements  = [i.describe_xml() for i in self.inputs]
+        input_elements = [i.describe_xml() for i in self.inputs]
         output_elements = [i.describe_xml() for i in self.outputs]
 
         doc = E.ProcessDescription(
@@ -71,5 +70,3 @@ class Process:
         doc.append(E.ProcessOutputs(*output_elements))
 
         return doc
-
-

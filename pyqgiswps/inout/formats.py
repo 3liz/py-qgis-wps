@@ -6,9 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
@@ -46,9 +46,8 @@ class Format(*ogc.exports.Format):
     """
 
     @staticmethod
-    def from_definition(formatdef):          
+    def from_definition(formatdef):
         return Format(**formatdef._asdict())
-
 
     def __init__(self, mime_type,
                  schema=None, encoding=None,
@@ -143,6 +142,7 @@ class Format(*ogc.exports.Format):
 
 # Define catch all format
 Format.ANY = Format.from_definition(FORMATS.ANY)
+
 
 def get_format(frmt, validator=None):
     """Return Format instance based on given pyqgiswps.inout.FORMATS keyword

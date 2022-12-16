@@ -1,4 +1,4 @@
-""" Redis log storage for WPS 
+""" Redis log storage for WPS
 
     See http://redis-py.readthedocs.io/en/latest/
 """
@@ -52,7 +52,7 @@ class LogStore:
             'message': '',
             'map': wps_request.map_uri,
             'expiration': wps_request.expiration,
-            'time_start': utcnow().isoformat()+'Z',
+            'time_start': utcnow().isoformat() + 'Z',
             'time_end': None,
             'pinned': False,
             'timeout': wps_request.timeout,
@@ -63,7 +63,7 @@ class LogStore:
         # Record status
         rv = self._db.hset(self._hstatus, uuid_str, json.dumps(record))
         if not rv:
-            LOGGER.error("Failed to record request %s", uuid_str) 
+            LOGGER.error("Failed to record request %s", uuid_str)
 
         # Record the request
         self._db.set("{}:request:{}".format(self._prefix, uuid_str), wps_request.dumps())
@@ -74,14 +74,14 @@ class LogStore:
         """ Set a value at key 'name', expire is mandatory
         """
         # Create token
-        token = str(uuid.uuid4()).replace('-','')
-        self._db.setex('token:'+token, expire, json.dumps(value))
+        token = str(uuid.uuid4()).replace('-', '')
+        self._db.setex('token:' + token, expire, json.dumps(value))
         return token
 
     def get_json(self, token):
         """ Return the value at key 'name'
         """
-        value = self._db.get('token:'+token)
+        value = self._db.get('token:' + token)
         if value is not None:
             value = json.loads(value.decode('utf-8'))
         return value
@@ -109,30 +109,30 @@ class LogStore:
 
         if current_status < STATUS.STARTED_STATUS and wps_response.status == STATUS.STARTED_STATUS:
             # Task started
-            record['job_start'] = now.isoformat()+'Z'
+            record['job_start'] = now.isoformat() + 'Z'
             # Record the actual pid
             # Updating occurs in the worker process
             # We use it to kill workers in 'BUSY' state
             record['pid'] = os.getpid()
 
-        record['message']      = wps_response.message
+        record['message'] = wps_response.message
         record['percent_done'] = wps_response.status_percentage
-        record['status']       = wps_response.status.name
-        record['timestamp']    = timestamp
+        record['status'] = wps_response.status.name
+        record['timestamp'] = timestamp
 
         if wps_response.status >= STATUS.DONE_STATUS:
             record['output_files'] = wps_response.output_files
-            record['time_end']  = now.isoformat()+'Z'
-            record['expire_at'] = datetime.fromtimestamp(now.timestamp()+record['expiration']).isoformat()+'Z'
+            record['time_end'] = now.isoformat() + 'Z'
+            record['expire_at'] = datetime.fromtimestamp(now.timestamp() + record['expiration']).isoformat() + 'Z'
 
-            # Remove pid 
+            # Remove pid
             if 'pid' in record:
                 del record['pid']
 
         # Note that hset return 0 if the key already exists but change the value anyway
         self._db.hset(self._hstatus, uuid_str, json.dumps(record))
 
-    def pin_response( self, request_uuid, pin=True ):
+    def pin_response(self, request_uuid, pin=True):
         """ Pin response so that it never expires
 
             Note that it is not allowed to pin a unfinished/failed task
@@ -140,16 +140,17 @@ class LogStore:
         uuid_str = str(request_uuid)
         LOGGER.debug("LOGSTORE: pinning record %s", uuid_str)
         data = self._db.hget(self._hstatus, str(uuid))
-        if data is not None:  
+        if data is not None:
             record = json.loads(data.decode('utf-8'))
             if STATUS[record['status']] != STATUS.DONE_STATUS:
                 return False
             if pin:
-                record['pinned']    = True
+                record['pinned'] = True
                 record['expire_at'] = None
             else:
-                record['pinned']    = False
-                record['expire_at'] = datetime.fromtimestamp(utcnow().timestamp()+record['expiration']).isoformat()+'Z'
+                record['pinned'] = False
+                record['expire_at'] = datetime.fromtimestamp(
+                    utcnow().timestamp() + record['expiration']).isoformat() + 'Z'
             # update the record
             self._db.hset(self._hstatus, uuid_str, json.dumps(record))
             return True
@@ -186,14 +187,14 @@ class LogStore:
     def records(self) -> Iterator:
         """ Iterate through records
         """
-        return ((k, json.loads(v.decode('utf-8'))) for k,v in self._db.hscan_iter(self._hstatus))
+        return ((k, json.loads(v.decode('utf-8'))) for k, v in self._db.hscan_iter(self._hstatus))
 
     def get_request(self, uuid):
         """ Return results status
         """
         data = self._db.get("{}:request:{}".format(self._prefix, str(uuid)))
         if data is not None:
-            return json.loads(data.decode('utf-8'))    
+            return json.loads(data.decode('utf-8'))
 
     def get_status(self, uuid=None, key=None):
         """ Return the status for the given processs
@@ -204,12 +205,12 @@ class LogStore:
             return self.get_request(uuid)
 
         if uuid is None:
-            data = [v for (_,v) in self.records]
+            data = [v for (_, v) in self.records]
         else:
             data = self._db.hget(self._hstatus, str(uuid))
             if data is not None:
                 data = json.loads(data.decode('utf-8'))
- 
+
         return data
 
     def init_session(self):
@@ -219,14 +220,14 @@ class LogStore:
         """
         LOGGER.debug("LOGSTORE: Initializing REDIS session")
         cfg = confservice['logstorage:redis']
-        self._config  = cfg
-        self._prefix  = cfg.get('prefix',fallback='pyggiswps')
-        self._hstatus = "%s:status"  % self._prefix
+        self._config = cfg
+        self._prefix = cfg.get('prefix', fallback='pyggiswps')
+        self._hstatus = "%s:status" % self._prefix
 
-        self._db  = redis.StrictRedis(
-            host = cfg.get('host',fallback='localhost'),
-            port = cfg.getint('port' , fallback=6379),
-            db   = cfg.getint('dbnum', fallback=0))
+        self._db = redis.StrictRedis(
+            host=cfg.get('host', fallback='localhost'),
+            port=cfg.getint('port', fallback=6379),
+            db=cfg.getint('dbnum', fallback=0))
 
 
 #
@@ -234,4 +235,3 @@ class LogStore:
 #
 
 logstore = LogStore()
-

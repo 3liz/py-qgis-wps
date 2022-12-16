@@ -13,20 +13,21 @@ from .basehandler import BaseHandler
 from ..version import __version__
 from ..config import config_to_dict
 
+
 class ServerInfosHandler(BaseHandler):
     def get(self):
         try:
             from qgis.core import Qgis
             from processing.core.Processing import RenderingStyles
-            QGIS_VERSION="{} ({})".format(Qgis.QGIS_VERSION_INT,Qgis.QGIS_RELEASE_NAME)
+            QGIS_VERSION = "{} ({})".format(Qgis.QGIS_VERSION_INT, Qgis.QGIS_RELEASE_NAME)
             styles = RenderingStyles.styles
         except ImportError:
-            QGIS_VERSION="n/a"
+            QGIS_VERSION = "n/a"
             styles = {}
             pass
 
         response = dict(tornado_ver=tornado.version,
-                        version = __version__,
+                        version=__version__,
                         author="3Liz",
                         author_url="http://3liz.com",
                         qgis_version=QGIS_VERSION,
@@ -37,14 +38,15 @@ class ServerInfosHandler(BaseHandler):
 
     def head(self):
         from qgis.core import Qgis
-        QGIS_VERSION="{} ({})".format(Qgis.QGIS_VERSION_INT,Qgis.QGIS_RELEASE_NAME)
-        
+        QGIS_VERSION = "{} ({})".format(Qgis.QGIS_VERSION_INT, Qgis.QGIS_RELEASE_NAME)
+
         self.set_header("X-Qgis-version", QGIS_VERSION)
 
 
 class LandingPageHandler(BaseHandler):
-    """ Landing page 
+    """ Landing page
     """
+
     def get(self):
         root = self.proxy_url()
         doc = {

@@ -18,10 +18,10 @@ from typing import Callable
 from .utils import WORKER_READY, WORKER_DONE
 from .supervisor import Client as SupervisorClient
 
-LOGGER=logging.getLogger('SRVLOG')
+LOGGER = logging.getLogger('SRVLOG')
 
 
-def dealer_socket( ctx: zmq.Context, address: str ) -> zmq.Socket:
+def dealer_socket(ctx: zmq.Context, address: str) -> zmq.Socket:
     """ Socket for receiving incoming messages
     """
     LOGGER.debug("Connecting to %s", address)
@@ -29,14 +29,14 @@ def dealer_socket( ctx: zmq.Context, address: str ) -> zmq.Socket:
     sock.setsockopt(zmq.LINGER, 500)    # Needed for socket no to wait on close
     sock.setsockopt(zmq.SNDHWM, 1)      # Max 1 item on send queue
     sock.setsockopt(zmq.IMMEDIATE, 1)   # Do not queue if no peer, will block on send
-    sock.setsockopt(zmq.RCVTIMEO, 1000) # Heartbeat
+    sock.setsockopt(zmq.RCVTIMEO, 1000)  # Heartbeat
     sock.identity = uuid.uuid1().bytes
     LOGGER.debug("Identity set to %s", sock.identity)
     sock.connect(address)
     return sock
-   
 
-def broadcast_socket( ctx: zmq.Context, broadcastaddr: str ) -> zmq.Socket:
+
+def broadcast_socket(ctx: zmq.Context, broadcastaddr: str) -> zmq.Socket:
     """ Socket for receiving broadcast message notifications
     """
     LOGGER.debug("Enabling broadcast notification")
@@ -48,15 +48,15 @@ def broadcast_socket( ctx: zmq.Context, broadcastaddr: str ) -> zmq.Socket:
     return sub
 
 
-def worker_handler( router: str, broadcastaddr: str, maxcycles: int = None, 
-                    initializer: Callable[[None],None] = None, initargs = ()) -> None:
+def worker_handler(router: str, broadcastaddr: str, maxcycles: int = None,
+                   initializer: Callable[[None], None] = None, initargs=()) -> None:
     """ Run jobs
     """
     ctx = zmq.Context.instance()
 
-    sock = dealer_socket( ctx, router )
-    sub  = broadcast_socket( ctx, broadcastaddr )
-        
+    sock = dealer_socket(ctx, router)
+    sub = broadcast_socket(ctx, broadcastaddr)
+
     # Initialize supervisor client
     supervisor = SupervisorClient()
 
@@ -68,9 +68,9 @@ def worker_handler( router: str, broadcastaddr: str, maxcycles: int = None,
         LOGGER.debug("RCV %s", corr_id)
         return corr_id, pickle.loads(rest)
 
-    def set( corr_id, res ):
+    def set(corr_id, res):
         LOGGER.debug("SND %s", corr_id)
-        sock.send_multipart([corr_id, pickle.dumps(res)]) 
+        sock.send_multipart([corr_id, pickle.dumps(res)])
 
     try:
         LOGGER.debug("Starting ZMQ worker loop")
@@ -81,15 +81,15 @@ def worker_handler( router: str, broadcastaddr: str, maxcycles: int = None,
                 jobid, (func, args, kwargs) = get()
                 supervisor.notify_busy()
                 try:
-                    result = (True, func( *args, **kwargs ))
+                    result = (True, func(*args, **kwargs))
                 except Exception as exc:
                     LOGGER.error(
-                        "Worker exception: >>>>>>>>>>\n%s<<<<<<<<<<", 
+                        "Worker exception: >>>>>>>>>>\n%s<<<<<<<<<<",
                         traceback.format_exc()
                     )
                     result = (False, exc)
                 supervisor.notify_done()
-                set( jobid, result )
+                set(jobid, result)
                 completed += 1
             except zmq.error.Again:
                 pass
@@ -97,7 +97,7 @@ def worker_handler( router: str, broadcastaddr: str, maxcycles: int = None,
             jobid = func = args = kwargs = None
             # Handle broadcast restart
             try:
-                if broadcastaddr and sub.recv(flags=zmq.NOBLOCK)==b'RESTART':
+                if broadcastaddr and sub.recv(flags=zmq.NOBLOCK) == b'RESTART':
                     # There is no really way to restart
                     # so exit and let the framework restart a new worker
                     LOGGER.info("RESTART notification received")
@@ -111,4 +111,3 @@ def worker_handler( router: str, broadcastaddr: str, maxcycles: int = None,
     sub.close()
     sock.close()
     LOGGER.info("Terminating Worker")
-

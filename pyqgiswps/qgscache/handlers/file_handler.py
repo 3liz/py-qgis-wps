@@ -20,9 +20,10 @@ from pyqgisservercontrib.core import componentmanager
 
 LOGGER = logging.getLogger('SRVLOG')
 
-ALLOWED_SFX=('.qgs','.qgz')
+ALLOWED_SFX = ('.qgs', '.qgz')
 
-__all__= []
+__all__ = []
+
 
 @componentmanager.register_factory('@3liz.org/cache/protocol-handler;1?scheme=file')
 class FileProtocolHandler:
@@ -32,15 +33,15 @@ class FileProtocolHandler:
     def __init__(self):
         pass
 
-    def get_project( self, url: urllib.parse.ParseResult, project: QgsProject=None,
-                     timestamp: datetime=None) -> Tuple[QgsProject, datetime]:
+    def get_project(self, url: urllib.parse.ParseResult, project: QgsProject = None,
+                    timestamp: datetime = None) -> Tuple[QgsProject, datetime]:
         """ Create or return a proect
         """
         # Securit check
-        path = Path(url.path)   
+        path = Path(url.path)
         if not path.is_absolute():
             raise ValueError("file path must be absolute not %s" % path)
-    
+
         exists = False
         if path.suffix not in ALLOWED_SFX:
             for sfx in ALLOWED_SFX:
@@ -52,14 +53,13 @@ class FileProtocolHandler:
             exists = path.is_file()
 
         if not exists:
-            LOGGER.error("File protocol handler: File not found: %s", str(path)) 
+            LOGGER.error("File protocol handler: File not found: %s", str(path))
             raise FileNotFoundError(str(path))
 
         modified_time = datetime.fromtimestamp(path.stat().st_mtime)
         if timestamp is None or timestamp < modified_time:
-            cachmngr  = componentmanager.get_service('@3liz.org/cache-manager;1')
-            project   = cachmngr.read_project(str(path))
+            cachmngr = componentmanager.get_service('@3liz.org/cache-manager;1')
+            project = cachmngr.read_project(str(path))
             timestamp = modified_time
 
         return project, timestamp
-

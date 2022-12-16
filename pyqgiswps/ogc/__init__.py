@@ -11,7 +11,5 @@
 from .traits import exports        # noqa E402,F401
 
 from .ogc import OGCTYPE, OGCUNIT  # noqa E402,F401
-from .ows import stub as _ows_stub # noqa E402,F401
-from .api import stub as _api_stub # noqa E402,F401
-
-
+from .ows import stub as _ows_stub  # noqa E402,F401
+from .api import stub as _api_stub  # noqa E402,F401

@@ -6,23 +6,24 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Original parts are Copyright 2016 OSGeo Foundation,            
-# represented by PyWPS Project Steering Committee,               
-# and released under MIT license.                                
+# Original parts are Copyright 2016 OSGeo Foundation,
+# represented by PyWPS Project Steering Committee,
+# and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
 
 from ..traits import register_trait_for
 
-from typing import  TypeVar
+from typing import TypeVar
 
 Json = TypeVar('Json')
 
 
 @register_trait_for('WPSProcess')
-class Process: 
+class Process:
     """ Api traits for WPSProcess
     """
+
     def ogcapi_description(self) -> Json:
         """ Json OAPI process description
         """
@@ -31,7 +32,7 @@ class Process:
             'description': self.abstract,
             'keywords': self.keywords,
             'metadata': [m.ogcapi_description() for m in self.metadata],
-        } 
+        }
 
     def ogcapi_process_summary(self) -> Json:
         """ Json OAPI process summary
@@ -41,9 +42,9 @@ class Process:
             id=self.identifier,
             version=self.version,
             jobControlOptions=[
-                'sync-execute',  
-                'async-execute',  
-                'dismiss',  
+                'sync-execute',
+                'async-execute',
+                'dismiss',
             ],
 
             # outputTransmission=[
@@ -65,5 +66,3 @@ class Process:
             outputs=outputs,
         )
         return doc
-
-

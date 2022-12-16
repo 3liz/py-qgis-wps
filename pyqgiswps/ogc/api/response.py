@@ -26,13 +26,13 @@ LOGGER = logging.getLogger('SRVLOG')
 class JOBSTATUS(str, Enum):
     ACCEPTED = 'accepted'
     RUNNING = 'running'
-    SUCCESS =  'successful'
+    SUCCESS = 'successful'
     FAILED = 'failed'
     DISMISSED = 'dismissed'
 
 
 def utcnow_iso():
-    return datetime.utcnow().replace(microsecond=0).isoformat()+'Z'
+    return datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
 
 
 class OgcApiResponse(WPSResponse):
@@ -40,7 +40,7 @@ class OgcApiResponse(WPSResponse):
     JOBSTATUS = JOBSTATUS
 
     def encode_response(self, doc: Json) -> bytes:
-        """ Return response a bytes 
+        """ Return response a bytes
         """
         return json.dumps(doc, ensure_ascii=False).encode()
 
@@ -55,21 +55,21 @@ class OgcApiResponse(WPSResponse):
 
     def get_execute_response(self) -> Json:
         """ Construct the execute Json response
-            
+
             The method return None until job completion
         """
         # Return synchronous results
         # Create response document
         if self.status == WPSResponse.STATUS.DONE_STATUS:
             # Process outputs
-            doc = { o.identifier: o.ogcapi_output_result(self) for o in self.outputs.values() }
+            doc = {o.identifier: o.ogcapi_output_result(self) for o in self.outputs.values()}
             return doc
- 
+
         # Return creation status
         doc = {
             'jobID': str(self.uuid),
             'processID': self.process.identifier,
-            'type' : 'process',
+            'type': 'process',
             'created': utcnow_iso(),
             'progress': self.status_percentage,
         }
@@ -101,5 +101,5 @@ class OgcApiResponse(WPSResponse):
                 message=self.message,
                 links=self.get_status_links(),
             )
-       
+
         return doc

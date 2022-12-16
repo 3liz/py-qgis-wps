@@ -6,7 +6,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-""" Handle datetime 
+""" Handle datetime
 """
 import logging
 
@@ -29,14 +29,14 @@ LOGGER = logging.getLogger('SRVLOG')
 # Processing parameters ->  WPS input
 # ------------------------------------
 
-def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs) -> LiteralInput:
-    """ Convert processing input to File Input 
+def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs) -> LiteralInput:
+    """ Convert processing input to File Input
     """
     typ = param.type()
     if typ != 'datetime':
         return None
 
-    def to_value( qdt ): 
+    def to_value(qdt):
         return qdt.toPyDateTime() if qdt.isValid() else None
 
     defval = kwargs['default']
@@ -44,33 +44,34 @@ def parse_input_definition( param: QgsProcessingParameterDefinition, kwargs) -> 
     dtype = param.dataType()
     if dtype == QgsProcessingParameterDateTime.Date:
         kwargs['data_type'] = 'date'
-        maxval = (to_value( param.maximum() ) or datetime.max).date()
-        minval = (to_value( param.minimum() ) or datetime.min).date()
-        if defval: 
+        maxval = (to_value(param.maximum()) or datetime.max).date()
+        minval = (to_value(param.minimum()) or datetime.min).date()
+        if defval:
             defval = QDateTime(defval).toPyDateTime().date()
     elif dtype == QgsProcessingParameterDateTime.Time:
         kwargs['data_type'] = 'time'
-        maxval = (to_value( param.maximum() ) or datetime.max).time()
-        minval = (to_value( param.minimum() ) or datetime.min).time()
-        if defval: 
+        maxval = (to_value(param.maximum()) or datetime.max).time()
+        minval = (to_value(param.minimum()) or datetime.min).time()
+        if defval:
             defval = convert_time(defval.toString(Qt.ISODate))
     else:
         kwargs['data_type'] = 'dateTime'
-        maxval = to_value( param.maximum() ) or datetime.max
-        minval = to_value( param.minimum() ) or datetime.min
-        if defval: 
+        maxval = to_value(param.maximum()) or datetime.max
+        minval = to_value(param.minimum()) or datetime.min
+        if defval:
             defval = defval.toPyDateTime()
 
     kwargs['default'] = defval
 
-    return LiteralInput(allowed_values=AllowedValues.range(minval,maxval), **kwargs)
+    return LiteralInput(allowed_values=AllowedValues.range(minval, maxval), **kwargs)
 
 # --------------------------------------
 # WPS inputs ->  processing inputs data
 # --------------------------------------
 
-def get_processing_value( param: QgsProcessingParameterDefinition, inp: LiteralInput,
-                          context: ProcessingContext) -> Any:
+
+def get_processing_value(param: QgsProcessingParameterDefinition, inp: LiteralInput,
+                         context: ProcessingContext) -> Any:
     """ Return processing value from wps inputs
 
         Processes other inputs than layers
@@ -78,9 +79,9 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: LiteralI
     typ = param.type()
     if typ != 'datetime':
         return None
- 
+
     value = inp[0].data
-    
+
     # Convert python datetime to appropriate object
     dtype = param.dataType()
     if dtype == QgsProcessingParameterDateTime.Date:
@@ -89,7 +90,5 @@ def get_processing_value( param: QgsProcessingParameterDefinition, inp: LiteralI
         value = QTime(value)
     else:
         value = QDateTime(value)
-    
+
     return value
-
-

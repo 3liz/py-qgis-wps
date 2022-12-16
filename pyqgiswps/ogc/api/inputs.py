@@ -47,7 +47,6 @@ class BasicInputDescription:
         return doc
 
 
-
 @register_trait
 class Metadata:
 
@@ -58,9 +57,10 @@ class Metadata:
             'role': self.role,
         }
 
+
 @register_trait
 class AllowedValues:
-   
+
     def ogcapi_schema(self) -> Json:
         """Return describe OAPI json
         """
@@ -91,7 +91,7 @@ class LiteralInput(BasicInputDescription):
         """ Return OAPI input description
         """
         doc = self.ogcapi_description()
-        
+
         schema = OGCTYPE_SCHEMA[self.data_type]
 
         # Modify schema according to allowed values
@@ -100,7 +100,7 @@ class LiteralInput(BasicInputDescription):
 
         if self.default is not None:
             schema.update(default=to_json_serializable(self.default))
-        
+
         uoms = self.supported_uoms
         if uoms:
             schema.update(uom={
@@ -116,7 +116,7 @@ class Format:
     def ogcapi_description(self) -> Json:
         """ Return oapi format description
         """
-        doc = { 'contentMediaType': self.mime_type }
+        doc = {'contentMediaType': self.mime_type}
 
         if self.encoding:
             doc.update(contentEncoding=self.encoding)
@@ -146,7 +146,7 @@ class BoundingBoxInput(BasicInputDescription):
         """  Ogc api bbox input description
         """
         doc = self.ogcapi_description()
-        
+
         if self.crss:
             crss = self.crss
         else:
@@ -162,9 +162,9 @@ class BoundingBoxInput(BasicInputDescription):
             'properties': {
                 'bbox': {
                     'type': 'array',
-                    'minItems': num_items, 
+                    'minItems': num_items,
                     'maxItems': num_items,
-                    'items': { 'type': 'number' },
+                    'items': {'type': 'number'},
                 },
                 'crs': {
                     'type': 'string',
@@ -173,7 +173,7 @@ class BoundingBoxInput(BasicInputDescription):
                 },
             },
         }
-        
+
         doc.update(schema=schema, typeHint=TypeHint.BoundingBoxData.value)
         return doc
 
@@ -192,12 +192,11 @@ class ComplexInput(BasicInputDescription):
                         schema = fmt.ogcapi_description()
                         schema['type'] = 'string'
                         yield schema
-                schema={'oneOf': list(schemas())}
+                schema = {'oneOf': list(schemas())}
             else:
                 schema = self.supported_formats[0].ogcapi_description()
                 schema['type'] = 'string'
         else:
-            schema = { 'type': 'string' }
+            schema = {'type': 'string'}
         doc.update(schema=schema, typeHint=TypeHint.ComplexData.value)
         return doc
-

@@ -14,7 +14,7 @@ import uuid
 from .basehandler import HTTPError, BaseHandler
 
 from tornado.escape import json_decode
-from pyqgiswps.exceptions import (NoApplicableCode, 
+from pyqgiswps.exceptions import (NoApplicableCode,
                                   UnknownProcessError)
 
 from pyqgiswps.ogc.api.request import OgcApiRequest
@@ -32,15 +32,16 @@ class ApiHandler(BaseHandler):
         See https://ogcapi.ogc.org/processes/overview.html
         See https://github.com/opengeospatial/ogcapi-processes
     """
+
     def create_request(self):
         wpsrequest = OgcApiRequest()
-        wpsrequest.map_uri  = self.get_argument('MAP', default=None)
+        wpsrequest.map_uri = self.get_argument('MAP', default=None)
         wpsrequest.host_url = self.proxy_url()
         return wpsrequest
 
     def initialize(self, access_policy: AccessPolicy):
         super().initialize()
-   
+
         self.accesspolicy = access_policy
 
     def format_exception(self, exc: NoApplicableCode) -> None:
@@ -56,13 +57,14 @@ class ApiHandler(BaseHandler):
             body.update(detail=exc.description)
         if exc.locator:
             body.update(instance=exc.locator)
-        
+
         self.write_json(body)
 
 
 class ConformanceHandler(BaseHandler):
     """ Conformance request
     """
+
     def get(self):
         """ Return conformance specifications
         """
@@ -72,7 +74,7 @@ class ConformanceHandler(BaseHandler):
                 "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/json",
                 "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/job-list",
                 "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/dismiss",
-            ]               
+            ]
         }
         self.write_json(content)
 
@@ -81,7 +83,7 @@ class ProcessHandler(ApiHandler):
     """ Handle /process
     """
 
-    def get(self, process_id: Optional[str]=None):
+    def get(self, process_id: Optional[str] = None):
         """ Get Process description
         """
         service = self.application.wpsservice
@@ -94,11 +96,11 @@ class ProcessHandler(ApiHandler):
             except UnknownProcessError:
                 raise HTTPError(404, reason=f"Uknown process id: {process_id}") from None
         else:
-            response = wpsrequest.get_process_list(service, self.accesspolicy) 
- 
+            response = wpsrequest.get_process_list(service, self.accesspolicy)
+
         self.write_json(response)
 
-    def options(self, endpoint: Optional[str]=None) -> None:
+    def options(self, endpoint: Optional[str] = None) -> None:
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('GET, OPTIONS')
@@ -128,7 +130,7 @@ class ExecutePrefs(NamedTuple):
             expire = None
         if expire is not None:
             applied.append('x-expire')
- 
+
         return ','.join(applied)
 
 
@@ -146,7 +148,7 @@ class ExecuteHandler(ApiHandler):
         prefer = self.request.headers.get('Prefer')
         if prefer is not None:
             for pref in (p.strip().lower() for p in prefer.split(',')):
-                if pref == 'respond-async': 
+                if pref == 'respond-async':
                     kwargs['execute_async'] = True
                 elif pref.startswith('wait='):
                     try:
@@ -158,7 +160,7 @@ class ExecuteHandler(ApiHandler):
                         kwargs['expire'] = int(pref.split('=')[1])
                     except TypeError:
                         pass
- 
+
         return ExecutePrefs(**kwargs)
 
     def get_job_realm(self):
@@ -211,15 +213,15 @@ class ExecuteHandler(ApiHandler):
             content = wpsrequest.get_ogcapi_job_status(str(job_id), service)
             if content is None:
                 # Something really wrong happened !!!
-                LOGGER.critical("Missing job status for job '%s' (process: %s) !", 
+                LOGGER.critical("Missing job status for job '%s' (process: %s) !",
                                 job_id, process_id)
                 raise HTTPError(500)
- 
+
             # See https://docs.ogc.org/is/18-062r2/18-062r2.html#toc26
             # See https://developer.mozilla.org/fr/docs/Web/HTTP/Status/201
             self.set_header("Location", f"{wpsrequest.host_url}jobs/{job_id}")
             self.set_status(201)
-          
+
         # Set Preference-Applied according to actual parameters
         # used
         preference_applied = prefs._preference_applied(wpsrequest)
@@ -228,7 +230,7 @@ class ExecuteHandler(ApiHandler):
 
         self.write_json(content)
 
-    def options(self, endpoint: Optional[str]=None) -> None:
+    def options(self, endpoint: Optional[str] = None) -> None:
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('POST, OPTIONS')
@@ -248,11 +250,12 @@ class RealmController:
         realm = self.get_job_realm()
         if OgcApiRequest.must_check_realm(realm) and realm != resource_realm:
             raise HTTPError(401, "You are not allowed to access this resource")
- 
 
-class JobHandler(ApiHandler, RealmController): 
+
+class JobHandler(ApiHandler, RealmController):
     """ Handle /jobs
     """
+
     def get_inputs(self, job_id: str):
         content = self.application.wpsservice.get_status(job_id, key='request')
         if content is not None:
@@ -260,7 +263,7 @@ class JobHandler(ApiHandler, RealmController):
 
         return content
 
-    def get(self, job_id: Optional[str]=None):
+    def get(self, job_id: Optional[str] = None):
         """ Job status
         """
         wpsrequest = self.create_request()
@@ -273,8 +276,8 @@ class JobHandler(ApiHandler, RealmController):
                 content = self.get_inputs(job_id)
             else:
                 content = wpsrequest.get_ogcapi_job_status(job_id, self.application.wpsservice)
-            if content is None: 
-                raise HTTPError(404, reason="Job not found")        
+            if content is None:
+                raise HTTPError(404, reason="Job not found")
 
         self.write_json(content)
 
@@ -283,34 +286,33 @@ class JobHandler(ApiHandler, RealmController):
         """
         wpsrequest = self.create_request()
         wpsrequest.realm = self.get_job_realm()
-        content =  wpsrequest.get_ogcapi_job_dismiss(job_id, self.application.wpsservice)
-        if content is None: 
-            raise HTTPError(404, reason="Job not found")        
+        content = wpsrequest.get_ogcapi_job_dismiss(job_id, self.application.wpsservice)
+        if content is None:
+            raise HTTPError(404, reason="Job not found")
 
         self.write_json(content)
 
-    def options(self, endpoint: Optional[str]=None) -> None:
+    def options(self, endpoint: Optional[str] = None) -> None:
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('GET, DELETE, OPTIONS')
 
 
-class ResultHandler(ApiHandler): 
+class ResultHandler(ApiHandler):
     """ Handle /jobs/{job_id}/results
     """
+
     def get(self, job_id: str):
         content = self.application.wpsservice.get_results(job_id)
-        # We should not serve OWS/WPS results with this api 
+        # We should not serve OWS/WPS results with this api
         # This is somewhat hackish but quite effective
         if not content.startswith(b"{"):
             raise HTTPError(404, reason="Results not available from this api")
-        
+
         self.set_header("X-Job-Id", job_id)
         self.write_json(content)
 
-    def options(self, endpoint: Optional[str]=None) -> None:
+    def options(self, endpoint: Optional[str] = None) -> None:
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('GET, OPTIONS')
-
-
