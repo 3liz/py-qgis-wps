@@ -30,7 +30,7 @@ OGCTYPE = {
 
 _NUMBER_SCHEMA = { 'type': 'number' }
 
-OGCTYPE_SCHEMA = {
+OGCTYPE_SCHEMA_TEMPLATE = {
     'length': _NUMBER_SCHEMA,
     'scale': _NUMBER_SCHEMA,
     'time': { 'type': 'string', 'format': 'date' },
@@ -44,6 +44,14 @@ OGCTYPE_SCHEMA = {
     'integer': { 'type': 'integer' },
     'float': _NUMBER_SCHEMA,
 }
+
+# Poor man frozenmap
+# Prevent mutate the schema
+class __OgcTypeSchema:
+    def __getitem__(self, name:str):
+        return OGCTYPE_SCHEMA_TEMPLATE[name].copy()
+
+OGCTYPE_SCHEMA = __OgcTypeSchema()
 
 
 # For UCUM references, 

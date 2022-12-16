@@ -3,6 +3,7 @@
 
 ## Unreleased
 
+* Fix schemas in ogc api /processes description.
 * Load layer default styles with `loadDefaultStyle`
 * Fix invalid decoding of complex data as base64
     - Fix https://github.com/3liz/py-qgis-wps/issues/31

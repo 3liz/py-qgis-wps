@@ -36,7 +36,7 @@ class BasicInputDescription:
         doc = {
             'title': self.title,
             'keywords': [],
-            'metadata': [ m.ogcapi_description() for m in self.metadata ],
+            'metadata': [m.ogcapi_description() for m in self.metadata],
             'minOccurs': self.min_occurs,
             'maxOccurs': self.max_occurs,
         }
@@ -97,7 +97,7 @@ class LiteralInput(BasicInputDescription):
         # Modify schema according to allowed values
         if self.allowed_values:
             schema.update(self.allowed_values.ogcapi_schema())
- 
+
         if self.default is not None:
             schema.update(default=to_json_serializable(self.default))
         
