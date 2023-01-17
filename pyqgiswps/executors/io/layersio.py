@@ -12,7 +12,7 @@ import logging
 import traceback
 
 from pathlib import Path
-from urllib.parse import urlparse, urlencode, parse_qs
+from urllib.parse import quote, urlparse, urlencode, parse_qs
 
 from qgis.core import (QgsProcessing,
                        QgsProcessingParameterDefinition,
@@ -518,7 +518,7 @@ def parse_response(value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOu
     result = add_layer_to_load_on_completion(value, outdef, context)
     if result:
         result = ','.join(result)
-        out.url = output_url + '&' + urlencode((('layers', result),))
+        out.url = output_url + '&' + urlencode((('layers', result),), quote_via=quote)
     else:
         out.url = output_url
 

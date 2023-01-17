@@ -3,6 +3,11 @@
 
 ## Unreleased
 
+* Use quote format for layers parameter name in output urls
+    - Fix urlencoded parameters with space: 
+      i.e: `layers=foo%20bar` instead of `layers=foo+bar` that
+      causes problem with Qgis server.
+
 ## 1.8.4 - 2022-12-16
 
 * PEP8 Code style
