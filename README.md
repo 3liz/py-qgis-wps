@@ -148,6 +148,7 @@ See the official documentation for how to setup a python virtualenv:  https://vi
 
 Install in development mode
 ```bash
+make build
 pip install -e .
 ```
 
