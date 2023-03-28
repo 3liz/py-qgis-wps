@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+## 1.8.5 - 2023-03-28
+
 * Use quote format for layers parameter name in output urls
     - Fix urlencoded parameters with space: 
       i.e: `layers=foo%20bar` instead of `layers=foo+bar` that
