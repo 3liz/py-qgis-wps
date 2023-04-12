@@ -143,7 +143,7 @@ class ComplexInput:
         for m in self.metadata:
             doc.append(m.describe_xml())
 
-        if self.supported_formats is not None:
+        if self.supported_formats:
             default_format_el = self.supported_formats[0].describe_xml()
             supported_format_elements = [f.describe_xml() for f in self.supported_formats]
             doc.append(
