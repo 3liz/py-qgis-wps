@@ -3,7 +3,9 @@
 
 ## Unreleased
 
+* Fix Sample config (https://github.com/3liz/py-qgis-wps/issues/32)
 * Fix Qgis 3.30 supports
+* Merge pull request #37 from ptitjano/wip/jfelder/complexinput-supportedformats
 
 ## 1.8.5 - 2023-03-28
 
