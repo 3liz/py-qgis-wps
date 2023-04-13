@@ -26,8 +26,8 @@ from pyqgiswps.inout import (LiteralInput,
 from pyqgiswps.exceptions import (NoApplicableCode,
                                   InvalidParameterValue)
 
-from qgis.core import (QgsCoordinateReferenceSystem,
-                       QgsWkbTypes,
+from qgis.core import (Qgis,
+                       QgsCoordinateReferenceSystem,
                        QgsGeometry,
                        QgsReferencedGeometry,
                        QgsRectangle,
@@ -49,6 +49,23 @@ Geometry = Union[QgsGeometry, QgsReferencedGeometry]
 LOGGER = logging.getLogger('SRVLOG')
 
 GeometryParameterTypes = (QgsProcessingParameterPoint, QgsProcessingParameterGeometry)
+
+if Qgis.QGIS_VERSION_INT >= 33000:
+    # Geometry displaystring
+    GeomTypeDisplayString = {
+        Qgis.GeometryType.PointGeometry: 'Point',
+        Qgis.GeometryType.LineGeometry: 'Line',
+        Qgis.GeometryType.PolygonGeometry: 'Polygon',
+        Qgis.GeometryType.NullGeometry: 'Null',
+    }
+
+    def GetGeomTypeDisplayString(geomtype):
+        return GeomTypeDisplayString.get(geomtype, "Unknown")
+else:
+    from qgis.core import QgsWkbTypes
+
+    def GetGeomTypeDisplayString(geomtype):
+        return QgsWkbTypes.geometryDisplayString(geomtype)
 
 # ------------------------------------
 # Processing parameters ->  WPS input
@@ -96,7 +113,7 @@ def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs,
         if isinstance(param, QgsProcessingParameterGeometry):
             # Add metadata from requiered geometryTypes
             kwargs['metadata'].extend(
-                Metadata('processing:geometryType', QgsWkbTypes.geometryDisplayString(geomtype))
+                Metadata('processing:geometryType', GetGeomTypeDisplayString(geomtype))
                 for geomtype in param.geometryTypes()
             )
             if param.allowMultipart():

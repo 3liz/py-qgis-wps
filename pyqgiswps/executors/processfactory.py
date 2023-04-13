@@ -275,7 +275,8 @@ class QgsProcessFactory:
         logprefix = "[qgis:%s]" % os.getpid()
 
         settings = {
-            "Processing/Configuration/PREFER_FILENAME_AS_LAYER_NAME": "false"
+            "Processing/Configuration/PREFER_FILENAME_AS_LAYER_NAME": "false",  # Qgis < 3.30
+            "qgis/configuration/prefer-filename-as-layer-name": "false"         # Qgis >= 3.30
         }
 
         def _folders_setting(setting, folders):

@@ -58,7 +58,6 @@ class _Client:
         socket.setsockopt(zmq.ROUTER_MANDATORY, 1)
         socket.bind(bindaddr)
 
-        self._running = False
         self._handlers = {}
         self._socket = socket
         self._maxqueue = maxqueue
