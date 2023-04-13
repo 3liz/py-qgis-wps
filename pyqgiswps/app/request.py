@@ -175,7 +175,7 @@ class WPSResponse:
         # rebuild the doc and update the status xml file
         self.document = self.get_execute_response()
         # check if storing of the status is requested
-        if self.document:
+        if len(self.document) > 0:
             self._write_response_doc(self.uuid, self.document)
         if self.status >= WPSResponse.STATUS.DONE_STATUS:
             self.process.clean()
