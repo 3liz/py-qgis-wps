@@ -92,12 +92,14 @@ def load_configuration():
     CONFIG.set('server', 'response_timeout', getenv('QGSWPS_SERVER_RESPONSE_TIMEOUT', '1800'))
     # Expiration time in Redis cache for task responses
     CONFIG.set('server', 'response_expiration', getenv('QGSWPS_SERVER_RESPONSE_EXPIRATION', '86400'))
-    # Base url used for return WMS references (Qgis projects holding layers created by WPS tasks)
+    # XXX DEPRECATED Base url used for return WMS references (Qgis projects holding layers created by WPS tasks)
     CONFIG.set('server', 'wms_service_url', getenv('QGSWPS_SERVER_WMS_SERVICE_URL', '${wps.request:host_url}'))
+    # Base url used for return OWS references (Qgis projects holding layers created by WPS tasks)
+    CONFIG.set('server', 'ows_service_url', getenv('QGSWPS_SERVER_OWS_SERVICE_URL', '${wms_service_url}'))
     # Base uri used for the MAP argument in WMS references
     CONFIG.set('server', 'wps_result_map_uri', getenv('QGSWPS_SERVER_RESULTS_MAP_URI', 'wps-results:'))
     # Full URL used for returning  WPS references
-    CONFIG.set('server', 'wms_response_url', '${wms_service_url}?MAP={map_url}&service=WMS&request=GetCapabilities')
+    CONFIG.set('server', 'wms_response_url', '${ows_service_url}?MAP={map_url}&service=WMS&request=GetCapabilities')
     # Cleanup interval in seconds
     CONFIG.set('server', 'cleanup_interval', '600')
     # Download API expiration ttl for a download URL
@@ -210,9 +212,9 @@ def load_configuration():
     # Qgis projects
     #
     CONFIG.add_section('qgis.projects')
-    # Set this to force the the advertised WMS url in the Qgis projects
+    # Set this to force the the advertised OWS urls in the Qgis projects
     # created by pyqgiswps
-    CONFIG.set('qgis.projects', 'wmsurl', getenv('QGSWPS_ADVERTISED_WMSURL', '${server:wms_service_url}'))
+    CONFIG.set('qgis.projects', 'advertised_ows_url', getenv('QGSWPS_ADVERTISED_OWS_URL', '${server:ows_service_url}'))
 
     #
     # Metadata

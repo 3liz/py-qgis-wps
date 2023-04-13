@@ -100,7 +100,7 @@ class ProcessingContext(QgsProcessingContext):
             LOGGER.error(traceback.format_exc())
             raise
 
-    def write_result(self, workdir: str, name: str, wmsurl: Optional[str] = None) -> bool:
+    def write_result(self, workdir: str, name: str, advertised_url: Optional[str] = None) -> bool:
         """ Save results to disk
         """
         LOGGER.debug("Writing Results to %s", workdir)
@@ -108,8 +108,10 @@ class ProcessingContext(QgsProcessingContext):
         project = self.destination_project
 
         # Set project settings
-        if wmsurl:
-            project.writeEntry('WMSUrl', '/', wmsurl)
+        if advertised_url:
+            project.writeEntry('WMSUrl', '/', advertised_url)
+            project.writeEntry('WCSUrl', '/', advertised_url)
+            project.writeEntry('WFSUrl', '/', advertised_url)
 
         def _layers_for(layertype):
             return (lid for lid, lyr in project.mapLayers().items() if lyr.type() == layertype)

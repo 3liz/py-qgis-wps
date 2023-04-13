@@ -370,10 +370,10 @@ class QgsProcess(WPSProcess):
                       outputs=response.outputs,
                       create_context=create_context)
 
-        # Build advertised WMS url
-        wmsurl = f"{confservice.get('server','wms_service_url')}?MAP={output_map_url}"
+        # Build advertised OWS services url
+        advertised_url = f"{confservice.get('qgis.projects','advertised_ows_url')}?MAP={output_map_url}"
 
-        ok = context.write_result(context.workdir, destination, wmsurl)
+        ok = context.write_result(context.workdir, destination, advertised_url)
         if not ok:
             raise ProcessException("Failed to write %s" % destination)
 
