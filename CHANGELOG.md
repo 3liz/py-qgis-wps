@@ -3,6 +3,9 @@
 
 ## Unreleased
 
+## 1.8.6 - 2023-04-13
+
+* Merge pull request #38 from ptitjano/xml-element-warning
 * Add advertised WCS/WFS urls in output Qgis project
     - Fix https://github.com/3liz/py-qgis-wps/issues/28
 * Fix Sample config (https://github.com/3liz/py-qgis-wps/issues/32)
