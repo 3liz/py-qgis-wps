@@ -1,4 +1,3 @@
-
 from qgis.processing import alg
 
 @alg(name='testalgfactory', label='test 2', group='test', group_label='Test scripts')

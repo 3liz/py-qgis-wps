@@ -18,7 +18,7 @@ def setLayerVariables(alg, output_name, context, feedback=None, **kwargs):
 
     style = RenderingStyles.getStyle(alg, output_name)
     if not style:
-        feedback.pushInfo('Style not found for: %s/%s' % (alg, output_name))
+        feedback.pushInfo(f'Style not found for: {alg}/{output_name}')
         return
 
     # Read the qml file

@@ -48,5 +48,5 @@ class TestSimpleValue(QgsProcessingAlgorithm):
         param1 = self.parameterAsInt(parameters, self.PARAM1, context)
         param2 = self.parameterAsString(parameters, self.PARAM2, context)
 
-        return {self.OUTPUT: "%s %s" % (param1, param2)}
+        return {self.OUTPUT: f"{param1} {param2}"}
         

@@ -54,7 +54,7 @@ class TestCopyLayer(QgsProcessingAlgorithm):
         err = QgsVectorFileWriter.writeAsVectorFormat(layer, outfile, "utf-8", driverName="ESRI Shapefile") 
 
         if err[0] != QgsVectorFileWriter.NoError:
-            feedback.reportError("Error writing vector layer %s: %s" % (outfile, err))
+            feedback.reportError(f"Error writing vector layer {outfile}: {err}")
 
         return {self.OUTPUT: outfile }
         

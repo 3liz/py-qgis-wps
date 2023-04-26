@@ -74,7 +74,7 @@ def test_context(outputdir, data):
 
     destination = get_valid_filename(alg.id())
 
-    context.wms_url = "http://localhost/wms/MAP=test/{name}.qgs".format(name=destination)
+    context.wms_url = f"http://localhost/wms/MAP=test/{destination}.qgs"
     # Run algorithm
     with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)

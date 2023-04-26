@@ -201,7 +201,7 @@ the description is used in QGIS UI as the title in WPS.
         or filesio.parse_input_definition(param, kwargs) \
         or datetimeio.parse_input_definition(param, kwargs)
     if inp is None:
-        raise ProcessingInputTypeNotSupported("%s:'%s'" % (type(param), param.type()))
+        raise ProcessingInputTypeNotSupported(f"{type(param)}:'{param.type()}'")
 
     parse_metadata(param, kwargs)
 

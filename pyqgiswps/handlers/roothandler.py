@@ -19,7 +19,7 @@ class ServerInfosHandler(BaseHandler):
         try:
             from qgis.core import Qgis
             from processing.core.Processing import RenderingStyles
-            QGIS_VERSION = "{} ({})".format(Qgis.QGIS_VERSION_INT, Qgis.QGIS_RELEASE_NAME)
+            QGIS_VERSION = f"{Qgis.QGIS_VERSION_INT} ({Qgis.QGIS_RELEASE_NAME})"
             styles = RenderingStyles.styles
         except ImportError:
             QGIS_VERSION = "n/a"
@@ -38,7 +38,7 @@ class ServerInfosHandler(BaseHandler):
 
     def head(self):
         from qgis.core import Qgis
-        QGIS_VERSION = "{} ({})".format(Qgis.QGIS_VERSION_INT, Qgis.QGIS_RELEASE_NAME)
+        QGIS_VERSION = f"{Qgis.QGIS_VERSION_INT} ({Qgis.QGIS_RELEASE_NAME})"
 
         self.set_header("X-Qgis-version", QGIS_VERSION)
 

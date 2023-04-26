@@ -31,9 +31,9 @@ def _format_size(size):
     for u in ['B', 'K', 'M', 'G']:
         if size < 1024.0:
             if size < 10.0:
-                return "%.1f%s" % (size, u)
+                return f"{size:.1f}{u}"
             else:
-                return "%.f%s" % (size, u)
+                return f"{size:.f}{u}"
         size /= 1024.0
     return '%.fT' % size
 

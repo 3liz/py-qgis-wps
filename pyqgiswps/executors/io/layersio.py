@@ -382,7 +382,7 @@ def get_processing_value(param: QgsProcessingParameterDefinition, inp: WPSInput,
             sink, destination = parse_root_destination_path(param, destination, extension)
         else:
             # Use canonical file name
-            sink = "./%s.%s" % (get_valid_filename(param.name()), extension)
+            sink = f"./{get_valid_filename(param.name())}.{extension}"
 
         value = QgsProcessingOutputLayerDefinition(sink, context.destination_project)
         value.destinationName = destination
@@ -492,7 +492,7 @@ def add_layer_to_load_on_completion(value: str, outdef: QgsProcessingOutputDefin
             else:
                 LOGGER.warning("No layer found for %s", lyrname)
         except Exception:
-            LOGGER.error("Processing: Error loading result layer {}:\n{}".format(lyrname, traceback.format_exc()))
+            LOGGER.error(f"Processing: Error loading result layer {lyrname}:\n{traceback.format_exc()}")
 
         return None
 

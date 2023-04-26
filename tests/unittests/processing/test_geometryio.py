@@ -403,7 +403,7 @@ def test_geometry_algorithm(outputdir, data):
     assert isinstance( value, QgsReferencedGeometry )
     assert value.wkbType() == QgsWkbTypes.MultiPoint
 
-    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+    context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
@@ -439,7 +439,7 @@ def test_geometry_script(outputdir, data):
     assert isinstance( value, QgsReferencedGeometry )
     assert value.wkbType() == QgsWkbTypes.MultiPoint
 
-    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+    context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   

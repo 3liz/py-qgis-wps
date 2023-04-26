@@ -12,7 +12,7 @@ from pyqgiswps.inout.literaltypes import AllowedValues
 
 def get_input(allowed_values, data = 1):
 
-    class FakeInput(object):
+    class FakeInput:
         data = 1
         data_type = 'data'
 

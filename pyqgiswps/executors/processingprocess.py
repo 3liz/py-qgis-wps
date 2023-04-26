@@ -159,7 +159,7 @@ def handle_layer_outputs(alg: QgsProcessingAlgorithm,
             else:
                 LOGGER.warning("No layer found for %s", lyrname)
         except Exception:
-            LOGGER.error("Processing: Error loading result layer:\n{}".format(traceback.format_exc()))
+            LOGGER.error(f"Processing: Error loading result layer:\n{traceback.format_exc()}")
             wrongLayers.append(str(lyrname))
 
     if wrongLayers:
@@ -195,7 +195,7 @@ class Feedback(QgsProcessingFeedback):
         """ Notify that job is cancelled
         """
         LOGGER.warning("Processing:%s:%s cancel() called", self.name, self.uuid)
-        super(Feedback, self).cancel()
+        super().cancel()
         # TODO Call update status  when
         # https://projects.3liz.org/infra-v3/py-qgis-wps/issues/1 is fixed
 
@@ -231,8 +231,9 @@ def run_processing_algorithm(alg: QgsProcessingAlgorithm,
 
     # Validate CRS
     if not alg.validateInputCrs(parameters, context):
-        feedback.pushInfo(("Warning: Not all input layers use the same CRS"
-                           "\nThis can cause unexpected results."))
+        feedback.pushInfo(
+            "Warning: Not all input layers use the same CRS\n"
+            "This can cause unexpected results.")
 
     # Execute algorithm
     # XXX: The algorithm is recreated here

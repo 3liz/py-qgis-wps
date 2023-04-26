@@ -172,7 +172,7 @@ def setuid(username):
     pw = getpwnam(username)
     os.setgid(pw.pw_gid)
     os.setuid(pw.pw_uid)
-    LOGGER.info("Setuid to user {} ({}:{})".format(getpwuid(os.getuid()).pw_name, os.getuid(), os.getgid()))
+    LOGGER.info(f"Setuid to user {getpwuid(os.getuid()).pw_name} ({os.getuid()}:{os.getgid()})")
 
 
 def create_ssl_options():

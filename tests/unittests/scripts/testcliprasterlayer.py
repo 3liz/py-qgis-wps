@@ -1,4 +1,3 @@
-
 from qgis.processing import alg
 
 import processing

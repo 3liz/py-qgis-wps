@@ -54,7 +54,7 @@ class BaseHandler(tornado.web.RequestHandler):
         """ Override, log and set 'connection_closed' to True
         """
         self.connection_closed = True
-        LOGGER.warning("Connection closed by client: {}".format(self.request.uri))
+        LOGGER.warning(f"Connection closed by client: {self.request.uri}")
 
     def set_option_headers(self, allow_header: Optional[str] = None) -> None:
         """  Set correct headers for 'OPTION' method

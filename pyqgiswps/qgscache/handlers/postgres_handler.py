@@ -84,7 +84,7 @@ class PostgresProtocolHandler:
             LOGGER.debug("**** Postgresql connection params %s", connexion_params)
             conn = psycopg2.connect(**connexion_params)
             cursor = conn.cursor()
-            cursor.execute("select metadata from %s.qgis_projects where name='%s'" % (schema, project))
+            cursor.execute(f"select metadata from {schema}.qgis_projects where name='{project}'")
             if cursor.rowcount <= 0:
                 raise FileNotFoundError(url.geturl())
             metadata = cursor.fetchone()[0]
