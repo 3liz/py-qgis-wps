@@ -1,4 +1,3 @@
-
 from pyqgiswps.config import get_size_bytes
 
 def test_size_bytes():

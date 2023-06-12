@@ -1,4 +1,3 @@
-
 from qgis.processing import alg
 from qgis.core import QgsWkbTypes
 

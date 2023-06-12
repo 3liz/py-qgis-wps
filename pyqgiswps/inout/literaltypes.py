@@ -1,4 +1,3 @@
-
 # Copyright 2018 3liz
 # Author: David Marteau
 #
@@ -233,7 +232,7 @@ def convert_anyURI(inpt: LiteralInputValue) -> str:
         return components.geturl()
     else:
         raise InvalidParameterValue(
-            'The value "{}" does not seem to be of type anyURI'.format(inpt))
+            f'The value "{inpt}" does not seem to be of type anyURI')
 
 
 def convert_time(inpt: LiteralInputValue) -> datetime.time:

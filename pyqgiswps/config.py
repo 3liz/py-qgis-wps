@@ -298,7 +298,7 @@ def read_config_file(cfgfile):
     """ Read configuration from file
     """
     cfgfile = os.path.abspath(cfgfile)
-    with open(cfgfile, mode='rt') as fp:
+    with open(cfgfile) as fp:
         CONFIG.read_file(fp)
     _log('Configuration file <%s> loaded' % cfgfile)
 
@@ -326,11 +326,11 @@ def validate_config_path(confname, confid, optional=False):
 
     confvalue = os.path.normpath(confvalue)
     if not os.path.isdir(confvalue):
-        _log('ERROR: server->%s configuration value %s is not directory' % (confid, confvalue))
+        _log(f'ERROR: server->{confid} configuration value {confvalue} is not directory')
         raise ValueError(confvalue)
 
     if not os.path.isabs(confvalue):
-        _log('ERROR: server->%s configuration value %s is not absolute path' % (confid, confvalue))
+        _log(f'ERROR: server->{confid} configuration value {confvalue} is not absolute path')
         raise ValueError(confvalue)
 
     CONFIG.set(confname, confid, confvalue)
@@ -384,7 +384,7 @@ class ConfigService:
             # Look in environment
             # Note that the section must exists
             if self.allow_env:
-                varname = 'QGSWPS_%s_%s' % (section.upper(), option.upper())
+                varname = f'QGSWPS_{section.upper()}_{option.upper()}'
                 varname = functools.reduce(lambda s, c: s.replace(c, '_'), ENV_REPLACE_CHARS, varname)
                 varvalue = os.getenv(varname)
                 if varvalue is not None:
@@ -394,7 +394,7 @@ class ConfigService:
             else:
                 value = fallback
         if value is NO_DEFAULT:
-            raise KeyError('[%s] %s' % (section, option))
+            raise KeyError(f'[{section}] {option}')
         return value
 
     get = functools.partialmethod(__get_impl, CONFIG.get)

@@ -97,7 +97,7 @@ def test_centroides_algorithms(outputdir, data):
     # Destination project
     destination_project = get_valid_filename(alg.id())
 
-    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=destination_project)
+    context.wms_url = f"http://localhost/wms/?MAP=test/{destination_project}.qgs"
     # Run algorithm
     with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, 

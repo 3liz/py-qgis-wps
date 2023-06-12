@@ -177,7 +177,7 @@ def test_layer_algorithm(outputdir, data):
 
     assert isinstance( parameters['OUTPUT'], QgsProcessingOutputLayerDefinition)
 
-    context.wms_url = "http://localhost/wms/MAP=test/{name}.qgs".format(name=destination)
+    context.wms_url = f"http://localhost/wms/MAP=test/{destination}.qgs"
 
     # Run algorithm
     with chdir(outputdir):
@@ -214,7 +214,7 @@ def test_buffer_algorithm(outputdir, data):
     assert isinstance( parameters['OUTPUT_VECTOR'], QgsProcessingOutputLayerDefinition)
     assert isinstance( parameters['DISTANCE'], float)
 
-    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+    context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
@@ -261,7 +261,7 @@ def test_output_vector_algorithm(outputdir, data):
 
     assert isinstance( parameters['DISTANCE'], float)
 
-    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+    context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,outputs=outputs)   
@@ -312,7 +312,7 @@ def test_selectfeatures_algorithm(outputdir, data):
     assert isinstance( parameters['OUTPUT_VECTOR'], QgsProcessingOutputLayerDefinition)
     assert isinstance( parameters['DISTANCE'], float)
 
-    context.wms_url = "http://localhost/wms/?MAP=test/{name}.qgs".format(name=alg.name())
+    context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   

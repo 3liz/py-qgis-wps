@@ -45,7 +45,7 @@ class NoApplicableCode(HTTPException):
         self.code = code
         self.description = description
         self.locator = locator
-        msg = 'Exception: code: %s, description: %s, locator: %s' % (self.code, self.description, self.locator)
+        msg = f'Exception: code: {self.code}, description: {self.description}, locator: {self.locator}'
         LOGGER.error(msg)
         super().__init__(status_code=code, log_message=log_message, *args, **kwargs)
 

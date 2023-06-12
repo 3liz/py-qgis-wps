@@ -65,7 +65,7 @@ class TestIOHandler:
         stream_val = self.iohandler.stream.read()
         self.iohandler.stream.close()
 
-        if type(stream_val) == type(b''):
+        if type(stream_val) == bytes:
             assert str.encode(self._value) == stream_val
         else:
             assert self._value == stream_val
@@ -155,7 +155,7 @@ class TestComplexOutput:
         assert isinstance(self.complex_out.data_format, Format)
 
     def test_storage(self):
-        class Storage(object):
+        class Storage:
             pass
         storage = Storage()
         self.complex_out.store = storage
@@ -234,7 +234,7 @@ class TestLiteralOutput:
         assert isinstance(self.literal_output, LiteralOutput)
 
     def test_storage(self):
-        class Storage(object):
+        class Storage:
             pass
         storage = Storage()
         self.literal_output.store = storage
@@ -272,7 +272,7 @@ class TestBoxOutput:
         assert isinstance(self.bbox_out, BBoxOutput)
 
     def test_storage(self):
-        class Storage(object):
+        class Storage:
             pass
         storage = Storage()
         self.bbox_out.store = storage

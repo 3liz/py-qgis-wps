@@ -88,7 +88,7 @@ def read_configuration(args=None):
 
     # set log level
     setup_log_handler()
-    print("Log level set to {}\n".format(logging.getLevelName(LOGGER.level)), file=sys.stderr)
+    print(f"Log level set to {logging.getLevelName(LOGGER.level)}\n", file=sys.stderr)
 
     conf = confservice['server']
     args.port = conf.getint('port')

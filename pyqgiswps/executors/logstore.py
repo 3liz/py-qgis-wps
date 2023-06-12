@@ -66,7 +66,7 @@ class LogStore:
             LOGGER.error("Failed to record request %s", uuid_str)
 
         # Record the request
-        self._db.set("{}:request:{}".format(self._prefix, uuid_str), wps_request.dumps())
+        self._db.set(f"{self._prefix}:request:{uuid_str}", wps_request.dumps())
 
         return record
 
@@ -161,7 +161,7 @@ class LogStore:
         """ Write response doc
         """
         uuid_str = str(request_uuid)
-        rv = self._db.set("{}:response:{}".format(self._prefix, uuid_str), content)
+        rv = self._db.set(f"{self._prefix}:response:{uuid_str}", content)
         if not rv:
             LOGGER.error("LOGSTORE: Failed to log response %s", uuid_str)
 
@@ -171,15 +171,15 @@ class LogStore:
         uuid_str = str(request_uuid)
         LOGGER.debug("LOGSTORE: deleting record %s", uuid_str)
         p = self._db.pipeline()
-        p.delete("{}:response:{}".format(self._prefix, uuid_str))
-        p.delete("{}:request:{}".format(self._prefix, uuid_str))
+        p.delete(f"{self._prefix}:response:{uuid_str}")
+        p.delete(f"{self._prefix}:request:{uuid_str}")
         p.hdel(self._hstatus, uuid_str)
         p.execute()
 
     def get_results(self, uuid) -> Optional[bytes]:
         """ Return results status
         """
-        data = self._db.get("{}:response:{}".format(self._prefix, str(uuid)))
+        data = self._db.get(f"{self._prefix}:response:{str(uuid)}")
         if data is not None:
             return data
 
@@ -192,7 +192,7 @@ class LogStore:
     def get_request(self, uuid):
         """ Return results status
         """
-        data = self._db.get("{}:request:{}".format(self._prefix, str(uuid)))
+        data = self._db.get(f"{self._prefix}:request:{str(uuid)}")
         if data is not None:
             return json.loads(data.decode('utf-8'))
 

@@ -1,4 +1,3 @@
-
 from pyqgiswps.app.common import Metadata
 from pyqgiswps.inout.formats import Format
 from pyqgiswps.inout import (LiteralInput,

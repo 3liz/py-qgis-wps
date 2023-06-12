@@ -142,16 +142,16 @@ def test_executedelete( host, data ):
     uuid = _execute_process( host )
 
     # Get the status and make sure is 200
-    rv = requests.get(host+"/status/{}?SERVICE=WPS".format(uuid))
+    rv = requests.get(host+f"/status/{uuid}?SERVICE=WPS")
     assert rv.status_code == 200
     assert rv.json()['status'].get('uuid') == uuid
 
     # Delete the response
-    rv = requests.delete(host+"/status/{}?SERVICE=WPS".format(uuid))
+    rv = requests.delete(host+f"/status/{uuid}?SERVICE=WPS")
     assert rv.status_code == 200 
 
     # Get the status and make sure is 404
-    rv = requests.get(host+"/status/{}?SERVICE=WPS".format(uuid))
+    rv = requests.get(host+f"/status/{uuid}?SERVICE=WPS")
     assert rv.status_code == 404 
 
 
@@ -164,7 +164,7 @@ def test_proxy_status_url( host ):
     proxy_loc = 'http://test.proxy.loc:8080/'
 
     # Get the status and make sure is 200
-    rv = requests.get(host+"/status/{}?SERVICE=WPS".format(uuid),  
+    rv = requests.get(host+f"/status/{uuid}?SERVICE=WPS",  
             headers={ 'X-Forwarded-Url': proxy_loc })
     assert rv.status_code == 200
 
@@ -200,7 +200,7 @@ def test_handleprocesserror_async( host, data ):
     sleep(3)
  
     # Get the status and make sure is 200
-    rv = requests.get(host+"/status/{}".format(uuid))
+    rv = requests.get(host+f"/status/{uuid}")
     assert rv.status_code == 200
   
     data = rv.json()

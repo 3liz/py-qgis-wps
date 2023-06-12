@@ -46,7 +46,7 @@ class TestInputFile(QgsProcessingAlgorithm):
         feedback.pushInfo("Opening file: %s" % fileinput)
 
         data = "NO DATA"
-        with open(fileinput, 'r') as f:
+        with open(fileinput) as f:
             data = f.read()
 
         return { self.OUTPUT: data }

@@ -5,7 +5,7 @@ from string import Template
 
 _baseurl = None
 
-class Data(object):
+class Data:
     def __init__(self, request):
         self.rootdir = request.config.rootdir.join('data')
 

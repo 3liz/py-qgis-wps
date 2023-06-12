@@ -30,7 +30,7 @@ def initializer(*args):
 
 
 def job_ok(*args, **kwargs):
-    return "OK: %s %s" % (args, kwargs)
+    return f"OK: {args} {kwargs}"
 
 
 def job_fail(*args, **kwars):

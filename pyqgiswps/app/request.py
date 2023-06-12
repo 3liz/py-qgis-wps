@@ -187,7 +187,7 @@ class WPSResponse:
         """
         try:
             logstore.write_response(request_uuid, self.encode_response(doc))
-        except IOError as e:
+        except OSError as e:
             raise NoApplicableCode('Writing Response Document failed with : %s' % e, code=500)
 
     def _update_response(self, request_uuid):

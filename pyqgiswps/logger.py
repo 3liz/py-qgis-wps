@@ -16,7 +16,7 @@ from .config import confservice
 
 LOGGER = logging.getLogger('SRVLOG')
 
-REQ_LOG_TEMPLATE = u"{ip}\t{code}\t{method}\t{url}\t{time}\t{length}\t"
+REQ_LOG_TEMPLATE = "{ip}\t{code}\t{method}\t{url}\t{time}\t{length}\t"
 REQ_FORMAT = REQ_LOG_TEMPLATE + '{agent}\t{referer}'
 RREQ_FORMAT = REQ_LOG_TEMPLATE
 

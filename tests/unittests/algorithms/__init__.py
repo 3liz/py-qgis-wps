@@ -1,4 +1,3 @@
-
 from .TestAlgorithmProvider import  TestAlgorithmProvider
 
 class Test:
