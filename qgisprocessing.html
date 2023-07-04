@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Running QGIS processing &mdash; py-qgis-wps 1.5 documentation</title>
@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -28,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> py-qgis-wps
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            py-qgis-wps
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -76,8 +80,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Running QGIS processing</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Running QGIS processing</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/qgisprocessing.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -91,19 +95,19 @@
 <span id="qgis-processing"></span><h1>Running QGIS processing<a class="headerlink" href="#running-qgis-processing" title="Permalink to this heading"></a></h1>
 <section id="wps-input-output-layer-mapping">
 <span id="layer-mapping"></span><h2>WPS input/output layer mapping<a class="headerlink" href="#wps-input-output-layer-mapping" title="Permalink to this heading"></a></h2>
-<p>With Qgis desktop , Qgis processing algorithms usually apply on a Qgis  source project and computed layers are displayed in the same context as the source project.</p>
+<p>With QGIS desktop , QGIS processing algorithms usually apply on a QGIS source project and computed layers are displayed in the same context as the source project.</p>
 <p>Py-qgis-wps works the same way: a qgis project will be used as a source of input layers.
 The difference is that, when an algorithm runs, it creates a qgis project file associated to the current task and register computed layers to it.</p>
-<p>The created project may be used as OWS source with Qgis Server. Output layers are returned as complex objects
-holding a reference to a WMS/WFS uri that can be used directly with Qgis server. The uri template is configurable
+<p>The created project may be used as OWS source with QGIS Server. Output layers are returned as complex objects
+holding a reference to a WMS/WFS uri that can be used directly with QGIS server. The uri template is configurable
 using the <code class="docutils literal notranslate"><span class="pre">server/wms_response_uri</span></code> configuration setting.</p>
 </section>
 <section id="contextualized-input-parameters">
 <span id="contextualized-params"></span><h2>Contextualized input parameters<a class="headerlink" href="#contextualized-input-parameters" title="Permalink to this heading"></a></h2>
 <p>Tasks parameters are contextualized using the <cite>MAP</cite> query param. If a <cite>MAP</cite> parameters is given when
-doinc a <cite>DescripProcess</cite> requests, allowed values for input layers will be taken from the qgis source project
+doing a <cite>DescripProcess</cite> requests, allowed values for input layers will be taken from the qgis source project
 according the type of the input layers.</p>
-<p>Qgis project (.qgs) files and project stored in Postgres databases are both supported.</p>
+<p>QGIS project (.qgs) files and project stored in Postgres databases are both supported.</p>
 <p>The best practice is to always provide a <cite>MAP</cite> parameters and include the possible input layer in a qgs project. This way you
 may connect whatever data source supported by qgis and use them as input data in a safe way.</p>
 <p>If you need to pass data to your algorithm from client-side, prefer inputs file parameter and small payloads.</p>
@@ -113,7 +117,7 @@ may connect whatever data source supported by qgis and use them as input data in
 <span id="exposing-algorithms"></span><h1>Exposing processing algorithms<a class="headerlink" href="#exposing-processing-algorithms" title="Permalink to this heading"></a></h1>
 <p>The processing provider modules are searched in the path given by the <a class="reference internal" href="configuration.html#processing-providers-module-path"><span class="std std-ref">PROCESSING_PROVIDERS_MODULE_PATH</span></a>
 config variable.</p>
-<p>Processing providers following the same rules as  Qgis regular plugin with a special factory entrypoint: <code class="docutils literal notranslate"><span class="pre">WPSClassFactory(iface)</span></code> in the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file.</p>
+<p>Processing providers following the same rules as QGIS regular plugin with a special factory entrypoint: <code class="docutils literal notranslate"><span class="pre">WPSClassFactory(iface)</span></code> in the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file.</p>
 <section id="the-metadata-txt-file">
 <h2>The <code class="docutils literal notranslate"><span class="pre">metadata.txt</span></code> file<a class="headerlink" href="#the-metadata-txt-file" title="Permalink to this heading"></a></h2>
 <p>As regular QGIS plugin, a metadata.txt file must be present with a special entry <code class="docutils literal notranslate"><span class="pre">wps=True</span></code> indicating that
@@ -123,7 +127,7 @@ the plugin is available as a WPS service provider.</p>
 <h2>Registering providers<a class="headerlink" href="#registering-providers" title="Permalink to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">iface</span></code>  parameter is a instance of <code class="docutils literal notranslate"><span class="pre">WPSServerInterface</span></code> which provide a
 <code class="docutils literal notranslate"><span class="pre">registerProvider(</span> <span class="pre">provider:</span> <span class="pre">QgsAlgorithmProvider,</span> <span class="pre">expose:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">Any</span></code> method.</p>
-<p>Exposed providers as WPS services must be registered usin the <code class="docutils literal notranslate"><span class="pre">registerProvider</span></code> method.</p>
+<p>Exposed providers as WPS services must be registered using the <code class="docutils literal notranslate"><span class="pre">registerProvider</span></code> method.</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">WPSClassFactory</span><span class="p">(</span><span class="n">iface</span><span class="p">:</span> <span class="n">WPSServerInterface</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 
@@ -179,7 +183,7 @@ After restarting the workers you should see the corresponding algorithms in the 
 <section id="reloading-providers">
 <span id="id1"></span><h2>Reloading providers<a class="headerlink" href="#reloading-providers" title="Permalink to this heading"></a></h2>
 <p>Providers may be reloaded gracefully using the <a class="reference internal" href="configuration.html#server-restartmon"><span class="std std-ref">SERVER_RESTARTMON</span></a> option.
-This allow for updatings providers, models and scripts without interrupting the service.</p>
+This allow for updating providers, models and scripts without interrupting the service.</p>
 </section>
 </section>
 

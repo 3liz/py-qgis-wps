@@ -46,6 +46,57 @@ Interfaces to listen to
 
 
 
+.. _SERVER_ENABLE_FILTERS:
+
+SERVER_ENABLE_FILTERS
+---------------------
+
+Enable filters as python extension
+
+:Type: boolean
+:Default: yes
+:Section: server
+:Key: enable_filters
+:Env: QGSRV_SERVER_ENABLE_FILTERS
+
+
+
+.. _SERVER_HTTP_PROXY:
+
+SERVER_HTTP_PROXY
+-----------------
+
+Indicates that the server is behind a reverse proxy.
+Set this to 'yes' if you are planning to use Forwarded Headers
+or set a static proxy url with `QGIS_SERVER_<SERVICE>_URL`
+
+
+:Type: boolean
+:Default: no
+:Section: server
+:Key: http_proxy
+:Env: QGSRV_SERVER_HTTP_PROXY
+
+
+
+.. _SERVER_PROXY_URL:
+
+SERVER_PROXY_URL
+----------------
+
+The url that must be seen by the client when the server is behind a proxy.
+Note that this option will be overridden by `QGIS_SERVER_<SERVICE>_URL` or  
+by `X-Qgis-<service>-Url` headers.
+
+
+
+:Type: string
+:Section: server
+:Key: proxy_url
+:Env: QGSRV_SERVER_PROXY_URL
+
+
+
 .. _SERVER_OUTPUTFILE_AS_REFERENCE:
 
 SERVER_OUTPUTFILE_AS_REFERENCE
@@ -98,8 +149,8 @@ Max request buffer size.
 SERVER_WORKDIR
 --------------
 
-Parent working directory where processes are executed. Eache processes will create
-a working directiry for storing results files and logs. 
+Parent working directory where processes are executed. Each processes will create
+a working directory for storing results files and logs. 
 The default value use the `gettempdir()` function.
 
 
@@ -116,7 +167,7 @@ The default value use the `gettempdir()` function.
 SERVER_PARALLELPROCESSES
 ------------------------
 
-The number of parallel processes runninc `execute` requests. Extra processes will be queued.
+The number of parallel processes running `execute` requests. Extra processes will be queued.
 
 
 :Type: int
@@ -132,7 +183,7 @@ The number of parallel processes runninc `execute` requests. Extra processes wil
 SERVER_PROCESSLIFECYCLE
 -----------------------
 
-Maximal number of executions that can run in the same worker before beeing recreating
+Maximal number of executions that can run in the same worker before being recreating
 the worker.
 
 
@@ -166,7 +217,7 @@ SERVER_RESPONSE_TIMEOUT
 -----------------------
 
 Timeout for tasks execution in seconds. Task running longer that this time will be aborted and
-a timeout error is retourned.
+a timeout error is returned.
 
 
 :Type: int
@@ -182,7 +233,7 @@ a timeout error is retourned.
 SERVER_RESPONSE_EXPIRATION
 --------------------------
 
-Response expiration in seconds. After that delay from the tasks's end, data (working directory and status)
+Response expiration in seconds. After that delay from the task's end, data (working directory and status)
 for that task will be deleted.
 
 
@@ -200,7 +251,7 @@ SERVER_WMS_SERVICE_URL
 ----------------------
 
 The url for the service used to retrieve results as WMS/WFS references.
-Usually this will correspond to a Qgis server serving OWS services from results projects.
+Usually this will correspond to a QGIS server serving OWS services from results projects.
 
 
 
@@ -255,7 +306,7 @@ SERVER_RESTARTMON
 The file to watch for restarting workers. When the modified date of the file is changed, 
 the processing providers are reloaded.
 The restart is graceful, jobs terminate normally. During the restart process,
-the providers are reloaded, this allow for updatings providers, models and scripts without
+the providers are reloaded, this allow for updating providers, models and scripts without
 interrupting the service.
 
 
@@ -337,7 +388,7 @@ SERVER_ADMIN_REALM
 ------------------
 
 Administrator realm token.
-It allows bearer to bypass any other token 
+It allows bearer to bypass any other token
 
 
 :Type: path
@@ -431,7 +482,7 @@ Redis storage backend key prefix.
 CACHE_SIZE
 ----------
 
-The maximal number of Qgis projects held in cache. The cache strategy is LRU.
+The maximal number of QGIS projects held in cache. The cache strategy is LRU.
 
 
 :Type: int
@@ -447,7 +498,7 @@ The maximal number of Qgis projects held in cache. The cache strategy is LRU.
 CACHE_ROOTDIR
 -------------
 
-The directory location for Qgis project files.
+The directory location for QGIS project files.
 
 
 :Type: path
@@ -462,7 +513,7 @@ The directory location for Qgis project files.
 CACHE_STRICT_CHECK
 ------------------
 
-Activate strict checking of project layers. When enabled, Qgis projects
+Activate strict checking of project layers. When enabled, QGIS projects
 with invalid layers will be dismissed and an 'Unprocessable Entity' (422) HTTP error
 will be issued.
 
@@ -480,7 +531,7 @@ will be issued.
 PROCESSING_PROVIDERS_MODULE_PATH
 --------------------------------
 
-Path to Qgis processing providers modules
+Path to QGIS processing providers modules
 
 :Type: path
 :Section: processing
@@ -494,7 +545,7 @@ Path to Qgis processing providers modules
 PROCESSING_EXPOSED_PROVIDERS
 ----------------------------
 
-Comma separated list of exposed Qgis processing internal providers
+Comma separated list of exposed QGIS processing internal providers
 
 :Type: list
 :Default: script,model
@@ -525,7 +576,7 @@ PROCESSING_VECTOR_FILEEXT
 -------------------------
 
 Define the default vector file extensions for vector destination
-parameters. If not specified, then the Qgis default value is used.
+parameters. If not specified, then the QGIS default value is used.
 
 
 :Type: string
@@ -541,7 +592,7 @@ PROCESSING_RASTER_FILEEXT
 -------------------------
 
 Define the default raster file extensions for raster destination
-parameters. If not specified, then the Qgis default value is used.
+parameters. If not specified, then the QGIS default value is used.
 
 
 :Type: string
@@ -559,7 +610,7 @@ PROCESSING_RAW_DESTINATION_INPUT_SINK
 Allow input value as sink for destination layers. 
 This allow value passed as input value to be interpreted as
 path or uri sink definition. This enable passing any string
-that Qgis may use a input source but without open options except for the
+that QGIS may use a input source but without open options except for the
 'layername=<name>' option.
 Running concurrent jobs with this option may result in unpredictable
 behavior.

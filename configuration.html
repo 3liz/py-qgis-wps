@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Configuration Settings &mdash; py-qgis-wps 1.5 documentation</title>
@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -28,11 +28,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> py-qgis-wps
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            py-qgis-wps
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -47,6 +51,9 @@
 <li class="toctree-l1"><a class="reference internal" href="#common-configuration-options">Common Configuration Options</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#server-http-port">SERVER_HTTP_PORT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#server-interfaces">SERVER_INTERFACES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#server-enable-filters">SERVER_ENABLE_FILTERS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#server-http-proxy">SERVER_HTTP_PROXY</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#server-proxy-url">SERVER_PROXY_URL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#server-outputfile-as-reference">SERVER_OUTPUTFILE_AS_REFERENCE</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#server-maxinputsize">SERVER_MAXINPUTSIZE</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#server-maxbuffersize">SERVER_MAXBUFFERSIZE</a></li>
@@ -103,8 +110,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Configuration Settings</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Configuration Settings</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/configuration.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -125,19 +132,19 @@
 <span id="id2"></span><h2>SERVER_HTTP_PORT<a class="headerlink" href="#server-http-port" title="Permalink to this heading"></a></h2>
 <p>Port to listen to</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>8080</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>port</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_HTTP_PORT</p>
 </dd>
 </dl>
@@ -146,686 +153,750 @@
 <span id="id3"></span><h2>SERVER_INTERFACES<a class="headerlink" href="#server-interfaces" title="Permalink to this heading"></a></h2>
 <p>Interfaces to listen to</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>0.0.0.0</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>interfaces</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_INTERFACES</p>
 </dd>
 </dl>
 </section>
+<section id="server-enable-filters">
+<span id="id4"></span><h2>SERVER_ENABLE_FILTERS<a class="headerlink" href="#server-enable-filters" title="Permalink to this heading"></a></h2>
+<p>Enable filters as python extension</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>boolean</p>
+</dd>
+<dt class="field-even">Default<span class="colon">:</span></dt>
+<dd class="field-even"><p>yes</p>
+</dd>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
+<dd class="field-odd"><p>server</p>
+</dd>
+<dt class="field-even">Key<span class="colon">:</span></dt>
+<dd class="field-even"><p>enable_filters</p>
+</dd>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
+<dd class="field-odd"><p>QGSRV_SERVER_ENABLE_FILTERS</p>
+</dd>
+</dl>
+</section>
+<section id="server-http-proxy">
+<span id="id5"></span><h2>SERVER_HTTP_PROXY<a class="headerlink" href="#server-http-proxy" title="Permalink to this heading"></a></h2>
+<p>Indicates that the server is behind a reverse proxy.
+Set this to ‘yes’ if you are planning to use Forwarded Headers
+or set a static proxy url with <cite>QGIS_SERVER_&lt;SERVICE&gt;_URL</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>boolean</p>
+</dd>
+<dt class="field-even">Default<span class="colon">:</span></dt>
+<dd class="field-even"><p>no</p>
+</dd>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
+<dd class="field-odd"><p>server</p>
+</dd>
+<dt class="field-even">Key<span class="colon">:</span></dt>
+<dd class="field-even"><p>http_proxy</p>
+</dd>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
+<dd class="field-odd"><p>QGSRV_SERVER_HTTP_PROXY</p>
+</dd>
+</dl>
+</section>
+<section id="server-proxy-url">
+<span id="id6"></span><h2>SERVER_PROXY_URL<a class="headerlink" href="#server-proxy-url" title="Permalink to this heading"></a></h2>
+<p>The url that must be seen by the client when the server is behind a proxy.
+Note that this option will be overridden by <cite>QGIS_SERVER_&lt;SERVICE&gt;_URL</cite> or
+by <cite>X-Qgis-&lt;service&gt;-Url</cite> headers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+<dt class="field-even">Section<span class="colon">:</span></dt>
+<dd class="field-even"><p>server</p>
+</dd>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
+<dd class="field-odd"><p>proxy_url</p>
+</dd>
+<dt class="field-even">Env<span class="colon">:</span></dt>
+<dd class="field-even"><p>QGSRV_SERVER_PROXY_URL</p>
+</dd>
+</dl>
+</section>
 <section id="server-outputfile-as-reference">
-<span id="id4"></span><h2>SERVER_OUTPUTFILE_AS_REFERENCE<a class="headerlink" href="#server-outputfile-as-reference" title="Permalink to this heading"></a></h2>
+<span id="id7"></span><h2>SERVER_OUTPUTFILE_AS_REFERENCE<a class="headerlink" href="#server-outputfile-as-reference" title="Permalink to this heading"></a></h2>
 <p>Select if output files are returned by reference for deferred download or in response body as
 complex output.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>boolean</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>no</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>outputfile_as_reference</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_OUTPUTFILE_AS_REFERENCE</p>
 </dd>
 </dl>
 </section>
 <section id="server-maxinputsize">
-<span id="id5"></span><h2>SERVER_MAXINPUTSIZE<a class="headerlink" href="#server-maxinputsize" title="Permalink to this heading"></a></h2>
+<span id="id8"></span><h2>SERVER_MAXINPUTSIZE<a class="headerlink" href="#server-maxinputsize" title="Permalink to this heading"></a></h2>
 <p>Max input file fetched as remote reference</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>size</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>100m</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>maxinputsize</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_MAXINPUTSIZE</p>
 </dd>
 </dl>
 </section>
 <section id="server-maxbuffersize">
-<span id="id6"></span><h2>SERVER_MAXBUFFERSIZE<a class="headerlink" href="#server-maxbuffersize" title="Permalink to this heading"></a></h2>
+<span id="id9"></span><h2>SERVER_MAXBUFFERSIZE<a class="headerlink" href="#server-maxbuffersize" title="Permalink to this heading"></a></h2>
 <p>Max request buffer size.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>size</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>1m</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>maxbuffersize</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_MAXBUFFERSIZE</p>
 </dd>
 </dl>
 </section>
 <section id="server-workdir">
-<span id="id7"></span><h2>SERVER_WORKDIR<a class="headerlink" href="#server-workdir" title="Permalink to this heading"></a></h2>
-<p>Parent working directory where processes are executed. Eache processes will create
-a working directiry for storing results files and logs.
+<span id="id10"></span><h2>SERVER_WORKDIR<a class="headerlink" href="#server-workdir" title="Permalink to this heading"></a></h2>
+<p>Parent working directory where processes are executed. Each processes will create
+a working directory for storing results files and logs.
 The default value use the <cite>gettempdir()</cite> function.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>path</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>System defaults</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>workdir</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_WORKDIR</p>
 </dd>
 </dl>
 </section>
 <section id="server-parallelprocesses">
-<span id="id8"></span><h2>SERVER_PARALLELPROCESSES<a class="headerlink" href="#server-parallelprocesses" title="Permalink to this heading"></a></h2>
-<p>The number of parallel processes runninc <cite>execute</cite> requests. Extra processes will be queued.</p>
+<span id="id11"></span><h2>SERVER_PARALLELPROCESSES<a class="headerlink" href="#server-parallelprocesses" title="Permalink to this heading"></a></h2>
+<p>The number of parallel processes running <cite>execute</cite> requests. Extra processes will be queued.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>1</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>parallelprocesses</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_PARALLELPROCESSES</p>
 </dd>
 </dl>
 </section>
 <section id="server-processlifecycle">
-<span id="id9"></span><h2>SERVER_PROCESSLIFECYCLE<a class="headerlink" href="#server-processlifecycle" title="Permalink to this heading"></a></h2>
-<p>Maximal number of executions that can run in the same worker before beeing recreating
+<span id="id12"></span><h2>SERVER_PROCESSLIFECYCLE<a class="headerlink" href="#server-processlifecycle" title="Permalink to this heading"></a></h2>
+<p>Maximal number of executions that can run in the same worker before being recreating
 the worker.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>1</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>processlifecycle</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_PROCESSLIFECYCLE</p>
 </dd>
 </dl>
 </section>
 <section id="server-maxqueuesize">
-<span id="id10"></span><h2>SERVER_MAXQUEUESIZE<a class="headerlink" href="#server-maxqueuesize" title="Permalink to this heading"></a></h2>
+<span id="id13"></span><h2>SERVER_MAXQUEUESIZE<a class="headerlink" href="#server-maxqueuesize" title="Permalink to this heading"></a></h2>
 <p>Maximal number of waiting tasks - extra tasks will return a 509 in synchronous execution.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>100</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>maxqueuesize</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_MAXQUEUESIZE</p>
 </dd>
 </dl>
 </section>
 <section id="server-response-timeout">
-<span id="id11"></span><h2>SERVER_RESPONSE_TIMEOUT<a class="headerlink" href="#server-response-timeout" title="Permalink to this heading"></a></h2>
+<span id="id14"></span><h2>SERVER_RESPONSE_TIMEOUT<a class="headerlink" href="#server-response-timeout" title="Permalink to this heading"></a></h2>
 <p>Timeout for tasks execution in seconds. Task running longer that this time will be aborted and
-a timeout error is retourned.</p>
+a timeout error is returned.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>1800</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>response_timeout</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_RESPONSE_TIMEOUT</p>
 </dd>
 </dl>
 </section>
 <section id="server-response-expiration">
-<span id="id12"></span><h2>SERVER_RESPONSE_EXPIRATION<a class="headerlink" href="#server-response-expiration" title="Permalink to this heading"></a></h2>
-<p>Response expiration in seconds. After that delay from the tasks’s end, data (working directory and status)
+<span id="id15"></span><h2>SERVER_RESPONSE_EXPIRATION<a class="headerlink" href="#server-response-expiration" title="Permalink to this heading"></a></h2>
+<p>Response expiration in seconds. After that delay from the task’s end, data (working directory and status)
 for that task will be deleted.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>86400</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>response_expiration</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_RESPONSE_EXPIRATION</p>
 </dd>
 </dl>
 </section>
 <section id="server-wms-service-url">
-<span id="id13"></span><h2>SERVER_WMS_SERVICE_URL<a class="headerlink" href="#server-wms-service-url" title="Permalink to this heading"></a></h2>
+<span id="id16"></span><h2>SERVER_WMS_SERVICE_URL<a class="headerlink" href="#server-wms-service-url" title="Permalink to this heading"></a></h2>
 <p>The url for the service used to retrieve results as WMS/WFS references.
-Usually this will correspond to a Qgis server serving OWS services from results projects.</p>
+Usually this will correspond to a QGIS server serving OWS services from results projects.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>Request host url</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>wms_service_url</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_WMS_SERVICE_URL</p>
 </dd>
 </dl>
 </section>
 <section id="server-results-map-uri">
-<span id="id14"></span><h2>SERVER_RESULTS_MAP_URI<a class="headerlink" href="#server-results-map-uri" title="Permalink to this heading"></a></h2>
+<span id="id17"></span><h2>SERVER_RESULTS_MAP_URI<a class="headerlink" href="#server-results-map-uri" title="Permalink to this heading"></a></h2>
 <p>Base uri used for the MAP argument in WMS/WFS response references.
 Define a base URI to use for ‘MAP’ arguments in WMS/WFS responses, this uri may
 corresponds to an ‘alias in py-qgis-server &lt;<a class="reference external" href="https://py-qgis-server.readthedocs.io/en/latest/schemes.html#scheme-aliases">https://py-qgis-server.readthedocs.io/en/latest/schemes.html#scheme-aliases</a>&gt;’ _.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>wps_result_map_uri</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>wms_service_url</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_RESULTS_MAP_URI</p>
 </dd>
 </dl>
 </section>
 <section id="server-cross-origin">
-<span id="id15"></span><h2>SERVER_CROSS_ORIGIN<a class="headerlink" href="#server-cross-origin" title="Permalink to this heading"></a></h2>
+<span id="id18"></span><h2>SERVER_CROSS_ORIGIN<a class="headerlink" href="#server-cross-origin" title="Permalink to this heading"></a></h2>
 <p>Allows any origin for CORS. If set to ‘no’, allow only CORS for the ‘Origin’
 header.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>boolean</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>server</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>cross_origin</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_SERVER_CROSS_ORIGIN</p>
 </dd>
 </dl>
 </section>
 <section id="server-restartmon">
-<span id="id16"></span><h2>SERVER_RESTARTMON<a class="headerlink" href="#server-restartmon" title="Permalink to this heading"></a></h2>
+<span id="id19"></span><h2>SERVER_RESTARTMON<a class="headerlink" href="#server-restartmon" title="Permalink to this heading"></a></h2>
 <p>The file to watch for restarting workers. When the modified date of the file is changed,
 the processing providers are reloaded.
 The restart is graceful, jobs terminate normally. During the restart process,
-the providers are reloaded, this allow for updatings providers, models and scripts without
+the providers are reloaded, this allow for updating providers, models and scripts without
 interrupting the service.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>path</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>server</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>restartmon</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_SERVER_RESTARTMON</p>
 </dd>
 </dl>
 </section>
 <section id="server-ssl">
-<span id="id17"></span><h2>SERVER_SSL<a class="headerlink" href="#server-ssl" title="Permalink to this heading"></a></h2>
+<span id="id20"></span><h2>SERVER_SSL<a class="headerlink" href="#server-ssl" title="Permalink to this heading"></a></h2>
 <p>Enable SSL endpoint</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>boolean</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>no</p>
 </dd>
-<dt class="field-odd">Version Added</dt>
+<dt class="field-odd">Version Added<span class="colon">:</span></dt>
 <dd class="field-odd"><p>1.6.4</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>server</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>ssl</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_SERVER_SSL</p>
 </dd>
 </dl>
 </section>
 <section id="server-ssl-cert">
-<span id="id18"></span><h2>SERVER_SSL_CERT<a class="headerlink" href="#server-ssl-cert" title="Permalink to this heading"></a></h2>
+<span id="id21"></span><h2>SERVER_SSL_CERT<a class="headerlink" href="#server-ssl-cert" title="Permalink to this heading"></a></h2>
 <p>Path to the SSL certificat file</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>path</p>
 </dd>
-<dt class="field-even">Version Added</dt>
+<dt class="field-even">Version Added<span class="colon">:</span></dt>
 <dd class="field-even"><p>1.6.4</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>ssl_cert</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_SSL_CERT</p>
 </dd>
 </dl>
 </section>
 <section id="server-ssl-key">
-<span id="id19"></span><h2>SERVER_SSL_KEY<a class="headerlink" href="#server-ssl-key" title="Permalink to this heading"></a></h2>
+<span id="id22"></span><h2>SERVER_SSL_KEY<a class="headerlink" href="#server-ssl-key" title="Permalink to this heading"></a></h2>
 <p>Path to the SSL key file</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>path</p>
 </dd>
-<dt class="field-even">Version Added</dt>
+<dt class="field-even">Version Added<span class="colon">:</span></dt>
 <dd class="field-even"><p>1.6.4</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>ssl_key</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_SSL_KEY</p>
 </dd>
 </dl>
 </section>
 <section id="server-enable-job-realm">
-<span id="id20"></span><h2>SERVER_ENABLE_JOB_REALM<a class="headerlink" href="#server-enable-job-realm" title="Permalink to this heading"></a></h2>
+<span id="id23"></span><h2>SERVER_ENABLE_JOB_REALM<a class="headerlink" href="#server-enable-job-realm" title="Permalink to this heading"></a></h2>
 <p>Enable job access control by associating a realm token
 to each job. Realm token are set by setting the ‘X-Job-Realm’
 header to the token.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>boolean</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>no</p>
 </dd>
-<dt class="field-odd">Version Added</dt>
+<dt class="field-odd">Version Added<span class="colon">:</span></dt>
 <dd class="field-odd"><p>1.8</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>server</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>enable_job_realm</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_SERVER_ENABLE_JOB_REALM</p>
 </dd>
 </dl>
 </section>
 <section id="server-admin-realm">
-<span id="id21"></span><h2>SERVER_ADMIN_REALM<a class="headerlink" href="#server-admin-realm" title="Permalink to this heading"></a></h2>
+<span id="id24"></span><h2>SERVER_ADMIN_REALM<a class="headerlink" href="#server-admin-realm" title="Permalink to this heading"></a></h2>
 <p>Administrator realm token.
 It allows bearer to bypass any other token</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>path</p>
 </dd>
-<dt class="field-even">Version Added</dt>
+<dt class="field-even">Version Added<span class="colon">:</span></dt>
 <dd class="field-even"><p>1.8</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>server</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>ssl_key</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_SERVER_ADMIN_REALM</p>
 </dd>
 </dl>
 </section>
 <section id="logging-level">
-<span id="id22"></span><h2>LOGGING_LEVEL<a class="headerlink" href="#logging-level" title="Permalink to this heading"></a></h2>
+<span id="id25"></span><h2>LOGGING_LEVEL<a class="headerlink" href="#logging-level" title="Permalink to this heading"></a></h2>
 <p>Set the logging level</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>[‘DEBUG’, ‘INFO’, ‘WARNING’, ‘ERROR’, ‘CRITICAL’]</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>DEBUG</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>logging</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>level</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_LOGGING_LEVEL</p>
 </dd>
 </dl>
 </section>
 <section id="redis-host">
-<span id="id23"></span><h2>REDIS_HOST<a class="headerlink" href="#redis-host" title="Permalink to this heading"></a></h2>
+<span id="id26"></span><h2>REDIS_HOST<a class="headerlink" href="#redis-host" title="Permalink to this heading"></a></h2>
 <p>Redis storage backend host</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>localhost</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>logstorage:redis</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>host</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_REDIS_HOST</p>
 </dd>
 </dl>
 </section>
 <section id="redis-port">
-<span id="id24"></span><h2>REDIS_PORT<a class="headerlink" href="#redis-port" title="Permalink to this heading"></a></h2>
+<span id="id27"></span><h2>REDIS_PORT<a class="headerlink" href="#redis-port" title="Permalink to this heading"></a></h2>
 <p>Redis storage backend port</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>6379</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>logstorage:redis</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>port</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_REDIS_PORT</p>
 </dd>
 </dl>
 </section>
 <section id="redis-dbnum">
-<span id="id25"></span><h2>REDIS_DBNUM<a class="headerlink" href="#redis-dbnum" title="Permalink to this heading"></a></h2>
+<span id="id28"></span><h2>REDIS_DBNUM<a class="headerlink" href="#redis-dbnum" title="Permalink to this heading"></a></h2>
 <p>Redis storage backend database index</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>logstorage:redis</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dbnum</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_REDIS_DBNUM</p>
 </dd>
 </dl>
 </section>
 <section id="redis-prefix">
-<span id="id26"></span><h2>REDIS_PREFIX<a class="headerlink" href="#redis-prefix" title="Permalink to this heading"></a></h2>
+<span id="id29"></span><h2>REDIS_PREFIX<a class="headerlink" href="#redis-prefix" title="Permalink to this heading"></a></h2>
 <p>Redis storage backend key prefix.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>pyqgiswps</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>logstorage:redis</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>prefix</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_REDIS_PREFIX</p>
 </dd>
 </dl>
 </section>
 <section id="cache-size">
-<span id="id27"></span><h2>CACHE_SIZE<a class="headerlink" href="#cache-size" title="Permalink to this heading"></a></h2>
-<p>The maximal number of Qgis projects held in cache. The cache strategy is LRU.</p>
+<span id="id30"></span><h2>CACHE_SIZE<a class="headerlink" href="#cache-size" title="Permalink to this heading"></a></h2>
+<p>The maximal number of QGIS projects held in cache. The cache strategy is LRU.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>10</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>projects.cache</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>size</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_CACHE_SIZE</p>
 </dd>
 </dl>
 </section>
 <section id="cache-rootdir">
-<span id="id28"></span><h2>CACHE_ROOTDIR<a class="headerlink" href="#cache-rootdir" title="Permalink to this heading"></a></h2>
-<p>The directory location for Qgis project files.</p>
+<span id="id31"></span><h2>CACHE_ROOTDIR<a class="headerlink" href="#cache-rootdir" title="Permalink to this heading"></a></h2>
+<p>The directory location for QGIS project files.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>path</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>projects.cache</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>rootdir</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_CACHE_ROOTDIR</p>
 </dd>
 </dl>
 </section>
 <section id="cache-strict-check">
-<span id="id29"></span><h2>CACHE_STRICT_CHECK<a class="headerlink" href="#cache-strict-check" title="Permalink to this heading"></a></h2>
-<p>Activate strict checking of project layers. When enabled, Qgis projects
+<span id="id32"></span><h2>CACHE_STRICT_CHECK<a class="headerlink" href="#cache-strict-check" title="Permalink to this heading"></a></h2>
+<p>Activate strict checking of project layers. When enabled, QGIS projects
 with invalid layers will be dismissed and an ‘Unprocessable Entity’ (422) HTTP error
 will be issued.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>boolean</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>yes</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>projects.cache</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>strict_check</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_CACHE_STRICT_CHECK</p>
 </dd>
 </dl>
 </section>
 <section id="processing-providers-module-path">
-<span id="id30"></span><h2>PROCESSING_PROVIDERS_MODULE_PATH<a class="headerlink" href="#processing-providers-module-path" title="Permalink to this heading"></a></h2>
-<p>Path to Qgis processing providers modules</p>
+<span id="id33"></span><h2>PROCESSING_PROVIDERS_MODULE_PATH<a class="headerlink" href="#processing-providers-module-path" title="Permalink to this heading"></a></h2>
+<p>Path to QGIS processing providers modules</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>path</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>processing</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>providers_module_path</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_PROCESSING_PROVIDERS_MODULE_PATH</p>
 </dd>
 </dl>
 </section>
 <section id="processing-exposed-providers">
-<span id="id31"></span><h2>PROCESSING_EXPOSED_PROVIDERS<a class="headerlink" href="#processing-exposed-providers" title="Permalink to this heading"></a></h2>
-<p>Comma separated list of exposed Qgis processing internal providers</p>
+<span id="id34"></span><h2>PROCESSING_EXPOSED_PROVIDERS<a class="headerlink" href="#processing-exposed-providers" title="Permalink to this heading"></a></h2>
+<p>Comma separated list of exposed QGIS processing internal providers</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>script,model</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>processing</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>exposed_providers</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_PROCESSING_EXPOSED_PROVIDERS</p>
 </dd>
 </dl>
 </section>
 <section id="processing-accesspolicy">
-<span id="id32"></span><h2>PROCESSING_ACCESSPOLICY<a class="headerlink" href="#processing-accesspolicy" title="Permalink to this heading"></a></h2>
+<span id="id35"></span><h2>PROCESSING_ACCESSPOLICY<a class="headerlink" href="#processing-accesspolicy" title="Permalink to this heading"></a></h2>
 <p>Path to the access policy configuration file</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>path</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>PROCESSING_PROVIDERS_MODULE_PATH/accesspolicy.yml</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>processing</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>accesspolicy</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_PROCESSING_ACCESSPOLICY</p>
 </dd>
 </dl>
 </section>
 <section id="processing-vector-fileext">
-<span id="id33"></span><h2>PROCESSING_VECTOR_FILEEXT<a class="headerlink" href="#processing-vector-fileext" title="Permalink to this heading"></a></h2>
+<span id="id36"></span><h2>PROCESSING_VECTOR_FILEEXT<a class="headerlink" href="#processing-vector-fileext" title="Permalink to this heading"></a></h2>
 <p>Define the default vector file extensions for vector destination
-parameters. If not specified, then the Qgis default value is used.</p>
+parameters. If not specified, then the QGIS default value is used.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>processing</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>vector.fileext</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_PROCESSING_VECTOR_FILEEXT</p>
 </dd>
 </dl>
 </section>
 <section id="processing-raster-fileext">
-<span id="id34"></span><h2>PROCESSING_RASTER_FILEEXT<a class="headerlink" href="#processing-raster-fileext" title="Permalink to this heading"></a></h2>
+<span id="id37"></span><h2>PROCESSING_RASTER_FILEEXT<a class="headerlink" href="#processing-raster-fileext" title="Permalink to this heading"></a></h2>
 <p>Define the default raster file extensions for raster destination
-parameters. If not specified, then the Qgis default value is used.</p>
+parameters. If not specified, then the QGIS default value is used.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>processing</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>raster.fileext</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_PROCESSING_RASTER_FILEEXT</p>
 </dd>
 </dl>
 </section>
 <section id="processing-raw-destination-input-sink">
-<span id="id35"></span><h2>PROCESSING_RAW_DESTINATION_INPUT_SINK<a class="headerlink" href="#processing-raw-destination-input-sink" title="Permalink to this heading"></a></h2>
+<span id="id38"></span><h2>PROCESSING_RAW_DESTINATION_INPUT_SINK<a class="headerlink" href="#processing-raw-destination-input-sink" title="Permalink to this heading"></a></h2>
 <p>Allow input value as sink for destination layers.
 This allow value passed as input value to be interpreted as
 path or uri sink definition. This enable passing any string
-that Qgis may use a input source but without open options except for the
+that QGIS may use a input source but without open options except for the
 ‘layername=&lt;name&gt;’ option.
 Running concurrent jobs with this option may result in unpredictable
 behavior.
@@ -834,77 +905,77 @@ if you are exposing the service publicly.</p>
 <p>File path prefixed with ‘/’ will correspond to path located in the root directory specified by
 the <a class="reference internal" href="#processing-destination-root-path">PROCESSING_DESTINATION_ROOT_PATH</a> option. Otherwise, they will be stored in the job folder.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>boolean</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>processing</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>unsafe.raw_destination_input_sink</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_PROCESSING_RAW_DESTINATION_INPUT_SINK</p>
 </dd>
 </dl>
 </section>
 <section id="processing-destination-root-path">
-<span id="id36"></span><h2>PROCESSING_DESTINATION_ROOT_PATH<a class="headerlink" href="#processing-destination-root-path" title="Permalink to this heading"></a></h2>
+<span id="id39"></span><h2>PROCESSING_DESTINATION_ROOT_PATH<a class="headerlink" href="#processing-destination-root-path" title="Permalink to this heading"></a></h2>
 <p>Specify the root directory for storing destination layers files when
 the <a class="reference internal" href="#processing-raw-destination-input-sink">PROCESSING_RAW_DESTINATION_INPUT_SINK</a> option is enabled.
 If not specified, file will be stored in the job folder.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>processing</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>destination_root_path</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_PROCESSING_DESTINATION_ROOT_PATH</p>
 </dd>
 </dl>
 </section>
 <section id="processing-adjust-ellipsoid">
-<span id="id37"></span><h2>PROCESSING_ADJUST_ELLIPSOID<a class="headerlink" href="#processing-adjust-ellipsoid" title="Permalink to this heading"></a></h2>
+<span id="id40"></span><h2>PROCESSING_ADJUST_ELLIPSOID<a class="headerlink" href="#processing-adjust-ellipsoid" title="Permalink to this heading"></a></h2>
 <p>Force the ellipsoid from the src project into the destination project. This only apply
 if the src project has a valid CRS.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>boolean</p>
 </dd>
-<dt class="field-even">Section</dt>
+<dt class="field-even">Section<span class="colon">:</span></dt>
 <dd class="field-even"><p>processing</p>
 </dd>
-<dt class="field-odd">Key</dt>
+<dt class="field-odd">Key<span class="colon">:</span></dt>
 <dd class="field-odd"><p>adjust_ellipsoid</p>
 </dd>
-<dt class="field-even">Env</dt>
+<dt class="field-even">Env<span class="colon">:</span></dt>
 <dd class="field-even"><p>QGSRV_PROCESSING_ADJUST_ELLIPSOID</p>
 </dd>
 </dl>
 </section>
 <section id="processing-default-crs">
-<span id="id38"></span><h2>PROCESSING_DEFAULT_CRS<a class="headerlink" href="#processing-default-crs" title="Permalink to this heading"></a></h2>
+<span id="id41"></span><h2>PROCESSING_DEFAULT_CRS<a class="headerlink" href="#processing-default-crs" title="Permalink to this heading"></a></h2>
 <p>Set the CRS to use when no source map is specified.
 For more details on supported formats see the GDAL method <code class="docutils literal notranslate"><span class="pre">GRSpatialReference::SetFromUserInput()</span></code></p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>string</p>
 </dd>
-<dt class="field-even">Default</dt>
+<dt class="field-even">Default<span class="colon">:</span></dt>
 <dd class="field-even"><p>EPSG:4326</p>
 </dd>
-<dt class="field-odd">Section</dt>
+<dt class="field-odd">Section<span class="colon">:</span></dt>
 <dd class="field-odd"><p>processing</p>
 </dd>
-<dt class="field-even">Key</dt>
+<dt class="field-even">Key<span class="colon">:</span></dt>
 <dd class="field-even"><p>default_crs</p>
 </dd>
-<dt class="field-odd">Env</dt>
+<dt class="field-odd">Env<span class="colon">:</span></dt>
 <dd class="field-odd"><p>QGSRV_PROCESSING_DEFAULT_CRS</p>
 </dd>
 </dl>

@@ -11,7 +11,7 @@ standard from the Open Geospatial Consortium based on the QGIS Processing API.
 It also implements the [processes OGC REST api](https://ogcapi.ogc.org/processes/)
 
 This implementation allows you to expose and run on a server:
-* QGISQGIS Processing algorithms available on Desktop
+* QGIS Processing algorithms available on Desktop
 * QGIS Processing models and scripts
 * QGIS plugins having a Processing provider according to their `metadata.txt` file
 
@@ -34,7 +34,7 @@ in a web interface using [Lizmap WPS module](https://github.com/3liz/lizmap-wps-
 Features
 --------
 
-- Asynchronous requests and parellel tasks execution
+- Asynchronous requests and parallel tasks execution
 - Execution timeout
 - Data expiration
 - Status API.
@@ -87,8 +87,8 @@ Options
 
 .. option:: -d, --debug
 
-    Force debug mode. This is the same as setting the :ref:`LOGGING_LEVEL <LOGGING_LEVEL>` option to ``DEBUG`` 
-   
+    Force debug mode. This is the same as setting the :ref:`LOGGING_LEVEL <LOGGING_LEVEL>` option to ``DEBUG``
+
 .. option:: -c, --config path
 
     Use the configuration file located at ``path``
@@ -104,7 +104,7 @@ Options
 Running with Docker
 -------------------
 
-Docker image is available on `docker-hub <https://hub.docker.com/r/3liz/qgis-wps>`_. 
+Docker image is available on `docker-hub <https://hub.docker.com/r/3liz/qgis-wps>`_.
 
 All options are passed with environment variables. See the :ref:`Configuration settings <configuration_settings>`
 for a description of the options.
@@ -120,7 +120,3 @@ Example:
 .. code-block:: text
 
     http://localhost:8080/ows/?SERVICE=WPS&VERSION=1.0.0&REQUEST=GetCapabilities
-
-
-
-
