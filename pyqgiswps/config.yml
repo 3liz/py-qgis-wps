@@ -23,15 +23,15 @@ config_options:
 
     - name: SERVER_ENABLE_FILTERS
       label: Enable filters
-      description: Enable filters as python extension 
+      description: Enable filters as python extension
       default: 'yes'
       type: boolean
       section: server
       key: enable_filters
-      tags: [ filters ] 
+      tags: [ filters ]
 
     - name: SERVER_HTTP_PROXY
-      label: http proxy 
+      label: http proxy
       description: |
           Indicates that the server is behind a reverse proxy.
           Set this to 'yes' if you are planning to use Forwarded Headers
@@ -43,10 +43,10 @@ config_options:
       tags: [ http, proxy ]
 
     - name: SERVER_PROXY_URL
-      label: Proxy URL 
+      label: Proxy URL
       description: |
           The url that must be seen by the client when the server is behind a proxy.
-          Note that this option will be overidden by `QGIS_SERVER_<SERVICE>_URL` or  
+          Note that this option will be overridden by `QGIS_SERVER_<SERVICE>_URL` or  
           by `X-Qgis-<service>-Url` headers.
       default: ''
       section: server
@@ -54,7 +54,7 @@ config_options:
       tags: [ http, proxy ]
 
     - name: SERVER_OUTPUTFILE_AS_REFERENCE
-      label: Outpufile as reference
+      label: Output file as reference
       description: |
            Select if output files are returned by reference for deferred download or in response body as 
            complex output.
@@ -85,8 +85,8 @@ config_options:
     - name: SERVER_WORKDIR
       label: Working directory
       description: |
-         Parent working directory where processes are executed. Eache processes will create
-         a working directiry for storing results files and logs. 
+         Parent working directory where processes are executed. Each processes will create
+         a working directory for storing results files and logs. 
          The default value use the `gettempdir()` function.
       default:  System defaults
       type: path
@@ -97,7 +97,7 @@ config_options:
     - name: SERVER_PARALLELPROCESSES
       label: Parallel processes
       description: |
-         The number of parallel processes runninc `execute` requests. Extra processes will be queued.
+         The number of parallel processes running `execute` requests. Extra processes will be queued.
       default:  1
       type: int
       section: server
@@ -107,7 +107,7 @@ config_options:
     - name: SERVER_PROCESSLIFECYCLE
       label: Processes lifecycles
       description: |
-         Maximal number of executions that can run in the same worker before beeing recreating
+         Maximal number of executions that can run in the same worker before being recreating
          the worker.
       default:  1
       type: int
@@ -129,7 +129,7 @@ config_options:
       label: Response timeout
       description: |
          Timeout for tasks execution in seconds. Task running longer that this time will be aborted and
-         a timeout error is retourned.
+         a timeout error is returned.
       default:  1800
       type: int
       section: server
@@ -139,7 +139,7 @@ config_options:
     - name: SERVER_RESPONSE_EXPIRATION
       label: Response expiration
       description: |
-         Response expiration in seconds. After that delay from the tasks's end, data (working directory and status)
+         Response expiration in seconds. After that delay from the task's end, data (working directory and status)
          for that task will be deleted.
       default:  86400
       type: int
@@ -151,7 +151,7 @@ config_options:
       label: WWS service url
       description: |
          The url for the service used to retrieve results as WMS/WFS references.
-         Usually this will correspond to a Qgis server serving OWS services from results projects.
+         Usually this will correspond to a QGIS server serving OWS services from results projects.
       default: 'Request host url'
       section: server
       key: wms_service_url
@@ -174,7 +174,7 @@ config_options:
           Allows any origin for CORS. If set to 'no', allow only CORS for the 'Origin'
           header.
       default: ''
-      type: boolean 
+      type: boolean
       section: server
       key: cross_origin
       tags: [ http, security ]
@@ -185,7 +185,7 @@ config_options:
           The file to watch for restarting workers. When the modified date of the file is changed, 
           the processing providers are reloaded.
           The restart is graceful, jobs terminate normally. During the restart process,
-          the providers are reloaded, this allow for updatings providers, models and scripts without
+          the providers are reloaded, this allow for updating providers, models and scripts without
           interrupting the service.
       default: ''
       section: server
@@ -240,7 +240,7 @@ config_options:
       label: Administrator realm token
       description: |
           Administrator realm token.
-          It allows bearer to bypass any other token 
+          It allows bearer to bypass any other token
       default: ''
       tags: [ http, security ]
       section: server
@@ -249,7 +249,7 @@ config_options:
       version_added: "1.8"
 
     #==========
-    # Logging  
+    # Logging
     #==========
     - name: LOGGING_LEVEL
       label: Logging level
@@ -301,7 +301,7 @@ config_options:
     - name: CACHE_SIZE
       label: Cache size
       description: |
-         The maximal number of Qgis projects held in cache. The cache strategy is LRU.
+         The maximal number of QGIS projects held in cache. The cache strategy is LRU.
       default: '10'
       type: int
       section: projects.cache
@@ -311,7 +311,7 @@ config_options:
     - name: CACHE_ROOTDIR
       label: Projects directory
       description: |
-          The directory location for Qgis project files.
+          The directory location for QGIS project files.
       tags: [ qgis, cache ]
       type: path
       section: projects.cache
@@ -320,7 +320,7 @@ config_options:
     - name: CACHE_STRICT_CHECK
       label: Enable strict checking
       description: |
-          Activate strict checking of project layers. When enabled, Qgis projects
+          Activate strict checking of project layers. When enabled, QGIS projects
           with invalid layers will be dismissed and an 'Unprocessable Entity' (422) HTTP error
           will be issued.
       default: 'yes'
@@ -335,7 +335,7 @@ config_options:
     #===============
     - name: PROCESSING_PROVIDERS_MODULE_PATH
       label: Processing providers path
-      description: Path to Qgis processing providers modules
+      description: Path to QGIS processing providers modules
       default: ''
       type: path
       section: processing
@@ -344,7 +344,7 @@ config_options:
 
     - name: PROCESSING_EXPOSED_PROVIDERS
       label: Internal qgis providers exposed
-      description: Comma separated list of exposed Qgis processing internal providers
+      description: Comma separated list of exposed QGIS processing internal providers
       default: 'script,model'
       type: list
       section: processing
@@ -364,17 +364,17 @@ config_options:
       label: Default vector file extension
       description: |
           Define the default vector file extensions for vector destination
-          parameters. If not specified, then the Qgis default value is used.
+          parameters. If not specified, then the QGIS default value is used.
       type: string
       section: processing
       key: 'vector.fileext'
       tags: [ qgis, processing, vector ]
-    
+
     - name: PROCESSING_RASTER_FILEEXT
       label: Default raster file extension
       description: |
           Define the default raster file extensions for raster destination
-          parameters. If not specified, then the Qgis default value is used.
+          parameters. If not specified, then the QGIS default value is used.
       type: string
       section: processing
       key: 'raster.fileext'
@@ -386,7 +386,7 @@ config_options:
         Allow input value as sink for destination layers. 
         This allow value passed as input value to be interpreted as
         path or uri sink definition. This enable passing any string
-        that Qgis may use a input source but without open options except for the
+        that QGIS may use a input source but without open options except for the
         'layername=<name>' option.
         Running concurrent jobs with this option may result in unpredictable
         behavior.
@@ -434,4 +434,3 @@ config_options:
       section: processing
       key: 'default_crs'
       tags: [ qgis, processing, crs ]
-
