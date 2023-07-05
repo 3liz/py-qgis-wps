@@ -344,7 +344,10 @@ config_options:
 
     - name: PROCESSING_EXPOSED_PROVIDERS
       label: Internal qgis providers exposed
-      description: Comma separated list of exposed QGIS processing internal providers
+      description: |
+          Comma separated list of exposed QGIS processing internal providers.
+          We do not recommend exposing all providers like `qgis` or `native`, it's better to create your own script or
+          model.
       default: 'script,model'
       type: list
       section: processing

@@ -545,7 +545,10 @@ Path to QGIS processing providers modules
 PROCESSING_EXPOSED_PROVIDERS
 ----------------------------
 
-Comma separated list of exposed QGIS processing internal providers
+Comma separated list of exposed QGIS processing internal providers.
+We do not recommend exposing all providers like `qgis` or `native`, it's better to create your own script or
+model.
+
 
 :Type: list
 :Default: script,model

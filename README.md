@@ -12,7 +12,7 @@ standard from the Open Geospatial Consortium based on the QGIS Processing API.
 Since 1.8 Py-QGIS-WPS supports [OGC API REST processes api](https://ogcapi.ogc.org/processes/)
 
 This implementation allows you to expose and run on a server:
-* QGIS Processing algorithms available on Desktop
+* QGIS Processing algorithms available on Desktop (side note, exposing a QGIS model or Processing script is recommended)
 * QGIS Processing models and scripts
 * QGIS plugins having a Processing provider according to their `metadata.txt`file
 
@@ -21,8 +21,8 @@ It is written in Python and was originally a fork of [PyWPS](https://pywps.org/)
 Requirements and limitations :
 
 - Python 3.7 minimum
-- Windows not officially supported
-- Redis server 
+- Windows is not officially supported
+- Redis server
 
 # Documentation
 
@@ -35,7 +35,7 @@ Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following:
 * QGIS centric
 * Handle all request in asynchronous way: all jobs run in a non-blocking way, even
   when synchronous operation is requested.
-* Use multiprocessing Pool to handle task queue instead instantiating a new process each time.
+* Use multiprocessing Pool to handle task queue instead of instantiating a new process each time.
 * Uniform Logging with the 'logging' module
 * Implements OGC `processes` api.
 * Use Redis for asynchronous status storage.
@@ -43,8 +43,8 @@ Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following:
 * Add extensions to WPS: TIMEOUT and EXPIRE
 * No Windows support
 
-All these changes where not easy to implement without some drastic changes of the original code and we think
-that it  deviates too much from the PyWPS original intentions.
+All these changes were not easy to implement without some drastic changes of the original code and we think
+that it deviates too much from the PyWPS original intentions.
 
 That is, we have decided to fork the original project and go along with it. 
 
@@ -63,7 +63,7 @@ to start quickly this project.
 Specify the timeout for a process: if the process takes more than TIMEOUT seconds to run, the worker is then killed and an 
 error status is returned.
 
-Set the `TIMEOUT=<seconds>` in  GET requests.
+Set the `TIMEOUT=<seconds>` in GET requests.
 
 In POST requests, set the `timeout=<seconds>` attribut in the `<ResponseDocument>` tag.
 
@@ -75,9 +75,9 @@ The server may configure maximum timeout value.
 Specify the expiration time for stored results: after EXPIRE seconds after the end of the wps process, all results will be
 flushed from disks and local cache. Trying to request the results again will return a 404 HTTP  error.
 
-Set the `EXPIRE=<seconds>` in  GET requests.
+Set the `EXPIRE=<seconds>` in GET requests.
 
-In POST requests, set the `expire=<seconds>` attribut int the `<ResponseDocument>` tag.
+In POST requests, set the `expire=<seconds>` attribut in the `<ResponseDocument>` tag.
 
 The server may configure maximum expiration value.
 
@@ -87,7 +87,7 @@ The server may configure maximum expiration value.
 Now implemented with the processes api:
 The status REST api will return the list of the stored status for all running and terminated wps processes.
 
-Example for returning all stored status:
+Example for returning all stored statuses:
 ```
 http://localhost:8080/jobs
 ```
@@ -245,9 +245,10 @@ be retourned as WMS urls. This configuration variable set the base url for acces
 
 # Exposing algorithms as WPS services
 
-Note that since 1.1 , the `__algorithms__.py` method for declaring providers is no longer supported.
+Note that since 1.1, the `__algorithms__.py` method for declaring providers is no longer supported.
 
-Processing providers following the same rules as  Qgis regular plugin with a special factory entrypoint: `WPSClassFactory(iface)` in the `__init__.py` file.
+Processing providers following the same rules as QGIS regular plugin with a special factory entrypoint:
+`WPSClassFactory(iface)` in the `__init__.py` file.
 
 ### The `metadata.txt` file
 
