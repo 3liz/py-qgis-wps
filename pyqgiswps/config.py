@@ -92,9 +92,9 @@ def load_configuration():
     CONFIG.set('server', 'response_timeout', getenv('QGSWPS_SERVER_RESPONSE_TIMEOUT', '1800'))
     # Expiration time in Redis cache for task responses
     CONFIG.set('server', 'response_expiration', getenv('QGSWPS_SERVER_RESPONSE_EXPIRATION', '86400'))
-    # XXX DEPRECATED Base url used for return WMS references (Qgis projects holding layers created by WPS tasks)
+    # XXX DEPRECATED Base url used for return WMS references (QGIS projects holding layers created by WPS tasks)
     CONFIG.set('server', 'wms_service_url', getenv('QGSWPS_SERVER_WMS_SERVICE_URL', '${wps.request:host_url}'))
-    # Base url used for return OWS references (Qgis projects holding layers created by WPS tasks)
+    # Base url used for return OWS references (QGIS projects holding layers created by WPS tasks)
     CONFIG.set('server', 'ows_service_url', getenv('QGSWPS_SERVER_OWS_SERVICE_URL', '${wms_service_url}'))
     # Base uri used for the MAP argument in WMS references
     CONFIG.set('server', 'wps_result_map_uri', getenv('QGSWPS_SERVER_RESULTS_MAP_URI', 'wps-results:'))
@@ -168,7 +168,7 @@ def load_configuration():
     CONFIG.set('processing', 'accesspolicy', getenv(
         'QGSWPS_PROCESSING_ACCESSPOLICY', '${providers_module_path}/accesspolicy.yml'))
     CONFIG.set('processing', 'default_module_path', '${server:sys_config_path}/processing')
-    # Define default format used as file destinaton, use Qgis default if not
+    # Define default format used as file destination, use Qgis default if not
     # specified
     CONFIG.set('processing', 'vector.fileext', getenv('QGSWPS_PROCESSING_VECTOR_FILEEXT', ''))
     CONFIG.set('processing', 'raster.fileext', getenv('QGSWPS_PROCESSING_RASTER_FILEEXT', ''))

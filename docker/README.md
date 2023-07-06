@@ -1,4 +1,4 @@
-# Qgis3 WPS Docker image
+# QGIS WPS Docker image
 
 Setup a Docker image for running Py-Qgis-WPS
 
@@ -14,7 +14,7 @@ docker network create mynet
 docker run -d --rm --name redis --net mynet redis:4 
 ```
 
-And launch the service interactively  on the port 8080 on the same network
+And launch the service interactively on the port 8080 on the same network
 
 ```
 docker run -it --rm -p 127.0.0.1:8080:8080 --net mynet \
@@ -40,12 +40,11 @@ to adapt the deployment according to your infrastructure.
 
 Alternatively, you may use [docker-compose](https://docs.docker.com/compose/) for launching the service
 
-
 ## Setting master projects
 
-Master Qgis projects must be located at the location given by  `QGSWPS_CACHE_ROOTDIR` - see configuration variables.
+Master QGIS projects must be located at the location given by  `QGSWPS_CACHE_ROOTDIR` - see configuration variables.
 
-Processing algorithms are located at the lacation given by `QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH`. 
+Processing algorithms are located at the location given by `QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH`.
 See the [py-qgis-wps](https://py-qgis-wps.readthedocs.io/en/latest/qgisprocessing.html#exposing-processing-algorithms) on how to configure properly you provider directory.
 
 ## Configuration 
@@ -56,11 +55,11 @@ Configuration is done with environment variables
 
 - QGSWPS\_SERVER\_WORKDIR: set the current dir processes, all processes will be running in that directory.
 - QGSWPS\_SERVER\_HOST\_PROXY: When the service is behind a reverse proxy, set this to the proxy entrypoint.
-- QGSWPS\_SERVER\_PARALLELPROCESSES: Number of parrallel process workers 
+- QGSWPS\_SERVER\_PARALLELPROCESSES: Number of parallel process workers
 - QGSWPS\_SERVER\_RESPONSE\_TIMEOUT: The max response time before killing a process.
-- QGSWPS\_SERVER\_RESPONSE\_EXPIRATION: The maxe time (in seconds) the response from a WPS process will be available.
+- QGSWPS\_SERVER\_RESPONSE\_EXPIRATION: The max time (in seconds) the response from a WPS process will be available.
 - QGSWPS\_SERVER\_WMS\_SERVICE\_URL: The base url for WMS service. Default to <hosturl>/wms. Responses from processing will
-be retourned as WMS urls. This configuration variable set the base url for accessing results.
+be returned as WMS urls. This configuration variable sets the base url for accessing results.
 - QGSWPS\_SERVER\_RESULTS\_MAP\_URI
 
 #### Logging
@@ -74,7 +73,7 @@ be retourned as WMS urls. This configuration variable set the base url for acces
 - QGSWPS\_REDIS\_DBNUM: The redis database number used. Default to 0
 
 
-#### Qgis project Cache configuration
+#### QGIS project Cache configuration
 
 - QGSWPS\_CACHE\_ROOTDIR: Absolute path to the qgis projects root directory, projects referenges with the MAP parameter will be searched at this location
 
@@ -111,6 +110,3 @@ redis_key_prefix=wpslizmap
 
 You must  set the master project directory `QGSWPS_CACHE_ROOTDIR` to the same location as the qgis lizmap
 projects directory (Lizmap projects directory). Which corresponds to `/srv/projects` in our project.
-
-
-

@@ -12,7 +12,7 @@ standard from the Open Geospatial Consortium based on the QGIS Processing API.
 Since 1.8 Py-QGIS-WPS supports [OGC API REST processes api](https://ogcapi.ogc.org/processes/)
 
 This implementation allows you to expose and run on a server:
-* QGIS Processing algorithms available on Desktop (side note, exposing a QGIS model or Processing script is recommended)
+* QGIS Processing algorithms available on Desktop (side note, exposing a QGIS model or Processing script are recommended)
 * QGIS Processing models and scripts
 * QGIS plugins having a Processing provider according to their `metadata.txt`file
 
@@ -26,14 +26,14 @@ Requirements and limitations :
 
 # Documentation
 
-Latest documentation is available on [docs.3liz.org](https://docs.3liz.org/py-qgis-wps/)
+Latest documentation is available on [docs.3liz.org](https://docs.3liz.org/py-qgis-wps/).
 
 # Why Py-QGIS-WPS ?
 
 Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following: 
 
 * QGIS centric
-* Handle all request in asynchronous way: all jobs run in a non-blocking way, even
+* Handle all requests in an asynchronous way: all jobs run in a non-blocking way, even
   when synchronous operation is requested.
 * Use multiprocessing Pool to handle task queue instead of instantiating a new process each time.
 * Uniform Logging with the 'logging' module
@@ -43,7 +43,7 @@ Py-QGIS-WPS differs from [PyWPS](https://pywps.org/) in the following:
 * Add extensions to WPS: TIMEOUT and EXPIRE
 * No Windows support
 
-All these changes were not easy to implement without some drastic changes of the original code and we think
+All these changes were not easy to implement without some drastic changes of the original code, and we think
 that it deviates too much from the PyWPS original intentions.
 
 That is, we have decided to fork the original project and go along with it. 
@@ -54,26 +54,26 @@ to start quickly this project.
 ## Why moving to Tornado instead WSGI
 
 * We need to support asyncio: asyncio requires a blocking running loop. This cannot be achieved simply in a WSGI architecture.
-* Tornado is fully integrated with native python `asyncio` library and provide a great framework for developing a http server.
+* Tornado is fully integrated with native python `asyncio` library and provide a great framework for developing an HTTP server.
 
 ## Extensions to WPS
 
 ### TIMEOUT extension
 
-Specify the timeout for a process: if the process takes more than TIMEOUT seconds to run, the worker is then killed and an 
-error status is returned.
+Specify the timeout for a process: if the process takes more than TIMEOUT seconds to run, the worker is then killed,
+and an error status is returned.
 
 Set the `TIMEOUT=<seconds>` in GET requests.
 
 In POST requests, set the `timeout=<seconds>` attribut in the `<ResponseDocument>` tag.
 
-The server may configure maximum timeout value.
+The server may configure the maximum timeout value.
 
 
 ### EXPIRE extension
 
 Specify the expiration time for stored results: after EXPIRE seconds after the end of the wps process, all results will be
-flushed from disks and local cache. Trying to request the results again will return a 404 HTTP  error.
+flushed from disks and local cache. Trying to request the results again will return a 404 HTTP error.
 
 Set the `EXPIRE=<seconds>` in GET requests.
 
@@ -112,11 +112,11 @@ http://localhost:8080/jobs/<job_id>/files
 With QGIS desktop, QGIS processing algorithms usually apply on a QGIS source project and computed layers are displayed in the same context as the source project. 
 
 Py-qgis-wps works the same way: a qgis project will be used as a source of input layers. 
-The difference is that, when an algorithm runs, it creates a qgis project file associated to the current task and register computed layers to it.  
+The difference is that, when an algorithm runs, it creates a QGIS project file associated with the current task and register computed layers to it.
 
-The created project may be used as OWS source with Qgis Server. Output layers are returned as complex objects
-holding a reference to a WMS/WFS uri that can be used directly with Qgis server. The uri template is configurable 
-using the `server/wms_response_uri` configuration setting.
+The created project may be used as an OWS source with QGIS Server.
+Output layers are returned as complex objects holding a reference to a WMS/WFS uri that can be used directly with QGIS server.
+The URI template is configurable using the `server/wms_response_uri` configuration setting.
 
 ## Contextualized input parameters
 
@@ -139,10 +139,10 @@ See [requirements.txt](requirements.txt) file.
 
 # Installation from python package
 
-*ADVICE*: You should always install in a python virtualenv. If you want to use system packages, setup your environment
+*ADVICE*: You should always install in a python virtualenv. If you want to use system packages, set up your environment
 with the `--system-site-packages` option.
 
-See the official documentation for how to setup a python virtualenv:  https://virtualenv.pypa.io/en/stable/.
+See the official documentation for how to set up a python virtualenv:  https://virtualenv.pypa.io/en/stable/.
 
 ## From source
 
@@ -221,7 +221,7 @@ Configuration is done with environment variables:
 - QGSWPS\_SERVER\_RESPONSE\_TIMEOUT: The max response time before killing a process.
 - QGSWPS\_SERVER\_RESPONSE\_EXPIRATION: The max time (in seconds) the response from a WPS process will be available.
 - QGSWPS\_SERVER\_WMS\_SERVICE\_URL: The base url for WMS service. Default to <hosturl>/wms. Responses from processing will
-be retourned as WMS urls. This configuration variable set the base url for accessing results.
+be retourned as WMS urls. This configuration variable sets the base url for accessing results.
 - QGSWPS\_SERVER\_RESULTS\_MAP\_URI
 
 ### Logging
@@ -235,7 +235,7 @@ be retourned as WMS urls. This configuration variable set the base url for acces
 - QGSWPS\_REDIS\_DBNUM: The redis database number used. Default to 0
 
 
-### Qgis project Cache configuration
+### QGIS project Cache configuration
 
 - QGSWPS\_CACHE\_ROOTDIR: Absolute path to the qgis projects root directory, projects referenced with the MAP parameter will be searched at this location
 

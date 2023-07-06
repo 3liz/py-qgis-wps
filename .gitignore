@@ -42,7 +42,7 @@ __ccache__
 build.manifest
 factory.manifest
 
-# Qgis files
+# QGIS files
 
 qgis.db
 .env
@@ -52,4 +52,3 @@ qgis.db
 VERSION
 
 .qgis-restart
-

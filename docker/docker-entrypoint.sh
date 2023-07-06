@@ -5,7 +5,7 @@ if [[ "$1" == "version" ]]; then
     version=`/opt/local/pyqgiswps/bin/pip list | grep qgis-wps | tr -s [:blank:] | cut -d ' ' -f 2`
     qgis_version=`python3 -c "from qgis.core import Qgis; print(Qgis.QGIS_VERSION.split('-')[0])"`
     # Strip the 'rc' from the version
-    # An 'rc' version is not released so as a docker image the rc is not relevant 
+    # An 'rc' version is not released so as a docker image the rc is not relevant
     # here
     echo "$qgis_version-${version%rc0}"
     exit 0
@@ -26,7 +26,7 @@ done
 
 QGSWPS_USER=${QGSWPS_USER:-"9001:9001"}
 
-# Qgis need a HOME
+# QGIS need a HOME
 export HOME=/home/qgis
 
 if [ "$(id -u)" = '0' ]; then
@@ -42,4 +42,3 @@ fi
 
 # Run as QGSWPS_USER
 exec wpsserver $@ -p 8080
-

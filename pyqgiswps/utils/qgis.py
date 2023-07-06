@@ -54,7 +54,7 @@ def start_qgis_application(enable_gui: bool = False, enable_processing: bool = F
     from qgis.PyQt.QtCore import QCoreApplication
     from qgis.core import Qgis, QgsApplication
 
-    logger.info("Starting Qgis application: %s", Qgis.QGIS_VERSION)
+    logger.info("Starting QGIS application: %s", Qgis.QGIS_VERSION)
 
     global version_info
     version_info = tuple(int(n) for n in Qgis.QGIS_VERSION.split('-')[0].split('.'))
