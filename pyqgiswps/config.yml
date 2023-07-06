@@ -244,7 +244,7 @@ config_options:
       default: ''
       tags: [ http, security ]
       section: server
-      key: ssl_key
+      key: admin_realm
       type: path
       version_added: "1.8"
 
