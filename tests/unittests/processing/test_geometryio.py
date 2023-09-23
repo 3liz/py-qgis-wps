@@ -216,6 +216,15 @@ def test_point_input_wkt():
     assert value.crs().authid() == 'EPSG:4326'
     assert value.asWkt() == 'POINT(6 10)'
 
+    # postgis SRID
+    inp2 = parse_input_definition(QgsProcessingParameterPoint("POINT"))
+    inp2.data_format = Format.from_definition(FORMATS.WKT)
+    inp2.data = 'SRID=3785;POINT(365340 3161978)'
+    value2 = geometryio.input_to_point(inp2)
+    assert isinstance(value2, QgsReferencedPointXY)
+    assert value2.crs().authid() == 'EPSG:3785'
+    assert value2.asWkt() == 'POINT(365340 3161978)'
+
 
 def test_linestring_input_gml():
     """ Test input point from gml
@@ -279,6 +288,16 @@ def test_multipoint_input_wkt():
     assert value.wkbType() == QgsWkbTypes.MultiPoint
     assert value.crs().authid() == 'EPSG:4326'
     assert value.asWkt(2) == 'MultiPoint ((3.5 5.6),(4.8 10.5))'
+
+    # postgis SRID
+    inp2 = parse_input_definition(QgsProcessingParameterPoint("GEOM"))
+    inp2.data_format = Format.from_definition(FORMATS.WKT)
+    inp2.data = 'SRID=3785;MULTIPOINT((465340 4161978), (465352 4161918))'
+    value2 = geometryio.input_to_geometry(inp2)
+    assert isinstance(value2, QgsReferencedGeometry)
+    assert value.wkbType() == QgsWkbTypes.MultiPoint
+    assert value2.crs().authid() == 'EPSG:3785'
+    assert value2.asWkt() == 'MultiPoint ((465340 4161978),(465352 4161918))'
 
 
 def test_geometry_crs_json():
