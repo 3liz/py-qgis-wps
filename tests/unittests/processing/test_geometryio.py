@@ -213,6 +213,8 @@ def test_point_input_wkt():
 
     value = geometryio.input_to_point( inp )
     assert isinstance( value, QgsReferencedPointXY )
+    assert value.crs().authid() == 'EPSG:4326'
+    assert value.asWkt() == 'POINT(6 10)'
 
 
 def test_linestring_input_gml():
@@ -275,6 +277,8 @@ def test_multipoint_input_wkt():
     value = geometryio.input_to_geometry( inp )
     assert isinstance( value, QgsReferencedGeometry )
     assert value.wkbType() == QgsWkbTypes.MultiPoint
+    assert value.crs().authid() == 'EPSG:4326'
+    assert value.asWkt(2) == 'MultiPoint ((3.5 5.6),(4.8 10.5))'
 
 
 def test_geometry_crs_json():
