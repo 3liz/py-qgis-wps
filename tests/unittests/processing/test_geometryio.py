@@ -10,10 +10,10 @@ from os import PathLike
 from pyqgiswps.ogc.ows import WPS, OWS
 from pyqgiswps.ogc.ows.schema import xpath_ns, BoundingBox
 
-from pyqgiswps.inout import (LiteralInput, 
+from pyqgiswps.inout import (LiteralInput,
                              ComplexInput,
-                             BoundingBoxInput, 
-                             LiteralOutput, 
+                             BoundingBoxInput,
+                             LiteralOutput,
                              ComplexOutput,
                              BoundingBoxOutput)
 
@@ -36,7 +36,7 @@ from pyqgiswps.exceptions import (NoApplicableCode,
                                   MissingParameterValue,
                                   ProcessException)
 
-from pyqgiswps.utils.contexts import chdir 
+from pyqgiswps.utils.contexts import chdir
 
 from qgis.core import QgsApplication
 from qgis.core import (QgsProcessing,
@@ -82,7 +82,7 @@ def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     assert len(m) >= minOccurence
     assert len(m) <= maxOccurence
     return m
- 
+
 
 def test_bbox_4326():
     """ Test bounding box xml
@@ -102,16 +102,16 @@ def test_bbox_4326():
 
 def test_bbox_input():
     """ Test extent parameter
-    """ 
+    """
     param = QgsProcessingParameterExtent("BBOX")
-    
+
     inp = parse_input_definition(param)
 
     assert isinstance(inp,BoundingBoxInput)
     assert inp.crss[0] == "EPSG:4326"
 
     inp.data = ['15', '50', '16', '51']
-    value = geometryio.input_to_extent( inp ) 
+    value = geometryio.input_to_extent( inp )
 
     assert isinstance(value,QgsReferencedRectangle)
     assert isinstance(value,QgsRectangle)
@@ -329,24 +329,24 @@ def test_geometry_geometrytypes():
     param = QgsProcessingParameterGeometry("GEOM", geometryTypes=[QgsWkbTypes.LineGeometry])
 
     inp = parse_input_definition(param)
-    
-    assert get_metadata(inp,'processing:geometryType')[0].href == "Line" 
-   
+
+    assert get_metadata(inp,'processing:geometryType')[0].href == "Line"
+
     # Check allow multipart
     assert len(get_metadata(inp,'processing:allowMultipart')) == 1
 
     # Multi Geometry
-    param = QgsProcessingParameterGeometry("GEOM", 
+    param = QgsProcessingParameterGeometry("GEOM",
             geometryTypes=[QgsWkbTypes.LineGeometry,QgsWkbTypes.PointGeometry]
     )
 
     inp = parse_input_definition(param)
-    
-    assert get_metadata(inp,'processing:geometryType',2)[0].href == "Line" 
-    assert get_metadata(inp,'processing:geometryType',2)[1].href == "Point" 
+
+    assert get_metadata(inp,'processing:geometryType',2)[0].href == "Line"
+    assert get_metadata(inp,'processing:geometryType',2)[1].href == "Point"
 
     assert len(get_metadata(inp,'processing:allowMultipart')) == 1
- 
+
     # Test output XML
     xml = inp.describe_xml()
 
@@ -354,22 +354,22 @@ def test_geometry_geometrytypes():
         for metadata_el in xpath_ns(el, './ows:Metadata'):
             if metadata_el.attrib['{http://www.w3.org/1999/xlink}title'] == 'processing:geometryType':
                 yield metadata_el.attrib['{http://www.w3.org/1999/xlink}href']
-    
+
     geomtypes = tuple(_get_geometryTypes(xml))
     assert len(geomtypes) == 2
     for type_ in geomtypes:
         assert type_ in ("Line","Point")
-    
+
 
 def test_geometry_nomultipart():
-    """ Test geometry multipart Metadata 
+    """ Test geometry multipart Metadata
     """
     # Single geometry
     param = QgsProcessingParameterGeometry("GEOM", geometryTypes=[QgsWkbTypes.LineGeometry],
                                            allowMultipart=False)
 
     inp = parse_input_definition(param)
-    
+
     assert get_metadata(inp,'processing:geometryType')[0].href == "Line"
 
     # No multipart
@@ -383,7 +383,7 @@ def test_geometry_algorithm(outputdir, data):
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
-   
+
     inp  = inputs['INPUT'][0]
     inp.data_format = Format.from_definition(FORMATS.WKT)
     inp.data = 'CRS=EPSG:4326;MULTIPOINT((3.5 5.6), (4.8 10.5))'
@@ -394,11 +394,11 @@ def test_geometry_algorithm(outputdir, data):
     assert rv == True
 
     context  = Context(source, outputdir)
-    feedback = QgsProcessingFeedback() 
+    feedback = QgsProcessingFeedback()
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
-    # Check marshalled value 
+    # Check marshalled value
     value = parameters['INPUT']
     assert isinstance( value, QgsReferencedGeometry )
     assert value.wkbType() == QgsWkbTypes.MultiPoint
@@ -406,8 +406,8 @@ def test_geometry_algorithm(outputdir, data):
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
-   
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+
     out = json.loads(outputs.get('OUTPUT').data)
     assert out['type'] == 'MultiPoint'
 
@@ -419,7 +419,7 @@ def test_geometry_script(outputdir, data):
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
-   
+
     inp  = inputs['INPUT'][0]
     inp.data_format = Format.from_definition(FORMATS.WKT)
     inp.data = 'CRS=EPSG:4326;MULTIPOINT((3.5 5.6), (4.8 10.5))'
@@ -430,11 +430,11 @@ def test_geometry_script(outputdir, data):
     assert rv == True
 
     context  = Context(source, outputdir)
-    feedback = QgsProcessingFeedback() 
+    feedback = QgsProcessingFeedback()
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
-    # Check marshalled value 
+    # Check marshalled value
     value = parameters['INPUT']
     assert isinstance( value, QgsReferencedGeometry )
     assert value.wkbType() == QgsWkbTypes.MultiPoint
@@ -442,10 +442,7 @@ def test_geometry_script(outputdir, data):
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
-   
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+
     out = json.loads(outputs.get('OUTPUT').data)
     assert out['type'] == 'MultiPoint'
-
-
-
