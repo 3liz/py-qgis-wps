@@ -11,6 +11,7 @@ import os
 import traceback
 import shutil
 import logging
+import time
 
 from glob import glob
 from typing import Iterable, Any, Optional, Iterator
@@ -395,17 +396,22 @@ if HAVE_PSUTIL:
         process = psutil.Process(os.getpid())
         start_mem = process.memory_info().rss
         mb = 1024 * 1024.0
+        ns = 1000000000.0
+        start_time = time.perf_counter_ns()
         try:
             yield
         finally:
             # Log memory infos
+            end_time = time.perf_counter_ns()
             end_mem = process.memory_info().rss
             LOGGER.info(("{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb "
-                         "delta={3:.3f}Mb").format(str(response.uuid)[:8],
-                                                   start_mem / mb,
-                                                   end_mem / mb,
-                                                   (end_mem - start_mem) / mb,
-                                                   response.process.identifier))
+                         "delta={3:.3f}Mb "
+                         "duration: {5:.3f}s").format(str(response.uuid)[:8],
+                                                     start_mem / mb,
+                                                     end_mem / mb,
+                                                     (end_mem - start_mem) / mb,
+                                                     response.process.identifier,
+                                                     (end_time - start_time) / ns))
 else:
     @contextmanager
     def memory_logger(response) -> None:
