@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=aaadad1f"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -92,9 +92,9 @@
            <div itemprop="articleBody">
              
   <section id="running-qgis-processing">
-<span id="qgis-processing"></span><h1>Running QGIS processing<a class="headerlink" href="#running-qgis-processing" title="Permalink to this heading"></a></h1>
+<span id="qgis-processing"></span><h1>Running QGIS processing<a class="headerlink" href="#running-qgis-processing" title="Link to this heading"></a></h1>
 <section id="wps-input-output-layer-mapping">
-<span id="layer-mapping"></span><h2>WPS input/output layer mapping<a class="headerlink" href="#wps-input-output-layer-mapping" title="Permalink to this heading"></a></h2>
+<span id="layer-mapping"></span><h2>WPS input/output layer mapping<a class="headerlink" href="#wps-input-output-layer-mapping" title="Link to this heading"></a></h2>
 <p>With QGIS desktop , QGIS processing algorithms usually apply on a QGIS source project and computed layers are displayed in the same context as the source project.</p>
 <p>Py-qgis-wps works the same way: a qgis project will be used as a source of input layers.
 The difference is that, when an algorithm runs, it creates a qgis project file associated to the current task and register computed layers to it.</p>
@@ -103,7 +103,7 @@ holding a reference to a WMS/WFS uri that can be used directly with QGIS server.
 using the <code class="docutils literal notranslate"><span class="pre">server/wms_response_uri</span></code> configuration setting.</p>
 </section>
 <section id="contextualized-input-parameters">
-<span id="contextualized-params"></span><h2>Contextualized input parameters<a class="headerlink" href="#contextualized-input-parameters" title="Permalink to this heading"></a></h2>
+<span id="contextualized-params"></span><h2>Contextualized input parameters<a class="headerlink" href="#contextualized-input-parameters" title="Link to this heading"></a></h2>
 <p>Tasks parameters are contextualized using the <cite>MAP</cite> query param. If a <cite>MAP</cite> parameters is given when
 doing a <cite>DescripProcess</cite> requests, allowed values for input layers will be taken from the qgis source project
 according the type of the input layers.</p>
@@ -114,17 +114,17 @@ may connect whatever data source supported by qgis and use them as input data in
 </section>
 </section>
 <section id="exposing-processing-algorithms">
-<span id="exposing-algorithms"></span><h1>Exposing processing algorithms<a class="headerlink" href="#exposing-processing-algorithms" title="Permalink to this heading"></a></h1>
+<span id="exposing-algorithms"></span><h1>Exposing processing algorithms<a class="headerlink" href="#exposing-processing-algorithms" title="Link to this heading"></a></h1>
 <p>The processing provider modules are searched in the path given by the <a class="reference internal" href="configuration.html#processing-providers-module-path"><span class="std std-ref">PROCESSING_PROVIDERS_MODULE_PATH</span></a>
 config variable.</p>
 <p>Processing providers following the same rules as QGIS regular plugin with a special factory entrypoint: <code class="docutils literal notranslate"><span class="pre">WPSClassFactory(iface)</span></code> in the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file.</p>
 <section id="the-metadata-txt-file">
-<h2>The <code class="docutils literal notranslate"><span class="pre">metadata.txt</span></code> file<a class="headerlink" href="#the-metadata-txt-file" title="Permalink to this heading"></a></h2>
+<h2>The <code class="docutils literal notranslate"><span class="pre">metadata.txt</span></code> file<a class="headerlink" href="#the-metadata-txt-file" title="Link to this heading"></a></h2>
 <p>As regular QGIS plugin, a metadata.txt file must be present with a special entry <code class="docutils literal notranslate"><span class="pre">wps=True</span></code> indicating that
 the plugin is available as a WPS service provider.</p>
 </section>
 <section id="registering-providers">
-<h2>Registering providers<a class="headerlink" href="#registering-providers" title="Permalink to this heading"></a></h2>
+<h2>Registering providers<a class="headerlink" href="#registering-providers" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">iface</span></code>  parameter is a instance of <code class="docutils literal notranslate"><span class="pre">WPSServerInterface</span></code> which provide a
 <code class="docutils literal notranslate"><span class="pre">registerProvider(</span> <span class="pre">provider:</span> <span class="pre">QgsAlgorithmProvider,</span> <span class="pre">expose:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">Any</span></code> method.</p>
 <p>Exposed providers as WPS services must be registered using the <code class="docutils literal notranslate"><span class="pre">registerProvider</span></code> method.</p>
@@ -140,7 +140,7 @@ the plugin is available as a WPS service provider.</p>
 </div>
 </section>
 <section id="using-scripts-and-models">
-<h2>Using scripts and models<a class="headerlink" href="#using-scripts-and-models" title="Permalink to this heading"></a></h2>
+<h2>Using scripts and models<a class="headerlink" href="#using-scripts-and-models" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Py-qgis-wps</span></code> works with scripts and models. First creates a <code class="docutils literal notranslate"><span class="pre">models/</span></code> and a <code class="docutils literal notranslate"><span class="pre">scripts/</span></code> directory
 in the folder given by the <a class="reference internal" href="configuration.html#processing-providers-module-path"><span class="std std-ref">PROCESSING_PROVIDERS_MODULE_PATH</span></a> option.</p>
 <p>Your processing module directory should be something like:</p>
@@ -159,12 +159,12 @@ in the folder given by the <a class="reference internal" href="configuration.htm
 After restarting the workers you should see the corresponding algorithms in the list of published WPS jobs.</p>
 </section>
 <section id="controlling-what-is-exposed">
-<h2>Controlling what is exposed<a class="headerlink" href="#controlling-what-is-exposed" title="Permalink to this heading"></a></h2>
+<h2>Controlling what is exposed<a class="headerlink" href="#controlling-what-is-exposed" title="Link to this heading"></a></h2>
 <p>Processing algorithm with the flag <a class="reference external" href="https://qgis.org/pyqgis/3.0/core/Processing/QgsProcessingAlgorithm.html#qgis.core.QgsProcessingAlgorithm.FlagHideFromToolbox">FlagHideFromToolbox</a> set will not be exposed as WPS process.</p>
 <p>Parameters with the flag <a class="reference external" href="https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDefinition.html#qgis.core.QgsProcessingParameterDefinition.FlagHidden">FlagHidden</a> set wont be exposed in a <code class="docutils literal notranslate"><span class="pre">DescribeProcess</span></code> request.</p>
 </section>
 <section id="publishing-wps-results-with-py-qgis-server">
-<span id="expose-wps-output-with-py-qgis-server"></span><h2>Publishing WPS results with py-qgis-server<a class="headerlink" href="#publishing-wps-results-with-py-qgis-server" title="Permalink to this heading"></a></h2>
+<span id="expose-wps-output-with-py-qgis-server"></span><h2>Publishing WPS results with py-qgis-server<a class="headerlink" href="#publishing-wps-results-with-py-qgis-server" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">server/wms_response_uri</span></code> configuration default to <code class="docutils literal notranslate"><span class="pre">wps_results:</span></code></p>
 <p><a class="reference external" href="https://github.com/3liz/py-qgis-server">Py-qgis-server</a> can access to the wps results by defining a
 <a class="reference external" href="https://docs.3liz.org/py-qgis-server/schemes.html#scheme-aliases">custom scheme alias</a>. that links the wps data to the  wps server workdir configuration <code class="docutils literal notranslate"><span class="pre">wms_response_uri</span></code>.</p>
@@ -181,7 +181,7 @@ After restarting the workers you should see the corresponding algorithms in the 
 </div>
 </section>
 <section id="reloading-providers">
-<span id="id1"></span><h2>Reloading providers<a class="headerlink" href="#reloading-providers" title="Permalink to this heading"></a></h2>
+<span id="id1"></span><h2>Reloading providers<a class="headerlink" href="#reloading-providers" title="Link to this heading"></a></h2>
 <p>Providers may be reloaded gracefully using the <a class="reference internal" href="configuration.html#server-restartmon"><span class="std std-ref">SERVER_RESTARTMON</span></a> option.
 This allow for updating providers, models and scripts without interrupting the service.</p>
 </section>

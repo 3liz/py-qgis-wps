@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=aaadad1f"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -122,14 +122,14 @@
            <div itemprop="articleBody">
              
   <section id="configuration-settings">
-<span id="id1"></span><h1>Configuration Settings<a class="headerlink" href="#configuration-settings" title="Permalink to this heading"></a></h1>
+<span id="id1"></span><h1>Configuration Settings<a class="headerlink" href="#configuration-settings" title="Link to this heading"></a></h1>
 <p>Configuration can be done either by using a configuration file or with environnement variable.</p>
-<p>Except stated otherwise, the rule for environnement variable names is <code class="docutils literal notranslate"><span class="pre">QGSRV_&lt;SECTION&gt;_&lt;KEY&gt;</span></code> all in uppercase.</p>
+<p>Except stated otherwise, the rule for environnement variable names is <code class="docutils literal notranslate"><span class="pre">QGSWPS_&lt;SECTION&gt;_&lt;KEY&gt;</span></code> all in uppercase.</p>
 </section>
 <section id="common-configuration-options">
-<h1>Common Configuration Options<a class="headerlink" href="#common-configuration-options" title="Permalink to this heading"></a></h1>
+<h1>Common Configuration Options<a class="headerlink" href="#common-configuration-options" title="Link to this heading"></a></h1>
 <section id="server-http-port">
-<span id="id2"></span><h2>SERVER_HTTP_PORT<a class="headerlink" href="#server-http-port" title="Permalink to this heading"></a></h2>
+<span id="id2"></span><h2>SERVER_HTTP_PORT<a class="headerlink" href="#server-http-port" title="Link to this heading"></a></h2>
 <p>Port to listen to</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -145,12 +145,12 @@
 <dd class="field-even"><p>port</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_HTTP_PORT</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_HTTP_PORT</p>
 </dd>
 </dl>
 </section>
 <section id="server-interfaces">
-<span id="id3"></span><h2>SERVER_INTERFACES<a class="headerlink" href="#server-interfaces" title="Permalink to this heading"></a></h2>
+<span id="id3"></span><h2>SERVER_INTERFACES<a class="headerlink" href="#server-interfaces" title="Link to this heading"></a></h2>
 <p>Interfaces to listen to</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -166,12 +166,12 @@
 <dd class="field-even"><p>interfaces</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_INTERFACES</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_INTERFACES</p>
 </dd>
 </dl>
 </section>
 <section id="server-enable-filters">
-<span id="id4"></span><h2>SERVER_ENABLE_FILTERS<a class="headerlink" href="#server-enable-filters" title="Permalink to this heading"></a></h2>
+<span id="id4"></span><h2>SERVER_ENABLE_FILTERS<a class="headerlink" href="#server-enable-filters" title="Link to this heading"></a></h2>
 <p>Enable filters as python extension</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -187,12 +187,12 @@
 <dd class="field-even"><p>enable_filters</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_ENABLE_FILTERS</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_ENABLE_FILTERS</p>
 </dd>
 </dl>
 </section>
 <section id="server-http-proxy">
-<span id="id5"></span><h2>SERVER_HTTP_PROXY<a class="headerlink" href="#server-http-proxy" title="Permalink to this heading"></a></h2>
+<span id="id5"></span><h2>SERVER_HTTP_PROXY<a class="headerlink" href="#server-http-proxy" title="Link to this heading"></a></h2>
 <p>Indicates that the server is behind a reverse proxy.
 Set this to ‘yes’ if you are planning to use Forwarded Headers
 or set a static proxy url with <cite>QGIS_SERVER_&lt;SERVICE&gt;_URL</cite></p>
@@ -210,12 +210,12 @@ or set a static proxy url with <cite>QGIS_SERVER_&lt;SERVICE&gt;_URL</cite></p>
 <dd class="field-even"><p>http_proxy</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_HTTP_PROXY</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_HTTP_PROXY</p>
 </dd>
 </dl>
 </section>
 <section id="server-proxy-url">
-<span id="id6"></span><h2>SERVER_PROXY_URL<a class="headerlink" href="#server-proxy-url" title="Permalink to this heading"></a></h2>
+<span id="id6"></span><h2>SERVER_PROXY_URL<a class="headerlink" href="#server-proxy-url" title="Link to this heading"></a></h2>
 <p>The url that must be seen by the client when the server is behind a proxy.
 Note that this option will be overridden by <cite>QGIS_SERVER_&lt;SERVICE&gt;_URL</cite> or
 by <cite>X-Qgis-&lt;service&gt;-Url</cite> headers.</p>
@@ -230,12 +230,12 @@ by <cite>X-Qgis-&lt;service&gt;-Url</cite> headers.</p>
 <dd class="field-odd"><p>proxy_url</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_SERVER_PROXY_URL</p>
+<dd class="field-even"><p>QGSWPS_SERVER_PROXY_URL</p>
 </dd>
 </dl>
 </section>
 <section id="server-outputfile-as-reference">
-<span id="id7"></span><h2>SERVER_OUTPUTFILE_AS_REFERENCE<a class="headerlink" href="#server-outputfile-as-reference" title="Permalink to this heading"></a></h2>
+<span id="id7"></span><h2>SERVER_OUTPUTFILE_AS_REFERENCE<a class="headerlink" href="#server-outputfile-as-reference" title="Link to this heading"></a></h2>
 <p>Select if output files are returned by reference for deferred download or in response body as
 complex output.</p>
 <dl class="field-list simple">
@@ -252,12 +252,12 @@ complex output.</p>
 <dd class="field-even"><p>outputfile_as_reference</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_OUTPUTFILE_AS_REFERENCE</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_OUTPUTFILE_AS_REFERENCE</p>
 </dd>
 </dl>
 </section>
 <section id="server-maxinputsize">
-<span id="id8"></span><h2>SERVER_MAXINPUTSIZE<a class="headerlink" href="#server-maxinputsize" title="Permalink to this heading"></a></h2>
+<span id="id8"></span><h2>SERVER_MAXINPUTSIZE<a class="headerlink" href="#server-maxinputsize" title="Link to this heading"></a></h2>
 <p>Max input file fetched as remote reference</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -273,12 +273,12 @@ complex output.</p>
 <dd class="field-even"><p>maxinputsize</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_MAXINPUTSIZE</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_MAXINPUTSIZE</p>
 </dd>
 </dl>
 </section>
 <section id="server-maxbuffersize">
-<span id="id9"></span><h2>SERVER_MAXBUFFERSIZE<a class="headerlink" href="#server-maxbuffersize" title="Permalink to this heading"></a></h2>
+<span id="id9"></span><h2>SERVER_MAXBUFFERSIZE<a class="headerlink" href="#server-maxbuffersize" title="Link to this heading"></a></h2>
 <p>Max request buffer size.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -294,12 +294,12 @@ complex output.</p>
 <dd class="field-even"><p>maxbuffersize</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_MAXBUFFERSIZE</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_MAXBUFFERSIZE</p>
 </dd>
 </dl>
 </section>
 <section id="server-workdir">
-<span id="id10"></span><h2>SERVER_WORKDIR<a class="headerlink" href="#server-workdir" title="Permalink to this heading"></a></h2>
+<span id="id10"></span><h2>SERVER_WORKDIR<a class="headerlink" href="#server-workdir" title="Link to this heading"></a></h2>
 <p>Parent working directory where processes are executed. Each processes will create
 a working directory for storing results files and logs.
 The default value use the <cite>gettempdir()</cite> function.</p>
@@ -317,12 +317,12 @@ The default value use the <cite>gettempdir()</cite> function.</p>
 <dd class="field-even"><p>workdir</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_WORKDIR</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_WORKDIR</p>
 </dd>
 </dl>
 </section>
 <section id="server-parallelprocesses">
-<span id="id11"></span><h2>SERVER_PARALLELPROCESSES<a class="headerlink" href="#server-parallelprocesses" title="Permalink to this heading"></a></h2>
+<span id="id11"></span><h2>SERVER_PARALLELPROCESSES<a class="headerlink" href="#server-parallelprocesses" title="Link to this heading"></a></h2>
 <p>The number of parallel processes running <cite>execute</cite> requests. Extra processes will be queued.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -338,12 +338,12 @@ The default value use the <cite>gettempdir()</cite> function.</p>
 <dd class="field-even"><p>parallelprocesses</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_PARALLELPROCESSES</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_PARALLELPROCESSES</p>
 </dd>
 </dl>
 </section>
 <section id="server-processlifecycle">
-<span id="id12"></span><h2>SERVER_PROCESSLIFECYCLE<a class="headerlink" href="#server-processlifecycle" title="Permalink to this heading"></a></h2>
+<span id="id12"></span><h2>SERVER_PROCESSLIFECYCLE<a class="headerlink" href="#server-processlifecycle" title="Link to this heading"></a></h2>
 <p>Maximal number of executions that can run in the same worker before being recreating
 the worker.</p>
 <dl class="field-list simple">
@@ -360,12 +360,12 @@ the worker.</p>
 <dd class="field-even"><p>processlifecycle</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_PROCESSLIFECYCLE</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_PROCESSLIFECYCLE</p>
 </dd>
 </dl>
 </section>
 <section id="server-maxqueuesize">
-<span id="id13"></span><h2>SERVER_MAXQUEUESIZE<a class="headerlink" href="#server-maxqueuesize" title="Permalink to this heading"></a></h2>
+<span id="id13"></span><h2>SERVER_MAXQUEUESIZE<a class="headerlink" href="#server-maxqueuesize" title="Link to this heading"></a></h2>
 <p>Maximal number of waiting tasks - extra tasks will return a 509 in synchronous execution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -381,12 +381,12 @@ the worker.</p>
 <dd class="field-even"><p>maxqueuesize</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_MAXQUEUESIZE</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_MAXQUEUESIZE</p>
 </dd>
 </dl>
 </section>
 <section id="server-response-timeout">
-<span id="id14"></span><h2>SERVER_RESPONSE_TIMEOUT<a class="headerlink" href="#server-response-timeout" title="Permalink to this heading"></a></h2>
+<span id="id14"></span><h2>SERVER_RESPONSE_TIMEOUT<a class="headerlink" href="#server-response-timeout" title="Link to this heading"></a></h2>
 <p>Timeout for tasks execution in seconds. Task running longer that this time will be aborted and
 a timeout error is returned.</p>
 <dl class="field-list simple">
@@ -403,12 +403,12 @@ a timeout error is returned.</p>
 <dd class="field-even"><p>response_timeout</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_RESPONSE_TIMEOUT</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_RESPONSE_TIMEOUT</p>
 </dd>
 </dl>
 </section>
 <section id="server-response-expiration">
-<span id="id15"></span><h2>SERVER_RESPONSE_EXPIRATION<a class="headerlink" href="#server-response-expiration" title="Permalink to this heading"></a></h2>
+<span id="id15"></span><h2>SERVER_RESPONSE_EXPIRATION<a class="headerlink" href="#server-response-expiration" title="Link to this heading"></a></h2>
 <p>Response expiration in seconds. After that delay from the task’s end, data (working directory and status)
 for that task will be deleted.</p>
 <dl class="field-list simple">
@@ -425,12 +425,12 @@ for that task will be deleted.</p>
 <dd class="field-even"><p>response_expiration</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_RESPONSE_EXPIRATION</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_RESPONSE_EXPIRATION</p>
 </dd>
 </dl>
 </section>
 <section id="server-wms-service-url">
-<span id="id16"></span><h2>SERVER_WMS_SERVICE_URL<a class="headerlink" href="#server-wms-service-url" title="Permalink to this heading"></a></h2>
+<span id="id16"></span><h2>SERVER_WMS_SERVICE_URL<a class="headerlink" href="#server-wms-service-url" title="Link to this heading"></a></h2>
 <p>The url for the service used to retrieve results as WMS/WFS references.
 Usually this will correspond to a QGIS server serving OWS services from results projects.</p>
 <dl class="field-list simple">
@@ -447,12 +447,12 @@ Usually this will correspond to a QGIS server serving OWS services from results 
 <dd class="field-even"><p>wms_service_url</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_WMS_SERVICE_URL</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_WMS_SERVICE_URL</p>
 </dd>
 </dl>
 </section>
 <section id="server-results-map-uri">
-<span id="id17"></span><h2>SERVER_RESULTS_MAP_URI<a class="headerlink" href="#server-results-map-uri" title="Permalink to this heading"></a></h2>
+<span id="id17"></span><h2>SERVER_RESULTS_MAP_URI<a class="headerlink" href="#server-results-map-uri" title="Link to this heading"></a></h2>
 <p>Base uri used for the MAP argument in WMS/WFS response references.
 Define a base URI to use for ‘MAP’ arguments in WMS/WFS responses, this uri may
 corresponds to an ‘alias in py-qgis-server &lt;<a class="reference external" href="https://py-qgis-server.readthedocs.io/en/latest/schemes.html#scheme-aliases">https://py-qgis-server.readthedocs.io/en/latest/schemes.html#scheme-aliases</a>&gt;’ _.</p>
@@ -470,12 +470,12 @@ corresponds to an ‘alias in py-qgis-server &lt;<a class="reference external" h
 <dd class="field-even"><p>wms_service_url</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_RESULTS_MAP_URI</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_RESULTS_MAP_URI</p>
 </dd>
 </dl>
 </section>
 <section id="server-cross-origin">
-<span id="id18"></span><h2>SERVER_CROSS_ORIGIN<a class="headerlink" href="#server-cross-origin" title="Permalink to this heading"></a></h2>
+<span id="id18"></span><h2>SERVER_CROSS_ORIGIN<a class="headerlink" href="#server-cross-origin" title="Link to this heading"></a></h2>
 <p>Allows any origin for CORS. If set to ‘no’, allow only CORS for the ‘Origin’
 header.</p>
 <dl class="field-list simple">
@@ -489,12 +489,12 @@ header.</p>
 <dd class="field-odd"><p>cross_origin</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_SERVER_CROSS_ORIGIN</p>
+<dd class="field-even"><p>QGSWPS_SERVER_CROSS_ORIGIN</p>
 </dd>
 </dl>
 </section>
 <section id="server-restartmon">
-<span id="id19"></span><h2>SERVER_RESTARTMON<a class="headerlink" href="#server-restartmon" title="Permalink to this heading"></a></h2>
+<span id="id19"></span><h2>SERVER_RESTARTMON<a class="headerlink" href="#server-restartmon" title="Link to this heading"></a></h2>
 <p>The file to watch for restarting workers. When the modified date of the file is changed,
 the processing providers are reloaded.
 The restart is graceful, jobs terminate normally. During the restart process,
@@ -511,12 +511,12 @@ interrupting the service.</p>
 <dd class="field-odd"><p>restartmon</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_SERVER_RESTARTMON</p>
+<dd class="field-even"><p>QGSWPS_SERVER_RESTARTMON</p>
 </dd>
 </dl>
 </section>
 <section id="server-ssl">
-<span id="id20"></span><h2>SERVER_SSL<a class="headerlink" href="#server-ssl" title="Permalink to this heading"></a></h2>
+<span id="id20"></span><h2>SERVER_SSL<a class="headerlink" href="#server-ssl" title="Link to this heading"></a></h2>
 <p>Enable SSL endpoint</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -535,12 +535,12 @@ interrupting the service.</p>
 <dd class="field-odd"><p>ssl</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_SERVER_SSL</p>
+<dd class="field-even"><p>QGSWPS_SERVER_SSL</p>
 </dd>
 </dl>
 </section>
 <section id="server-ssl-cert">
-<span id="id21"></span><h2>SERVER_SSL_CERT<a class="headerlink" href="#server-ssl-cert" title="Permalink to this heading"></a></h2>
+<span id="id21"></span><h2>SERVER_SSL_CERT<a class="headerlink" href="#server-ssl-cert" title="Link to this heading"></a></h2>
 <p>Path to the SSL certificat file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -556,12 +556,12 @@ interrupting the service.</p>
 <dd class="field-even"><p>ssl_cert</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_SSL_CERT</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_SSL_CERT</p>
 </dd>
 </dl>
 </section>
 <section id="server-ssl-key">
-<span id="id22"></span><h2>SERVER_SSL_KEY<a class="headerlink" href="#server-ssl-key" title="Permalink to this heading"></a></h2>
+<span id="id22"></span><h2>SERVER_SSL_KEY<a class="headerlink" href="#server-ssl-key" title="Link to this heading"></a></h2>
 <p>Path to the SSL key file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -577,12 +577,12 @@ interrupting the service.</p>
 <dd class="field-even"><p>ssl_key</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_SSL_KEY</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_SSL_KEY</p>
 </dd>
 </dl>
 </section>
 <section id="server-enable-job-realm">
-<span id="id23"></span><h2>SERVER_ENABLE_JOB_REALM<a class="headerlink" href="#server-enable-job-realm" title="Permalink to this heading"></a></h2>
+<span id="id23"></span><h2>SERVER_ENABLE_JOB_REALM<a class="headerlink" href="#server-enable-job-realm" title="Link to this heading"></a></h2>
 <p>Enable job access control by associating a realm token
 to each job. Realm token are set by setting the ‘X-Job-Realm’
 header to the token.</p>
@@ -603,12 +603,12 @@ header to the token.</p>
 <dd class="field-odd"><p>enable_job_realm</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_SERVER_ENABLE_JOB_REALM</p>
+<dd class="field-even"><p>QGSWPS_SERVER_ENABLE_JOB_REALM</p>
 </dd>
 </dl>
 </section>
 <section id="server-admin-realm">
-<span id="id24"></span><h2>SERVER_ADMIN_REALM<a class="headerlink" href="#server-admin-realm" title="Permalink to this heading"></a></h2>
+<span id="id24"></span><h2>SERVER_ADMIN_REALM<a class="headerlink" href="#server-admin-realm" title="Link to this heading"></a></h2>
 <p>Administrator realm token.
 It allows bearer to bypass any other token</p>
 <dl class="field-list simple">
@@ -622,15 +622,15 @@ It allows bearer to bypass any other token</p>
 <dd class="field-odd"><p>server</p>
 </dd>
 <dt class="field-even">Key<span class="colon">:</span></dt>
-<dd class="field-even"><p>ssl_key</p>
+<dd class="field-even"><p>admin_realm</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_SERVER_ADMIN_REALM</p>
+<dd class="field-odd"><p>QGSWPS_SERVER_ADMIN_REALM</p>
 </dd>
 </dl>
 </section>
 <section id="logging-level">
-<span id="id25"></span><h2>LOGGING_LEVEL<a class="headerlink" href="#logging-level" title="Permalink to this heading"></a></h2>
+<span id="id25"></span><h2>LOGGING_LEVEL<a class="headerlink" href="#logging-level" title="Link to this heading"></a></h2>
 <p>Set the logging level</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -646,12 +646,12 @@ It allows bearer to bypass any other token</p>
 <dd class="field-even"><p>level</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_LOGGING_LEVEL</p>
+<dd class="field-odd"><p>QGSWPS_LOGGING_LEVEL</p>
 </dd>
 </dl>
 </section>
 <section id="redis-host">
-<span id="id26"></span><h2>REDIS_HOST<a class="headerlink" href="#redis-host" title="Permalink to this heading"></a></h2>
+<span id="id26"></span><h2>REDIS_HOST<a class="headerlink" href="#redis-host" title="Link to this heading"></a></h2>
 <p>Redis storage backend host</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -667,12 +667,12 @@ It allows bearer to bypass any other token</p>
 <dd class="field-even"><p>host</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_REDIS_HOST</p>
+<dd class="field-odd"><p>QGSWPS_REDIS_HOST</p>
 </dd>
 </dl>
 </section>
 <section id="redis-port">
-<span id="id27"></span><h2>REDIS_PORT<a class="headerlink" href="#redis-port" title="Permalink to this heading"></a></h2>
+<span id="id27"></span><h2>REDIS_PORT<a class="headerlink" href="#redis-port" title="Link to this heading"></a></h2>
 <p>Redis storage backend port</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -688,12 +688,12 @@ It allows bearer to bypass any other token</p>
 <dd class="field-even"><p>port</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_REDIS_PORT</p>
+<dd class="field-odd"><p>QGSWPS_REDIS_PORT</p>
 </dd>
 </dl>
 </section>
 <section id="redis-dbnum">
-<span id="id28"></span><h2>REDIS_DBNUM<a class="headerlink" href="#redis-dbnum" title="Permalink to this heading"></a></h2>
+<span id="id28"></span><h2>REDIS_DBNUM<a class="headerlink" href="#redis-dbnum" title="Link to this heading"></a></h2>
 <p>Redis storage backend database index</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -706,12 +706,12 @@ It allows bearer to bypass any other token</p>
 <dd class="field-odd"><p>dbnum</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_REDIS_DBNUM</p>
+<dd class="field-even"><p>QGSWPS_REDIS_DBNUM</p>
 </dd>
 </dl>
 </section>
 <section id="redis-prefix">
-<span id="id29"></span><h2>REDIS_PREFIX<a class="headerlink" href="#redis-prefix" title="Permalink to this heading"></a></h2>
+<span id="id29"></span><h2>REDIS_PREFIX<a class="headerlink" href="#redis-prefix" title="Link to this heading"></a></h2>
 <p>Redis storage backend key prefix.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -727,12 +727,12 @@ It allows bearer to bypass any other token</p>
 <dd class="field-even"><p>prefix</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_REDIS_PREFIX</p>
+<dd class="field-odd"><p>QGSWPS_REDIS_PREFIX</p>
 </dd>
 </dl>
 </section>
 <section id="cache-size">
-<span id="id30"></span><h2>CACHE_SIZE<a class="headerlink" href="#cache-size" title="Permalink to this heading"></a></h2>
+<span id="id30"></span><h2>CACHE_SIZE<a class="headerlink" href="#cache-size" title="Link to this heading"></a></h2>
 <p>The maximal number of QGIS projects held in cache. The cache strategy is LRU.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -748,12 +748,12 @@ It allows bearer to bypass any other token</p>
 <dd class="field-even"><p>size</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_CACHE_SIZE</p>
+<dd class="field-odd"><p>QGSWPS_CACHE_SIZE</p>
 </dd>
 </dl>
 </section>
 <section id="cache-rootdir">
-<span id="id31"></span><h2>CACHE_ROOTDIR<a class="headerlink" href="#cache-rootdir" title="Permalink to this heading"></a></h2>
+<span id="id31"></span><h2>CACHE_ROOTDIR<a class="headerlink" href="#cache-rootdir" title="Link to this heading"></a></h2>
 <p>The directory location for QGIS project files.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -766,12 +766,12 @@ It allows bearer to bypass any other token</p>
 <dd class="field-odd"><p>rootdir</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_CACHE_ROOTDIR</p>
+<dd class="field-even"><p>QGSWPS_CACHE_ROOTDIR</p>
 </dd>
 </dl>
 </section>
 <section id="cache-strict-check">
-<span id="id32"></span><h2>CACHE_STRICT_CHECK<a class="headerlink" href="#cache-strict-check" title="Permalink to this heading"></a></h2>
+<span id="id32"></span><h2>CACHE_STRICT_CHECK<a class="headerlink" href="#cache-strict-check" title="Link to this heading"></a></h2>
 <p>Activate strict checking of project layers. When enabled, QGIS projects
 with invalid layers will be dismissed and an ‘Unprocessable Entity’ (422) HTTP error
 will be issued.</p>
@@ -789,12 +789,12 @@ will be issued.</p>
 <dd class="field-even"><p>strict_check</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_CACHE_STRICT_CHECK</p>
+<dd class="field-odd"><p>QGSWPS_CACHE_STRICT_CHECK</p>
 </dd>
 </dl>
 </section>
 <section id="processing-providers-module-path">
-<span id="id33"></span><h2>PROCESSING_PROVIDERS_MODULE_PATH<a class="headerlink" href="#processing-providers-module-path" title="Permalink to this heading"></a></h2>
+<span id="id33"></span><h2>PROCESSING_PROVIDERS_MODULE_PATH<a class="headerlink" href="#processing-providers-module-path" title="Link to this heading"></a></h2>
 <p>Path to QGIS processing providers modules</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -807,12 +807,12 @@ will be issued.</p>
 <dd class="field-odd"><p>providers_module_path</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_PROCESSING_PROVIDERS_MODULE_PATH</p>
+<dd class="field-even"><p>QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH</p>
 </dd>
 </dl>
 </section>
 <section id="processing-exposed-providers">
-<span id="id34"></span><h2>PROCESSING_EXPOSED_PROVIDERS<a class="headerlink" href="#processing-exposed-providers" title="Permalink to this heading"></a></h2>
+<span id="id34"></span><h2>PROCESSING_EXPOSED_PROVIDERS<a class="headerlink" href="#processing-exposed-providers" title="Link to this heading"></a></h2>
 <p>Comma separated list of exposed QGIS processing internal providers.
 We do not recommend exposing all providers like <cite>qgis</cite> or <cite>native</cite>, it’s better to create your own script or
 model.</p>
@@ -830,12 +830,12 @@ model.</p>
 <dd class="field-even"><p>exposed_providers</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_PROCESSING_EXPOSED_PROVIDERS</p>
+<dd class="field-odd"><p>QGSWPS_PROCESSING_EXPOSED_PROVIDERS</p>
 </dd>
 </dl>
 </section>
 <section id="processing-accesspolicy">
-<span id="id35"></span><h2>PROCESSING_ACCESSPOLICY<a class="headerlink" href="#processing-accesspolicy" title="Permalink to this heading"></a></h2>
+<span id="id35"></span><h2>PROCESSING_ACCESSPOLICY<a class="headerlink" href="#processing-accesspolicy" title="Link to this heading"></a></h2>
 <p>Path to the access policy configuration file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -851,12 +851,12 @@ model.</p>
 <dd class="field-even"><p>accesspolicy</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_PROCESSING_ACCESSPOLICY</p>
+<dd class="field-odd"><p>QGSWPS_PROCESSING_ACCESSPOLICY</p>
 </dd>
 </dl>
 </section>
 <section id="processing-vector-fileext">
-<span id="id36"></span><h2>PROCESSING_VECTOR_FILEEXT<a class="headerlink" href="#processing-vector-fileext" title="Permalink to this heading"></a></h2>
+<span id="id36"></span><h2>PROCESSING_VECTOR_FILEEXT<a class="headerlink" href="#processing-vector-fileext" title="Link to this heading"></a></h2>
 <p>Define the default vector file extensions for vector destination
 parameters. If not specified, then the QGIS default value is used.</p>
 <dl class="field-list simple">
@@ -870,12 +870,12 @@ parameters. If not specified, then the QGIS default value is used.</p>
 <dd class="field-odd"><p>vector.fileext</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_PROCESSING_VECTOR_FILEEXT</p>
+<dd class="field-even"><p>QGSWPS_PROCESSING_VECTOR_FILEEXT</p>
 </dd>
 </dl>
 </section>
 <section id="processing-raster-fileext">
-<span id="id37"></span><h2>PROCESSING_RASTER_FILEEXT<a class="headerlink" href="#processing-raster-fileext" title="Permalink to this heading"></a></h2>
+<span id="id37"></span><h2>PROCESSING_RASTER_FILEEXT<a class="headerlink" href="#processing-raster-fileext" title="Link to this heading"></a></h2>
 <p>Define the default raster file extensions for raster destination
 parameters. If not specified, then the QGIS default value is used.</p>
 <dl class="field-list simple">
@@ -889,12 +889,12 @@ parameters. If not specified, then the QGIS default value is used.</p>
 <dd class="field-odd"><p>raster.fileext</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_PROCESSING_RASTER_FILEEXT</p>
+<dd class="field-even"><p>QGSWPS_PROCESSING_RASTER_FILEEXT</p>
 </dd>
 </dl>
 </section>
 <section id="processing-raw-destination-input-sink">
-<span id="id38"></span><h2>PROCESSING_RAW_DESTINATION_INPUT_SINK<a class="headerlink" href="#processing-raw-destination-input-sink" title="Permalink to this heading"></a></h2>
+<span id="id38"></span><h2>PROCESSING_RAW_DESTINATION_INPUT_SINK<a class="headerlink" href="#processing-raw-destination-input-sink" title="Link to this heading"></a></h2>
 <p>Allow input value as sink for destination layers.
 This allow value passed as input value to be interpreted as
 path or uri sink definition. This enable passing any string
@@ -917,12 +917,12 @@ the <a class="reference internal" href="#processing-destination-root-path">PROCE
 <dd class="field-odd"><p>unsafe.raw_destination_input_sink</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_PROCESSING_RAW_DESTINATION_INPUT_SINK</p>
+<dd class="field-even"><p>QGSWPS_PROCESSING_RAW_DESTINATION_INPUT_SINK</p>
 </dd>
 </dl>
 </section>
 <section id="processing-destination-root-path">
-<span id="id39"></span><h2>PROCESSING_DESTINATION_ROOT_PATH<a class="headerlink" href="#processing-destination-root-path" title="Permalink to this heading"></a></h2>
+<span id="id39"></span><h2>PROCESSING_DESTINATION_ROOT_PATH<a class="headerlink" href="#processing-destination-root-path" title="Link to this heading"></a></h2>
 <p>Specify the root directory for storing destination layers files when
 the <a class="reference internal" href="#processing-raw-destination-input-sink">PROCESSING_RAW_DESTINATION_INPUT_SINK</a> option is enabled.
 If not specified, file will be stored in the job folder.</p>
@@ -937,12 +937,12 @@ If not specified, file will be stored in the job folder.</p>
 <dd class="field-odd"><p>destination_root_path</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_PROCESSING_DESTINATION_ROOT_PATH</p>
+<dd class="field-even"><p>QGSWPS_PROCESSING_DESTINATION_ROOT_PATH</p>
 </dd>
 </dl>
 </section>
 <section id="processing-adjust-ellipsoid">
-<span id="id40"></span><h2>PROCESSING_ADJUST_ELLIPSOID<a class="headerlink" href="#processing-adjust-ellipsoid" title="Permalink to this heading"></a></h2>
+<span id="id40"></span><h2>PROCESSING_ADJUST_ELLIPSOID<a class="headerlink" href="#processing-adjust-ellipsoid" title="Link to this heading"></a></h2>
 <p>Force the ellipsoid from the src project into the destination project. This only apply
 if the src project has a valid CRS.</p>
 <dl class="field-list simple">
@@ -956,12 +956,12 @@ if the src project has a valid CRS.</p>
 <dd class="field-odd"><p>adjust_ellipsoid</p>
 </dd>
 <dt class="field-even">Env<span class="colon">:</span></dt>
-<dd class="field-even"><p>QGSRV_PROCESSING_ADJUST_ELLIPSOID</p>
+<dd class="field-even"><p>QGSWPS_PROCESSING_ADJUST_ELLIPSOID</p>
 </dd>
 </dl>
 </section>
 <section id="processing-default-crs">
-<span id="id41"></span><h2>PROCESSING_DEFAULT_CRS<a class="headerlink" href="#processing-default-crs" title="Permalink to this heading"></a></h2>
+<span id="id41"></span><h2>PROCESSING_DEFAULT_CRS<a class="headerlink" href="#processing-default-crs" title="Link to this heading"></a></h2>
 <p>Set the CRS to use when no source map is specified.
 For more details on supported formats see the GDAL method <code class="docutils literal notranslate"><span class="pre">GRSpatialReference::SetFromUserInput()</span></code></p>
 <dl class="field-list simple">
@@ -978,7 +978,7 @@ For more details on supported formats see the GDAL method <code class="docutils 
 <dd class="field-even"><p>default_crs</p>
 </dd>
 <dt class="field-odd">Env<span class="colon">:</span></dt>
-<dd class="field-odd"><p>QGSRV_PROCESSING_DEFAULT_CRS</p>
+<dd class="field-odd"><p>QGSWPS_PROCESSING_DEFAULT_CRS</p>
 </dd>
 </dl>
 </section>
