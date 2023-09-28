@@ -5,7 +5,7 @@ Configuration Settings
 
 Configuration can be done either by using a configuration file or with environnement variable.
 
-Except stated otherwise, the rule for environnement variable names is ``QGSRV_<SECTION>_<KEY>`` all in uppercase.
+Except stated otherwise, the rule for environnement variable names is ``QGSWPS_<SECTION>_<KEY>`` all in uppercase.
 
 
 Common Configuration Options
@@ -44,7 +44,7 @@ Common Configuration Options
 :Deprecated detail: {{config['deprecated']['why']}}
 :Deprecated alternatives: {{config['deprecated']['alternatives']}}
 {% endif %}
-:Env: QGSRV_{{config_option}}
+:Env: QGSWPS_{{config_option}}
 
 {% endfor %}
 {% endif %}
