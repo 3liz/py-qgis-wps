@@ -127,7 +127,7 @@ def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs,
 # WPS inputs ->  processing inputs data
 # --------------------------------------
 
-WKT_EXPR = re.compile(r"^\s*(?:CRS=(.*);)?(.*?)$")
+WKT_EXPR = re.compile(r"^\s*(?:(CRS|SRID)=(.*);)?(.*?)$")
 
 
 def wkt_to_geometry(wkt: str) -> Geometry:
@@ -137,9 +137,13 @@ def wkt_to_geometry(wkt: str) -> Geometry:
     """
     m = WKT_EXPR.match(wkt)
     if m:
-        g = QgsGeometry.fromWkt(m.groups('')[1])
+        g = QgsGeometry.fromWkt(m.groups('')[2])
         if not g.isNull():
-            crs = QgsCoordinateReferenceSystem(m.groups('')[0])
+            crs_str = m.groups('')[1]
+            if m.groups('')[0] == 'SRID':
+                crs_str = f'POSTGIS:{crs_str}'
+
+            crs = QgsCoordinateReferenceSystem(crs_str)
             if crs.isValid():
                 g = QgsReferencedGeometry(g, crs)
         return g
