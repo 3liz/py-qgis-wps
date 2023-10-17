@@ -180,6 +180,7 @@ def test_point_input_gml():
 def test_point_input_json():
     """ Test input point from json
     """
+    # without a crs
     param = QgsProcessingParameterPoint("POINT")
 
     inp = parse_input_definition(param)
@@ -194,6 +195,23 @@ def test_point_input_json():
 
     value = geometryio.input_to_point( inp )
     assert isinstance( value, QgsGeometry )
+
+    # with a crs
+    param2 = QgsProcessingParameterPoint("POINT")
+    inp2 = parse_input_definition(param2)
+
+    assert isinstance(inp2, ComplexInput)
+    assert inp2.as_reference == False
+
+    inp2.data_format = Format.from_definition(FORMATS.GEOJSON)
+    inp2.data = '{"type":"Point","coordinates":[-3326534.0,5498576.0],"crs":{"type":"name","properties":{"name":"EPSG:3857"}}}'
+
+    assert inp2.data_format.mime_type == FORMATS.GEOJSON.mime_type
+
+    value2 = geometryio.input_to_point(inp2)
+    assert isinstance(value2, QgsReferencedPointXY)
+    assert value2.crs().authid() == 'EPSG:3857'
+    assert value2.asWkt() == 'POINT(-3326534 5498576)'
 
 
 def test_point_input_wkt():
@@ -251,6 +269,7 @@ def test_linestring_input_gml():
 def test_multipoint_input_json():
     """ Test input point from json
     """
+    # without a crs
     param = QgsProcessingParameterPoint("GEOM")
 
     inp = parse_input_definition(param)
@@ -266,6 +285,23 @@ def test_multipoint_input_json():
     value = geometryio.input_to_geometry( inp )
     assert isinstance( value, QgsGeometry )
     assert value.wkbType() == QgsWkbTypes.MultiPoint
+
+    # with a crs
+    param2 = QgsProcessingParameterPoint("GEOM")
+    inp2 = parse_input_definition(param2)
+
+    assert isinstance(inp2, ComplexInput)
+    assert inp2.as_reference == False
+
+    inp2.data_format = Format.from_definition(FORMATS.GEOJSON)
+    inp2.data = '{"coordinates":[[465340, 4161978], [465352, 4161918]],"type":"MultiPoint", "crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
+
+    assert inp2.data_format.mime_type == FORMATS.GEOJSON.mime_type
+
+    value2 = geometryio.input_to_geometry(inp2)
+    assert isinstance(value2, QgsReferencedGeometry)
+    assert value2.crs().authid() == 'EPSG:3785'
+    assert value2.asWkt() == 'MultiPoint ((465340 4161978),(465352 4161918))'
 
 
 def test_multipoint_input_wkt():

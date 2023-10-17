@@ -158,7 +158,7 @@ def json_to_geometry(data: str) -> Geometry:
         crs = data.get('crs')
         if crs:
             crs = QgsCoordinateReferenceSystem(crs['properties']['name'])
-            data = data['geometry']
+            data = data.get('geometry', data)
         geom = ogr.CreateGeometryFromJson(json.dumps(data))
         if geom:
             # XXX There is no method for direct import
