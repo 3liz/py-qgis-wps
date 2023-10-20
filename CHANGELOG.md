@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+* Disable broken strict complex geojson validation
+* geometryio: Allow to use a crs in a geojson feature
+    - From https://github.com/3liz/py-qgis-wps/pull/47
+
 ## 1.8.6 - 2023-04-13
 
 * Merge pull request #38 from ptitjano/xml-element-warning
