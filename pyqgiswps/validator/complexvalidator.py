@@ -106,6 +106,12 @@ def validategeojson(data_input, mode):
         passed = True
 
     """
+    #
+    # This is broken in many ways:
+    # * Using deprecated jsonschema validation methods
+    # * Segmentation fault when trying to validate in 
+    #   VERY_STRICT mode.
+    #
     if mode >= MODE.SIMPLE:
 
         name = data_input.file
