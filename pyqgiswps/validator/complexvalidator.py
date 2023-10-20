@@ -105,6 +105,7 @@ def validategeojson(data_input, mode):
     if mode >= MODE.NONE:
         passed = True
 
+    """
     if mode >= MODE.SIMPLE:
 
         name = data_input.file
@@ -116,13 +117,17 @@ def validategeojson(data_input, mode):
         from pyqgiswps.dependencies import ogr
         data_source = ogr.Open(data_input.file)
         if data_source:
-            passed = (data_source.GetDriver().GetName() == "GeoJSON")
+           passed = (data_source.GetDriver().GetName() == "GeoJSON")
         else:
-            passed = False
+           passed = False
 
-    if mode >= MODE.VERYSTRICT:
+    # if mode >= MODE.VERYSTRICT:
 
-        import jsonschema
+        # import jsonschema
+        f rom jsonschema.referencing import (
+            Registry,
+            DRAFT4,
+        )
         import json
 
         # this code comes from
@@ -150,7 +155,11 @@ def validategeojson(data_input, mode):
 
         resolver = jsonschema.RefResolver(
             "http://json-schema.org/geojson/geojson.json",
-            geojson_base, store=cached_json)
+            geojson_base, store=cached_json
+        )
+        registry = Registry().with_resource(
+            "http://json-schema.org/geojson/geojson.json",
+
 
         validator = jsonschema.Draft4Validator(geojson_base, resolver=resolver)
         try:
@@ -158,7 +167,7 @@ def validategeojson(data_input, mode):
             passed = True
         except jsonschema.ValidationError:
             passed = False
-
+    """
     return passed
 
 

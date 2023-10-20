@@ -404,14 +404,20 @@ if HAVE_PSUTIL:
             # Log memory infos
             end_time = time.perf_counter_ns()
             end_mem = process.memory_info().rss
-            LOGGER.info(("{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb "
-                         "delta={3:.3f}Mb "
-                         "duration: {5:.3f}s").format(str(response.uuid)[:8],
-                                                     start_mem / mb,
-                                                     end_mem / mb,
-                                                     (end_mem - start_mem) / mb,
-                                                     response.process.identifier,
-                                                     (end_time - start_time) / ns))
+            LOGGER.info(
+                (
+                    "{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb "
+                    "delta={3:.3f}Mb "
+                    "duration: {5:.3f}s"
+                ).format(
+                    str(response.uuid)[:8],
+                    start_mem / mb,
+                    end_mem / mb,
+                    (end_mem - start_mem) / mb,
+                    response.process.identifier,
+                    (end_time - start_time) / ns,
+                )
+            )
 else:
     @contextmanager
     def memory_logger(response) -> None:
