@@ -109,7 +109,7 @@ def validategeojson(data_input, mode):
     #
     # This is broken in many ways:
     # * Using deprecated jsonschema validation methods
-    # * Segmentation fault when trying to validate in 
+    # * Segmentation fault when trying to validate in
     #   VERY_STRICT mode.
     #
     if mode >= MODE.SIMPLE:
