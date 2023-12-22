@@ -11,6 +11,7 @@
 import os
 import logging
 import mimetypes
+import re
 
 from os.path import normpath, basename
 from pathlib import Path
@@ -128,18 +129,35 @@ def parse_output_definition(outdef: QgsProcessingOutputDefinition, kwargs,
     elif isinstance(outdef, QgsProcessingOutputFile):
         # Try to get a corresponding inputFileDefinition
         # See https://qgis.org/pyqgis/master/core/QgsProcessingParameterFileDestination.html
-        mime = None
+        supported_formats = []
         if alg:
             inputdef = alg.parameterDefinition(outdef.name())
             if isinstance(inputdef, QgsProcessingParameterFileDestination):
-                mime = mimetypes.types_map.get("." + inputdef.defaultFileExtension())
+                default_mime = mimetypes.types_map.get("." + inputdef.defaultFileExtension())
+                default_mime_idx = -1
+                for filter_ in inputdef.fileFilter().split(";;"):
+                    extension_regex = re.compile(r'.*([.][a-z]+)')
+                    match = extension_regex.match(filter_)
+                    if match:
+                        mime = mimetypes.types_map.get(match.group(1))
+                        if mime is not None:
+                            if mime == default_mime:
+                                default_mime_idx = len(supported_formats)
+
+                            supported_formats.append(Format(mime))
+
+                # The first format in the list is interpreted as the default one
+                # Ensure that it corresponds to `default_mime`
+                if default_mime_idx > 0:
+                    supported_formats.insert(0, supported_formats.pop(Format(default_mime)))
+
                 as_reference = inputdef.metadata().get('wps:as_reference', as_reference)
-        if mime is None:
+        if not supported_formats:
             # We cannot guess the mimetype of the outputfile
             # Set generic type
-            mime = "application/octet-stream"
+            supported_formats = [Format("application/octet-stream")]
 
-        kwargs['supported_formats'] = [Format(mime)]
+        kwargs['supported_formats'] = supported_formats
         return ComplexOutput(as_reference=as_reference, **kwargs)
 
 
