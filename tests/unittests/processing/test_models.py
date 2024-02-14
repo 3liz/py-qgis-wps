@@ -6,13 +6,13 @@ from urllib.parse import urlparse, parse_qs, urlencode
 
 from typing import Tuple
 
-from pyqgiswps.utils.contexts import chdir 
+from pyqgiswps.utils.contexts import chdir
 from pyqgiswps.utils.filecache import get_valid_filename
 
-from pyqgiswps.inout import (LiteralInput, 
+from pyqgiswps.inout import (LiteralInput,
                         ComplexInput,
-                        BoundingBoxInput, 
-                        LiteralOutput, 
+                        BoundingBoxInput,
+                        LiteralOutput,
                         ComplexOutput,
                         BoundingBoxOutput)
 
@@ -22,7 +22,7 @@ from pyqgiswps.executors.processingio import(
             parse_output_definition,
             input_to_processing,
             processing_to_output,
-        ) 
+        )
 
 from pyqgiswps.executors.processingprocess import(
             run_algorithm,
@@ -79,7 +79,7 @@ def test_centroides_algorithms(outputdir, data):
     assert rv == True
 
     context  = Context(source, outputdir)
-    feedback = QgsProcessingFeedback() 
+    feedback = QgsProcessingFeedback()
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
@@ -87,10 +87,10 @@ def test_centroides_algorithms(outputdir, data):
     inputs['input'][0].data = 'france_parts'
     inputs['native:centroids_1:OUTPUT'][0].data = 'output_layer'
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
     assert isinstance( parameters['native:centroids_1:OUTPUT'], QgsProcessingOutputLayerDefinition)
- 
+
     destination_name = parameters['native:centroids_1:OUTPUT'].destinationName
     assert destination_name == 'output_layer'
 
@@ -100,8 +100,8 @@ def test_centroides_algorithms(outputdir, data):
     context.wms_url = f"http://localhost/wms/?MAP=test/{destination_project}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, 
-                                outputs=outputs)   
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
+                                outputs=outputs)
 
     assert context.destination_project.count() == 1
 
@@ -111,9 +111,6 @@ def test_centroides_algorithms(outputdir, data):
     query = parse_qs(urlparse(out.url).query)
     assert query['layers'][0] == destination_name
 
-    # Get the layer 
+    # Get the layer
     layers = context.destination_project.mapLayersByName(destination_name)
     assert len(layers) == 1
-
-
-
