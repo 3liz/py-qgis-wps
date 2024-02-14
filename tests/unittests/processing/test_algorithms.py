@@ -4,13 +4,13 @@ import os
 from os import PathLike
 from urllib.parse import urlparse, parse_qs, urlencode
 
-from pyqgiswps.utils.contexts import chdir 
+from pyqgiswps.utils.contexts import chdir
 from pyqgiswps.utils.filecache import get_valid_filename
 
-from pyqgiswps.inout import (LiteralInput, 
+from pyqgiswps.inout import (LiteralInput,
                         ComplexInput,
-                        BoundingBoxInput, 
-                        LiteralOutput, 
+                        BoundingBoxInput,
+                        LiteralOutput,
                         ComplexOutput,
                         BoundingBoxOutput)
 
@@ -20,7 +20,7 @@ from pyqgiswps.executors.processingio import(
             parse_output_definition,
             input_to_processing,
             processing_to_output,
-        ) 
+        )
 
 from pyqgiswps.executors.processingprocess import(
             run_algorithm,
@@ -65,13 +65,13 @@ class Context(QgsProcessingContext):
         return self.destination_project.write(os.path.join(workdir,name+'.qgs'))
 
 
-def test_provider(): 
+def test_provider():
     registry = QgsApplication.processingRegistry()
     provider = registry.providerById('pyqgiswps_test')
     assert provider is not None
     assert provider.id() == 'pyqgiswps_test'
     assert len(provider.algorithms()) > 0
-    assert registry.algorithmById('pyqgiswps_test:testsimplevalue') is not None, 'pyqgiswps_test:testsimplevalue' 
+    assert registry.algorithmById('pyqgiswps_test:testsimplevalue') is not None, 'pyqgiswps_test:testsimplevalue'
     assert registry.algorithmById('pyqgiswps_test:testcopylayer') is not None,   'pyqgiswps_test:testcopylayer'
 
 
@@ -81,25 +81,25 @@ def test_simple_algorithms():
     alg = _find_algorithm('pyqgiswps_test:testsimplevalue')
 
     context  = QgsProcessingContext()
-    feedback = QgsProcessingFeedback() 
+    feedback = QgsProcessingFeedback()
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
-    
+
     inputs['PARAM1'][0].data = '1'
     inputs['PARAM2'][0].data = 'stuff'
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
     assert parameters['PARAM1'] == 1
     assert parameters['PARAM2'] == 'stuff'
 
     # Run algorithm
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
 
     assert results['OUTPUT'] == "1 stuff"
     assert outputs['OUTPUT'].data == "1 stuff"
-    
+
 
 def test_option_algorithms():
     """ Execute a simple choice  algorithm
@@ -107,20 +107,20 @@ def test_option_algorithms():
     alg = _find_algorithm('pyqgiswps_test:testoptionvalue')
 
     context  = QgsProcessingContext()
-    feedback = QgsProcessingFeedback() 
+    feedback = QgsProcessingFeedback()
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
-    
+
     inputs['INPUT'][0].data = 'value1'
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
     assert parameters['INPUT'] == 0
 
     # Run algorithm
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
-    
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+
     assert results['OUTPUT'] == 'selection is 0'
     assert outputs['OUTPUT'].data == "selection is 0"
 
@@ -131,35 +131,35 @@ def test_option_multi_algorithms():
     alg = _find_algorithm('pyqgiswps_test:testmultioptionvalue')
 
     context  = QgsProcessingContext()
-    feedback = QgsProcessingFeedback() 
+    feedback = QgsProcessingFeedback()
 
     inputs  = { p.name(): parse_input_definition(p)  for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
-    
+
     source = inputs['INPUT']
     inputs['INPUT'] = [source.clone(),source.clone()]
     inputs['INPUT'][0].data = 'value1'
     inputs['INPUT'][1].data = 'value3'
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
     assert parameters['INPUT'] == [0,2]
 
     # Run algorith
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
 
     assert results['OUTPUT'] == 'selection is 0,2'
     assert outputs['OUTPUT'].data == "selection is 0,2"
 
 
 def test_layer_algorithm(outputdir, data):
-    """ Copy layer 
+    """ Copy layer
     """
     alg = _find_algorithm('pyqgiswps_test:testcopylayer')
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
-   
+
     inputs['INPUT'][0].data = 'france_parts'
     inputs['OUTPUT'][0].data = 'france_parts_2'
 
@@ -169,9 +169,9 @@ def test_layer_algorithm(outputdir, data):
     assert rv == True
 
     context  = Context(source, outputdir)
-    feedback = QgsProcessingFeedback() 
+    feedback = QgsProcessingFeedback()
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
     destination = get_valid_filename(alg.id())
 
@@ -181,8 +181,8 @@ def test_layer_algorithm(outputdir, data):
 
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
-  
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+
     output = parameters['OUTPUT']
     assert output.destinationName == 'france_parts_2'
     assert output.sink.staticValue() == './OUTPUT.shp'
@@ -190,13 +190,13 @@ def test_layer_algorithm(outputdir, data):
 
 
 def test_buffer_algorithm(outputdir, data):
-    """ Test simple layer output 
+    """ Test simple layer output
     """
     alg = _find_algorithm('pyqgiswps_test:simplebuffer')
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
-   
+
     inputs['INPUT'][0].data = 'france_parts'
     inputs['OUTPUT_VECTOR'][0].data = 'buffer'
     inputs['DISTANCE'][0].data = 0.05
@@ -207,9 +207,9 @@ def test_buffer_algorithm(outputdir, data):
     assert rv == True
 
     context  = Context(source, outputdir)
-    feedback = QgsProcessingFeedback() 
+    feedback = QgsProcessingFeedback()
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
     assert isinstance( parameters['OUTPUT_VECTOR'], QgsProcessingOutputLayerDefinition)
     assert isinstance( parameters['DISTANCE'], float)
@@ -217,8 +217,8 @@ def test_buffer_algorithm(outputdir, data):
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
-   
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+
     destination_name = parameters['OUTPUT_VECTOR'].destinationName
 
     assert context.destination_project.count() == 1
@@ -229,7 +229,7 @@ def test_buffer_algorithm(outputdir, data):
     query = parse_qs(urlparse(out.url).query)
     assert query['layers'][0] == destination_name
 
-    # Get the layer 
+    # Get the layer
     srclayer = QgsProcessingUtils.mapLayerFromString('france_parts', context)
     assert srclayer is not None
 
@@ -239,13 +239,13 @@ def test_buffer_algorithm(outputdir, data):
 
 
 def test_output_vector_algorithm(outputdir, data):
-    """ Test simple vector layer output 
+    """ Test simple vector layer output
     """
     alg = _find_algorithm('pyqgiswps_test:vectoroutput')
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
-   
+
     inputs['INPUT'][0].data = 'france_parts'
     inputs['DISTANCE'][0].data = 0.05
 
@@ -255,28 +255,28 @@ def test_output_vector_algorithm(outputdir, data):
     assert rv == True
 
     context  = Context(source, outputdir)
-    feedback = QgsProcessingFeedback() 
+    feedback = QgsProcessingFeedback()
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
     assert isinstance( parameters['DISTANCE'], float)
 
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,outputs=outputs)   
-    
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,outputs=outputs)
+
     assert context.destination_project.count() == 1
 
     out = outputs.get('OUTPUT')
     assert out.data_format.mime_type == "application/x-ogc-wms"
 
     output_name = 'my_output_vector'
-    
+
     query = parse_qs(urlparse(out.url).query)
     assert query['layers'][0] == output_name
 
-    # Get the layer 
+    # Get the layer
     srclayer = QgsProcessingUtils.mapLayerFromString('france_parts', context)
     assert srclayer is not None
 
@@ -288,13 +288,13 @@ def test_output_vector_algorithm(outputdir, data):
 
 
 def test_selectfeatures_algorithm(outputdir, data):
-    """ Test simple layer output 
+    """ Test simple layer output
     """
     alg = _find_algorithm('pyqgiswps_test:simplebuffer')
 
     inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
     outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
-   
+
     inputs['INPUT'][0].data = 'layer:france_parts?'+urlencode((('select','OBJECTID=2662 OR OBJECTID=2664'),))
     inputs['OUTPUT_VECTOR'][0].data = 'buffer'
     inputs['DISTANCE'][0].data = 0.05
@@ -305,9 +305,9 @@ def test_selectfeatures_algorithm(outputdir, data):
     assert rv == True
 
     context  = Context(source, outputdir)
-    feedback = QgsProcessingFeedback() 
+    feedback = QgsProcessingFeedback()
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )  
+    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
 
     assert isinstance( parameters['OUTPUT_VECTOR'], QgsProcessingOutputLayerDefinition)
     assert isinstance( parameters['DISTANCE'], float)
@@ -315,8 +315,8 @@ def test_selectfeatures_algorithm(outputdir, data):
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)   
-    
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+
     assert context.destination_project.count() == 1
 
     out = outputs.get('OUTPUT_VECTOR')
@@ -327,9 +327,7 @@ def test_selectfeatures_algorithm(outputdir, data):
     query = parse_qs(urlparse(out.url).query)
     assert query['layers'][0] == destination_name
 
-    # Get the layer 
+    # Get the layer
     layers = context.destination_project.mapLayersByName(destination_name)
     assert len(layers) == 1
     assert layers[0].featureCount() == 2
-
-
