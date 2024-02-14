@@ -6,6 +6,7 @@ import pytest
 from urllib.parse import urlparse, parse_qs, urlencode
 
 from pyqgiswps.app import WPSProcess, Service
+from pyqgiswps.executors.processfactory import get_process_factory
 from pyqgiswps.tests import HTTPTestCase, assert_response_accepted, chconfig
 from time import sleep
 from test_common import async_test
@@ -15,7 +16,8 @@ from qgis.core import (QgsProcessingContext,
                        QgsProcessingParameterVectorDestination,
                        QgsProcessingParameterRasterDestination,
                        QgsProcessingParameterMeshLayer,
-                       QgsProcessingOutputLayerDefinition,)
+                       QgsProcessingOutputLayerDefinition,
+                       QgsProject,)
 
 
 from pyqgiswps.executors.io import layersio
@@ -172,3 +174,51 @@ def test_mesh_layer():
 
     value = layersio.get_processing_value( param, [inp], context)
     assert value == "layername"
+
+
+@pytest.mark.usefixtures("workdir_class")
+class TestsLayerIO(HTTPTestCase):
+
+    def get_processes(self):
+        return get_process_factory()._create_qgis_processes()
+
+    def test_output_layer(self):
+        """ Test output layer and dataUrl
+        """
+        uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0'
+               '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
+        rv = self.client.get(uri, path='')
+        assert rv.status_code == 200
+
+        output = rv.xpath('/wps:ExecuteResponse'
+                          '/wps:ProcessOutputs'
+                          '/wps:Output'
+                          '/wps:Reference')
+
+        assert len(output) == 1
+        assert output[0].get('mimeType') == "application/x-ogc-wms"
+
+        # retrieve status_location_url
+        execute_response = rv.xpath('/wps:ExecuteResponse')
+        assert len(execute_response) == 1
+        status_location_url = execute_response[0].get('statusLocation')
+
+        # retrieve uuid
+        parsed_url = urlparse(status_location_url)
+        q = parse_qs(parsed_url.query)
+        assert 'uuid' in q
+        uuid = q['uuid'][0]
+
+        # Get the project
+        project_path = self.workdir/uuid/'pyqgiswps_test_testcopylayer.qgs'
+        assert project_path.is_file()
+
+        project = QgsProject()
+        project.read(str(project_path))
+
+        # check dataUrl
+        layers = [layer for _, layer in project.mapLayers().items()]
+        assert len(layers) == 1
+        expected_data_url = f'{parsed_url.scheme}://{parsed_url.netloc}/jobs/{uuid}/files/OUTPUT.shp'
+        assert layers[0].dataUrl() == expected_data_url
+        assert layers[0].dataUrlFormat() == 'text/plain'

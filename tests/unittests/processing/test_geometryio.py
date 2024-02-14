@@ -465,7 +465,7 @@ def test_geometry_algorithm(outputdir, data):
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, uuid="uuid", outputs=outputs)
 
     out = json.loads(outputs.get('OUTPUT').data)
     assert out['type'] == 'MultiPoint'
@@ -501,7 +501,7 @@ def test_geometry_script(outputdir, data):
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, uuid="uuid", outputs=outputs)
 
     out = json.loads(outputs.get('OUTPUT').data)
     assert out['type'] == 'MultiPoint'

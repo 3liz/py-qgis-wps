@@ -4,6 +4,7 @@ import os
 from os import PathLike
 from urllib.parse import urlparse, parse_qs, urlencode
 
+from pyqgiswps.config import confservice
 from pyqgiswps.utils.contexts import chdir
 from pyqgiswps.utils.filecache import get_valid_filename
 
@@ -51,6 +52,8 @@ from processing.core.Processing import Processing
 
 class Context(QgsProcessingContext):
 
+    confservice.set('wps.request', 'host_url', 'http://localhost/test-algos/')
+
     def __init__(self, project: QgsProject, workdir: PathLike ):
         super().__init__()
         self.workdir = str(workdir)
@@ -63,6 +66,11 @@ class Context(QgsProcessingContext):
         """ Save results to disk
         """
         return self.destination_project.write(os.path.join(workdir,name+'.qgs'))
+
+
+def get_expected_data_url(uuid: str, filename: str) -> str:
+    host_url = confservice.get('wps.request', 'host_url').rstrip("/")
+    return f"{host_url}/jobs/{uuid}/files/{filename}"
 
 
 def test_provider():
@@ -95,7 +103,8 @@ def test_simple_algorithms():
     assert parameters['PARAM2'] == 'stuff'
 
     # Run algorithm
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
+                            uuid="uuid", outputs=outputs)
 
     assert results['OUTPUT'] == "1 stuff"
     assert outputs['OUTPUT'].data == "1 stuff"
@@ -119,7 +128,8 @@ def test_option_algorithms():
     assert parameters['INPUT'] == 0
 
     # Run algorithm
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
+                            uuid="uuid", outputs=outputs)
 
     assert results['OUTPUT'] == 'selection is 0'
     assert outputs['OUTPUT'].data == "selection is 0"
@@ -146,7 +156,8 @@ def test_option_multi_algorithms():
     assert parameters['INPUT'] == [0,2]
 
     # Run algorith
-    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+    results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
+                            uuid="uuid", outputs=outputs)
 
     assert results['OUTPUT'] == 'selection is 0,2'
     assert outputs['OUTPUT'].data == "selection is 0,2"
@@ -181,7 +192,8 @@ def test_layer_algorithm(outputdir, data):
 
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
+                                uuid="uuid", outputs=outputs)
 
     output = parameters['OUTPUT']
     assert output.destinationName == 'france_parts_2'
@@ -215,9 +227,11 @@ def test_buffer_algorithm(outputdir, data):
     assert isinstance( parameters['DISTANCE'], float)
 
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
+    uuid = "uuid-1234"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
+                                uuid=uuid, outputs=outputs)
 
     destination_name = parameters['OUTPUT_VECTOR'].destinationName
 
@@ -233,9 +247,14 @@ def test_buffer_algorithm(outputdir, data):
     srclayer = QgsProcessingUtils.mapLayerFromString('france_parts', context)
     assert srclayer is not None
 
-    layers  = context.destination_project.mapLayersByName(destination_name)
+    layers = context.destination_project.mapLayersByName(destination_name)
     assert len(layers) == 1
-    assert layers[0].featureCount() == srclayer.featureCount()
+    output_layer = layers[0]
+    assert output_layer.featureCount() == srclayer.featureCount()
+
+    # check data url
+    assert output_layer.dataUrl() == get_expected_data_url(uuid, "OUTPUT_VECTOR.gpkg")
+    assert output_layer.dataUrlFormat() == "text/plain"
 
 
 def test_output_vector_algorithm(outputdir, data):
@@ -262,9 +281,11 @@ def test_output_vector_algorithm(outputdir, data):
     assert isinstance( parameters['DISTANCE'], float)
 
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
+    uuid = "uuid-france"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,outputs=outputs)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
+                                uuid=uuid, outputs=outputs)
 
     assert context.destination_project.count() == 1
 
@@ -280,11 +301,15 @@ def test_output_vector_algorithm(outputdir, data):
     srclayer = QgsProcessingUtils.mapLayerFromString('france_parts', context)
     assert srclayer is not None
 
-    layers  = context.destination_project.mapLayersByName(output_name)
+    layers = context.destination_project.mapLayersByName(output_name)
     assert len(layers) == 1
-    assert layers[0].name() == 'my_output_vector'
-    assert layers[0].featureCount() == srclayer.featureCount()
+    output_layer = layers[0]
+    assert output_layer.name() == 'my_output_vector'
+    assert output_layer.featureCount() == srclayer.featureCount()
 
+    # check data url
+    assert output_layer.dataUrl() == get_expected_data_url(uuid, f"{output_name}.shp")
+    assert output_layer.dataUrlFormat() == "text/plain"
 
 
 def test_selectfeatures_algorithm(outputdir, data):
@@ -313,9 +338,11 @@ def test_selectfeatures_algorithm(outputdir, data):
     assert isinstance( parameters['DISTANCE'], float)
 
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
+    uuid = "uuid-select-12"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
+                                uuid=uuid, outputs=outputs)
 
     assert context.destination_project.count() == 1
 
@@ -330,4 +357,9 @@ def test_selectfeatures_algorithm(outputdir, data):
     # Get the layer
     layers = context.destination_project.mapLayersByName(destination_name)
     assert len(layers) == 1
-    assert layers[0].featureCount() == 2
+    output_layer = layers[0]
+    assert output_layer.featureCount() == 2
+
+    # check data url
+    assert output_layer.dataUrl() == get_expected_data_url(uuid, "OUTPUT_VECTOR.gpkg")
+    assert output_layer.dataUrlFormat() == "text/plain"

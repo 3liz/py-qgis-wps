@@ -6,6 +6,7 @@ from urllib.parse import urlparse, parse_qs, urlencode
 
 from typing import Tuple
 
+from pyqgiswps.config import confservice
 from pyqgiswps.utils.contexts import chdir
 from pyqgiswps.utils.filecache import get_valid_filename
 
@@ -53,6 +54,8 @@ from processing.core.Processing import Processing
 
 class Context(QgsProcessingContext):
 
+    confservice.set('wps.request', 'host_url', 'http://localhost/test-models/')
+
     def __init__(self, project: QgsProject, workdir: PathLike ) -> None:
         super().__init__()
         self.workdir = str(workdir)
@@ -98,10 +101,11 @@ def test_centroides_algorithms(outputdir, data):
     destination_project = get_valid_filename(alg.id())
 
     context.wms_url = f"http://localhost/wms/?MAP=test/{destination_project}.qgs"
+    uuid = "uuid-model"
     # Run algorithm
     with chdir(outputdir):
         results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
-                                outputs=outputs)
+                                uuid=uuid, outputs=outputs)
 
     assert context.destination_project.count() == 1
 
@@ -114,3 +118,8 @@ def test_centroides_algorithms(outputdir, data):
     # Get the layer
     layers = context.destination_project.mapLayersByName(destination_name)
     assert len(layers) == 1
+
+    host_url = confservice.get('wps.request', 'host_url').rstrip("/")
+    expected_data_url = f"{host_url}/jobs/{uuid}/files/native_centroids_1_OUTPUT.gpkg"
+    assert layers[0].dataUrl() == expected_data_url
+    assert layers[0].dataUrlFormat() == "text/plain"

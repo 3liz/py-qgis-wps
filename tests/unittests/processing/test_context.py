@@ -77,7 +77,8 @@ def test_context(outputdir, data):
     context.wms_url = f"http://localhost/wms/MAP=test/{destination}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
+                                uuid="uuid", outputs=outputs)
 
     assert context.destination_project.count() == 1
 
