@@ -25,7 +25,7 @@ from pyqgiswps.executors.processingio import(
         )
 
 from pyqgiswps.executors.processingprocess import (
-            MapContext, 
+            MapContext,
             ProcessingContext,
             _find_algorithm
         )
@@ -88,7 +88,7 @@ def test_multilayer_with_selection():
     data = 'layer:france_parts?'+urlencode((('select','OBJECTID=2662 OR OBJECTID=2664'),))
 
     inpt.data = data
-    #self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE))    
+    #self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE))
 
 
 def test_vector_default_fileext():
@@ -159,17 +159,16 @@ def test_layer_destination():
         assert value.destinationName == 'foobaz'
         assert value.sink.staticValue() == 'postgres://service=foobar'
 
-    
+
 def test_mesh_layer():
     param = QgsProcessingParameterMeshLayer("LAYER", "")
 
     inp = parse_input_definition(param)
     inp.data = "layer:layername"
 
-    assert get_metadata(inp, "processing:dataTypes")[0].href == "TypeMesh" 
+    assert get_metadata(inp, "processing:dataTypes")[0].href == "TypeMesh"
 
     context = QgsProcessingContext()
 
     value = layersio.get_processing_value( param, [inp], context)
     assert value == "layername"
-
