@@ -77,7 +77,8 @@ def test_context(outputdir, data):
     context.wms_url = f"http://localhost/wms/MAP=test/{destination}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, outputs=outputs)
+        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context,
+                                uuid="uuid", outputs=outputs)
 
     assert context.destination_project.count() == 1
 
@@ -112,7 +113,7 @@ def test_get_project_file(outputdir, data):
     context  = ProcessingContext(str(outputdir), 'france_parts.qgs')
 
     # Fetch a file from rootdir
-    path = context.resolve_path("france_parts/france_parts.shp")      
+    path = context.resolve_path("france_parts/france_parts.shp")
 
     assert path.is_file()
 
@@ -123,7 +124,7 @@ def test_get_project_folder(outputdir, data):
     context = ProcessingContext(str(outputdir), 'france_parts.qgs')
 
     # Fetch a file from rootdir
-    path = context.resolve_path("france_parts")      
+    path = context.resolve_path("france_parts")
 
     assert path.is_dir()
 
@@ -136,7 +137,7 @@ def test_map_vector_context(outputdir, data):
     inputs  = { p.name(): [parse_input_definition(p,alg,context)] for p in  alg.parameterDefinitions() }
 
     layers = { l.name() for l in context.project().mapLayers().values() if l.type() == QgsMapLayer.VectorLayer }
-    
+
     allowed_values = { value for value in inputs['INPUT'][0].allowed_values.values }
 
     assert len(allowed_values) == len(layers)
@@ -151,7 +152,7 @@ def test_map_raster_context(outputdir, data):
     inputs  = { p.name(): [parse_input_definition(p,alg,context)] for p in  alg.parameterDefinitions() }
 
     layers = { l.name() for l in context.project().mapLayers().values() if l.type() == QgsMapLayer.RasterLayer }
-    
+
     allowed_values = { value for value in inputs['INPUT'][0].allowed_values.values }
 
     assert len(allowed_values) == len(layers)
@@ -166,7 +167,7 @@ def test_multilayer_context(outputdir, data):
     inputs  = { p.name(): [parse_input_definition(p,alg,context)] for p in  alg.parameterDefinitions() }
 
     layers = { l.name() for l in context.project().mapLayers().values() }
-    
+
     allowed_values = { value for value in inputs['INPUT'][0].allowed_values.values }
 
     assert len(allowed_values) == len(layers)
@@ -177,7 +178,7 @@ def test_context_crs(outputdir, data):
     """ Test crs
     """
     context = ProcessingContext(str(outputdir), 'france_parts.qgs')
-   
+
     crs_1 = context.project().crs()
     crs_2 = context.destination_project.crs()
     assert crs_1 == crs_2
@@ -190,12 +191,3 @@ def test_context_crs_default(outputdir, data):
 
     crs = context.destination_project.crs()
     assert crs.isValid()
- 
-
-
-
-
-
-
-
-

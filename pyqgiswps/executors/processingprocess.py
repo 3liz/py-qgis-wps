@@ -11,6 +11,8 @@
 import os
 import logging
 import traceback
+from urllib.parse import urljoin
+from pathlib import Path
 
 from functools import partial
 
@@ -121,13 +123,14 @@ def _set_output_layer_style(layerName: str, layer: QgsMapLayer, alg: QgsProcessi
 
 def handle_layer_outputs(alg: QgsProcessingAlgorithm,
                          context: QgsProcessingContext,
-                         parameters, results, feedback=None) -> bool:
+                         parameters, results, uuid: str, feedback=None) -> bool:
     """ Handle algorithms result layers
 
         Insert result layers into destination project
     """
     # Transfer layers ownership to destination project
     wrongLayers = []
+    host_url = confservice.get('wps.request', 'host_url', '').strip("/")
     for lyrname, details in context.layersToLoadOnCompletion().items():
         try:
             # Take as layer
@@ -147,6 +150,11 @@ def handle_layer_outputs(alg: QgsProcessingAlgorithm,
 
                 # Seek style for layer
                 _set_output_layer_style(lyrname, layer, alg, details, context, parameters)
+
+                # Advertise the associated file of the layer with as DataUrl
+                data_url = "/".join([host_url, "jobs", uuid, "files", str(Path(lyrname))])
+                layer.setDataUrl(data_url)
+                layer.setDataUrlFormat("text/plain")
 
                 # Add layer to destination project
                 if details.project:
@@ -253,6 +261,7 @@ def run_algorithm(alg: QgsProcessingAlgorithm,
                   parameters: Mapping[str, QgsProcessingParameterDefinition],
                   feedback: QgsProcessingFeedback,
                   context: QgsProcessingContext,
+                  uuid: str,
                   outputs: Mapping[str, WPSOutput],
                   create_context: dict = {}):
 
@@ -284,7 +293,7 @@ def run_algorithm(alg: QgsProcessingAlgorithm,
     # Handle results, we do not use onFinish callback because
     # we want to deal with the results
     #
-    handle_layer_outputs(alg, context, parameters, results, feedback=feedback)
+    handle_layer_outputs(alg, context, parameters, results, uuid, feedback=feedback)
     return results
 
 
@@ -369,6 +378,7 @@ class QgsProcess(WPSProcess):
 
         run_algorithm(alg, parameters, feedback=feedback, context=context,
                       outputs=response.outputs,
+                      uuid=uuid_str,
                       create_context=create_context)
 
         # Build advertised OWS services url
