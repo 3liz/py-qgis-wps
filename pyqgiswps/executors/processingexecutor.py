@@ -329,7 +329,7 @@ class ProcessingExecutor:
                 wps_response.update_status('Task finished', 100, STATUS.DONE_STATUS)
 
                 # Return pickable response
-                if wps_response.document:
+                if wps_response.document is not None:
                     return wps_response.get_document_bytes()
 
         except ProcessException as e:
