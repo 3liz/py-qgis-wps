@@ -11,7 +11,6 @@
 import os
 import logging
 import traceback
-from urllib.parse import urljoin
 from pathlib import Path
 
 from functools import partial
