@@ -37,5 +37,7 @@ def to_json_serializable(data: Any) -> Json:
     # Convert datetime to string
     if isinstance(data, (datetime.time, datetime.datetime)):
         return data.replace(microsecond=0).isoformat()
+    elif isinstance(data, datetime.date):
+        return data.isoformat()
     else:
         return data
