@@ -1,5 +1,5 @@
 .PHONY: test
-# 
+#
 # qypws makefile
 #
 
@@ -68,4 +68,3 @@ run: manifest
 
 client-test:
 	cd tests/clienttests && pytest -v $(PYTEST_ADDOPTS)
-
