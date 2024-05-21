@@ -66,6 +66,14 @@ def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs) -> U
             kwargs['metadata'].append(Metadata('processing:extension', param.extension()))
         return ComplexInput(**kwargs)
     elif typ == 'fileDestination':
+        # By default, FileDestination parameters created with QGIS
+        # model designer do not have a default value and a temporary
+        # file is created on the fly when the model is executed.
+        # Set a default value to reproduce this behavior.
+        default_value = kwargs.get('default', '')
+        if param.createByDefault() and not default_value:
+            kwargs['default'] = param.name()
+
         extension = '.' + param.defaultFileExtension()
         kwargs['data_type'] = 'string'
         kwargs['metadata'].append(Metadata('processing:format', mimetypes.types_map.get(extension, '')))
