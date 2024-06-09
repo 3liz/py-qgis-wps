@@ -135,8 +135,8 @@ def parse_output_definition(outdef: QgsProcessingOutputDefinition, kwargs,
             if isinstance(inputdef, QgsProcessingParameterFileDestination):
                 default_mime = mimetypes.types_map.get("." + inputdef.defaultFileExtension())
                 default_mime_idx = -1
+                extension_regex = re.compile(r'.*([.][a-z]+)')
                 for filter_ in inputdef.fileFilter().split(";;"):
-                    extension_regex = re.compile(r'.*([.][a-z]+)')
                     match = extension_regex.match(filter_)
                     if match:
                         mime = mimetypes.types_map.get(match.group(1))
