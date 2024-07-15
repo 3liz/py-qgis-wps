@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+## 1.8.7 - 2024-07-15
+
 * Disable broken strict complex geojson validation
 * geometryio: Allow to use a crs in a geojson feature
     - From https://github.com/3liz/py-qgis-wps/pull/47
