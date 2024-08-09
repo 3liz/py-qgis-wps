@@ -1,5 +1,5 @@
 .PHONY: test
-# 
+#
 # qypws makefile
 #
 
@@ -37,7 +37,7 @@ manifest: version
 deps: dirs
 	pip wheel -w $(DIST) -r requirements.txt
 
-wheel: deps
+wheel: deps manifest
 	mkdir -p $(DIST)
 	$(PYTHON) setup.py bdist_wheel --dist-dir=$(DIST)
 
@@ -68,4 +68,3 @@ run: manifest
 
 client-test:
 	cd tests/clienttests && pytest -v $(PYTEST_ADDOPTS)
-
