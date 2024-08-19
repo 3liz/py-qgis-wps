@@ -4,11 +4,7 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-import unittest
-from pyqgiswps.app import WPSProcess, Service
-from pyqgiswps.ogc.ows.schema import WPS, OWS, xpath_ns
 from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
-import lxml.etree
 
 
 class ExceptionsTest(HTTPTestCase):
@@ -40,4 +36,3 @@ class ExceptionsTest(HTTPTestCase):
         exception_el = resp.xpath('/ows:ExceptionReport/ows:Exception')[0]
         assert exception_el.attrib['exceptionCode'] == 'OperationNotSupported'
         assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
-

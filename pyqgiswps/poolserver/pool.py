@@ -8,15 +8,14 @@
 
 """ Pool server
 """
-import os
 import logging
-import time
+import os
 import signal
+import time
 
 from multiprocessing import Process
 from multiprocessing.util import Finalize
-
-from typing import Callable
+from typing import Callable, Optional, Sequence
 
 from .worker import worker_handler
 
@@ -30,9 +29,14 @@ LOGGER = logging.getLogger('SRVLOG')
 
 class Pool:
 
-    def __init__(self, router: str, broadcastaddr: str, numworkers: int,
-                 initializer: Callable[[None], None] = None, initargs=(),
-                 maxcycles: int = None) -> None:
+    def __init__(
+        self, router: str,
+        broadcastaddr: str,
+        numworkers: int,
+        initializer: Optional[Callable[[None], None]] = None,
+        initargs: Sequence = (),
+        maxcycles: Optional[int] = None,
+    ):
 
         self.critical_failure = False
 
@@ -50,7 +54,7 @@ class Pool:
         self._terminate = Finalize(
             self, self._terminate_pool,
             args=(self._pool,),
-            exitpriority=15
+            exitpriority=15,
         )
 
         self._repopulate_pool()
@@ -81,7 +85,7 @@ class Pool:
                 del self._pool[i]
         return cleaned
 
-    def _repopulate_pool(self) -> None:
+    def _repopulate_pool(self):
         """Bring the number of pool processes up to the specified number,
         for use after reaping workers which have exited.
         """
@@ -94,14 +98,14 @@ class Pool:
             w.name = w.name.replace('Process', 'PoolWorker')
             w.start()
 
-    def maintain_pool(self) -> None:
+    def maintain_pool(self):
         """Clean up any exited workers and start replacements for them.
         """
         if self._join_exited_workers():
             self._repopulate_pool()
 
     @classmethod
-    def _terminate_pool(cls, pool: 'Pool') -> None:
+    def _terminate_pool(cls, pool: 'Pool'):
 
         # Send terminate to workers
         if pool and hasattr(pool[0], 'terminate'):
@@ -116,10 +120,10 @@ class Pool:
                     # worker has not yet exited
                     p.join()
 
-    def __reduce__(self) -> None:
+    def __reduce__(self):
         raise NotImplementedError(
-            'Pool objects cannot be passed between processes or pickled'
+            'Pool objects cannot be passed between processes or pickled',
         )
 
-    def terminate(self) -> None:
+    def terminate(self):
         self._terminate()

@@ -12,20 +12,22 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-from .schema import E, OWS, WPS, NAMESPACES, XMLElement
+from pyqgiswps.validator.base import to_json_serializable
+
 from ..ogc import OGCTYPE
 from ..traits import register_trait
-
-from pyqgiswps.validator.base import to_json_serializable
+from .schema import NAMESPACES, OWS, WPS, E, XMLElement
 
 
 @register_trait
 class Metadata:
 
     def describe_xml(self) -> XMLElement:
-        attrs = (('{http://www.w3.org/1999/xlink}title', self.title),
-                 ('{http://www.w3.org/1999/xlink}href', self.href),
-                 ('{http://www.w3.org/1999/xlink}type', self.type),)
+        attrs = (
+            ('{http://www.w3.org/1999/xlink}title', self.title),
+            ('{http://www.w3.org/1999/xlink}href', self.href),
+            ('{http://www.w3.org/1999/xlink}type', self.type),
+        )
         return OWS.Metadata({ns: val for ns, val in attrs if val is not None})
 
 
@@ -37,7 +39,7 @@ class Format:
         """
 
         doc = E.Format(
-            E.MimeType(self.mime_type)
+            E.MimeType(self.mime_type),
         )
 
         if self.encoding:
@@ -53,7 +55,7 @@ class Format:
 class UOM:
     def describe_xml(self) -> XMLElement:
         elem = OWS.UOM(
-            self.code
+            self.code,
         )
         elem.attrib['{%s}reference' % NAMESPACES['ows']] = self.ref
         return elem
@@ -68,7 +70,7 @@ class BoundingBoxInput:
         """
         doc = E.Input(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         doc.attrib['minOccurs'] = str(self.min_occurs)
@@ -101,7 +103,7 @@ class BoundingBoxInput:
         """
         doc = WPS.Input(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         if self.abstract:
@@ -131,7 +133,7 @@ class ComplexInput:
 
         doc = E.Input(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         doc.attrib['minOccurs'] = str(self.min_occurs)
@@ -149,8 +151,8 @@ class ComplexInput:
             doc.append(
                 E.ComplexData(
                     E.Default(default_format_el),
-                    E.Supported(*supported_format_elements)
-                )
+                    E.Supported(*supported_format_elements),
+                ),
             )
 
         return doc
@@ -169,7 +171,7 @@ class ComplexInput:
 
         doc = WPS.Input(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
         if self.abstract:
             doc.append(OWS.Abstract(self.abstract))
@@ -218,7 +220,7 @@ class LiteralInput:
         """
         doc = E.Input(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         doc.attrib['minOccurs'] = str(self.min_occurs)
@@ -245,8 +247,8 @@ class LiteralInput:
             literal_data_doc.append(
                 E.UOMs(
                     E.Default(default_uom_element),
-                    E.Supported(*supported_uom_elements)
-                )
+                    E.Supported(*supported_uom_elements),
+                ),
             )
 
         doc.append(literal_data_doc)
@@ -271,7 +273,7 @@ class LiteralInput:
 
         doc = WPS.Input(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
         if self.abstract:
             doc.append(OWS.Abstract(self.abstract))

@@ -2,18 +2,15 @@
 """
 import traceback
 
-
+import processing
 
 from qgis.core import (
-    QgsProcessing,
-    QgsProcessingUtils,
     QgsProcessingAlgorithm,
-    QgsProcessingException,
-    QgsProcessingOutputMultipleLayers,
+    QgsProcessingOutputVectorLayer,
+    QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterNumber,
 )
-from qgis.PyQt.QtCore import Qt, QCoreApplication
 
-import processing
 
 class TestOutputVectorLayer(QgsProcessingAlgorithm):
 
@@ -31,13 +28,13 @@ class TestOutputVectorLayer(QgsProcessingAlgorithm):
         return 'Vector output test'
 
     def createInstance(self, config={}):
-        """ Virtual override 
+        """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         return self.__class__()
 
-    def initAlgorithm( self, config=None ):
+    def initAlgorithm(self, config=None):
         """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
@@ -45,22 +42,21 @@ class TestOutputVectorLayer(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.INPUT,
-                'Input layer'
-            )
+                'Input layer',
+            ),
         )
 
         self.addParameter(QgsProcessingParameterNumber(self.DISTANCE, 'Distance',
             type=QgsProcessingParameterNumber.Double, defaultValue=1000))
 
-        self.addOutput(QgsProcessingOutputVectorLayer(self.OUTPUT,"Output"))
-
+        self.addOutput(QgsProcessingOutputVectorLayer(self.OUTPUT, "Output"))
 
     def processAlgorithm(self, parameters, context, feedback):
         try:
             output = 'my_output_vector.shp'
 
             # Run buffer
-            buffer_result = processing.run("qgis:buffer", {
+            _buffer_result = processing.run("qgis:buffer", {
                 'INPUT': parameters[self.INPUT],
                 'DISTANCE': parameters[self.DISTANCE],
                 'SEGMENTS': 10,
@@ -68,11 +64,10 @@ class TestOutputVectorLayer(QgsProcessingAlgorithm):
                 'JOIN_STYLE': 0,
                 'MITER_LIMIT': 2,
                 'DISSOLVE': False,
-                'OUTPUT': output
+                'OUTPUT': output,
             }, context=context, feedback=feedback)
 
-            return { self.OUTPUT: output }
+            return {self.OUTPUT: output}
 
         except Exception:
             traceback.print_exc()
-

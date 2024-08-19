@@ -13,15 +13,15 @@
 #
 
 import logging
+
 from datetime import datetime
+from typing import TypeVar
 
 from lxml import etree
 
 from pyqgiswps.app.request import WPSResponse
 
-from .schema import WPS, OWS, XMLDocument
-
-from typing import TypeVar
+from .schema import OWS, WPS, XMLDocument
 
 UUID = TypeVar('UUID')
 
@@ -37,31 +37,31 @@ class OWSResponse(WPSResponse):
     def get_process_accepted(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessAccepted(self.message),
-            creationTime=utcnow_iso()
+            creationTime=utcnow_iso(),
         )
 
     def get_process_started(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessStarted(
                 self.message,
-                percentCompleted=str(max(self.status_percentage, 0))
+                percentCompleted=str(max(self.status_percentage, 0)),
             ),
-            creationTime=utcnow_iso()
+            creationTime=utcnow_iso(),
         )
 
     def get_process_paused(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessPaused(
                 self.message,
-                percentCompleted=str(self.status_percentage)
+                percentCompleted=str(self.status_percentage),
             ),
-            creationTime=utcnow_iso()
+            creationTime=utcnow_iso(),
         )
 
     def get_process_succeeded(self) -> XMLDocument:
         return WPS.Status(
             WPS.ProcessSucceeded(self.message),
-            creationTime=utcnow_iso()
+            creationTime=utcnow_iso(),
         )
 
     def get_process_failed(self) -> XMLDocument:
@@ -71,11 +71,11 @@ class OWSResponse(WPSResponse):
                     OWS.Exception(
                         OWS.ExceptionText(self.message),
                         exceptionCode='NoApplicableCode',
-                        locater='None'
-                    )
-                )
+                        locater='None',
+                    ),
+                ),
             ),
-            creationTime=utcnow_iso()
+            creationTime=utcnow_iso(),
         )
 
     def encode_response(self, doc: XMLDocument) -> bytes:
@@ -103,15 +103,13 @@ class OWSResponse(WPSResponse):
         # Process XML
         process_doc = WPS.Process(
             OWS.Identifier(self.process.identifier),
-            OWS.Title(self.process.title)
+            OWS.Title(self.process.title),
         )
         if self.process.abstract:
             process_doc.append(OWS.Abstract(self.process.abstract))
         # TODO: See Table 32 Metadata in OGC 06-121r3
         # for m in self.process.metadata:
         #    process_doc.append(OWS.Metadata(m))
-        if self.process.profile:
-            process_doc.append(OWS.Profile(self.process.profile))
         process_doc.attrib['{http://www.opengis.net/wps/1.0.0}processVersion'] = self.process.version
 
         doc.append(process_doc)

@@ -2,23 +2,27 @@
 # Handle access policy for processes
 #
 
-import yaml
 import logging
 
-from pathlib import Path
-from typing import List, Union
 from itertools import chain
+from pathlib import Path
+from typing import List, Optional, Union
+
+import yaml
 
 from pyqgiswps.config import confservice
 
 LOGGER = logging.getLogger('SRVLOG')
 
 
+RuleList = Union[str, List[str]]
+
+
 class InvalidPolicyError(Exception):
     pass
 
 
-def _validate_policy(rules: Union[str, List[str]]) -> List[str]:
+def _validate_policy(rules: RuleList) -> List[str]:
     if rules == 'all':
         rules = ['*']
     elif isinstance(rules, str):
@@ -34,7 +38,11 @@ class AccessPolicy:
         self._allow = []
         self._deny = []
 
-    def add_policy(self, deny: List[str] = None, allow: List[str] = None) -> None:
+    def add_policy(
+        self,
+        deny: Optional[List[str]] = None,
+        allow: Optional[List[str]] = None,
+    ):
         """ Add custom policy
         """
         if allow:
@@ -54,7 +62,7 @@ class DefaultPolicy:
         self._deny = []
         self._allow = []
 
-    def init(self, filepath: Union[str, Path] = None) -> None:
+    def init(self, filepath: Optional[str | Path] = None):
         """ Load policy file
         """
         if not isinstance(filepath, Path):
@@ -86,7 +94,7 @@ class DefaultPolicy:
 default_access_policy = DefaultPolicy()
 
 
-def init_access_policy(filepath: Union[str, Path] = None) -> None:
+def init_access_policy(filepath: Optional[str | Path] = None):
     default_access_policy.init(filepath)
 
 

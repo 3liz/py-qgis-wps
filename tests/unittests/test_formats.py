@@ -6,10 +6,9 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-from pyqgiswps.inout.formats import Format, get_format, FORMATS
-from lxml import etree
+
+from pyqgiswps.inout.formats import FORMATS, Format, get_format
 from pyqgiswps.ogc.ows.schema import xpath_ns
-from pyqgiswps.validator.base import emptyvalidator
 
 
 def validate(inpt, level=None):
@@ -21,7 +20,7 @@ def validate(inpt, level=None):
 def test_format_class():
     """Test pyqgiswps.formats.Format class
     """
-    frmt = Format('mimetype', schema='halloworld', encoding='asdf', 
+    frmt = Format('mimetype', schema='halloworld', encoding='asdf',
                   validate=validate)
 
     assert frmt.mime_type == 'mimetype'
@@ -68,6 +67,3 @@ def test_json_out():
     assert outjson['extension'] == '.gml'
     assert outjson['mime_type'] == 'application/gml+xml'
     assert outjson['encoding'] == ''
-
-
-

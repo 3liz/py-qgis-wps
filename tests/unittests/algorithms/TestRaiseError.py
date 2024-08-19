@@ -1,13 +1,8 @@
 """ Test just returning simple value
 """
 
-from qgis.core import (QgsProcessingParameterNumber,
-                       QgsProcessingParameterString,
-                       QgsProcessingOutputNumber,
-                       QgsProcessingOutputString,
-                       QgsProcessingAlgorithm)
+from qgis.core import QgsProcessingAlgorithm, QgsProcessingOutputString, QgsProcessingParameterNumber
 
-from time import sleep
 
 class TestRaiseError(QgsProcessingAlgorithm):
 
@@ -24,27 +19,26 @@ class TestRaiseError(QgsProcessingAlgorithm):
         return 'Test raising error'
 
     def createInstance(self, config={}):
-        """ Virtual override 
+        """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         return self.__class__()
 
-    def initAlgorithm( self, config=None ):
+    def initAlgorithm(self, config=None):
         """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        self.addParameter(QgsProcessingParameterNumber(self.PARAM1, 'Parameter 1', 
-                          type=QgsProcessingParameterNumber.Integer, 
+        self.addParameter(QgsProcessingParameterNumber(self.PARAM1, 'Parameter 1',
+                          type=QgsProcessingParameterNumber.Integer,
                           minValue=0, maxValue=999, defaultValue=10))
-        self.addOutput(QgsProcessingOutputString(self.OUTPUT,"Output"))
+        self.addOutput(QgsProcessingOutputString(self.OUTPUT, "Output"))
 
     def processAlgorithm(self, parameters, context, feedback):
-        
+
         param1 = self.parameterAsInt(parameters, self.PARAM1, context)
 
         raise Exception("I'm melting !!!")
 
         return {self.OUTPUT: "%s" % param1}
-        

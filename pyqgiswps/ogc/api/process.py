@@ -12,11 +12,9 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
+from pyqgiswps.protos import JsonValue
+
 from ..traits import register_trait_for
-
-from typing import TypeVar
-
-Json = TypeVar('Json')
 
 
 @register_trait_for('WPSProcess')
@@ -24,7 +22,7 @@ class Process:
     """ Api traits for WPSProcess
     """
 
-    def ogcapi_description(self) -> Json:
+    def ogcapi_description(self) -> JsonValue:
         """ Json OAPI process description
         """
         return {
@@ -34,7 +32,7 @@ class Process:
             'metadata': [m.ogcapi_description() for m in self.metadata],
         }
 
-    def ogcapi_process_summary(self) -> Json:
+    def ogcapi_process_summary(self) -> JsonValue:
         """ Json OAPI process summary
         """
         doc = self.ogcapi_description()
@@ -54,7 +52,7 @@ class Process:
         )
         return doc
 
-    def ogcapi_process(self) -> Json:
+    def ogcapi_process(self) -> JsonValue:
         """ Json OAPI description for process
         """
         inputs = {i.identifier: i.ogcapi_input_description() for i in self.inputs}

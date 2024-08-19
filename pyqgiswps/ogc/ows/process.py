@@ -12,8 +12,8 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-from .schema import E, OWS, WPS, XMLElement
 from ..traits import register_trait_for
+from .schema import OWS, WPS, E, XMLElement
 
 
 @register_trait_for('WPSProcess')
@@ -26,14 +26,12 @@ class Process:
         """
         doc = WPS.Process(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
         if self.abstract:
             doc.append(OWS.Abstract(self.abstract))
         for m in self.metadata:
             doc.append(m.describe_xml())
-        if self.profile:
-            doc.append(OWS.Profile(self.profile))
         if self.version != 'None':
             doc.attrib['{http://www.opengis.net/wps/1.0.0}processVersion'] = self.version
         else:
@@ -49,7 +47,7 @@ class Process:
 
         doc = E.ProcessDescription(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
         doc.attrib['{http://www.opengis.net/wps/1.0.0}processVersion'] = self.version
         doc.attrib['storeSupported'] = 'true'
@@ -60,9 +58,6 @@ class Process:
 
         for m in self.metadata:
             doc.append(m.describe_xml())
-
-        for p in self.profile:
-            doc.append(WPS.Profile(p))
 
         if input_elements:
             doc.append(E.DataInputs(*input_elements))

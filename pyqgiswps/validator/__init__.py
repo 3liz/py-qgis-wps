@@ -16,8 +16,9 @@
 
 
 import logging
-from pyqgiswps.validator.complexvalidator import validategml, validateshapefile, validategeojson, validategeotiff
+
 from pyqgiswps.validator.base import emptyvalidator
+from pyqgiswps.validator.complexvalidator import validategeojson, validategeotiff, validategml, validateshapefile
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -38,7 +39,7 @@ _VALIDATORS = {
     'application/x-ogc-wms': emptyvalidator,
     'application/x-ogc-wms; version=1.3.0': emptyvalidator,
     'application/x-ogc-wms; version=1.1.0': emptyvalidator,
-    'application/x-ogc-wms; version=1.0.0': emptyvalidator
+    'application/x-ogc-wms; version=1.0.0': emptyvalidator,
 }
 
 

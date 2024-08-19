@@ -8,48 +8,50 @@
 #
 """ Wrap qgis processing algorithms in WPS process
 """
-import os
 import logging
+import os
 import traceback
-from pathlib import Path
 
 from functools import partial
+from pathlib import Path
+from typing import (
+    Any,
+    Mapping,
+    Optional,
+    Union,
+)
 
-from .processingio import (parse_input_definitions,
-                           parse_output_definitions,
-                           input_to_processing,
-                           processing_to_output)
+from processing.core.Processing import ProcessingConfig, RenderingStyles
 
-from qgis.core import (QgsApplication,
-                       QgsMapLayer,
-                       QgsWkbTypes,
-                       QgsProcessingFeedback,
-                       QgsProcessingContext,
-                       QgsProcessingAlgorithm,
-                       QgsProcessingUtils,
-                       QgsFeatureRequest,
-                       QgsProcessingParameterDefinition,
-                       QgsProcessingOutputLayerDefinition)
+from qgis.core import (
+    QgsApplication,
+    QgsFeatureRequest,
+    QgsMapLayer,
+    QgsProcessingAlgorithm,
+    QgsProcessingContext,
+    QgsProcessingFeedback,
+    QgsProcessingOutputLayerDefinition,
+    QgsProcessingParameterDefinition,
+    QgsProcessingUtils,
+    QgsWkbTypes,
+)
 
 from pyqgiswps.app.process import WPSProcess
-from pyqgiswps.app.request import WPSResponse, WPSRequest
-from pyqgiswps.exceptions import ProcessException
+from pyqgiswps.app.request import WPSRequest, WPSResponse
 from pyqgiswps.config import confservice
-
+from pyqgiswps.exceptions import ProcessException
 from pyqgiswps.utils.filecache import get_valid_filename
 
-from processing.core.Processing import (ProcessingConfig,
-                                        RenderingStyles)
-
-from .processingcontext import ProcessingContext, MapContext
-
-from typing import Union, Mapping, TypeVar, Any
+from .processingcontext import MapContext, ProcessingContext
+from .processingio import (
+    WPSOutput,
+    input_to_processing,
+    parse_input_definitions,
+    parse_output_definitions,
+    processing_to_output,
+)
 
 LOGGER = logging.getLogger('SRVLOG')
-
-
-WPSInput = TypeVar('WPSInput')
-WPSOutput = TypeVar('WPSOutput')
 
 
 class ProcessingAlgorithmNotFound(Exception):
@@ -81,10 +83,14 @@ _generic_version = "1.0generic"
 # ---------------------------------
 
 
-def _set_output_layer_style(layerName: str, layer: QgsMapLayer, alg: QgsProcessingAlgorithm,
-                            details: QgsProcessingContext.LayerDetails,
-                            context: QgsProcessingContext,
-                            parameters) -> None:
+def _set_output_layer_style(
+    layerName: str,
+    layer: QgsMapLayer,
+    alg: QgsProcessingAlgorithm,
+    details: QgsProcessingContext.LayerDetails,
+    context: QgsProcessingContext,
+    parameters: Mapping[str, QgsProcessingParameterDefinition],
+):
     """ Set layer style
 
         Original code is from python/plugins/processing/gui/Postprocessing.py
@@ -120,9 +126,14 @@ def _set_output_layer_style(layerName: str, layer: QgsMapLayer, alg: QgsProcessi
         layer.loadNamedStyle(style)
 
 
-def handle_layer_outputs(alg: QgsProcessingAlgorithm,
-                         context: QgsProcessingContext,
-                         parameters, results, uuid: str, feedback=None) -> bool:
+def handle_layer_outputs(
+    alg: QgsProcessingAlgorithm,
+    context: QgsProcessingContext,
+    parameters: Mapping[str, QgsProcessingParameterDefinition],
+    results: Mapping[str, Any],
+    uuid: str,
+    feedback: Optional[QgsProcessingFeedback] = None,
+) -> bool:
     """ Handle algorithms result layers
 
         Insert result layers into destination project
@@ -184,21 +195,21 @@ class Feedback(QgsProcessingFeedback):
         This is a wrapper around WPS status
     """
 
-    def __init__(self, response: WPSResponse, name: str, uuid_str: str) -> None:
+    def __init__(self, response: WPSResponse, name: str, uuid_str: str):
         super().__init__()
         self._response = response
         self.name = name
         self.uuid = uuid_str[:8]
 
-    def setProgress(self, progress: float) -> None:
+    def setProgress(self, progress: float):
         """ We update the wps status
         """
         self._response.update_status(status_percentage=int(progress + 0.5))
 
-    def setProgressText(self, message: str) -> None:
+    def setProgressText(self, message: str):
         self._response.update_status(message=message)
 
-    def cancel(self) -> None:
+    def cancel(self):
         """ Notify that job is cancelled
         """
         LOGGER.warning("Processing:%s:%s cancel() called", self.name, self.uuid)
@@ -206,21 +217,23 @@ class Feedback(QgsProcessingFeedback):
         # TODO Call update status  when
         # https://projects.3liz.org/infra-v3/py-qgis-wps/issues/1 is fixed
 
-    def reportError(self, error: str, fatalError=False) -> None:
+    def reportError(self, error: str, fatalError: bool = False):
         (LOGGER.critical if fatalError else LOGGER.error)("%s:%s %s", self.name, self.uuid, error)
 
-    def pushInfo(self, info: str) -> None:
+    def pushInfo(self, info: str):
         LOGGER.info("%s:%s %s", self.name, self.uuid, info)
 
-    def pushDebugInfo(self, info: str) -> None:
+    def pushDebugInfo(self, info: str):
         LOGGER.debug("%s:%s %s", self.name, self.uuid, info)
 
 
-def run_processing_algorithm(alg: QgsProcessingAlgorithm,
-                             parameters: Mapping[str, QgsProcessingParameterDefinition],
-                             feedback: QgsProcessingFeedback,
-                             context: QgsProcessingContext,
-                             create_context: dict) -> None:
+def run_processing_algorithm(
+    alg: QgsProcessingAlgorithm,
+    parameters: Mapping[str, QgsProcessingParameterDefinition],
+    feedback: QgsProcessingFeedback,
+    context: QgsProcessingContext,
+    create_context: dict,
+) -> Mapping[str, Any]:
     """ Re-implemente `Processing.runAlgorithm`
 
         Processing.runAlgorithm perform mainly checks useless in this context.
@@ -247,8 +260,13 @@ def run_processing_algorithm(alg: QgsProcessingAlgorithm,
     # So we need to pass the create_context again
     # see https://qgis.org/api/qgsprocessingalgorithm_8cpp_source.html
     try:
-        results, ok = alg.run(parameters, context, feedback, configuration=create_context,
-                              catchExceptions=False)
+        results, ok = alg.run(
+            parameters,
+            context,
+            feedback,
+            configuration=create_context,
+            catchExceptions=False,
+        )
         feedback.pushInfo(f"Results: {results}")
         return results
     except Exception as err:
@@ -256,23 +274,28 @@ def run_processing_algorithm(alg: QgsProcessingAlgorithm,
         raise ProcessException(f"Algorithm failed with error {err}") from None
 
 
-def run_algorithm(alg: QgsProcessingAlgorithm,
-                  parameters: Mapping[str, QgsProcessingParameterDefinition],
-                  feedback: QgsProcessingFeedback,
-                  context: QgsProcessingContext,
-                  uuid: str,
-                  outputs: Mapping[str, WPSOutput],
-                  create_context: dict = {}):
-
+def run_algorithm(
+    alg: QgsProcessingAlgorithm,
+    parameters: Mapping[str, QgsProcessingParameterDefinition],
+    feedback: QgsProcessingFeedback,
+    context: QgsProcessingContext,
+    uuid: str,
+    outputs: Mapping[str, WPSOutput],
+    create_context: dict = {},
+) -> Mapping[str, Any]:
     # XXX Fix destination names for models
     # Collect destination names for destination parameters for restoring
     # them later
     destinations = {p: v.destinationName for p, v in parameters.items(
     ) if isinstance(v, QgsProcessingOutputLayerDefinition)}
 
-    results = run_processing_algorithm(alg, parameters=parameters, feedback=feedback,
-                                       context=context,
-                                       create_context=create_context)
+    results = run_processing_algorithm(
+        alg,
+        parameters=parameters,
+        feedback=feedback,
+        context=context,
+        create_context=create_context,
+    )
 
     # From https://github.com/qgis/QGIS/blob/master/python/plugins/processing/core/Processing.py
     for outdef in alg.outputDefinitions():
@@ -298,7 +321,11 @@ def run_algorithm(alg: QgsProcessingAlgorithm,
 
 class QgsProcess(WPSProcess):
 
-    def __init__(self, algorithm: Union[QgsProcessingAlgorithm, str], context: MapContext = None) -> None:
+    def __init__(
+        self,
+        algorithm: Union[QgsProcessingAlgorithm, str],
+        context: Optional[MapContext] = None,
+    ):
         """ Initialize algorithm with a create context
 
             The create context may be used by the algorithm to provide
@@ -322,17 +349,19 @@ class QgsProcess(WPSProcess):
 
         handler = partial(QgsProcess._handler, create_context=self._create_context)
 
-        super().__init__(handler,
-                         identifier=alg.id(),
-                         version=version,
-                         title=alg.displayName(),
-                         # XXX Scripts do not provide description string
-                         abstract=alg.shortDescription() or alg.shortHelpString(),
-                         inputs=inputs,
-                         outputs=outputs)
+        super().__init__(
+            handler,
+            identifier=alg.id(),
+            version=version,
+            title=alg.displayName(),
+            # XXX Scripts do not provide description string
+            abstract=alg.shortDescription() or alg.shortHelpString(),
+            inputs=inputs,
+            outputs=outputs,
+        )
 
     @staticmethod
-    def createInstance(ident: str, map_uri: str = None) -> 'QgsProcess':
+    def createInstance(ident: str, map_uri: Optional[str] = None) -> 'QgsProcess':
         """ Create a contextualized instance
         """
         mapcontext = MapContext(map_uri=map_uri)
@@ -341,13 +370,20 @@ class QgsProcess(WPSProcess):
         return QgsProcess(alg, mapcontext)
 
     @staticmethod
-    def _handler(request: WPSRequest, response: WPSResponse, create_context: Mapping[str, Any]) -> WPSResponse:
+    def _handler(
+        request: WPSRequest,
+        response: WPSResponse,
+        create_context: Mapping[str, Any],
+    ) -> WPSResponse:
         """  WPS process handler
         """
         uuid_str = str(response.uuid)
         LOGGER.info("Starting task %s:%s", uuid_str[:8], request.identifier)
 
-        alg = QgsApplication.processingRegistry().createAlgorithmById(request.identifier, create_context)
+        alg = QgsApplication.processingRegistry().createAlgorithmById(
+            request.identifier,
+            create_context,
+        )
 
         destination = get_valid_filename(alg.id())
 
@@ -362,7 +398,14 @@ class QgsProcess(WPSProcess):
         context.setInvalidGeometryCheck(QgsFeatureRequest.GeometrySkipInvalid)
 
         # Convert parameters from WPS inputs
-        parameters = dict(input_to_processing(ident, inp, alg, context) for ident, inp in request.inputs.items())
+        parameters = dict(
+            input_to_processing(
+                ident,
+                inp,
+                alg,
+                context,
+            ) for ident, inp in request.inputs.items()
+        )
 
         # Build MAP output url
         output_map_url = "{map_uri}{uuid}/{name}.qgs".format(
@@ -375,13 +418,19 @@ class QgsProcess(WPSProcess):
 
         context.wms_url = output_url
 
-        run_algorithm(alg, parameters, feedback=feedback, context=context,
-                      outputs=response.outputs,
-                      uuid=uuid_str,
-                      create_context=create_context)
+        run_algorithm(
+            alg,
+            parameters,
+            feedback=feedback,
+            context=context,
+            outputs=response.outputs,
+            uuid=uuid_str,
+            create_context=create_context,
+        )
 
-        # Build advertised OWS services url
-        advertised_url = f"{confservice.get('qgis.projects','advertised_ows_url')}?MAP={output_map_url}"
+        # Build advertised OWS services urla
+        advertised_url = confservice.get('qgis.projects', 'advertised_ows_url')
+        advertised_url = f"{advertised_url}?MAP={output_map_url}"
 
         ok = context.write_result(context.workdir, destination, advertised_url)
         if not ok:
@@ -391,7 +440,7 @@ class QgsProcess(WPSProcess):
 
         return response
 
-    def clean(self) -> None:
+    def clean(self):
         """ Override default
 
             We use the workdir as our final output dir

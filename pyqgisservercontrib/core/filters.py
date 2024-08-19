@@ -35,12 +35,12 @@ import logging
 import re
 
 from tornado.httputil import HTTPServerRequest
-
-from typing import (
-    Union,
-    Tuple,
+from typing_extensions import (
     Callable,
     Optional,
+    Self,
+    Tuple,
+    Union,
 )
 
 LOGGER = logging.getLogger('SRVLOG')
@@ -81,7 +81,7 @@ class _FilterBase:
 
         return False, None
 
-    def __call__(self, fn: Callable):
+    def __call__(self, fn: Callable) -> Self:
         self.fn = fn
         return self
 

@@ -1,14 +1,12 @@
 """ Test parsing processing itputs to WPS inputs
 """
-import os
 
 from pathlib import Path
-from pyqgiswps.accesspolicy import new_access_policy, DefaultPolicy
-from pyqgiswps.app import Service
-from pyqgiswps.tests import HTTPTestCase
-from pyqgiswps.executors.processfactory import get_process_factory
 
 from pyqgisservercontrib.core.filters import policy_filter
+from pyqgiswps.accesspolicy import DefaultPolicy, new_access_policy
+from pyqgiswps.executors.processfactory import get_process_factory
+from pyqgiswps.tests import HTTPTestCase
 
 
 def test_accesspolicy(rootdir):
@@ -19,13 +17,13 @@ def test_accesspolicy(rootdir):
 
     accesspolicy = new_access_policy()
 
-    assert not defaultpolicy.allow( "not_allowed"  , accesspolicy )
+    assert not defaultpolicy.allow("not_allowed", accesspolicy)
 
-    assert defaultpolicy.allow( "allowed_test1", accesspolicy )
-    assert defaultpolicy.allow( "allowed_test2", accesspolicy )
+    assert defaultpolicy.allow("allowed_test1", accesspolicy)
+    assert defaultpolicy.allow("allowed_test2", accesspolicy)
 
     accesspolicy.add_policy(allow=['new_allowed_process'])
-    assert defaultpolicy.allow( "new_allowed_process", accesspolicy )
+    assert defaultpolicy.allow("new_allowed_process", accesspolicy)
 
 
 class TestAccessPolicy(HTTPTestCase):
@@ -65,7 +63,6 @@ class TestAccessPolicy(HTTPTestCase):
         assert rv.status_code == 403
 
 
-
 class TestLizmapAccessPolicy(HTTPTestCase):
 
     def get_processes(self):
@@ -78,26 +75,32 @@ class TestLizmapAccessPolicy(HTTPTestCase):
         policyfile = Path(__file__).parent.parent.joinpath('lizmap_accesspolicy.yml')
         return filters.get_policies(policyfile)
 
-
     def test_execute_return_403(self):
-        """ Test map profile 
+        """ Test map profile
         """
-        uri = ('?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0&MAP=france_parts'
-                   '&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
-        rv = self.client.get(uri, headers={ 'X-Lizmap-User-Groups': 'operator,admin' })
+        uri = (
+            '?service=WPS'
+            '&request=Execute'
+            '&Identifier=pyqgiswps_test:testcopylayer'
+            '&Version=1.0.0&MAP=france_parts'
+            '&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2'
+        )
+        rv = self.client.get(uri, headers={'X-Lizmap-User-Groups': 'operator,admin'})
         assert rv.status_code == 403
 
     def test_getcapabilities_1(self):
         """ Test Lizmap access policy
         """
         uri = ('?service=WPS&request=GetCapabilities')
-        rv = self.client.get(uri, headers={ 'X-Lizmap-User-Groups': 'operator,admin' })
+        rv = self.client.get(uri, headers={'X-Lizmap-User-Groups': 'operator,admin'})
         assert rv.status_code == 200
 
-        exposed = rv.xpath_text('/wps:Capabilities'
-                                  '/wps:ProcessOfferings'
-                                  '/wps:Process'
-                                  '/ows:Identifier').split()
+        exposed = rv.xpath_text(
+            '/wps:Capabilities'
+            '/wps:ProcessOfferings'
+            '/wps:Process'
+            '/ows:Identifier',
+        ).split()
         # Test that only  scripts are exposed
         assert all(p.startswith('script:') for p in exposed)
 
@@ -105,13 +108,15 @@ class TestLizmapAccessPolicy(HTTPTestCase):
         """ Test Lizmap access policy
         """
         uri = ('?service=WPS&request=GetCapabilities&MAP=france_parts')
-        rv = self.client.get(uri, headers={ 'X-Lizmap-User-Groups': 'operator,admin' })
+        rv = self.client.get(uri, headers={'X-Lizmap-User-Groups': 'operator,admin'})
         assert rv.status_code == 200
 
-        exposed = rv.xpath_text('/wps:Capabilities'
-                                  '/wps:ProcessOfferings'
-                                  '/wps:Process'
-                                  '/ows:Identifier')
+        exposed = rv.xpath_text(
+            '/wps:Capabilities'
+            '/wps:ProcessOfferings'
+            '/wps:Process'
+            '/ows:Identifier',
+        )
         # Check that there is only one exposed pyqgiswps_test
         idents = [x for x in exposed.split() if x.startswith('pyqgiswps_test:')]
         assert idents == ['pyqgiswps_test:testsimplevalue']
@@ -120,36 +125,46 @@ class TestLizmapAccessPolicy(HTTPTestCase):
         """ Test Lizmap access policy
         """
         uri = ('?service=WPS&request=GetCapabilities&MAP=france_parts')
-        rv = self.client.get(uri, headers={ 'X-Lizmap-User': 'john' })
+        rv = self.client.get(uri, headers={'X-Lizmap-User': 'john'})
         assert rv.status_code == 200
 
-        exposed = rv.xpath_text('/wps:Capabilities'
-                                  '/wps:ProcessOfferings'
-                                  '/wps:Process'
-                                  '/ows:Identifier')
+        exposed = rv.xpath_text(
+            '/wps:Capabilities'
+            '/wps:ProcessOfferings'
+            '/wps:Process'
+            '/ows:Identifier',
+        )
         # Check that there is only one exposed pyqgiswps_test
         idents = [x for x in exposed.split() if x.startswith('pyqgiswps_test:')]
         assert idents == ['pyqgiswps_test:testcopylayer']
 
     def test_execute_return_ok(self):
-        """ Test map profile 
+        """ Test map profile
         """
-        uri = ('?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0&MAP=france_parts'
-                   '&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
-        rv = self.client.get(uri, headers={ 'X-Lizmap-User': 'john' })
+        uri = (
+            '?service=WPS'
+            '&request=Execute'
+            '&Identifier=pyqgiswps_test:testcopylayer'
+            '&Version=1.0.0'
+            '&MAP=france_parts'
+            '&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2'
+        )
+        rv = self.client.get(uri, headers={'X-Lizmap-User': 'john'})
         assert rv.status_code == 200
 
     def test_subfolder_map(self):
         """ Test Lizmap access policy
         """
         uri = ('?service=WPS&request=GetCapabilities&MAP=others/france_parts')
-        rv = self.client.get(uri, headers={ 'X-Lizmap-User': 'jack' })
+        rv = self.client.get(uri, headers={'X-Lizmap-User': 'jack'})
         assert rv.status_code == 200
 
-        exposed = rv.xpath_text('/wps:Capabilities'
-                                  '/wps:ProcessOfferings'
-                                  '/wps:Process'
-                                  '/ows:Identifier')
+        exposed = rv.xpath_text(
+            '/wps:Capabilities'
+            '/wps:ProcessOfferings'
+            '/wps:Process'
+            '/ows:Identifier',
+        )
         # Check that there is only one exposed pyqgiswps_test
         idents = [x for x in exposed.split() if x.startswith('pyqgiswps_test:')]
         assert idents == ['pyqgiswps_test:testcopylayer']
@@ -158,15 +173,15 @@ class TestLizmapAccessPolicy(HTTPTestCase):
         """ Test Lizmap access policy
         """
         uri = ('?service=WPS&request=GetCapabilities&MAP=others%2Ffrance_parts')
-        rv = self.client.get(uri, headers={ 'X-Lizmap-User': 'jack' })
+        rv = self.client.get(uri, headers={'X-Lizmap-User': 'jack'})
         assert rv.status_code == 200
 
-        exposed = rv.xpath_text('/wps:Capabilities'
-                                  '/wps:ProcessOfferings'
-                                  '/wps:Process'
-                                  '/ows:Identifier')
+        exposed = rv.xpath_text(
+            '/wps:Capabilities'
+            '/wps:ProcessOfferings'
+            '/wps:Process'
+            '/ows:Identifier',
+        )
         # Check that there is only one exposed pyqgiswps_test
         idents = [x for x in exposed.split() if x.startswith('pyqgiswps_test:')]
         assert idents == ['pyqgiswps_test:testcopylayer']
-
-

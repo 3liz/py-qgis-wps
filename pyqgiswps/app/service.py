@@ -12,23 +12,22 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
+import copy
 import logging
-from pyqgiswps.app.request import WPSRequest
-from pyqgiswps.app.process import WPSProcess
-from pyqgiswps.config import confservice
-from pyqgiswps.exceptions import (
+import os
+
+from typing import Any, Iterable, Iterator, Optional, Union
+
+from ..config import confservice
+from ..exceptions import (
     MissingParameterValue,
     NoApplicableCode,
 )
-from pyqgiswps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
-from pyqgiswps.executors.processingexecutor import ProcessingExecutor
-
-import os
-import copy
-
-from typing import Iterable, Optional, Union, Any, TypeVar, Iterator
-
-Json = TypeVar('Json')
+from ..executors.processingexecutor import ProcessingExecutor
+from ..inout.inputs import BoundingBoxInput, ComplexInput, LiteralInput
+from ..protos import JsonValue
+from .process import WPSProcess
+from .request import WPSRequest
 
 # Define generic WPS Input
 WPSInput = Union[ComplexInput, LiteralInput, BoundingBoxInput]
@@ -69,7 +68,11 @@ class Service():
 
         return doc
 
-    def get_status(self, uuid: Optional[str] = None, **kwargs) -> Union[Json, Iterator]:
+    def get_status(
+        self,
+        uuid: Optional[str] = None,
+        **kwargs,
+    ) -> Union[JsonValue, Iterator[JsonValue]]:
         """ Return the status of the stored processes
         """
         return self.executor.get_status(uuid, **kwargs)

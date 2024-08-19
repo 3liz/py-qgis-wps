@@ -7,10 +7,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 """ Logger
 """
+import logging
 import os
 import sys
-import logging
+
 from contextlib import contextmanager
+from typing import Optional
 
 from .config import confservice
 
@@ -32,7 +34,7 @@ def configure_log_levels():
     logging.addLevelName(RREQ, "RREQ")
 
 
-def setup_log_handler(log_level: str = None):
+def setup_log_handler(log_level: Optional[str] = None):
     """ Initialize log handler with the given log level
     """
     configure_log_levels()

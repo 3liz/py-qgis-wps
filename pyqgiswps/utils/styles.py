@@ -16,7 +16,7 @@ from pathlib import Path
 LOGGER = logging.getLogger('SRVLOG')
 
 
-def load_styles(styledef_path: Path) -> None:
+def load_styles(styledef_path: Path):
     """ Load styles definitions
 
         The json structure should be the following:

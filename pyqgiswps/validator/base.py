@@ -16,22 +16,14 @@ import datetime
 
 from pyqgiswps.validator.mode import MODE
 
-from typing import Any, TypeVar
-
-Json = TypeVar('Json')
-
 
 def emptyvalidator(data_input, mode):
     """Empty validator will return always false for security reason
     """
-
-    if mode <= MODE.NONE:
-        return True
-    else:
-        return False
+    return mode <= MODE.NONE
 
 
-def to_json_serializable(data: Any) -> Json:
+def to_json_serializable(data: object) -> object:
     """ Convert Literal to serializable value
     """
     # Convert datetime to string

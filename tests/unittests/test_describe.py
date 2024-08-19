@@ -7,20 +7,16 @@
 from collections import namedtuple
 
 from pyqgiswps.app import WPSProcess
-from pyqgiswps.inout.inputs import LiteralInput, ComplexInput, BoundingBoxInput
-from pyqgiswps.inout.outputs import LiteralOutput, ComplexOutput, BoundingBoxOutput
-from pyqgiswps.inout.literaltypes import LITERAL_DATA_TYPES
-from pyqgiswps.inout.formats import Format
-from pyqgiswps.inout.literaltypes import AllowedValues
-
-from pyqgiswps.ogc import OGCTYPE, OGCUNIT
-from pyqgiswps.ogc.ows import E, WPS, OWS, NAMESPACES
-from pyqgiswps.ogc.ows.schema import xpath_ns
-
 from pyqgiswps.app.common import Metadata
-from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE, RANGECLOSURETYPE
-
+from pyqgiswps.inout.formats import Format
+from pyqgiswps.inout.inputs import BoundingBoxInput, ComplexInput, LiteralInput
+from pyqgiswps.inout.literaltypes import LITERAL_DATA_TYPES, AllowedValues
+from pyqgiswps.inout.outputs import BoundingBoxOutput, ComplexOutput, LiteralOutput
+from pyqgiswps.ogc import OGCTYPE, OGCUNIT
+from pyqgiswps.ogc.ows import NAMESPACES, OWS, WPS, E
+from pyqgiswps.ogc.ows.schema import xpath_ns
 from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE, RANGECLOSURETYPE
 
 ProcessDescription = namedtuple('ProcessDescription', ['identifier', 'inputs', 'metadata'])
 
@@ -31,8 +27,8 @@ def get_data_type(el):
     raise RuntimeError("Can't parse data type")
 
 
-def get_describe_result(self,resp):
-    assert resp.status_code == 200, "200 != %s" %  resp.status_code
+def get_describe_result(self, resp):
+    assert resp.status_code == 200, "200 != %s" % resp.status_code
     assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
     result = []
     for desc_el in resp.xpath('/wps:ProcessDescriptions/ProcessDescription'):
@@ -82,7 +78,7 @@ class DescribeProcessTest(HTTPTestCase):
 
     def test_get_request_zero_args(self):
         resp = self.client.get('?Request=DescribeProcess&version=1.0.0&service=wps')
-        assert resp.status_code == 400 # bad request, identifier is missing
+        assert resp.status_code == 400  # bad request, identifier is missing
 
     def test_get_request_nonexisting_process_args(self):
         resp = self.client.get('?Request=DescribeProcess&version=1.0.0&service=wps&identifier=NONEXISTINGPROCESS')
@@ -96,11 +92,11 @@ class DescribeProcessTest(HTTPTestCase):
     def test_get_one_arg(self):
         resp = self.client.get('?service=wps&version=1.0.0&Request=DescribeProcess&identifier=hello')
         assert [pr.identifier for pr in get_describe_result(self, resp)] == ['hello']
-    
+
     def test_post_one_arg(self):
         request_doc = WPS.DescribeProcess(
             OWS.Identifier('hello'),
-            version='1.0.0'
+            version='1.0.0',
         )
         resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         assert [pr.identifier for pr in get_describe_result(self, resp)] == ['hello']
@@ -117,7 +113,7 @@ class DescribeProcessTest(HTTPTestCase):
         request_doc = WPS.DescribeProcess(
             OWS.Identifier('hello'),
             OWS.Identifier('ping'),
-            version='1.0.0'
+            version='1.0.0',
         )
         resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         result = get_describe_result(self, resp)
@@ -134,7 +130,7 @@ class DescribeProcessInputTest(HTTPTestCase):
                 'hello_string',
                 'Process Hello',
                 inputs=[LiteralInput('the_name', 'Input name', data_type='string')],
-                metadata=[Metadata('process metadata 1', 'http://example.org/1'), Metadata('process metadata 2', 'http://example.org/2')]
+                metadata=[Metadata('process metadata 1', 'http://example.org/1'), Metadata('process metadata 2', 'http://example.org/2')],
         )
 
         def hello(request): pass
@@ -146,7 +142,6 @@ class DescribeProcessInputTest(HTTPTestCase):
                                                     allowed_values=AllowedValues.positiveValue(),
                                                     )])
         return [hello_string, hello_integer]
-
 
     def describe_process(self, identifier):
         resp = self.client.get('?service=wps&version=1.0.0&Request=DescribeProcess&identifier=%s'
@@ -193,7 +188,7 @@ def test_literal_allowed_values_input():
                 allowed_type=ALLOWEDVALUETYPE.RANGE,
                 minval=30,
                 maxval=33,
-                range_closure=RANGECLOSURETYPE.CLOSEDOPEN)
+                range_closure=RANGECLOSURETYPE.CLOSEDOPEN),
     )
     doc = literal.describe_xml()
 
@@ -223,8 +218,8 @@ def test_complex_input_default_and_supported():
         'Complex foo',
         supported_formats=[
             Format('a/b'),
-            Format('c/d')
-        ]
+            Format('c/d'),
+        ],
     )
     doc = complex_in.describe_xml()
     [default_format] = xpath_ns(doc, './ComplexData/Default/Format')
@@ -270,7 +265,7 @@ def test_literal_output():
 def test_complex_output():
     complexo = ComplexOutput('complex', 'Complex foo', [Format('GML')])
     doc = complexo.describe_xml()
-    [outpt] = xpath_ns(doc, '/Output')
+    [_outpt] = xpath_ns(doc, '/Output')
     [default] = xpath_ns(doc, '/Output/ComplexOutput/Default/Format/MimeType')
     supported = xpath_ns(doc, '/Output/ComplexOutput/Supported/Format/MimeType')
     assert default.text == 'application/gml+xml'
@@ -281,10 +276,8 @@ def test_bbox_output():
     bbox = BoundingBoxOutput('bbox', 'BBox foo',
             crss=["EPSG:4326"])
     doc = bbox.describe_xml()
-    [outpt] = xpath_ns(doc, '/Output')
+    [_outpt] = xpath_ns(doc, '/Output')
     [default_crs] = xpath_ns(doc, './BoundingBoxOutput/Default/CRS')
     supported = xpath_ns(doc, './BoundingBoxOutput/Supported/CRS')
     assert default_crs.text == 'EPSG:4326'
     assert len(supported) == 1
-
-

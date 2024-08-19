@@ -11,6 +11,7 @@
 import re
 
 from collections import namedtuple
+
 from .lru import lrucache
 
 CacheDetails = namedtuple("CacheDetails", ('value', 'timestamp'))

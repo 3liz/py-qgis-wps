@@ -9,12 +9,11 @@
 import logging
 
 from pathlib import Path
-
-from .basehandler import BaseHandler, DownloadMixIn
-from ..version import __version__
-from ..config import confservice
-
 from typing import Optional
+
+from ..config import confservice
+from ..version import __version__
+from .basehandler import BaseHandler, DownloadMixIn
 
 LOGGER = logging.getLogger('SRVLOG')
 

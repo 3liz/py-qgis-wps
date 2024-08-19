@@ -1,20 +1,18 @@
 """ Test just returning simple value
 """
 
-from qgis.core import (QgsProcessingParameterNumber,
-                       QgsProcessingParameterString,
-                       QgsProcessingParameterVectorLayer,
-                       QgsProcessingParameterVectorDestination,
-                       QgsProcessingOutputVectorLayer,
-                       QgsProcessingOutputLayerDefinition,
-                       QgsProcessingOutputNumber,
-                       QgsProcessingAlgorithm,
-                       QgsVectorFileWriter)
+from qgis.core import (
+    QgsProcessingAlgorithm,
+    QgsProcessingOutputLayerDefinition,
+    QgsProcessingParameterVectorDestination,
+    QgsProcessingParameterVectorLayer,
+    QgsVectorFileWriter,
+)
 
 
 class TestCopyLayer(QgsProcessingAlgorithm):
 
-    INPUT  = 'INPUT'
+    INPUT = 'INPUT'
     OUTPUT = 'OUTPUT'
 
     def __init__(self):
@@ -27,15 +25,15 @@ class TestCopyLayer(QgsProcessingAlgorithm):
         return 'Test Copy Layer'
 
     def createInstance(self, config={}):
-        """ Virtual override 
+        """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         return self.__class__()
 
-    def initAlgorithm( self, config=None ):
+    def initAlgorithm(self, config=None):
         """ Virtual override
-    
+
            see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         self.addParameter(QgsProcessingParameterVectorLayer(self.INPUT, 'Vector Layer'))
@@ -47,14 +45,13 @@ class TestCopyLayer(QgsProcessingAlgorithm):
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        layer   = self.parameterAsVectorLayer(parameters, self.INPUT, context)
+        layer = self.parameterAsVectorLayer(parameters, self.INPUT, context)
         outfile = self.parameterAsOutputLayer(parameters, self.OUTPUT, context)
 
         # Save a copy of our layer
-        err = QgsVectorFileWriter.writeAsVectorFormat(layer, outfile, "utf-8", driverName="ESRI Shapefile") 
+        err = QgsVectorFileWriter.writeAsVectorFormat(layer, outfile, "utf-8", driverName="ESRI Shapefile")
 
         if err[0] != QgsVectorFileWriter.NoError:
             feedback.reportError(f"Error writing vector layer {outfile}: {err}")
 
-        return {self.OUTPUT: outfile }
-        
+        return {self.OUTPUT: outfile}

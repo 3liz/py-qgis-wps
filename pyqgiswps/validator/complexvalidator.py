@@ -15,11 +15,11 @@
 """
 
 import logging
-
-from pyqgiswps.validator.mode import MODE
-from pyqgiswps.validator.formats import FORMATS
 import mimetypes
 import os
+
+from pyqgiswps.validator.formats import FORMATS
+from pyqgiswps.validator.mode import MODE
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -53,7 +53,7 @@ def validategml(data_input, mode):
     if mode >= MODE.SIMPLE:
 
         name = data_input.file
-        (mtype, encoding) = mimetypes.guess_type(name, strict=False)
+        (mtype, _encoding) = mimetypes.guess_type(name, strict=False)
         passed = data_input.data_format.mime_type in {mtype, FORMATS.GML.mime_type}
 
     if mode >= MODE.STRICT:
@@ -67,8 +67,9 @@ def validategml(data_input, mode):
 
     if mode >= MODE.VERYSTRICT:
 
-        from lxml import etree
         from urllib.request import urlopen
+
+        from lxml import etree
 
         try:
             schema_url = data_input.data_format.schema
@@ -88,7 +89,20 @@ def validategeojson(data_input, mode):
     >>> import StringIO
     >>> class FakeInput(object):
     ...     json = open('point.geojson','w')
-    ...     json.write('''{"type":"Feature", "properties":{}, "geometry":{"type":"Point", "coordinates":[8.5781228542328, 22.87500500679]}, "crs":{"type":"name", "properties":{"name":"urn:ogc:def:crs:OGC:1.3:CRS84"}}}''')  # noqa
+    ...     json.write('''
+                {
+                    "type":"Feature",
+                    "properties":{},
+                    "geometry":{
+                        "type":"Point",
+                        "coordinates":[8.5781228542328, 22.87500500679]
+                    },
+                    "crs":{
+                        "type":"name",
+                        "properties":{"name":"urn:ogc:def:crs:OGC:1.3:CRS84"}
+                    }
+                }
+            ''')
     ...     json.close()
     ...     file = 'point.geojson'
     >>> class fake_data_format(object):
@@ -191,14 +205,14 @@ def validateshapefile(data_input, mode):
     if mode >= MODE.SIMPLE:
 
         name = data_input.file
-        (mtype, encoding) = mimetypes.guess_type(name, strict=False)
+        (mtype, _encoding) = mimetypes.guess_type(name, strict=False)
         passed = data_input.data_format.mime_type in {mtype, FORMATS.SHP.mime_type}
 
     if mode >= MODE.STRICT:
 
-        from pyqgiswps.dependencies import ogr
-
         import zipfile
+
+        from pyqgiswps.dependencies import ogr
         z = zipfile.ZipFile(data_input.file)
         shape_name = None
         for name in z.namelist():
@@ -230,7 +244,7 @@ def validategeotiff(data_input, mode):
     if mode >= MODE.SIMPLE:
 
         name = data_input.file
-        (mtype, encoding) = mimetypes.guess_type(name, strict=False)
+        (mtype, _encoding) = mimetypes.guess_type(name, strict=False)
         passed = data_input.data_format.mime_type in {mtype, FORMATS.GEOTIFF.mime_type}
 
     if mode >= MODE.STRICT:
@@ -250,7 +264,7 @@ def _get_schemas_home():
     """
     schema_dir = os.path.join(
         os.path.abspath(
-            os.path.dirname(__file__)
+            os.path.dirname(__file__),
         ),
         os.path.pardir,
         "schemas")
@@ -260,6 +274,7 @@ def _get_schemas_home():
 
 if __name__ == "__main__":
     import doctest
+
     from pyqgiswps.tests import temp_dir
     with temp_dir() as tmp:
         os.chdir(tmp)

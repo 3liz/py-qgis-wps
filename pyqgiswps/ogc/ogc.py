@@ -12,7 +12,7 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 from enum import Enum
-
+from typing import Dict
 
 OGCTYPE = {
     'length': 'urn:ogc:def:dataType:OGC:1.1:length',
@@ -25,7 +25,7 @@ OGCTYPE = {
     'boolean': 'urn:ogc:def:dataType:OGC:1.1:boolean',
     'anyURI': 'urn:ogc:def:dataType:OGC:1.1:anyURI',
     'integer': 'urn:ogc:def:dataType:OGC:1.1:integer',
-    'float': 'urn:ogc:def:dataType:OGC:1.1:float'
+    'float': 'urn:ogc:def:dataType:OGC:1.1:float',
 }
 
 _NUMBER_SCHEMA = {'type': 'number'}
@@ -50,7 +50,7 @@ OGCTYPE_SCHEMA_TEMPLATE = {
 
 
 class __OgcTypeSchema:
-    def __getitem__(self, name: str):
+    def __getitem__(self, name: str) -> Dict:
         return OGCTYPE_SCHEMA_TEMPLATE[name].copy()
 
 

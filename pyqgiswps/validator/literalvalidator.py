@@ -15,11 +15,11 @@
 """ Validator classes used for LiteralInputs
 """
 import logging
+
 from urllib.parse import urlparse
 
-from pyqgiswps.validator.mode import MODE
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE, RANGECLOSURETYPE
-
+from pyqgiswps.validator.mode import MODE
 
 LOGGER = logging.getLogger('SRVLOG')
 

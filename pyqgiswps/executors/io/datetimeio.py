@@ -10,17 +10,16 @@
 """
 import logging
 
+from datetime import datetime
+from typing import Any, Dict
+
+from qgis.core import QgsProcessingParameterDateTime, QgsProcessingParameterDefinition
+from qgis.PyQt.QtCore import QDate, QDateTime, Qt, QTime
+
 from pyqgiswps.inout import LiteralInput
 from pyqgiswps.inout.literaltypes import AllowedValues, convert_time
 
-from qgis.PyQt.QtCore import Qt, QDateTime, QDate, QTime
-from qgis.core import (QgsProcessingParameterDefinition,
-                       QgsProcessingParameterDateTime)
-
 from ..processingcontext import ProcessingContext
-
-from datetime import datetime
-from typing import Any
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -29,7 +28,10 @@ LOGGER = logging.getLogger('SRVLOG')
 # Processing parameters ->  WPS input
 # ------------------------------------
 
-def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs) -> LiteralInput:
+def parse_input_definition(
+    param: QgsProcessingParameterDefinition,
+    kwargs: Dict[str, Any],
+) -> LiteralInput:
     """ Convert processing input to File Input
     """
     typ = param.type()

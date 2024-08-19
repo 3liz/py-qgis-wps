@@ -4,26 +4,25 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-import lxml.etree
 import json
-from pyqgiswps.app import WPSProcess
-from pyqgiswps.inout import (Format,
-                             BoundingBoxOutput, 
-                             BoundingBoxInput, 
-                             ComplexInput, 
-                             ComplexOutput, 
-                             LiteralOutput,
-                             LiteralInput)
-from pyqgiswps.validator.base import emptyvalidator
-from pyqgiswps.validator.complexvalidator import validategml
-from pyqgiswps.exceptions import InvalidParameterValue
-
-from pyqgiswps.ogc.ows.schema import E, OWS, WPS, xpath_ns
-from pyqgiswps.ogc.ows.request import get_inputs_from_xml, get_output_from_xml
-
-from pyqgiswps.tests import HTTPTestCase, assert_response_success
 
 from io import StringIO
+
+import lxml.etree
+
+from pyqgiswps.app import WPSProcess
+from pyqgiswps.inout import (
+    BoundingBoxInput,
+    BoundingBoxOutput,
+    ComplexInput,
+    ComplexOutput,
+    Format,
+    LiteralInput,
+    LiteralOutput,
+)
+from pyqgiswps.ogc.ows.request import get_inputs_from_xml
+from pyqgiswps.ogc.ows.schema import OWS, WPS, E, xpath_ns
+from pyqgiswps.tests import HTTPTestCase, assert_response_success
 
 
 def ultimate_question(request, response):
@@ -44,6 +43,7 @@ def greeter(request, response):
     response.outputs['message'].data = "Hello %s!" % name
     return response
 
+
 def create_greeter():
     return WPSProcess(handler=greeter,
                    identifier='greeter',
@@ -51,9 +51,10 @@ def create_greeter():
                    inputs=[LiteralInput('name', 'Input name', data_type='string')],
                    outputs=[LiteralOutput('message', 'Output message', data_type='string')])
 
+
 def bbox_process(request, response):
     coords = request.inputs['mybbox'][0].data
-    assert type(coords) == type([])
+    assert isinstance(coords, list)
     assert len(coords) == 4
     assert coords[0] == float(15)
     response.outputs['outbbox'].data = coords
@@ -67,12 +68,14 @@ def create_bbox_process():
                    inputs=[BoundingBoxInput('mybbox', 'Input name', ["EPSG:4326"])],
                    outputs=[BoundingBoxOutput('outbbox', 'Output message', ["EPSG:4326"])])
 
+
 def complex_process(request, response):
     response.outputs['complex'].data = request.inputs['complex'][0].data
     return response
 
+
 def create_complex_process():
-    frmt = Format(mime_type='application/gml') # this is unknown mimetype
+    frmt = Format(mime_type='application/gml')  # this is unknown mimetype
 
     return WPSProcess(handler=complex_process,
             identifier='my_complex_process',
@@ -81,13 +84,13 @@ def create_complex_process():
                 ComplexInput(
                     'complex',
                     'Complex input',
-                    supported_formats=[frmt])
+                    supported_formats=[frmt]),
             ],
             outputs=[
                 ComplexOutput(
                     'complex',
                     'Complex output',
-                    supported_formats=[frmt])
+                    supported_formats=[frmt]),
              ])
 
 
@@ -119,7 +122,7 @@ class ExecuteTest(HTTPTestCase):
     def test_post_with_no_inputs(self):
         request_doc = WPS.Execute(
             OWS.Identifier('ultimate_question'),
-            version='1.0.0'
+            version='1.0.0',
         )
         resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         assert_response_success(resp)
@@ -131,10 +134,10 @@ class ExecuteTest(HTTPTestCase):
             WPS.DataInputs(
                 WPS.Input(
                     OWS.Identifier('name'),
-                    WPS.Data(WPS.LiteralData('foo'))
-                )
+                    WPS.Data(WPS.LiteralData('foo')),
+                ),
             ),
-            version='1.0.0'
+            version='1.0.0',
         )
         resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         assert_response_success(resp)
@@ -149,10 +152,10 @@ class ExecuteTest(HTTPTestCase):
                     WPS.Data(WPS.BoundingBoxData(
                         OWS.LowerCorner('15 50'),
                         OWS.UpperCorner('16 51'),
-                        ))
-                )
+                        )),
+                ),
             ),
-            version='1.0.0'
+            version='1.0.0',
         )
         resp = self.client.post_xml(path="/ows/?service=WPS", doc=request_doc)
         assert_response_success(resp)
@@ -173,6 +176,7 @@ class ExecuteTest(HTTPTestCase):
 # Tests for Execute request XML Parser
 #
 
+
 def test_empty():
     request_doc = WPS.Execute(OWS.Identifier('foo'))
     assert get_inputs_from_xml(request_doc) == {}
@@ -187,7 +191,7 @@ def test_one_string():
                 WPS.Data(WPS.LiteralData('foo'))),
             WPS.Input(
                 OWS.Identifier('name'),
-                WPS.Data(WPS.LiteralData('bar')))
+                WPS.Data(WPS.LiteralData('bar'))),
             ))
     rv = get_inputs_from_xml(request_doc)
     assert 'name' in rv
@@ -289,10 +293,10 @@ def test_reference_post_input():
                 WPS.Reference(
                     WPS.Body('request body'),
                     {'{http://www.w3.org/1999/xlink}href': 'http://foo/bar/service'},
-                    method='POST'
-                )
-            )
-        )
+                    method='POST',
+                ),
+            ),
+        ),
     )
     rv = get_inputs_from_xml(request_doc)
     assert rv['name'][0]['href'] == 'http://foo/bar/service'

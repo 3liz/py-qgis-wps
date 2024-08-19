@@ -11,11 +11,12 @@
 import logging
 import urllib.parse
 
-from typing import Tuple
 from datetime import datetime
 from pathlib import Path
+from typing import Optional, Tuple
 
 from qgis.core import QgsProject
+
 from pyqgisservercontrib.core import componentmanager
 
 LOGGER = logging.getLogger('SRVLOG')
@@ -33,8 +34,12 @@ class FileProtocolHandler:
     def __init__(self):
         pass
 
-    def get_project(self, url: urllib.parse.ParseResult, project: QgsProject = None,
-                    timestamp: datetime = None) -> Tuple[QgsProject, datetime]:
+    def get_project(
+        self,
+        url: urllib.parse.ParseResult,
+        project: Optional[QgsProject] = None,
+        timestamp: Optional[datetime] = None,
+    ) -> Tuple[QgsProject, datetime]:
         """ Create or return a proect
         """
         # Securit check

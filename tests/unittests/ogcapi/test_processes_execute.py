@@ -8,27 +8,12 @@
 #
 
 
-import asyncio
-import lxml.etree
-import json
-
 from urllib.parse import urlparse
 
-from pyqgiswps.app import WPSProcess
-from pyqgiswps.inout import (Format,
-                             BoundingBoxOutput, 
-                             BoundingBoxInput, 
-                             ComplexInput, 
-                             ComplexOutput, 
-                             LiteralOutput,
-                             LiteralInput)
-from pyqgiswps.validator.base import emptyvalidator
-from pyqgiswps.exceptions import InvalidParameterValue
-from pyqgiswps.executors.processfactory import get_process_factory
-
-from pyqgiswps.tests import HTTPTestCase, HttpClient
-
 from test_common import async_test
+
+from pyqgiswps.executors.processfactory import get_process_factory
+from pyqgiswps.tests import HttpClient, HTTPTestCase
 
 #
 # HTTP tests
@@ -36,6 +21,7 @@ from test_common import async_test
 # XXX handler function *MUST* be accessible from execution context and only module
 # in top level are accessible when running tests
 #
+
 
 def assert_response_success(resp, code=200):
     assert resp.status_code == code
@@ -54,9 +40,8 @@ class ExecuteTest(ApiTestCase):
 
     def get_processes(self):
         return get_process_factory()._create_qgis_processes()
-   
 
-    def test_ogcapi_execute_sync( self ):
+    def test_ogcapi_execute_sync(self):
         """ Test sync running
         """
         identifier = "pyqgiswps_test:testcopylayer"
@@ -70,7 +55,7 @@ class ExecuteTest(ApiTestCase):
                 },
             },
         )
-        
+
         resp = assert_response_success(rv, code=200)
 
         # We must have the full response
@@ -91,7 +76,7 @@ class ExecuteTest(ApiTestCase):
         assert resp.get('status') == 'successful'
 
     @async_test
-    def test_ogcapi_execute_async( self ):
+    def test_ogcapi_execute_async(self):
         """ Test status location
         """
         identifier = "pyqgiswps_test:testcopylayer"
@@ -106,7 +91,7 @@ class ExecuteTest(ApiTestCase):
             },
             headers={'Prefer': 'respond-async'},
         )
-        
+
         resp = assert_response_success(rv, code=201)
         assert resp.get('status') == 'accepted'
         assert resp.get('processID') == identifier

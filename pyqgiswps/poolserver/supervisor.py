@@ -13,14 +13,15 @@
 # Client
 #
 
-import os
 import asyncio
-import zmq
-import zmq.asyncio
-import traceback
 import logging
+import os
+import traceback
 
 from typing import Callable
+
+import zmq
+import zmq.asyncio
 
 from .utils import _get_ipc
 

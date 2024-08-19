@@ -1,62 +1,40 @@
 """ Test parsing processing itputs to WPS inputs
 """
+from urllib.parse import parse_qs, urlparse
+
 import pytest
 
-from pathlib import Path
-from urllib.parse import urlparse, parse_qs, urlencode
+from qgis.core import (
+    Qgis,
+    QgsProcessing,
+    QgsProcessingContext,
+    QgsProcessingOutputFile,
+    QgsProcessingOutputMultipleLayers,
+    QgsProcessingParameterDistance,
+    QgsProcessingParameterEnum,
+    QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterField,
+    QgsProcessingParameterNumber,
+    QgsProcessingParameterScale,
+    QgsUnitTypes,
+)
 
-from pyqgiswps.utils.contexts import chdir 
-
-from pyqgiswps.ogc.ows.schema import WPS, OWS, BoundingBox
-from pyqgiswps.inout import (LiteralInput, 
-                             ComplexInput,
-                             BoundingBoxInput, 
-                             LiteralOutput, 
-                             ComplexOutput,
-                             BoundingBoxOutput)
-
-from pyqgiswps.inout.formats import FORMATS, Format
-
-from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
-from pyqgiswps.executors.processingio import(
-            parse_input_definition,
-            parse_output_definition,
-            input_to_processing,
-            processing_to_output,
-            _is_optional,
-        ) 
-
+from pyqgiswps.executors.processingio import (
+    _is_optional,
+    input_to_processing,
+    parse_input_definition,
+    parse_output_definition,
+    processing_to_output,
+)
 from pyqgiswps.executors.processingprocess import _find_algorithm
-
-from qgis.core import Qgis, QgsApplication
-from qgis.core import (QgsProcessing,
-                       QgsProcessingParameterDefinition,
-                       QgsProcessingParameterNumber,
-                       QgsProcessingParameterEnum,
-                       QgsProcessingParameterDistance,
-                       QgsProcessingParameterScale,
-                       QgsProcessingOutputLayerDefinition,
-                       QgsProcessingOutputHtml,
-                       QgsProcessingOutputFile,
-                       QgsProcessingOutputRasterLayer,
-                       QgsProcessingOutputVectorLayer,
-                       QgsProcessingOutputMultipleLayers,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
-                       QgsProcessingParameterVectorDestination,
-                       QgsProcessingParameterRasterDestination,
-                       QgsProcessingParameterFile,
-                       QgsProcessingParameterField,
-                       QgsProcessingUtils,
-                       QgsProcessingFeedback,
-                       QgsProcessingContext,
-                       QgsProject,
-                       QgsUnitTypes)
-
-from processing.core.Processing import Processing
+from pyqgiswps.inout import (
+    ComplexOutput,
+    LiteralInput,
+)
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 
 
-def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
+def get_metadata(inp, name, minOccurence=1, maxOccurence=None):
     if maxOccurence is None:
         maxOccurence = minOccurence
     assert minOccurence <= maxOccurence
@@ -93,7 +71,7 @@ def test_scale_input():
 
 
 def test_distance_input():
-    param = QgsProcessingParameterDistance("TEST", "LiteralDistance", 
+    param = QgsProcessingParameterDistance("TEST", "LiteralDistance",
             defaultValue=2.0,
             minValue=1.0,
             maxValue=100.0)
@@ -107,13 +85,14 @@ def test_distance_input():
     assert inp.allowed_values.allowed_type == ALLOWEDVALUETYPE.RANGE
     assert inp.allowed_values.minval == param.minimum()
     assert inp.allowed_values.maxval == param.maximum()
-    assert get_metadata(inp,'processing:defaultUnit')[0].href == QgsUnitTypes.toString(param.defaultUnit())
+    assert get_metadata(inp, 'processing:defaultUnit')[0].href == QgsUnitTypes.toString(param.defaultUnit())
+
 
 @pytest.mark.skipif(Qgis.QGIS_VERSION_INT < 32200, reason="requires qgis 3.22+")
 def test_duration_input():
     from qgis.core import QgsProcessingParameterDuration
 
-    param = QgsProcessingParameterDuration("TEST", "LiteralDuration", 
+    param = QgsProcessingParameterDuration("TEST", "LiteralDuration",
             defaultValue=2.0,
             minValue=1.0,
             maxValue=100.0)
@@ -127,12 +106,12 @@ def test_duration_input():
     assert inp.allowed_values.allowed_type == ALLOWEDVALUETYPE.RANGE
     assert inp.allowed_values.minval == param.minimum()
     assert inp.allowed_values.maxval == param.maximum()
-    assert get_metadata(inp,'processing:defaultUnit')[0].href == QgsUnitTypes.toString(param.defaultUnit())
+    assert get_metadata(inp, 'processing:defaultUnit')[0].href == QgsUnitTypes.toString(param.defaultUnit())
 
 
 def test_options_input():
-    options = ["opt0","opt1","opt2"]
-    param   = QgsProcessingParameterEnum("OPTION","Option",
+    options = ["opt0", "opt1", "opt2"]
+    param = QgsProcessingParameterEnum("OPTION", "Option",
                     options=options, defaultValue=1)
 
     inp = parse_input_definition(param)
@@ -146,8 +125,8 @@ def test_options_input():
 
 
 def test_multi_options_input():
-    options = ["opt0","opt1","opt2"]
-    param   = QgsProcessingParameterEnum("OPTION","Option",
+    options = ["opt0", "opt1", "opt2"]
+    param = QgsProcessingParameterEnum("OPTION", "Option",
                     options=options, allowMultiple=True, defaultValue=1)
 
     inp = parse_input_definition(param)
@@ -167,8 +146,8 @@ def test_bad_options_default_value():
         This should not invalidate the input but log a warning and
         reset the option default value to 0
     """
-    options = ["opt0","opt1","opt2"]
-    param   = QgsProcessingParameterEnum("OPTION","Option",
+    options = ["opt0", "opt1", "opt2"]
+    param = QgsProcessingParameterEnum("OPTION", "Option",
                     options=options, defaultValue=450)
 
     inp = parse_input_definition(param)
@@ -182,15 +161,15 @@ def test_field_input():
                 "XFIELD",
                 'X Field',
                 parentLayerParameterName='INPUT',
-                type=QgsProcessingParameterField.Any
+                type=QgsProcessingParameterField.Any,
             )
 
     inp = parse_input_definition(param)
     assert isinstance(inp, LiteralInput)
     assert inp.data_type == 'string'
-    assert get_metadata(inp,'processing:dataType')[0].href == 'Any'
-    assert get_metadata(inp,'processing:parentLayerParameterName')[0].href == 'INPUT'
-    
+    assert get_metadata(inp, 'processing:dataType')[0].href == 'Any'
+    assert get_metadata(inp, 'processing:parentLayerParameterName')[0].href == 'INPUT'
+
 
 def test_optional_input():
     param = QgsProcessingParameterField(
@@ -198,7 +177,7 @@ def test_optional_input():
                 'X Field',
                 parentLayerParameterName='INPUT',
                 optional=True,
-                type=QgsProcessingParameterField.Any
+                type=QgsProcessingParameterField.Any,
             )
 
     inp = parse_input_definition(param)
@@ -208,25 +187,25 @@ def test_optional_input():
 
 
 def test_source_types_metadata():
-    param = QgsProcessingParameterFeatureSource( "FSOURCE", '',  
+    param = QgsProcessingParameterFeatureSource("FSOURCE", '',
             [QgsProcessing.TypeVectorLine,
              QgsProcessing.TypeVectorPoint])
 
     inp = parse_input_definition(param)
-    assert get_metadata(inp,'processing:dataTypes')[0].href == 'TypeVectorLine,TypeVectorPoint'
- 
+    assert get_metadata(inp, 'processing:dataTypes')[0].href == 'TypeVectorLine,TypeVectorPoint'
+
 
 def test_freeform_metadata():
     param = QgsProcessingParameterNumber("TEST", "LiteralInteger",
                   type=QgsProcessingParameterNumber.Integer,
                   minValue=1, defaultValue=10)
 
-    param.setMetadata({'meta1':'value1', 'meta2':'value2' })
+    param.setMetadata({'meta1': 'value1', 'meta2': 'value2'})
 
     inp = parse_input_definition(param)
-    assert get_metadata(inp,'processing:meta:meta1')[0].href == 'value1'
-    assert get_metadata(inp,'processing:meta:meta2')[0].href == 'value2'
-    
+    assert get_metadata(inp, 'processing:meta:meta1')[0].href == 'value1'
+    assert get_metadata(inp, 'processing:meta:meta2')[0].href == 'value2'
+
 
 def test_optional_inputs():
     not_optional_param = QgsProcessingParameterNumber("TEST1", "LiteralInteger",
@@ -237,13 +216,13 @@ def test_optional_inputs():
 
     optional_param = QgsProcessingParameterNumber("TEST2", "LiteralInteger",
               type=QgsProcessingParameterNumber.Integer,
-              optional = True,
+              optional=True,
               minValue=1, defaultValue=10)
 
     assert _is_optional(optional_param)
 
-    optional_input     = parse_input_definition(optional_param) 
-    not_optional_input = parse_input_definition(not_optional_param) 
+    optional_input = parse_input_definition(optional_param)
+    not_optional_input = parse_input_definition(not_optional_param)
 
     assert optional_input.min_occurs == 0
     assert not_optional_input.min_occurs > 0
@@ -252,21 +231,21 @@ def test_optional_inputs():
 def test_file_destination():
     alg = _find_algorithm('pyqgiswps_test:testfiledestination')
 
-    inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
+    inputs = {p.name(): [parse_input_definition(p)] for p in alg.parameterDefinitions()}
     inputs['OUTPUT'][0].data = '/bad/..//path/to/file'
 
-    context  = QgsProcessingContext()
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
+    context = QgsProcessingContext()
+    parameters = dict(input_to_processing(ident, inp, alg, context) for ident, inp in inputs.items())
 
     assert parameters['OUTPUT'] == 'file.json'
 
 
 def test_file_output_mimetypes():
-    """ Test file output mimetype 
+    """ Test file output mimetype
     """
-    outdef  = QgsProcessingOutputFile("OUTPUT","test output file") 
+    outdef = QgsProcessingOutputFile("OUTPUT", "test output file")
     context = QgsProcessingContext()
-    context.workdir   = "/path/to/workdir"
+    context.workdir = "/path/to/workdir"
 
     out = parse_output_definition(outdef)
 
@@ -276,7 +255,7 @@ def test_file_output_mimetypes():
     assert output.url == "store:file.png"
     assert output.data_format.mime_type == 'image/png'
 
-    output = processing_to_output('binaryfile', outdef, out, context=context) 
+    output = processing_to_output('binaryfile', outdef, out, context=context)
     assert output.data_format.mime_type == 'application/octet-stream'
 
 
@@ -296,21 +275,20 @@ def test_input_title():
     assert inp.abstract == input_abstract
 
 
-
 def test_output_multiple_layers(outputdir, data):
     """ Test QgsProcessingOutputMultipleLayers
     """
     outdef = QgsProcessingOutputMultipleLayers("LAYERS")
 
     # Load source project
-    layer1 = str(data/'france_parts'/'france_parts.shp')
-    layer2 = str(data/'raster_layer.tiff')
+    layer1 = str(data / 'france_parts' / 'france_parts.shp')
+    layer2 = str(data / 'raster_layer.tiff')
 
     context = QgsProcessingContext()
-    context.wms_url='test:multilayer?service=WMS'
+    context.wms_url = 'test:multilayer?service=WMS'
 
     outp = parse_output_definition(outdef)
-    output = processing_to_output([layer1,layer2], outdef, outp, context=context)
+    output = processing_to_output([layer1, layer2], outdef, outp, context=context)
 
     assert isinstance(output, ComplexOutput)
     assert output.as_reference
@@ -325,7 +303,7 @@ def test_parameter_abstract():
     helpstr = """
       This is a help text.
       It must appears in the 'abstract' field of
-      wps 
+      wps
     """
 
     title = "Parameter with help"
@@ -342,10 +320,3 @@ def test_parameter_abstract():
     assert inp.identifier == "TEST"
     assert inp.title      == title
     assert inp.abstract   == helpstr
-
-
-
-
-
-
-

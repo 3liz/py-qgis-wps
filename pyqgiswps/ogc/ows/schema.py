@@ -12,10 +12,10 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
+from typing import TypeVar
+
 from lxml.builder import ElementMaker
 from owslib.ows import BoundingBox  # noqa F401
-
-from typing import TypeVar
 
 # Type returned by ElementMaker.value()
 XMLElement = TypeVar('XMLElement')
@@ -26,7 +26,7 @@ NAMESPACES = {
     'wps': "http://www.opengis.net/wps/1.0.0",
     'ows': "http://www.opengis.net/ows/1.1",
     'gml': "http://www.opengis.net/gml",
-    'xsi': "http://www.w3.org/2001/XMLSchema-instance"
+    'xsi': "http://www.w3.org/2001/XMLSchema-instance",
 }
 
 E = ElementMaker()

@@ -1,9 +1,10 @@
-import pytest
-import os
+
 from string import Template
 
+import pytest
 
 _baseurl = None
+
 
 class Data:
     def __init__(self, request):
@@ -34,4 +35,3 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     global _baseurl
     _baseurl = config.getoption('host')
-

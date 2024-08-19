@@ -13,29 +13,46 @@
 """Literaltypes are used for LiteralInputs, to make sure, input data are OK
 """
 
-from urllib.parse import urlparse
-from dateutil.parser import parse as date_parser
 import datetime
-from pyqgiswps.exceptions import InvalidParameterValue
-from pyqgiswps.validator.allowed_value import RANGECLOSURETYPE
-from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
-from pyqgiswps.validator.base import to_json_serializable
+import logging
+
+from urllib.parse import urlparse
+
+from dateutil.parser import parse as date_parser
+from typing_extensions import (
+    Any,
+    List,
+    Optional,
+    Self,
+    TypeVar,
+    Union,
+)
 
 import pyqgiswps.ogc as ogc
 
-from typing import Optional, List, Any, TypeVar
+from pyqgiswps.exceptions import InvalidParameterValue
+from pyqgiswps.protos import JsonValue
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE, RANGECLOSURETYPE
+from pyqgiswps.validator.base import to_json_serializable
 
-
-import logging
 LOGGER = logging.getLogger('SRVLOG')
 
-Json = TypeVar('Json')
 
 # Forward alue type definition
-LiteralInputValue = TypeVar('LiteralInputValue')
+LiteralInputValue = TypeVar(
+    'LiteralInputValue',
+    bound=Union[
+        int,
+        float,
+        str,
+        datetime.date,
+        datetime.time,
+        datetime.datetime,
+    ],
+)
 
 # Comparable type for value range
-LiteralNumeric = TypeVar('LiteralNumeric', int, float)
+LiteralNumeric = TypeVar('LiteralNumeric', bound=Union[int, float])
 
 # Literal data types
 LITERAL_DATA_TYPES = ogc.OGCTYPE.keys()
@@ -45,7 +62,7 @@ class AnyValue:
     """Any value for literal input
     """
     @property
-    def json(self) -> Json:
+    def json(self) -> JsonValue:
         return {'type': 'anyvalue'}
 
 
@@ -61,13 +78,15 @@ class AllowedValues(*ogc.exports.AllowedValues):
     :param pyqgiswps.input.literaltypes.RANGECLOSURETYPE range_closure:
     """
 
-    def __init__(self, allowed_type: ALLOWEDVALUETYPE = ALLOWEDVALUETYPE.VALUE,
-                 values: Optional[List[Any]] = None,
-                 minval: Optional[LiteralNumeric] = None,
-                 maxval: Optional[LiteralNumeric] = None,
-                 spacing: Optional[LiteralNumeric] = None,
-                 range_closure: RANGECLOSURETYPE = RANGECLOSURETYPE.CLOSED) -> None:
-
+    def __init__(
+        self,
+        allowed_type: ALLOWEDVALUETYPE = ALLOWEDVALUETYPE.VALUE,
+        values: Optional[List[Any]] = None,
+        minval: Optional[LiteralNumeric] = None,
+        maxval: Optional[LiteralNumeric] = None,
+        spacing: Optional[LiteralNumeric] = None,
+        range_closure: RANGECLOSURETYPE = RANGECLOSURETYPE.CLOSED,
+    ):
         AnyValue.__init__(self)
 
         self.allowed_type = allowed_type
@@ -82,7 +101,7 @@ class AllowedValues(*ogc.exports.AllowedValues):
         return self.allowed_type == ALLOWEDVALUETYPE.RANGE
 
     @property
-    def json(self) -> Json:
+    def json(self) -> JsonValue:
         if self.values:
             values = [to_json_serializable(value) for value in self.values]
         else:
@@ -94,32 +113,42 @@ class AllowedValues(*ogc.exports.AllowedValues):
             'minval': to_json_serializable(self.minval),
             'maxval': to_json_serializable(self.maxval),
             'spacing': self.spacing,
-            'range_closure': self.range_closure
+            'range_closure': self.range_closure,
         }
 
     @staticmethod
-    def positiveValue() -> 'AllowedValues':
+    def positiveValue() -> Self:
         """ Define range for value > 0 """
-        return AllowedValues(ALLOWEDVALUETYPE.RANGE,
-                             minval=0,
-                             range_closure=RANGECLOSURETYPE.OPEN)
+        return AllowedValues(
+            ALLOWEDVALUETYPE.RANGE,
+            minval=0,
+            range_closure=RANGECLOSURETYPE.OPEN,
+        )
 
     @staticmethod
-    def nonNegativeValue() -> 'AllowedValues':
+    def nonNegativeValue() -> Self:
         """ Define range for value >= 0 """
-        return AllowedValues(ALLOWEDVALUETYPE.RANGE,
-                             minval=0,
-                             range_closure=RANGECLOSURETYPE.CLOSED)
+        return AllowedValues(
+            ALLOWEDVALUETYPE.RANGE,
+            minval=0,
+            range_closure=RANGECLOSURETYPE.CLOSED,
+        )
 
     @staticmethod
-    def range(minval, maxval, spacing=None,
-              range_closure: RANGECLOSURETYPE = RANGECLOSURETYPE.CLOSED) -> 'AllowedValues':
+    def range(
+        minval: LiteralNumeric,
+        maxval: LiteralNumeric,
+        spacing: Optional[LiteralNumeric] = None,
+        range_closure: RANGECLOSURETYPE = RANGECLOSURETYPE.CLOSED,
+    ) -> Self:
         """ Define range of values """
-        return AllowedValues(ALLOWEDVALUETYPE.RANGE,
-                             minval=minval,
-                             maxval=maxval,
-                             spacing=spacing,
-                             range_closure=range_closure)
+        return AllowedValues(
+            ALLOWEDVALUETYPE.RANGE,
+            minval=minval,
+            maxval=maxval,
+            spacing=spacing,
+            range_closure=range_closure,
+        )
 
 
 def convert(data_type: str, data: LiteralInputValue) -> Any:
@@ -127,6 +156,7 @@ def convert(data_type: str, data: LiteralInputValue) -> Any:
     """
     convert = None
     if data_type in LITERAL_DATA_TYPES:
+
         if data_type == 'string':
             convert = convert_string
         elif data_type == 'integer':

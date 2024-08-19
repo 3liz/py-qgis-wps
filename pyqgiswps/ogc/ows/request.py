@@ -12,33 +12,34 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-import logging
-import lxml
-import lxml.etree
 import base64
+import logging
 import traceback
 
-from pyqgiswps.config import confservice
-from pyqgiswps.app.request import WPSRequest
-from pyqgiswps.exceptions import (NoApplicableCode,
-                                  OperationNotSupported,
-                                  MissingParameterValue,
-                                  VersionNegotiationFailed,
-                                  InvalidParameterValue,
-                                  UnknownProcessError)
+from typing import Iterable, Optional
+from uuid import UUID
 
-from .schema import OWS, WPS, BoundingBox, xpath_ns, XMLDocument
-from .response import OWSResponse
+import lxml
+import lxml.etree
+import tornado.web
+
+from pyqgiswps.accesspolicy import AccessPolicy
+from pyqgiswps.app.process import WPSProcess
+from pyqgiswps.app.request import WPSRequest
+from pyqgiswps.config import confservice
+from pyqgiswps.exceptions import (
+    InvalidParameterValue,
+    MissingParameterValue,
+    NoApplicableCode,
+    OperationNotSupported,
+    UnknownProcessError,
+    VersionNegotiationFailed,
+)
+from pyqgiswps.protos import Service
 
 from ..ogc import OGC_CONFORMANCE_NS
-
-from typing import TypeVar, Optional, Iterable
-
-AccessPolicy = TypeVar('AccessPolicy')
-Service = TypeVar('Service')
-WPSProcess = TypeVar('WPSProcess')
-UUID = TypeVar('UUID')
-
+from .response import OWSResponse
+from .schema import OWS, WPS, BoundingBox, XMLDocument, xpath_ns
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -46,7 +47,7 @@ DEFAULT_VERSION = '1.0.0'
 SCHEMA_VERSIONS = ('1.0.0',)
 
 
-def _check_version(version):
+def _check_version(version: str) -> bool:
     """ check given version
     """
     return version in SCHEMA_VERSIONS
@@ -67,7 +68,7 @@ class OWSRequest(WPSRequest):
         return OGC_CONFORMANCE_NS.OWS_WPS.value
 
     @staticmethod
-    def parse_get_request(handler) -> WPSRequest:
+    def parse_get_request(handler: tornado.web.RequestHandler) -> WPSRequest:
         """ HTTP GET request parser
 
             :return: A WPSRequest instance
@@ -147,7 +148,7 @@ class OWSRequest(WPSRequest):
         return wpsrequest
 
     @staticmethod
-    def parse_post_request(handler) -> WPSRequest:
+    def parse_post_request(handler: tornado.web.RequestHandler) -> WPSRequest:
         """Factory function returing propper parsing function
         """
         try:
@@ -324,7 +325,7 @@ class OWSRequest(WPSRequest):
 
         # Service Identification
         service_ident_doc = OWS.ServiceIdentification(
-            OWS.Title(metadata.get('identification_title'))
+            OWS.Title(metadata.get('identification_title')),
         )
 
         if metadata.get('identification_abstract'):
@@ -366,7 +367,7 @@ class OWSRequest(WPSRequest):
 
         if metadata.get('provider_url'):
             service_prov_doc.append(OWS.ProviderSite(
-                {'{http://www.w3.org/1999/xlink}href': metadata.get('provider_url')})
+                {'{http://www.w3.org/1999/xlink}href': metadata.get('provider_url')}),
             )
 
         # Service Contact
@@ -433,29 +434,29 @@ class OWSRequest(WPSRequest):
                 OWS.DCP(
                     OWS.HTTP(
                         OWS.Get(server_href),
-                        OWS.Post(server_href)
-                    )
+                        OWS.Post(server_href),
+                    ),
                 ),
-                name="GetCapabilities"
+                name="GetCapabilities",
             ),
             OWS.Operation(
                 OWS.DCP(
                     OWS.HTTP(
                         OWS.Get(server_href),
-                        OWS.Post(server_href)
-                    )
+                        OWS.Post(server_href),
+                    ),
                 ),
-                name="DescribeProcess"
+                name="DescribeProcess",
             ),
             OWS.Operation(
                 OWS.DCP(
                     OWS.HTTP(
                         OWS.Get(server_href),
-                        OWS.Post(server_href)
-                    )
+                        OWS.Post(server_href),
+                    ),
                 ),
-                name="Execute"
-            )
+                name="Execute",
+            ),
         )
         doc.append(operations_metadata_doc)
 
@@ -464,8 +465,8 @@ class OWSRequest(WPSRequest):
         languages = confservice.get('server', 'language').split(',')
         languages_doc = WPS.Languages(
             WPS.Default(
-                OWS.Language(languages[0])
-            )
+                OWS.Language(languages[0]),
+            ),
         )
         lang_supported_doc = WPS.Supported()
         for lang in languages:
@@ -476,8 +477,12 @@ class OWSRequest(WPSRequest):
 
         return doc
 
-    def get_processes_for_request(self, service: Service, idents: Iterable[str],
-                                  map_uri: Optional[str] = None) -> Iterable[WPSProcess]:
+    def get_processes_for_request(
+        self,
+        service: Service,
+        idents: Iterable[str],
+        map_uri: Optional[str] = None,
+    ) -> Iterable[WPSProcess]:
         try:
             return service.get_processes(idents, map_uri)
         except UnknownProcessError as exc:
@@ -524,7 +529,7 @@ class OWSRequest(WPSRequest):
 
     # Create response
 
-    def create_response(self, process, uuid) -> OWSResponse:
+    def create_response(self, process: WPSProcess, uuid: UUID) -> OWSResponse:
         """ Create the response for execute request for
             handling OWS Response
         """

@@ -3,25 +3,24 @@
 
 import traceback
 
-from qgis.core import (QgsApplication,
-                       QgsProcessingProvider)
+from qgis.core import QgsProcessingProvider
 
-from .TestSimpleValue import TestSimpleValue
-from .TestOptionValue import TestOptionValue
-from .TestMultiOptionValue import TestMultiOptionValue
+from .TestClipRasterLayer import TestClipRasterLayer
 from .TestCopyLayer import TestCopyLayer
 from .TestFileDestination import TestFileDestination
-from .TestSimpleBuffer import TestSimpleBuffer
-from .TestInputRasterLayer import TestInputRasterLayer
-from .TestRaiseError import TestRaiseError
-from .TestClipRasterLayer import TestClipRasterLayer
-from .TestInputMultiLayer import TestInputMultiLayer
-from .TestMapContext import TestMapContext
-from .TestLongProcess import TestLongProcess
 from .TestInputFile import TestInputFile
-from .TestOutputVectorLayer import TestOutputVectorLayer
-from .TestOutputFile import TestOutputFile
 from .TestInputGeometry import TestInputGeometry
+from .TestInputMultiLayer import TestInputMultiLayer
+from .TestInputRasterLayer import TestInputRasterLayer
+from .TestLongProcess import TestLongProcess
+from .TestMapContext import TestMapContext
+from .TestMultiOptionValue import TestMultiOptionValue
+from .TestOptionValue import TestOptionValue
+from .TestOutputFile import TestOutputFile
+from .TestOutputVectorLayer import TestOutputVectorLayer
+from .TestRaiseError import TestRaiseError
+from .TestSimpleBuffer import TestSimpleBuffer
+from .TestSimpleValue import TestSimpleValue
 from .TestUltimateQuestion import TestUltimateQuestion
 
 
@@ -51,7 +50,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
                  TestInputGeometry(),
                  TestUltimateQuestion(),
             ]
-        except:
+        except Exception:
             traceback.print_exc()
             algs = []
         return algs
@@ -67,6 +66,7 @@ class TestAlgorithmProvider(QgsProcessingProvider):
         for a in self.algs:
             self.addAlgorithm(a)
 
+
 class DummyAlgorithmProvider(QgsProcessingProvider):
 
     def __init__(self):
@@ -80,4 +80,3 @@ class DummyAlgorithmProvider(QgsProcessingProvider):
 
     def loadAlgorithms(self):
         pass
-

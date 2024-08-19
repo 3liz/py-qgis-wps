@@ -8,15 +8,16 @@
 #
 
 import logging
-import traceback
-import zmq
-import uuid
 import pickle
+import traceback
+import uuid
 
-from typing import Callable
+from typing import Callable, Optional, Sequence
 
-from .utils import WORKER_READY, WORKER_DONE
+import zmq
+
 from .supervisor import Client as SupervisorClient
+from .utils import WORKER_DONE, WORKER_READY
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -48,8 +49,13 @@ def broadcast_socket(ctx: zmq.Context, broadcastaddr: str) -> zmq.Socket:
     return sub
 
 
-def worker_handler(router: str, broadcastaddr: str, maxcycles: int = None,
-                   initializer: Callable[[None], None] = None, initargs=()) -> None:
+def worker_handler(
+    router: str,
+    broadcastaddr: str,
+    maxcycles: Optional[int] = None,
+    initializer: Optional[Callable[[None], None]] = None,
+    initargs: Sequence = (),
+):
     """ Run jobs
     """
     ctx = zmq.Context.instance()
@@ -85,7 +91,7 @@ def worker_handler(router: str, broadcastaddr: str, maxcycles: int = None,
                 except Exception as exc:
                     LOGGER.error(
                         "Worker exception: >>>>>>>>>>\n%s<<<<<<<<<<",
-                        traceback.format_exc()
+                        traceback.format_exc(),
                     )
                     result = (False, exc)
                 supervisor.notify_done()

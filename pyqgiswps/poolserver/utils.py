@@ -14,7 +14,7 @@ import os
 _pid = os.getpid()
 
 
-def _get_ipc(name) -> str:
+def _get_ipc(name: str) -> str:
     ipc_path = f'/tmp/qgswps/{name}_{_pid}'
     os.makedirs(os.path.dirname(ipc_path), exist_ok=True)
     return f'ipc://{ipc_path}'

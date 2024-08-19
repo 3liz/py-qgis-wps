@@ -12,58 +12,53 @@ import logging
 import traceback
 
 from pathlib import Path
-from urllib.parse import quote, urlparse, urlencode, parse_qs
+from typing import Any, Dict, Optional, Tuple
+from urllib.parse import parse_qs, quote, urlencode, urlparse
 
-from qgis.core import (QgsProcessing,
-                       QgsProcessingParameterDefinition,
-                       QgsProcessingParameterMapLayer,
-                       QgsProcessingParameterRasterLayer,
-                       QgsProcessingParameterVectorLayer,
-                       QgsProcessingParameterMeshLayer,
-                       QgsProcessingFeatureSourceDefinition,
-                       QgsProcessingOutputDefinition,
-                       QgsProcessingOutputLayerDefinition,
-                       QgsProcessingOutputRasterLayer,
-                       QgsProcessingOutputVectorLayer,
-                       QgsProcessingOutputMapLayer,
-                       QgsProcessingOutputMultipleLayers,
-                       QgsProcessingParameterLimitedDataTypes,
-                       QgsProcessingParameterFeatureSource,
-                       QgsProcessingParameterFeatureSink,
-                       QgsProcessingDestinationParameter,
-                       QgsProcessingParameterVectorDestination,
-                       QgsProcessingParameterRasterDestination,
-                       QgsProcessingParameterMultipleLayers,
-                       QgsProcessingUtils,
-                       QgsProcessingContext,
-                       QgsMapLayer,
-                       QgsVectorLayer,
-                       QgsWkbTypes,
-                       QgsRectangle)
-
-from ..processingcontext import MapContext, ProcessingContext
+from qgis.core import (
+    QgsMapLayer,
+    QgsProcessing,
+    QgsProcessingContext,
+    QgsProcessingDestinationParameter,
+    QgsProcessingFeatureSourceDefinition,
+    QgsProcessingOutputDefinition,
+    QgsProcessingOutputLayerDefinition,
+    QgsProcessingOutputMapLayer,
+    QgsProcessingOutputMultipleLayers,
+    QgsProcessingOutputRasterLayer,
+    QgsProcessingOutputVectorLayer,
+    QgsProcessingParameterDefinition,
+    QgsProcessingParameterFeatureSink,
+    QgsProcessingParameterFeatureSource,
+    QgsProcessingParameterLimitedDataTypes,
+    QgsProcessingParameterMapLayer,
+    QgsProcessingParameterMeshLayer,
+    QgsProcessingParameterMultipleLayers,
+    QgsProcessingParameterRasterDestination,
+    QgsProcessingParameterRasterLayer,
+    QgsProcessingParameterVectorDestination,
+    QgsProcessingParameterVectorLayer,
+    QgsProcessingUtils,
+    QgsRectangle,
+    QgsVectorLayer,
+    QgsWkbTypes,
+)
 
 from pyqgiswps.app.common import Metadata
-from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
-from pyqgiswps.inout.formats import Format, FORMATS
-from pyqgiswps.inout.literaltypes import AllowedValues
-from pyqgiswps.inout import (LiteralInput,
-                             ComplexInput,
-                             BoundingBoxInput,
-                             LiteralOutput,
-                             ComplexOutput,
-                             BoundingBoxOutput)
-
-from pyqgiswps.exceptions import (NoApplicableCode,
-                                  InvalidParameterValue)
-
-from pyqgiswps.utils.filecache import get_valid_filename
 from pyqgiswps.config import confservice
+from pyqgiswps.exceptions import InvalidParameterValue, NoApplicableCode
+from pyqgiswps.inout import (
+    ComplexOutput,
+    LiteralInput,
+    WPSInput,
+    WPSOutput,
+)
+from pyqgiswps.inout.formats import FORMATS, Format
+from pyqgiswps.inout.literaltypes import AllowedValues
+from pyqgiswps.utils.filecache import get_valid_filename
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 
-from typing import Any, Union, Tuple, Optional
-
-WPSInput = Union[LiteralInput, ComplexInput, BoundingBoxInput]
-WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
+from ..processingcontext import MapContext, ProcessingContext
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -87,6 +82,8 @@ INPUT_OTHER_LAYER_TYPES = (QgsProcessingParameterMapLayer, QgsProcessingParamete
 
 INPUT_LAYER_TYPES = INPUT_VECTOR_LAYER_TYPES + INPUT_RASTER_LAYER_TYPES + INPUT_OTHER_LAYER_TYPES
 
+
+ProcessingSourceType = QgsProcessing.SourceType
 
 # Map processing source types to string
 SourceTypes = {
@@ -115,7 +112,10 @@ VECTOR_INPUT_FORMATS = (Format.from_definition(FORMATS.GEOJSON),
 # ------------------------------------
 
 
-def get_layers_type(param: QgsProcessingParameterDefinition, kwargs) -> None:
+def get_layers_type(
+    param: QgsProcessingParameterDefinition,
+    kwargs: Dict[str, Any],
+) -> ProcessingSourceType:
     """ Set datatype as metadata
     """
     datatypes = []
@@ -139,7 +139,11 @@ def get_layers_type(param: QgsProcessingParameterDefinition, kwargs) -> None:
     return datatypes
 
 
-def get_layers_from_context(kwargs, context: MapContext, datatypes) -> None:
+def get_layers_from_context(
+    kwargs: Dict[str, Any],
+    context: MapContext,
+    datatypes: QgsProcessing.SourceType,
+):
     """ Find candidate layers according to datatypes
     """
     #
@@ -248,8 +252,11 @@ def parse_root_destination_path(param: QgsProcessingDestinationParameter,
     return sink, destinationName
 
 
-def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs,
-                           context: MapContext = None) -> LiteralInput:
+def parse_input_definition(
+    param: QgsProcessingParameterDefinition,
+    kwargs: Dict[str, Any],
+    context: MapContext = None,
+) -> LiteralInput:
     """ Layers input may be passed in various forms:
 
         - For input layers and if a context is given: it will be a list of  available layers from
@@ -335,8 +342,8 @@ def parse_layer_spec(layerspec: str, context: ProcessingContext, allow_selection
         has_selection = True
         layer = context.getMapLayer(p)
         if not layer:
-            LOGGER.error("No layer path for %s", layerspec)
-            raise InvalidParameterValue("No layer '%s' found" % u.path, )
+            LOGGER.error(f"No layer path for {layerspec}")
+            raise InvalidParameterValue(f"No layer '{u.path}' found")
 
         if layer.type() != QgsMapLayer.VectorLayer:
             LOGGER.warning("Can apply selection only to vector layer")
@@ -411,7 +418,7 @@ def get_processing_value(param: QgsProcessingParameterDefinition, inp: WPSInput,
 # -------------------------------------------
 
 
-def parse_output_definition(outdef: QgsProcessingOutputDefinition, kwargs) -> ComplexOutput:
+def parse_output_definition(outdef: QgsProcessingOutputDefinition, kwargs: Dict[str, Any]) -> ComplexOutput:
     """ Parse layer output
 
         A layer output is merged to a qgis project, we return
@@ -420,12 +427,12 @@ def parse_output_definition(outdef: QgsProcessingOutputDefinition, kwargs) -> Co
     if isinstance(outdef, QgsProcessingOutputVectorLayer):
         return ComplexOutput(supported_formats=[
             Format("application/x-ogc-wms"),
-            Format("application/x-ogc-wfs")
+            Format("application/x-ogc-wfs"),
         ], as_reference=True, **kwargs)
     elif isinstance(outdef, QgsProcessingOutputRasterLayer):
         return ComplexOutput(supported_formats=[
             Format("application/x-ogc-wms"),
-            Format("application/x-ogc-wcs")
+            Format("application/x-ogc-wcs"),
         ], as_reference=True, **kwargs)
     elif isinstance(outdef, (QgsProcessingOutputMapLayer, QgsProcessingOutputMultipleLayers)):
         return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")],

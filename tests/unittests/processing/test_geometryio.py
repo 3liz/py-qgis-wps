@@ -2,65 +2,47 @@
 
     Test parsing processing inputs to WPS inputs
 """
-import os
 import json
+import os
 
 from os import PathLike
 
-from pyqgiswps.ogc.ows import WPS, OWS
-from pyqgiswps.ogc.ows.schema import xpath_ns, BoundingBox
-
-from pyqgiswps.inout import (LiteralInput,
-                             ComplexInput,
-                             BoundingBoxInput,
-                             LiteralOutput,
-                             ComplexOutput,
-                             BoundingBoxOutput)
-
-from pyqgiswps.inout.formats import FORMATS, Format
-
-from pyqgiswps.executors.processingcontext import ProcessingContext
-from pyqgiswps.executors.processingio import(parse_input_definition,
-                                             parse_output_definition,
-                                             input_to_processing,
-                                             processing_to_output)
-
-from pyqgiswps.executors.processingprocess import(
-            run_algorithm,
-            _find_algorithm)
+from qgis.core import (
+    QgsGeometry,
+    QgsProcessingContext,
+    QgsProcessingFeedback,
+    QgsProcessingParameterExtent,
+    QgsProcessingParameterGeometry,
+    QgsProcessingParameterPoint,
+    QgsProject,
+    QgsRectangle,
+    QgsReferencedGeometry,
+    QgsReferencedPointXY,
+    QgsReferencedRectangle,
+    QgsWkbTypes,
+)
 
 from pyqgiswps.executors.io import geometryio
-
-from pyqgiswps.exceptions import (NoApplicableCode,
-                                  InvalidParameterValue,
-                                  MissingParameterValue,
-                                  ProcessException)
-
+from pyqgiswps.executors.processingcontext import ProcessingContext
+from pyqgiswps.executors.processingio import (
+    input_to_processing,
+    parse_input_definition,
+    parse_output_definition,
+)
+from pyqgiswps.executors.processingprocess import _find_algorithm, run_algorithm
+from pyqgiswps.inout import (
+    BoundingBoxInput,
+    ComplexInput,
+)
+from pyqgiswps.inout.formats import FORMATS, Format
+from pyqgiswps.ogc.ows import OWS, WPS
+from pyqgiswps.ogc.ows.schema import BoundingBox, xpath_ns
 from pyqgiswps.utils.contexts import chdir
-
-from qgis.core import QgsApplication
-from qgis.core import (QgsProcessing,
-                       QgsProcessingContext,
-                       QgsProcessingFeedback,
-                       QgsProcessingParameterDefinition,
-                       QgsProcessingParameterPoint,
-                       QgsProcessingParameterExtent,
-                       QgsProcessingParameterGeometry,
-                       QgsReferencedRectangle,
-                       QgsRectangle,
-                       QgsReferencedPointXY,
-                       QgsReferencedGeometry,
-                       QgsGeometry,
-                       QgsCoordinateReferenceSystem,
-                       QgsWkbTypes,
-                       QgsProject)
-
-from processing.core.Processing import Processing
 
 
 class Context(QgsProcessingContext):
 
-    def __init__(self, project: QgsProject, workdir: PathLike ):
+    def __init__(self, project: QgsProject, workdir: PathLike):
         super().__init__()
         self.workdir = str(workdir)
         self.setProject(project)
@@ -71,10 +53,10 @@ class Context(QgsProcessingContext):
     def write_result(self, workdir, name):
         """ Save results to disk
         """
-        return self.destination_project.write(os.path.join(workdir,name+'.qgs'))
+        return self.destination_project.write(os.path.join(workdir, name + '.qgs'))
 
 
-def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
+def get_metadata(inp, name, minOccurence=1, maxOccurence=None):
     if maxOccurence is None:
         maxOccurence = minOccurence
     assert minOccurence <= maxOccurence
@@ -91,13 +73,13 @@ def test_bbox_4326():
     bbox_el = WPS.BoundingBoxData(OWS.LowerCorner('20 -112'),
                                   OWS.UpperCorner('45 -87'))
 
-    bbox_el.attrib['crs'] = "EPSG:4326";
-    bbox = BoundingBox(bbox_el);
+    bbox_el.attrib['crs'] = "EPSG:4326"
+    bbox = BoundingBox(bbox_el)
 
-    assert int(bbox.minx) == -112;
-    assert int(bbox.miny) == 20;
-    assert int(bbox.maxx) == -87;
-    assert int(bbox.maxy) == 45;
+    assert int(bbox.minx) == -112
+    assert int(bbox.miny) == 20
+    assert int(bbox.maxx) == -87
+    assert int(bbox.maxy) == 45
 
 
 def test_bbox_input():
@@ -107,19 +89,19 @@ def test_bbox_input():
 
     inp = parse_input_definition(param)
 
-    assert isinstance(inp,BoundingBoxInput)
+    assert isinstance(inp, BoundingBoxInput)
     assert inp.crss[0] == "EPSG:4326"
 
     inp.data = ['15', '50', '16', '51']
-    value = geometryio.input_to_extent( inp )
+    value = geometryio.input_to_extent(inp)
 
-    assert isinstance(value,QgsReferencedRectangle)
-    assert isinstance(value,QgsRectangle)
+    assert isinstance(value, QgsReferencedRectangle)
+    assert isinstance(value, QgsRectangle)
 
-    assert value.xMinimum() == 15;
-    assert value.yMaximum() == 51;
-    assert value.yMinimum() == 50;
-    assert value.xMaximum() == 16;
+    assert value.xMinimum() == 15
+    assert value.yMaximum() == 51
+    assert value.yMinimum() == 50
+    assert value.xMaximum() == 16
 
     # Test CRS
     crs = value.crs()
@@ -130,7 +112,7 @@ def test_bbox_input():
 def test_bbox_input_with_context(outputdir):
     """ Test extent parameter with context
     """
-    context  = ProcessingContext(str(outputdir), 'france_parts_3857.qgs')
+    context = ProcessingContext(str(outputdir), 'france_parts_3857.qgs')
 
     project = context.project()
     project_crs = project.crs()
@@ -140,15 +122,15 @@ def test_bbox_input_with_context(outputdir):
     param = QgsProcessingParameterExtent("BBOX")
     inp = parse_input_definition(param, context=context)
 
-    assert isinstance(inp,BoundingBoxInput)
+    assert isinstance(inp, BoundingBoxInput)
     assert inp.crss[0] == "EPSG:3857"
     assert inp.crs == "EPSG:3857"
 
     # see create_bbox_inputs at L532 app/Service.py
     inp.data = ['15', '50', '16', '51']
-    value = geometryio.input_to_extent( inp )
+    value = geometryio.input_to_extent(inp)
 
-    assert isinstance(value,QgsReferencedRectangle)
+    assert isinstance(value, QgsReferencedRectangle)
 
     # Test CRS
     crs = value.crs()
@@ -163,8 +145,8 @@ def test_point_input_gml():
 
     inp = parse_input_definition(param)
 
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
+    assert isinstance(inp, ComplexInput)
+    assert not inp.as_reference
 
     inp.data_format = Format.from_definition(FORMATS.GML)
     inp.data = ('<gml:Point srsName="EPSG:4326">'
@@ -173,8 +155,8 @@ def test_point_input_gml():
 
     assert inp.data_format.mime_type == FORMATS.GML.mime_type
 
-    value = geometryio.input_to_point( inp )
-    assert isinstance( value, QgsReferencedPointXY )
+    value = geometryio.input_to_point(inp)
+    assert isinstance(value, QgsReferencedPointXY)
 
 
 def test_point_input_json():
@@ -185,26 +167,33 @@ def test_point_input_json():
 
     inp = parse_input_definition(param)
 
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
+    assert isinstance(inp, ComplexInput)
+    assert not inp.as_reference
 
     inp.data_format = Format.from_definition(FORMATS.GEOJSON)
     inp.data = '{"coordinates":[4.0,42.0],"type":"Point"}'
 
     assert inp.data_format.mime_type == FORMATS.GEOJSON.mime_type
 
-    value = geometryio.input_to_point( inp )
-    assert isinstance( value, QgsGeometry )
+    value = geometryio.input_to_point(inp)
+    assert isinstance(value, QgsGeometry)
 
     # with a crs
     param2 = QgsProcessingParameterPoint("POINT")
     inp2 = parse_input_definition(param2)
 
     assert isinstance(inp2, ComplexInput)
-    assert inp2.as_reference == False
+    assert not inp2.as_reference
 
     inp2.data_format = Format.from_definition(FORMATS.GEOJSON)
-    inp2.data = '{"type":"Point","coordinates":[-3326534.0,5498576.0],"crs":{"type":"name","properties":{"name":"EPSG:3857"}}}'
+    inp2.data = (
+        '{'
+            '"type":"Point","coordinates":[-3326534.0,5498576.0],'
+            '"crs":{'
+                '"type":"name","properties":{"name":"EPSG:3857"}'
+            '}'
+        '}'
+    )
 
     assert inp2.data_format.mime_type == FORMATS.GEOJSON.mime_type
 
@@ -221,16 +210,16 @@ def test_point_input_wkt():
 
     inp = parse_input_definition(param)
 
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
+    assert isinstance(inp, ComplexInput)
+    assert not inp.as_reference
 
     inp.data_format = Format.from_definition(FORMATS.WKT)
     inp.data = 'CRS=EPSG:4326;POINT(6 10)'
 
     assert inp.data_format.mime_type == FORMATS.WKT.mime_type
 
-    value = geometryio.input_to_point( inp )
-    assert isinstance( value, QgsReferencedPointXY )
+    value = geometryio.input_to_point(inp)
+    assert isinstance(value, QgsReferencedPointXY)
     assert value.crs().authid() == 'EPSG:4326'
     assert value.asWkt() == 'POINT(6 10)'
 
@@ -251,8 +240,8 @@ def test_linestring_input_gml():
 
     inp = parse_input_definition(param)
 
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
+    assert isinstance(inp, ComplexInput)
+    assert not inp.as_reference
 
     inp.data_format = Format.from_definition(FORMATS.GML)
     inp.data = ('<gml:LineString srsName="EPSG:4326">'
@@ -261,8 +250,8 @@ def test_linestring_input_gml():
 
     assert inp.data_format.mime_type == FORMATS.GML.mime_type
 
-    value = geometryio.input_to_geometry( inp )
-    assert isinstance( value, QgsReferencedGeometry )
+    value = geometryio.input_to_geometry(inp)
+    assert isinstance(value, QgsReferencedGeometry)
     assert value.wkbType() == QgsWkbTypes.LineString
 
 
@@ -274,16 +263,16 @@ def test_multipoint_input_json():
 
     inp = parse_input_definition(param)
 
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
+    assert isinstance(inp, ComplexInput)
+    assert not inp.as_reference
 
     inp.data_format = Format.from_definition(FORMATS.GEOJSON)
     inp.data = '{"coordinates":[[10, 40], [40, 30], [20, 20], [30, 10]],"type":"MultiPoint"}'
 
     assert inp.data_format.mime_type == FORMATS.GEOJSON.mime_type
 
-    value = geometryio.input_to_geometry( inp )
-    assert isinstance( value, QgsGeometry )
+    value = geometryio.input_to_geometry(inp)
+    assert isinstance(value, QgsGeometry)
     assert value.wkbType() == QgsWkbTypes.MultiPoint
 
     # with a crs
@@ -291,10 +280,19 @@ def test_multipoint_input_json():
     inp2 = parse_input_definition(param2)
 
     assert isinstance(inp2, ComplexInput)
-    assert inp2.as_reference == False
+    assert not inp2.as_reference
 
     inp2.data_format = Format.from_definition(FORMATS.GEOJSON)
-    inp2.data = '{"coordinates":[[465340, 4161978], [465352, 4161918]],"type":"MultiPoint", "crs":{"type":"name","properties":{"name":"EPSG:3785"}}}'
+    inp2.data = (
+        '{'
+            '"coordinates":[[465340, 4161978], [465352, 4161918]],'
+            '"type":"MultiPoint", "crs":{'
+                '"type":"name","properties":{'
+                    '"name":"EPSG:3785"'
+                '}'
+            '}'
+        '}'
+    )
 
     assert inp2.data_format.mime_type == FORMATS.GEOJSON.mime_type
 
@@ -311,16 +309,16 @@ def test_multipoint_input_wkt():
 
     inp = parse_input_definition(param)
 
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
+    assert isinstance(inp, ComplexInput)
+    assert not inp.as_reference
 
     inp.data_format = Format.from_definition(FORMATS.WKT)
     inp.data = 'CRS=EPSG:4326;MULTIPOINT((3.5 5.6), (4.8 10.5))'
 
     assert inp.data_format.mime_type == FORMATS.WKT.mime_type
 
-    value = geometryio.input_to_geometry( inp )
-    assert isinstance( value, QgsReferencedGeometry )
+    value = geometryio.input_to_geometry(inp)
+    assert isinstance(value, QgsReferencedGeometry)
     assert value.wkbType() == QgsWkbTypes.MultiPoint
     assert value.crs().authid() == 'EPSG:4326'
     assert value.asWkt(2) == 'MultiPoint ((3.5 5.6),(4.8 10.5))'
@@ -343,8 +341,8 @@ def test_geometry_crs_json():
 
     inp = parse_input_definition(param)
 
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
+    assert isinstance(inp, ComplexInput)
+    assert not inp.as_reference
 
     inp.data_format = Format.from_definition(FORMATS.GEOJSON)
     inp.data = ('{ "geometry": {"coordinates":[445277.96, 5160979.44],"type":"Point"},'
@@ -355,8 +353,8 @@ def test_geometry_crs_json():
 
     assert inp.data_format.mime_type == FORMATS.GEOJSON.mime_type
 
-    value = geometryio.input_to_geometry( inp )
-    assert isinstance( value, QgsReferencedGeometry )
+    value = geometryio.input_to_geometry(inp)
+    assert isinstance(value, QgsReferencedGeometry)
     assert value.crs().authid() == "EPSG:3785"
     assert value.wkbType() == QgsWkbTypes.Point
 
@@ -368,16 +366,16 @@ def test_nocrs_input_wkt():
 
     inp = parse_input_definition(param)
 
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
+    assert isinstance(inp, ComplexInput)
+    assert not inp.as_reference
 
     inp.data_format = Format.from_definition(FORMATS.WKT)
     inp.data = 'POINT(6 10)'
 
     assert inp.data_format.mime_type == FORMATS.WKT.mime_type
 
-    value = geometryio.input_to_point( inp )
-    assert isinstance( value, QgsGeometry )
+    value = geometryio.input_to_point(inp)
+    assert isinstance(value, QgsGeometry)
     assert value.wkbType() == QgsWkbTypes.Point
 
 
@@ -389,22 +387,22 @@ def test_geometry_geometrytypes():
 
     inp = parse_input_definition(param)
 
-    assert get_metadata(inp,'processing:geometryType')[0].href == "Line"
+    assert get_metadata(inp, 'processing:geometryType')[0].href == "Line"
 
     # Check allow multipart
-    assert len(get_metadata(inp,'processing:allowMultipart')) == 1
+    assert len(get_metadata(inp, 'processing:allowMultipart')) == 1
 
     # Multi Geometry
     param = QgsProcessingParameterGeometry("GEOM",
-            geometryTypes=[QgsWkbTypes.LineGeometry,QgsWkbTypes.PointGeometry]
+            geometryTypes=[QgsWkbTypes.LineGeometry, QgsWkbTypes.PointGeometry],
     )
 
     inp = parse_input_definition(param)
 
-    assert get_metadata(inp,'processing:geometryType',2)[0].href == "Line"
-    assert get_metadata(inp,'processing:geometryType',2)[1].href == "Point"
+    assert get_metadata(inp, 'processing:geometryType', 2)[0].href == "Line"
+    assert get_metadata(inp, 'processing:geometryType', 2)[1].href == "Point"
 
-    assert len(get_metadata(inp,'processing:allowMultipart')) == 1
+    assert len(get_metadata(inp, 'processing:allowMultipart')) == 1
 
     # Test output XML
     xml = inp.describe_xml()
@@ -417,7 +415,7 @@ def test_geometry_geometrytypes():
     geomtypes = tuple(_get_geometryTypes(xml))
     assert len(geomtypes) == 2
     for type_ in geomtypes:
-        assert type_ in ("Line","Point")
+        assert type_ in ("Line", "Point")
 
 
 def test_geometry_nomultipart():
@@ -429,10 +427,10 @@ def test_geometry_nomultipart():
 
     inp = parse_input_definition(param)
 
-    assert get_metadata(inp,'processing:geometryType')[0].href == "Line"
+    assert get_metadata(inp, 'processing:geometryType')[0].href == "Line"
 
     # No multipart
-    assert get_metadata(inp,'processing:allowMultipart', minOccurence=0) == []
+    assert get_metadata(inp, 'processing:allowMultipart', minOccurence=0) == []
 
 
 def test_geometry_algorithm(outputdir, data):
@@ -440,32 +438,39 @@ def test_geometry_algorithm(outputdir, data):
     """
     alg = _find_algorithm('pyqgiswps_test:testinputgeometry')
 
-    inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
-    outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
+    inputs = {p.name(): [parse_input_definition(p)] for p in alg.parameterDefinitions()}
+    outputs = {p.name(): parse_output_definition(p) for p in alg.outputDefinitions()}
 
-    inp  = inputs['INPUT'][0]
+    inp = inputs['INPUT'][0]
     inp.data_format = Format.from_definition(FORMATS.WKT)
     inp.data = 'CRS=EPSG:4326;MULTIPOINT((3.5 5.6), (4.8 10.5))'
 
     # Load source project
     source = QgsProject()
-    rv = source.read(str(data/'france_parts.qgs'))
-    assert rv == True
+    rv = source.read(str(data / 'france_parts.qgs'))
+    assert rv
 
-    context  = Context(source, outputdir)
+    context = Context(source, outputdir)
     feedback = QgsProcessingFeedback()
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
+    parameters = dict(input_to_processing(ident, inp, alg, context) for ident, inp in inputs.items())
 
     # Check marshalled value
     value = parameters['INPUT']
-    assert isinstance( value, QgsReferencedGeometry )
+    assert isinstance(value, QgsReferencedGeometry)
     assert value.wkbType() == QgsWkbTypes.MultiPoint
 
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, uuid="uuid", outputs=outputs)
+        _results = run_algorithm(
+            alg,
+            parameters=parameters,
+            feedback=feedback,
+            context=context,
+            uuid="uuid",
+            outputs=outputs,
+        )
 
     out = json.loads(outputs.get('OUTPUT').data)
     assert out['type'] == 'MultiPoint'
@@ -476,32 +481,39 @@ def test_geometry_script(outputdir, data):
     """
     alg = _find_algorithm('script:testinputgeometry')
 
-    inputs  = { p.name(): [parse_input_definition(p)] for p in  alg.parameterDefinitions() }
-    outputs = { p.name(): parse_output_definition(p) for p in  alg.outputDefinitions() }
+    inputs = {p.name(): [parse_input_definition(p)] for p in alg.parameterDefinitions()}
+    outputs = {p.name(): parse_output_definition(p) for p in alg.outputDefinitions()}
 
-    inp  = inputs['INPUT'][0]
+    inp = inputs['INPUT'][0]
     inp.data_format = Format.from_definition(FORMATS.WKT)
     inp.data = 'CRS=EPSG:4326;MULTIPOINT((3.5 5.6), (4.8 10.5))'
 
     # Load source project
     source = QgsProject()
-    rv = source.read(str(data/'france_parts.qgs'))
-    assert rv == True
+    rv = source.read(str(data / 'france_parts.qgs'))
+    assert rv
 
-    context  = Context(source, outputdir)
+    context = Context(source, outputdir)
     feedback = QgsProcessingFeedback()
 
-    parameters = dict( input_to_processing(ident, inp, alg, context) for ident,inp in inputs.items() )
+    parameters = dict(input_to_processing(ident, inp, alg, context) for ident, inp in inputs.items())
 
     # Check marshalled value
     value = parameters['INPUT']
-    assert isinstance( value, QgsReferencedGeometry )
+    assert isinstance(value, QgsReferencedGeometry)
     assert value.wkbType() == QgsWkbTypes.MultiPoint
 
     context.wms_url = f"http://localhost/wms/?MAP=test/{alg.name()}.qgs"
     # Run algorithm
     with chdir(outputdir):
-        results = run_algorithm(alg, parameters=parameters, feedback=feedback, context=context, uuid="uuid", outputs=outputs)
+        _results = run_algorithm(
+            alg,
+            parameters=parameters,
+            feedback=feedback,
+            context=context,
+            uuid="uuid",
+            outputs=outputs,
+        )
 
     out = json.loads(outputs.get('OUTPUT').data)
     assert out['type'] == 'MultiPoint'

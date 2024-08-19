@@ -13,32 +13,52 @@
 #
 
 import logging
+
+from typing import (
+    Any,
+    Callable,
+    Mapping,
+    Sequence,
+)
+
 import pyqgiswps.ogc as ogc
 
+from pyqgiswps.app.common import Metadata
+from pyqgiswps.app.request import WPSRequest, WPSResponse
+from pyqgiswps.inout import WPSInput, WPSOutput
+
 LOGGER = logging.getLogger('SRVLOG')
+
+WPSHandler = Callable[
+    [WPSRequest, WPSResponse, Mapping[str, Any]],
+    WPSResponse,
+]
 
 
 class WPSProcess(*ogc.exports.WPSProcess):
     """ Define a process descriptor
     """
 
-    def __init__(self, handler, identifier, title, abstract='',
-                 profile=[],
-                 metadata=[],
-                 inputs=[],
-                 outputs=[],
-                 version='None',
-                 keywords=[],
-                 **kwargs):
-
-        # TODO remove unusued `profile` property
+    def __init__(
+        self,
+        handler: WPSHandler,
+        identifier: str,
+        title: str,
+        *,
+        abstract: str = '',
+        metadata: Sequence[Metadata] = (),
+        inputs: Sequence[WPSInput] = (),
+        outputs: Sequence[WPSOutput] = (),
+        version: str = 'None',
+        keywords: Sequence[str] = (),
+        **kwargs,
+    ):
 
         self.handler = handler
         self.identifier = identifier
         self.title = title
         self.abstract = abstract
         self.metadata = metadata
-        self.profile = profile
         self.version = version
         self.inputs = inputs
         self.outputs = outputs

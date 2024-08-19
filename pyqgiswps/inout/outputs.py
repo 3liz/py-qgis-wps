@@ -12,15 +12,13 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
+from typing_extensions import Self
+
 import pyqgiswps.ogc as ogc
 
 from pyqgiswps.inout import basic
+from pyqgiswps.protos import JsonValue
 from pyqgiswps.validator.mode import MODE
-
-from typing import TypeVar
-
-Json = TypeVar('Json')
-Self = TypeVar('Self')
 
 
 class BoundingBoxOutput(basic.BBoxInput, *ogc.exports.BoundingBoxOutput):
@@ -48,7 +46,7 @@ class BoundingBoxOutput(basic.BBoxInput, *ogc.exports.BoundingBoxOutput):
         self.min_occurs = min_occurs
         self.max_occurs = max_occurs
 
-    def validate_output(self, output: Json) -> Self:
+    def validate_output(self, output: JsonValue) -> Self:
         """  Set parameter from json definition
         """
         return self
@@ -80,7 +78,7 @@ class ComplexOutput(basic.ComplexOutput, *ogc.exports.ComplexOutput):
         self.as_reference = as_reference
         self.url = None
 
-    def validate_output(self, output: Json) -> Self:
+    def validate_output(self, output: JsonValue) -> Self:
         """  Set parameter from json definition
         """
         return self
@@ -107,7 +105,7 @@ class LiteralOutput(basic.LiteralOutput, *ogc.exports.LiteralOutput):
         self.abstract = abstract
         self.metadata = metadata
 
-    def validate_output(self, output: Json) -> Self:
+    def validate_output(self, output: JsonValue) -> Self:
         """  Set parameter from json definition
         """
         return self

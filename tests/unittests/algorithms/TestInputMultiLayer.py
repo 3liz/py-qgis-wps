@@ -1,13 +1,12 @@
 """ Test just returning simple value
 """
 
-from qgis.core import (QgsProcessingParameterMultipleLayers,
-                       QgsProcessingAlgorithm)
+from qgis.core import QgsProcessingAlgorithm, QgsProcessingParameterMultipleLayers
 
 
 class TestInputMultiLayer(QgsProcessingAlgorithm):
 
-    INPUT  = 'INPUT'
+    INPUT = 'INPUT'
 
     def __init__(self):
         super().__init__()
@@ -19,15 +18,15 @@ class TestInputMultiLayer(QgsProcessingAlgorithm):
         return 'Test Input Multi Layer'
 
     def createInstance(self, config={}):
-        """ Virtual override 
+        """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         return self.__class__()
 
-    def initAlgorithm( self, config=None ):
+    def initAlgorithm(self, config=None):
         """ Virtual override
-    
+
            see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         param = QgsProcessingParameterMultipleLayers(self.INPUT, 'Multiple Layer')
@@ -40,6 +39,5 @@ class TestInputMultiLayer(QgsProcessingAlgorithm):
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        
-        #layer = self.parameterAsRasterLayer(parameters, self.INPUT, context)
-        
+
+        # layer = self.parameterAsRasterLayer(parameters, self.INPUT, context)

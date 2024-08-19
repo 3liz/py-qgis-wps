@@ -3,8 +3,9 @@
 import os
 
 from lxml import etree
-from qgis.core import QgsProcessingAlgorithm
 from processing.core.Processing import RenderingStyles
+
+from qgis.core import QgsProcessingAlgorithm
 
 
 def setLayerVariables(alg, output_name, context, feedback=None, **kwargs):

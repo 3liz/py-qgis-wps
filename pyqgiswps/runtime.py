@@ -6,39 +6,36 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-import os
 import asyncio
 import logging
-import tornado.web
-import tornado.process
+import os
 import signal
+
 import pkg_resources
+import tornado.process
+import tornado.web
 
 from tornado.web import RedirectHandler, StaticFileHandler
 
-from .logger import log_request
+from .accesspolicy import init_access_policy, new_access_policy
 from .config import confservice, get_size_bytes
 from .handlers import (
-    ServerInfosHandler,
-    LandingPageHandler,
     ConformanceHandler,
-    ProcessHandler,
+    DownloadHandler,
     ExecuteHandler,
     JobHandler,
-    ResultHandler,
-    OWSHandler,
-    StoreHandler,
+    LandingPageHandler,
     LogsHandler,
-    DownloadHandler,
     NotFoundHandler,
     OpenApiHandler,
-)
-
-from .handlers import (
+    OWSHandler,
+    ProcessHandler,
+    ResultHandler,
+    ServerInfosHandler,
     StatusHandler,
+    StoreHandler,
 )
-
-from .accesspolicy import init_access_policy, new_access_policy
+from .logger import log_request
 
 LOGGER = logging.getLogger('SRVLOG')
 

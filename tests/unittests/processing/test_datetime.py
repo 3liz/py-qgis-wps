@@ -7,28 +7,19 @@
 #
 
 import datetime
-import pytest
 
-from pyqgiswps.utils.qgis import version_info as qgis_version_info
-from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
-from pyqgiswps.validator.literalvalidator import _validate_range
-from pyqgiswps.executors.processingio import(
-            parse_input_definition,
-            input_to_processing,
-        ) 
-
-from pyqgiswps.executors.io import datetimeio
-
-from pyqgiswps.inout import (LiteralInput,
-                             LiteralOutput)
-
-from pyqgiswps.ogc import OGCTYPE
+from qgis.core import QgsProcessingContext, QgsProcessingParameterDateTime
+from qgis.PyQt.QtCore import QDate, QDateTime, QTime
 
 from pyqgiswps.app.request import WPSRequest
+from pyqgiswps.executors.io import datetimeio
+from pyqgiswps.executors.processingio import (
+    parse_input_definition,
+)
+from pyqgiswps.inout import LiteralInput
+from pyqgiswps.ogc import OGCTYPE
+from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE
 
-from qgis.PyQt.QtCore import Qt, QDateTime, QDate, QTime
-from qgis.core import (QgsProcessingContext,
-                       QgsProcessingParameterDateTime)
 
 def test_datetime_input():
 
@@ -53,8 +44,8 @@ def test_datetime_input():
     inp.data = inp.default.isoformat()
 
     context = QgsProcessingContext()
-    value = datetimeio.get_processing_value( param, [inp], context)
-    assert isinstance( value, QDateTime ) 
+    value = datetimeio.get_processing_value(param, [inp], context)
+    assert isinstance(value, QDateTime)
 
 
 def test_time_input():
@@ -81,9 +72,8 @@ def test_time_input():
     inp.data = inp.default.isoformat()
 
     context = QgsProcessingContext()
-    value = datetimeio.get_processing_value( param, [inp], context)
-    assert isinstance( value, QTime ) 
-
+    value = datetimeio.get_processing_value(param, [inp], context)
+    assert isinstance(value, QTime)
 
 
 def test_date_input():
@@ -106,8 +96,8 @@ def test_date_input():
     inp.data = inp.default.isoformat()
 
     context = QgsProcessingContext()
-    value = datetimeio.get_processing_value( param, [inp], context)
-    assert isinstance( value, QDate ) 
+    value = datetimeio.get_processing_value(param, [inp], context)
+    assert isinstance(value, QDate)
 
 
 def test_datetime_json():
@@ -123,7 +113,7 @@ def test_datetime_json():
     assert isinstance(inp.data, datetime.datetime)
 
     request = WPSRequest()
-    request.inputs = { 'datetime': [inp] }
+    request.inputs = {'datetime': [inp]}
 
     json = request.json
     assert json['inputs']['datetime'][0]['data'] == inp.default.replace(microsecond=0).isoformat()

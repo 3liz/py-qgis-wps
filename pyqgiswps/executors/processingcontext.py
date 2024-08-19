@@ -8,21 +8,17 @@
 #
 """ Wrapper around qgis processing context
 """
-import os
 import logging
+import os
 import traceback
 
 from pathlib import Path
+from typing import Any, Mapping, Optional
 
-from qgis.core import (QgsProcessingContext,
-                       QgsCoordinateReferenceSystem,
-                       QgsProject,
-                       QgsMapLayer)
+from qgis.core import QgsCoordinateReferenceSystem, QgsMapLayer, QgsProcessingContext, QgsProject
 
-from pyqgiswps.qgscache.cachemanager import cacheservice
 from pyqgiswps.config import confservice
-
-from typing import Mapping, Any, Optional
+from pyqgiswps.qgscache.cachemanager import cacheservice
 
 LOGGER = logging.getLogger('SRVLOG')
 

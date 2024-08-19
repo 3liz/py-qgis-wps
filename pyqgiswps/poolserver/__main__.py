@@ -7,18 +7,18 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-import sys
-import os
-import logging
 import argparse
-import traceback
-import time
-import threading
 import asyncio
+import logging
+import os
 import signal
+import sys
+import threading
+import time
+import traceback
 
+from .client import RequestBackendError, create_client
 from .server import create_poolserver
-from .client import create_client, RequestBackendError
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -50,6 +50,7 @@ async def run_test(job, client, timeout):
     except Exception as exc:
         LOGGER.error("Catched exception %s", exc)
         traceback.print_exc()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test Pool server')

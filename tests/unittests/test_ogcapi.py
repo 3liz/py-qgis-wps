@@ -8,26 +8,17 @@
 #
 
 
-import asyncio
-import lxml.etree
-import json
-
-from urllib.parse import urlparse
-
 from pyqgiswps.app import WPSProcess
-from pyqgiswps.inout import (Format,
-                             BoundingBoxOutput, 
-                             BoundingBoxInput, 
-                             ComplexInput, 
-                             ComplexOutput, 
-                             LiteralOutput,
-                             LiteralInput)
-from pyqgiswps.validator.base import emptyvalidator
-from pyqgiswps.exceptions import InvalidParameterValue
-
-from pyqgiswps.tests import HTTPTestCase, HttpClient
-
-from test_common import async_test
+from pyqgiswps.inout import (
+    BoundingBoxInput,
+    BoundingBoxOutput,
+    ComplexInput,
+    ComplexOutput,
+    Format,
+    LiteralInput,
+    LiteralOutput,
+)
+from pyqgiswps.tests import HttpClient, HTTPTestCase
 
 #
 # HTTP tests
@@ -67,7 +58,7 @@ def create_greeter():
 
 def bbox_process(request, response):
     coords = request.inputs['mybbox'][0].data
-    assert type(coords) == type([])
+    assert isinstance(coords, list)
     assert len(coords) == 4
     assert coords[0] == float(15)
     response.outputs['outbbox'].data = coords
@@ -81,13 +72,14 @@ def create_bbox_process():
                    inputs=[BoundingBoxInput('mybbox', 'Input name', ["EPSG:4326"])],
                    outputs=[BoundingBoxOutput('outbbox', 'Output message', ["EPSG:4326"])])
 
+
 def complex_process(request, response):
     response.outputs['complex'].data = request.inputs['complex'][0].data
     return response
 
 
 def create_complex_process():
-    frmt = Format(mime_type='application/gml') # this is unknown mimetype
+    frmt = Format(mime_type='application/gml')  # this is unknown mimetype
 
     return WPSProcess(handler=complex_process,
             identifier='my_complex_process',
@@ -96,13 +88,13 @@ def create_complex_process():
                 ComplexInput(
                     'complex',
                     'Complex input',
-                    supported_formats=[frmt])
+                    supported_formats=[frmt]),
             ],
             outputs=[
                 ComplexOutput(
                     'complex',
                     'Complex output',
-                    supported_formats=[frmt])
+                    supported_formats=[frmt]),
              ])
 
 
@@ -128,7 +120,6 @@ class ExecuteTest(ApiTestCase):
             create_bbox_process(),
         ]
 
-   
     def test_execution_with_no_inputs(self):
         request_doc = {}
         resp = self.client.post_json('/processes/ultimate_question/execution', data=request_doc)
@@ -138,8 +129,8 @@ class ExecuteTest(ApiTestCase):
     def test_post_with_string_input(self):
         request_doc = {
            'inputs': {
-               'name': 'foo'
-            }      
+               'name': 'foo',
+            },
         }
         resp = self.client.post_json("/processes/greeter/execution", request_doc)
         doc = assert_response_success(resp)
@@ -150,8 +141,8 @@ class ExecuteTest(ApiTestCase):
             'inputs': {
                 'mybbox': {
                     'bbox': [15.0, 50.0, 16.0, 51.0],
-                }    
-            }
+                },
+            },
         }
         resp = self.client.post_json("/processes/my_bbox_process/execution", request_doc)
         doc = assert_response_success(resp)

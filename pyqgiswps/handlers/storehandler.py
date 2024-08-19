@@ -6,23 +6,20 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-import os
-import mimetypes
 import logging
+import mimetypes
+import os
+
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
 
 from tornado.web import HTTPError
-from pathlib import Path
-from datetime import datetime
 
 from pyqgiswps.executors.logstore import logstore
 
 from .basehandler import BaseHandler, DownloadMixIn
 from .processeshandler import RealmController
-
-from typing import (
-    Optional,
-    Awaitable,
-)
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -170,7 +167,13 @@ class StoreShellMixIn(DownloadMixIn, RealmController):
 
 class StoreHandlerBase(BaseHandler, StoreShellMixIn):
 
-    def initialize(self, workdir, chunk_size=65536, legacy: bool = False, ttl=30):
+    def initialize(
+        self,
+        workdir: str | Path,
+        chunk_size: int = 65536,
+        legacy: bool = False,
+        ttl: int = 30,
+    ):
         super().initialize()
         self._chunk_size = chunk_size
         self._workdir = workdir
@@ -181,7 +184,7 @@ class StoreHandlerBase(BaseHandler, StoreShellMixIn):
 class StoreHandler(StoreHandlerBase):
     """ Handle store requests
     """
-    async def get(self, uuid: str, resource: Optional[str] = None) -> Awaitable[None]:
+    async def get(self, uuid: str, resource: Optional[str] = None):
         """ Handle GET request
         """
         if resource:
@@ -189,7 +192,7 @@ class StoreHandler(StoreHandlerBase):
         else:
             await self.ls(uuid)
 
-    async def put(self, uuid: str, resource: Optional[str]) -> Awaitable[None]:
+    async def put(self, uuid: str, resource: Optional[str]):
         """ Handle put actions
         """
         if not uuid:
@@ -229,7 +232,7 @@ class DownloadHandler(StoreHandlerBase):
 class LogsHandler(StoreHandlerBase):
     """ Retrun log text content
     """
-    async def get(self, job_id) -> Awaitable[None]:
+    async def get(self, job_id: str):
         """ Handle GET request
         """
         # Only admin can see this

@@ -12,12 +12,13 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-import os
 import logging
+import os
+
 import tornado.httpclient as httpclient
 
-from pyqgiswps.version import __version__
 from pyqgiswps.exceptions import FileSizeExceeded, NoApplicableCode
+from pyqgiswps.version import __version__
 
 LOGGER = logging.getLogger('SRVLOG')
 

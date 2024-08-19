@@ -2,31 +2,15 @@
 """
 import traceback
 
-
+import processing
 
 from qgis.core import (
-    QgsProcessing,
-    QgsProcessingUtils,
     QgsProcessingAlgorithm,
-    QgsProcessingException,
-    QgsProcessingAlgorithm,
-    QgsProcessingParameterNumber,
-    QgsProcessingParameterVectorLayer,
     QgsProcessingParameterFeatureSource,
-    QgsProcessingParameterField,
-    QgsProcessingParameterString,
+    QgsProcessingParameterNumber,
     QgsProcessingParameterVectorDestination,
-    QgsProcessingParameterFileDestination,
-    QgsProcessingOutputHtml,
-    QgsProcessingOutputFile,
-    QgsProcessingOutputNumber,
-    QgsProcessingOutputVectorLayer,
-    QgsSettings,
-    QgsFeatureRequest
 )
-from qgis.PyQt.QtCore import Qt, QCoreApplication
 
-import processing
 
 class TestSimpleBuffer(QgsProcessingAlgorithm):
 
@@ -44,13 +28,13 @@ class TestSimpleBuffer(QgsProcessingAlgorithm):
         return 'Simple buffer'
 
     def createInstance(self, config={}):
-        """ Virtual override 
+        """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         return self.__class__()
 
-    def initAlgorithm( self, config=None ):
+    def initAlgorithm(self, config=None):
         """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
@@ -58,8 +42,8 @@ class TestSimpleBuffer(QgsProcessingAlgorithm):
         self.addParameter(
             QgsProcessingParameterFeatureSource(
                 self.INPUT,
-                'Input layer'
-            )
+                'Input layer',
+            ),
         )
 
         self.addParameter(QgsProcessingParameterNumber(self.DISTANCE, 'Distance',
@@ -72,7 +56,7 @@ class TestSimpleBuffer(QgsProcessingAlgorithm):
             output = self.parameterAsOutputLayer(parameters, self.OUTPUT_VECTOR, context)
 
             # Run buffer
-            buffer_result = processing.run("qgis:buffer", {
+            _buffer_result = processing.run("qgis:buffer", {
                 'INPUT': parameters[self.INPUT],
                 'DISTANCE': parameters[self.DISTANCE],
                 'SEGMENTS': 10,
@@ -80,11 +64,10 @@ class TestSimpleBuffer(QgsProcessingAlgorithm):
                 'JOIN_STYLE': 0,
                 'MITER_LIMIT': 2,
                 'DISSOLVE': False,
-                'OUTPUT': output
+                'OUTPUT': output,
             }, context=context, feedback=feedback)
 
-            return { self.OUTPUT_VECTOR: output }
+            return {self.OUTPUT_VECTOR: output}
 
         except Exception:
             traceback.print_exc()
-

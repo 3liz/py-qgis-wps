@@ -9,9 +9,9 @@
 
 import logging
 
-from .basehandler import BaseHandler
-
 from typing import Optional
+
+from .basehandler import BaseHandler
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -84,7 +84,7 @@ class StatusHandler(BaseHandler):
         except FileNotFoundError:
             self.set_status(404)
 
-    def options(self, endpoint: Optional[str] = None) -> None:
+    def options(self, endpoint: Optional[str] = None):
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('GET, DELETE, OPTIONS')

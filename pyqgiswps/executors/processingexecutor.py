@@ -7,45 +7,43 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import asyncio
-import os
-import traceback
-import shutil
 import logging
+import os
+import shutil
 import time
-
-from glob import glob
-from typing import Iterable, Any, Optional, Iterator
-
-try:
-    # XXX On android userland, /proc/stat is not readable
-    import psutil
-    HAVE_PSUTIL = True
-except Exception:
-    print("WARNING: PSUtil is not available, memory stats will be disabled !")
-    HAVE_PSUTIL = False
+import traceback
 
 from contextlib import contextmanager
 from datetime import datetime
+from glob import glob
+from typing import (
+    Any,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+)
 
-from pyqgiswps.app.request import STATUS
-from pyqgiswps.logger import logfile_context
-from pyqgiswps.utils.lru import lrucache
+import psutil
+
+from pyqgisservercontrib.core.watchfiles import watchfiles
+from pyqgiswps.app.process import WPSHandler, WPSProcess
+from pyqgiswps.app.request import STATUS, WPSRequest, WPSResponse
+from pyqgiswps.config import confservice
 from pyqgiswps.exceptions import (
     NoApplicableCode,
     ProcessException,
     UnknownProcessError,
 )
+from pyqgiswps.logger import logfile_context
+from pyqgiswps.poolserver.client import (
+    MaxRequestsExceeded,
+    RequestBackendError,
+    create_client,
+)
+from pyqgiswps.utils.lru import lrucache
 
-from pyqgiswps.config import confservice
-from pyqgiswps.app.process import WPSProcess
-
-from pyqgiswps.poolserver.client import (create_client,
-                                         RequestBackendError,
-                                         MaxRequestsExceeded)
-
-from pyqgisservercontrib.core.watchfiles import watchfiles
-
-from .processfactory import get_process_factory
 from .logstore import logstore
 
 LOGGER = logging.getLogger('SRVLOG')
@@ -57,6 +55,9 @@ class ProcessingExecutor:
 
     def __init__(self, processes: Iterable[WPSProcess]):
 
+        # Prevent circular reference
+        from .processfactory import get_process_factory
+
         maxqueuesize = confservice.getint('server', 'maxqueuesize')
 
         self._pool = create_client(maxqueuesize)
@@ -64,6 +65,7 @@ class ProcessingExecutor:
         self._factory = get_process_factory()
         self._reload_handler = None
         self._restart_files = []
+        self._background_tasks = set()
 
         self.processes = {p.identifier: p for p in processes}
 
@@ -101,7 +103,7 @@ class ProcessingExecutor:
             self._reload_handler = watchfiles(self._restart_files, callback, check_time)
             self._reload_handler.start()
 
-    def get_status(self, uuid=None, **kwargs) -> Iterator:
+    def get_status(self, uuid: Optional[str] = None, **kwargs) -> Iterator:
         """ Return status of the stored processes
 
             :param uuid: the uuid of the required process.
@@ -111,7 +113,7 @@ class ProcessingExecutor:
         """
         return logstore.get_status(uuid, **kwargs)
 
-    def kill_job(self, uuid, pid: Optional[int] = None) -> bool:
+    def kill_job(self, uuid: str, pid: Optional[int] = None) -> bool:
         """ Kill process job
 
             This will have no effects if the worker
@@ -129,7 +131,7 @@ class ProcessingExecutor:
 
         return self._factory.kill_worker_busy(pid)
 
-    def delete_results(self, uuid, force: bool = False) -> bool:
+    def delete_results(self, uuid: str, force: bool = False) -> bool:
         """ Delete process results and status
 
             :param uuid: the uuid of the required process.
@@ -191,7 +193,11 @@ class ProcessingExecutor:
         """
         return self.processes.values()
 
-    def get_processes(self, identifiers, map_uri=None):
+    def get_processes(
+        self,
+        identifiers: Sequence[str],
+        map_uri: Optional[str] = None,
+    ) -> List[WPSProcess]:
         """ Override executors.get_process
         """
         try:
@@ -208,16 +214,20 @@ class ProcessingExecutor:
                 return (map_uri, p.identifier) not in self._context_processes
 
             if any(_test(p) for p in processes):
-                processes = self._factory.create_contextualized_processes(identifiers, map_uri=map_uri)
+                processes = self._factory.create_contextualized_processes(
+                    identifiers,
+                    map_uri=map_uri,
+                )
+
                 # Update cache
                 for p in processes:
-                    self._context_processes[(map_uri, p.identifier)] = p
+                    self._context_processes[map_uri, p.identifier] = p
             else:
                 # Get from cache
-                processes = [self._context_processes[(map_uri, p.identifier)] for p in processes]
+                processes = [self._context_processes[map_uri, p.identifier] for p in processes]
         return processes
 
-    def reload_qgis_processes(self) -> None:
+    def reload_qgis_processes(self):
         """ Reload Qgis processes
         """
         factory = self._factory
@@ -229,7 +239,7 @@ class ProcessingExecutor:
             except ProcessException:
                 LOGGER.error("Failed to reload Qgis processes")
 
-    def schedule_cleanup(self) -> None:
+    def schedule_cleanup(self):
         """ Schedule a periodic cleanup
         """
         interval = confservice.getint('server', 'cleanup_interval')
@@ -246,7 +256,7 @@ class ProcessingExecutor:
         # Schedule the task
         self._cleanup_task = asyncio.ensure_future(_run_cleanup())
 
-    async def execute(self, wps_request, wps_response) -> Any:
+    async def execute(self, wps_request: WPSRequest, wps_response: WPSResponse) -> Any:
         """ Execute a process
 
             :return: wps_response or None
@@ -260,8 +270,11 @@ class ProcessingExecutor:
         # Get request defined timeout
         timeout = wps_request.timeout
 
-        apply_future = self._pool.apply_async(self._run_process, args=(process.handler, wps_request, wps_response),
-                                              timeout=timeout)
+        apply_future = self._pool.apply_async(
+            self._run_process,
+            args=(process.handler, wps_request, wps_response),
+            timeout=timeout,
+        )
 
         if wps_request.execute_async:
             # ---------------------------------
@@ -286,7 +299,8 @@ class ProcessingExecutor:
                     pass
 
             # Fire and forget
-            asyncio.ensure_future(do_execute_async())
+            task = asyncio.create_task(do_execute_async())
+            task.add_done_callback(self._background_tasks.discard)
 
             return wps_response.document
         else:
@@ -311,7 +325,11 @@ class ProcessingExecutor:
                     raise
 
     @staticmethod
-    def _run_process(handler, wps_request, wps_response) -> bytes:
+    def _run_process(
+        handler: WPSHandler,
+        wps_request: WPSRequest,
+        wps_response: WPSResponse,
+    ) -> bytes:
         """ Run WPS  process
 
             Note that there is nothing to return is async mode
@@ -340,7 +358,7 @@ class ProcessingExecutor:
             raise
 
     @staticmethod
-    def _clean_processes() -> None:
+    def _clean_processes():
         """ Clean up all processes
             Remove status and delete processes workdir
 
@@ -387,41 +405,33 @@ class ProcessingExecutor:
                 logstore.delete_response(uuid_str)
 
 
-if HAVE_PSUTIL:
-    @contextmanager
-    def memory_logger(response) -> None:
-        """ Log memory consumption
-        """
-        # Get the current process info
-        process = psutil.Process(os.getpid())
-        start_mem = process.memory_info().rss
-        mb = 1024 * 1024.0
-        ns = 1000000000.0
-        start_time = time.perf_counter_ns()
-        try:
-            yield
-        finally:
-            # Log memory infos
-            end_time = time.perf_counter_ns()
-            end_mem = process.memory_info().rss
-            LOGGER.info(
-                (
-                    "{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb "
-                    "delta={3:.3f}Mb "
-                    "duration: {5:.3f}s"
-                ).format(
-                    str(response.uuid)[:8],
-                    start_mem / mb,
-                    end_mem / mb,
-                    (end_mem - start_mem) / mb,
-                    response.process.identifier,
-                    (end_time - start_time) / ns,
-                )
-            )
-else:
-    @contextmanager
-    def memory_logger(response) -> None:
-        try:
-            yield
-        finally:
-            LOGGER.info("{4}:{0} memory stats not available")
+@contextmanager
+def memory_logger(response):
+    """ Log memory consumption
+    """
+    # Get the current process info
+    process = psutil.Process(os.getpid())
+    start_mem = process.memory_info().rss
+    mb = 1024 * 1024.0
+    ns = 1000000000.0
+    start_time = time.perf_counter_ns()
+    try:
+        yield
+    finally:
+        # Log memory infos
+        end_time = time.perf_counter_ns()
+        end_mem = process.memory_info().rss
+        LOGGER.info(
+            (
+                "{4}:{0} memory: start={1:.3f}Mb end={2:.3f}Mb "
+                "delta={3:.3f}Mb "
+                "duration: {5:.3f}s"
+            ).format(
+                str(response.uuid)[:8],
+                start_mem / mb,
+                end_mem / mb,
+                (end_mem - start_mem) / mb,
+                response.process.identifier,
+                (end_time - start_time) / ns,
+            ),
+        )

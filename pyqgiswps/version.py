@@ -10,7 +10,7 @@
 import sys
 
 
-def read_manifest() -> None:
+def read_manifest():
     from pkg_resources import resource_stream
 
     # Read build manifest
@@ -19,7 +19,7 @@ def read_manifest() -> None:
         manifest.update(line.decode().strip().split('=')[:2] for line in resource_stream('pyqgiswps',
                                                                                          'build.manifest').readlines())
     except Exception as e:
-        print("Failed to read manifest !: %s " % e, file=sys.stderr)
+        print(f"Failed to read manifest !: {e}", file=sys.stderr)  # noqa: T201
 
     return manifest
 

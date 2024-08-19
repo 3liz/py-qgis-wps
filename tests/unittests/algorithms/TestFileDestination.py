@@ -1,12 +1,7 @@
 """ Test file destination parsing
 """
 
-from qgis.core import (QgsProcessingParameterNumber,
-                       QgsProcessingParameterString,
-                       QgsProcessingOutputNumber,
-                       QgsProcessingOutputString,
-                       QgsProcessingParameterFileDestination,
-                       QgsProcessingAlgorithm)
+from qgis.core import QgsProcessingAlgorithm, QgsProcessingParameterFileDestination
 
 
 class TestFileDestination(QgsProcessingAlgorithm):
@@ -23,32 +18,31 @@ class TestFileDestination(QgsProcessingAlgorithm):
         return 'Test input file destination'
 
     def createInstance(self, config={}):
-        """ Virtual override 
+        """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         return self.__class__()
 
-    def initAlgorithm( self, config=None ):
+    def initAlgorithm(self, config=None):
         """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         param = QgsProcessingParameterFileDestination(self.OUTPUT,
             'JSON file',
-            'JSON Files (*.json)'
+            'JSON Files (*.json)',
         )
-        param.setMetadata({ 'wps:as_reference': True })
+        param.setMetadata({'wps:as_reference': True})
 
         self.addParameter(param)
 
     def processAlgorithm(self, parameters, context, feedback):
-        
+
         value = parameters[self.OUTPUT]
 
         # Create the output file
-        with open(value,'w') as fp:
+        with open(value, 'w') as fp:
             fp.write('{ "title": "hello json" }')
 
         return {self.OUTPUT: value}
-        

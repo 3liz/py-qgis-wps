@@ -8,26 +8,15 @@
 #
 
 
-import asyncio
-import lxml.etree
 import json
-from pyqgiswps.app import WPSProcess
-from pyqgiswps.inout import (Format,
-                             BoundingBoxOutput, 
-                             BoundingBoxInput, 
-                             ComplexInput, 
-                             ComplexOutput, 
-                             LiteralOutput,
-                             LiteralInput)
-from pyqgiswps.validator.base import emptyvalidator
-from pyqgiswps.validator.complexvalidator import validategml
-from pyqgiswps.exceptions import InvalidParameterValue
 
-from pyqgiswps.ogc.api.request import get_inputs_from_document, get_outputs_from_document
+from pyqgiswps.inout import BoundingBoxInput, ComplexInput, LiteralInput
+from pyqgiswps.ogc.api.request import get_inputs_from_document
 
 #
 # Tests for execution request json parser
 #
+
 
 def test_empty():
     request_doc = {}
@@ -37,8 +26,8 @@ def test_empty():
 def test_multiple_raw_input():
     request_doc = {
         'inputs': {
-            'name': [ 'foo', 'bar' ],
-        }
+            'name': ['foo', 'bar'],
+        },
     }
     rv = get_inputs_from_document(request_doc, {'name': LiteralInput})
     assert 'name' in rv
@@ -51,18 +40,18 @@ def test_multiple_raw_input():
 def test_multiple_qualified_input():
     request_doc = {
         'inputs': {
-            'name': [ 
-                { 'value': 'foo' }, 
-                { 'value': 'bar' }
+            'name': [
+                {'value': 'foo'},
+                {'value': 'bar'},
             ],
-        }
+        },
     }
     rv = get_inputs_from_document(request_doc, {'name': LiteralInput})
     assert 'name' in rv
     inpt = rv['name']
     assert isinstance(inpt, list)
     assert len(inpt) == 2
- 
+
     assert inpt[0]['data'] == 'foo'
     assert inpt[1]['data'] == 'bar'
 
@@ -72,15 +61,15 @@ def test_two_raw_inputs():
         'inputs': {
             'name1': 'foo',
             'name2': 'bar',
-        }
+        },
     }
 
     typeclasses = {
-        'name1': LiteralInput, 
+        'name1': LiteralInput,
         'name2': LiteralInput,
     }
 
-    rv = get_inputs_from_document(request_doc, typeclasses) 
+    rv = get_inputs_from_document(request_doc, typeclasses)
     assert rv['name1'][0]['data'] == 'foo'
     assert rv['name2'][0]['data'] == 'bar'
 
@@ -91,15 +80,15 @@ def test_complex_string_input():
         'inputs': {
             'name': {
                 'value': the_data,
-                'mediaType': 'text/foobar'
-            }
-        }
+                'mediaType': 'text/foobar',
+            },
+        },
     }
     rv = get_inputs_from_document(request_doc, {'name': ComplexInput})
     inpt = rv['name']
     assert isinstance(inpt, list)
     assert len(inpt) == 1
- 
+
     assert inpt[0]['mimeType'] == 'text/foobar'
     assert inpt[0]['data'] == 'hello world'
 
@@ -111,14 +100,14 @@ def test_complex_input_json_value():
             'json': {
                 'value': the_data,
                 'mediaType': 'application/json',
-            }
-        }
+            },
+        },
     }
     rv = get_inputs_from_document(request_doc, {'json': ComplexInput})
     inpt = rv['json']
     assert isinstance(inpt, list)
     assert len(inpt) == 1
- 
+
     assert inpt[0]['mimeType'] == 'application/json'
     json_data = json.loads(inpt[0]['data'])
     assert json_data['plot']['Version'] == '0.1'
@@ -133,10 +122,10 @@ def test_complex_input_base64_value():
                 'value': the_data,
                 'encoding': 'base64',
                 'mediaType': 'application/json',
-            }
-        }
+            },
+        },
     }
- 
+
     rv = get_inputs_from_document(request_doc, {'json': ComplexInput})
     inpt = rv['json']
     assert isinstance(inpt, list)
@@ -159,7 +148,7 @@ def test_bbox_input():
     inpt = rv['mybbox']
     assert isinstance(inpt, list)
     assert len(inpt) == 1
-    assert isinstance(inpt[0],dict)
+    assert isinstance(inpt[0], dict)
     assert inpt[0]['data'] == bbox
 
 
@@ -170,16 +159,15 @@ def test_reference_post_input():
                 'href': 'http://foo/bar/service',
                 'type': "text/xml",
                 'method': "POST",
-                'body': 'request body'
-            }
-        }
+                'body': 'request body',
+            },
+        },
     }
 
     rv = get_inputs_from_document(request_doc, {'name': ComplexInput})
     inpt = rv['name']
     assert len(inpt) == 1
-    assert isinstance(inpt[0],dict)
+    assert isinstance(inpt[0], dict)
     assert inpt[0]['href'] == 'http://foo/bar/service'
     assert inpt[0]['method'] == 'POST'
     assert inpt[0]['body'] == 'request body'
-

@@ -6,23 +6,29 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
-import os
 import tempfile
-import pytest
 
 from io import StringIO
-from pyqgiswps.inout.formats import Format
-from pyqgiswps.validator import get_validator
-from pyqgiswps.ogc.ows import NAMESPACES
-from pyqgiswps.inout.basic import IOHandler, SOURCE_TYPE, SimpleHandler, BBoxInput, BBoxOutput, \
-    ComplexInput, ComplexOutput, LiteralInput, LiteralOutput
-from pyqgiswps.inout import BoundingBoxInput as BoundingBoxInputXML
-from pyqgiswps.inout.literaltypes import convert, AllowedValues
-from pyqgiswps.validator.base import emptyvalidator
-from pyqgiswps.exceptions import InvalidParameterValue
-from pyqgiswps.validator.mode import MODE
 
-from lxml import etree
+import pytest
+
+from pyqgiswps.exceptions import InvalidParameterValue
+from pyqgiswps.inout.basic import (
+    SOURCE_TYPE,
+    BBoxInput,
+    BBoxOutput,
+    ComplexInput,
+    ComplexOutput,
+    IOHandler,
+    LiteralInput,
+    LiteralOutput,
+    SimpleHandler,
+)
+from pyqgiswps.inout.formats import Format
+from pyqgiswps.inout.literaltypes import AllowedValues, convert
+from pyqgiswps.validator import get_validator
+from pyqgiswps.validator.base import emptyvalidator
+from pyqgiswps.validator.mode import MODE
 
 
 def get_data_format(mime_type):
@@ -65,7 +71,7 @@ class TestIOHandler:
         stream_val = self.iohandler.stream.read()
         self.iohandler.stream.close()
 
-        if type(stream_val) == bytes:
+        if isinstance(stream_val, bytes):
             assert str.encode(self._value) == stream_val
         else:
             assert self._value == stream_val
@@ -87,7 +93,7 @@ class TestIOHandler:
 
     def test_file(self):
         """Test file input IOHandler"""
-        (fd, tmp_file) = tempfile.mkstemp()
+        (_fd, tmp_file) = tempfile.mkstemp()
         source = tmp_file
         file_handler = open(tmp_file, 'w')
         file_handler.write(self._value)
@@ -113,6 +119,7 @@ class TestComplexInput:
         assert self.complex_in.data_format.validate == get_validator('application/json')
         assert self.complex_in.validator == get_validator('application/json')
         frmt = get_data_format('application/json')
+
         def my_validate():
             return True
         frmt.validate = my_validate
@@ -142,7 +149,6 @@ class TestComplexOutput:
     """ComplexOutput test cases"""
 
     def setup_method(self, me):
-        tmp_dir = tempfile.mkdtemp()
         data_format = get_data_format('application/json')
         self.complex_out = ComplexOutput(identifier="complexinput",
                                          data_format=data_format,
@@ -163,7 +169,6 @@ class TestComplexOutput:
 
     def test_validator(self):
         assert self.complex_out.validator == get_validator('application/json')
-
 
 
 class TestSimpleHandler:
@@ -187,7 +192,7 @@ class TestLiteralInput:
         self.literal_input = LiteralInput(
             identifier="literalinput",
             mode=2,
-            allowed_values=AllowedValues(values=(1, 2))
+            allowed_values=AllowedValues(values=(1, 2)),
         )
 
     def test_contruct(self):
@@ -198,7 +203,7 @@ class TestLiteralInput:
     def test_valid(self):
         self.literal_input.data = 1
         assert self.literal_input.data == 1
-        
+
         with pytest.raises(InvalidParameterValue):
             self.literal_input.data = 5
 
@@ -221,7 +226,7 @@ class TestLiteralInput:
         assert out['identifier'] == 'literalinput', 'identifier set'
         assert out['type'] == 'literal', 'it\'s literal input'
         assert not out['uom'], 'uom exists'
-        assert out['allowed_values']['values'] == [1,2], 'allowed values [1, 2]'
+        assert out['allowed_values']['values'] == [1, 2], 'allowed values [1, 2]'
 
 
 class TestLiteralOutput:
@@ -277,4 +282,3 @@ class TestBoxOutput:
         storage = Storage()
         self.bbox_out.store = storage
         assert self.bbox_out.store == storage
-

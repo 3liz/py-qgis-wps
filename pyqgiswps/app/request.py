@@ -11,26 +11,21 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-import logging
 import json
+import logging
 
+from typing import Optional
 from urllib.parse import (
+    urljoin,
     urlparse,
     urlunparse,
-    urljoin,
 )
 
-from pyqgiswps.executors.logstore import STATUS, logstore
-from pyqgiswps.exceptions import NoApplicableCode
-from pyqgiswps.config import confservice
-
-from typing import TypeVar, Optional
+from ..config import confservice
+from ..exceptions import NoApplicableCode
+from ..executors.logstore import STATUS, logstore
 
 LOGGER = logging.getLogger('SRVLOG')
-
-
-Service = TypeVar('Service')
-UUID = TypeVar('UUID')
 
 
 class WPSRequest:

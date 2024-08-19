@@ -1,6 +1,7 @@
+import processing
+
 from qgis.processing import alg
 
-import processing
 
 @alg(name='testcliprasterlayer', label='Test Clip Raster Layer', group='test', group_label='Test scripts')
 @alg.input(type=alg.RASTER_LAYER, name='INPUT', label='Raster Layer')
@@ -13,14 +14,13 @@ def testcliprasterlayer(instance, parameters, context, feedback, inputs):
     output = instance.parameterAsOutputLayer(parameters, 'OUTPUT', context)
 
     # Run clip
-    clip_result = processing.run("gdal:cliprasterbyextent", {
+    _clip_result = processing.run("gdal:cliprasterbyextent", {
         'INPUT': parameters['INPUT'],
         'PROJWIN': parameters['EXTENT'],
         'NODATA': None,
         'OPTIONS': '',
         'DATA_TYPE': 0,
-        'OUTPUT': output
+        'OUTPUT': output,
     }, context=context, feedback=feedback)
 
-    return { 'OUTPUT': output }
-
+    return {'OUTPUT': output}

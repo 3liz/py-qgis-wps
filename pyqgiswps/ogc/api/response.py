@@ -6,19 +6,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-import logging
 import json
+import logging
 
 from datetime import datetime
+from enum import Enum
 
 from pyqgiswps.app.request import WPSResponse
-
-from enum import Enum
-from typing import TypeVar
-
-UUID = TypeVar('UUID')
-Json = TypeVar('Json')
-Service = TypeVar('Service')
+from pyqgiswps.protos import JsonValue
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -39,12 +34,12 @@ class OgcApiResponse(WPSResponse):
 
     JOBSTATUS = JOBSTATUS
 
-    def encode_response(self, doc: Json) -> bytes:
+    def encode_response(self, doc: JsonValue) -> bytes:
         """ Return response a bytes
         """
         return json.dumps(doc, ensure_ascii=False).encode()
 
-    def get_status_links(self) -> Json:
+    def get_status_links(self) -> JsonValue:
         host_url = self.wps_request.host_url
         return [{
             'href': f"{host_url}/jobs/{self.uuid}",
@@ -53,7 +48,7 @@ class OgcApiResponse(WPSResponse):
             'title': 'job status',
         }]
 
-    def get_execute_response(self) -> Json:
+    def get_execute_response(self) -> JsonValue:
         """ Construct the execute Json response
 
             The method return None until job completion

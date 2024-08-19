@@ -11,9 +11,12 @@
 # and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
+from typing import Union
 
-
-from pyqgiswps.inout.inputs import LiteralInput, ComplexInput, BoundingBoxInput     # noqa F401
-from pyqgiswps.inout.outputs import LiteralOutput, ComplexOutput, BoundingBoxOutput  # noqa F401
-from pyqgiswps.inout.formats import Format, FORMATS, get_format                     # noqa F401
 from pyqgiswps.inout.basic import UOM  # noqa F401
+from pyqgiswps.inout.formats import FORMATS, Format, get_format  # noqa F401
+from pyqgiswps.inout.inputs import BoundingBoxInput, ComplexInput, LiteralInput
+from pyqgiswps.inout.outputs import BoundingBoxOutput, ComplexOutput, LiteralOutput
+
+WPSInput = Union[LiteralInput, ComplexInput, BoundingBoxInput]
+WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]

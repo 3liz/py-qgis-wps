@@ -1,5 +1,6 @@
 from qgis.processing import alg
 
+
 @alg(name='testalgfactory', label='test 2', group='test', group_label='Test scripts')
 @alg.input(type=alg.STRING, name="IN1", label='In string')
 @alg.input(type=str, name='IN2', label='In string 1', optional=True)
@@ -15,6 +16,5 @@ def testalg(instance, parms, context, feedback, inputs):
     feedback.pushInfo(inputs['IN2'])
     feedback.pushInfo(inputs['IN3'])
     return {
-      'OUT': 'wat'
+      'OUT': 'wat',
     }
-

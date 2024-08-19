@@ -9,16 +9,17 @@
 
 import tornado
 
-from .basehandler import BaseHandler
-from ..version import __version__
 from ..config import config_to_dict
+from ..version import __version__
+from .basehandler import BaseHandler
 
 
 class ServerInfosHandler(BaseHandler):
     def get(self):
         try:
-            from qgis.core import Qgis
             from processing.core.Processing import RenderingStyles
+
+            from qgis.core import Qgis
             QGIS_VERSION = f"{Qgis.QGIS_VERSION_INT} ({Qgis.QGIS_RELEASE_NAME})"
             styles = RenderingStyles.styles
         except ImportError:
@@ -65,37 +66,37 @@ class LandingPageHandler(BaseHandler):
                     'href': f'{root}',
                     'rel': 'self',
                     'type': 'application/json',
-                    'title': 'This document'
+                    'title': 'This document',
                 },
                 {
                     'href': f'{root}api',
                     'rel': 'service-desc',
                     'type': 'application/json',
-                    'title': 'API definition for this endpoint'
+                    'title': 'API definition for this endpoint',
                 },
                 {
                     'href': f'{root}conformance',
                     'rel': 'http://www.opengis.net/def/rel/ogc/1.0/conformance',
                     'type': 'application/json',
-                    'title': 'OGC API - Processes conformance classes implemented by this server'
+                    'title': 'OGC API - Processes conformance classes implemented by this server',
                 },
                 {
                     'href': f'{root}processes',
                     'rel': 'http://www.opengis.net/def/rel/ogc/1.0/processes',
                     'type': 'application/json',
-                    'title': 'Metadata about the processes'
+                    'title': 'Metadata about the processes',
                 },
                 {
                     'href': f'{root}jobs',
                     'type': 'application/json',
                     'rel': 'http://www.opengis.net/def/rel/ogc/1.0/job-list',
-                    'title': 'The endpoint for job monitoring'
+                    'title': 'The endpoint for job monitoring',
                 },
                 {
                     'href': f'{root}jobs.html',
                     'type': 'text/html',
                     'rel': 'http://www.opengis.net/def/rel/ogc/1.0/job-list',
-                    'title': 'The endpoint for job monitoring as HTML'
+                    'title': 'The endpoint for job monitoring as HTML',
                 },
             ],
         }

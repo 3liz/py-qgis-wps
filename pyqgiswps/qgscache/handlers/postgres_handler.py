@@ -32,14 +32,14 @@
 import logging
 import urllib.parse
 
-import psycopg2
-
+from datetime import datetime
+from typing import Optional, Tuple
 from urllib.parse import parse_qs
 
-from typing import Tuple
-from datetime import datetime
+import psycopg2
 
 from qgis.core import QgsProject
+
 from pyqgisservercontrib.core import componentmanager
 
 LOGGER = logging.getLogger('SRVLOG')
@@ -55,8 +55,12 @@ class PostgresProtocolHandler:
     def __init__(self):
         pass
 
-    def get_project(self, url: urllib.parse.ParseResult, project: QgsProject = None,
-                    timestamp: datetime = None) -> Tuple[QgsProject, datetime]:
+    def get_project(
+        self,
+        url: urllib.parse.ParseResult,
+        project: Optional[QgsProject] = None,
+        timestamp: Optional[datetime] = None,
+    ) -> Tuple[QgsProject, datetime]:
         """ Create or return a proect
         """
         params = {k: v[0] for k, v in parse_qs(url.query).items()}
@@ -76,7 +80,7 @@ class PostgresProtocolHandler:
             password=url.password,
             database=database,
             # Treats remaining params as supported psql client options
-            **params
+            **params,
         )
 
         # Connect to database and check modification time

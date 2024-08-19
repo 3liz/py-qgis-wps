@@ -11,35 +11,32 @@
 # and released under MIT license.
 # Please consult PYWPS_LICENCE.txt for details
 #
-import logging
 import base64
+import logging
 
 from datetime import datetime
+from typing import Dict, Optional
+from uuid import UUID
 
+from pyqgiswps.accesspolicy import AccessPolicy
+from pyqgiswps.app.process import WPSProcess
 from pyqgiswps.app.request import WPSRequest, WPSResponse
 from pyqgiswps.exceptions import (
-    NoApplicableCode,
     InvalidParameterValue,
+    NoApplicableCode,
 )
-from typing import TypeVar, Optional
-
-from .response import OgcApiResponse, JOBSTATUS
-
-from ..ogc import OGC_CONFORMANCE_NS
-
 from pyqgiswps.inout import (
-    BoundingBoxOutput,
     BoundingBoxInput,
+    BoundingBoxOutput,
     ComplexInput,
     ComplexOutput,
+    LiteralInput,
     LiteralOutput,
-    LiteralInput
 )
+from pyqgiswps.protos import JsonValue, Service
 
-AccessPolicy = TypeVar('AccessPolicy')
-Service = TypeVar('Service')
-UUID = TypeVar('UUID')
-Json = TypeVar('Json')
+from ..ogc import OGC_CONFORMANCE_NS
+from .response import JOBSTATUS, OgcApiResponse
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -50,7 +47,7 @@ SCHEMA_VERSIONS = ('1.0.0',)
 class OgcApiRequest(WPSRequest):
 
     # Create response
-    def create_response(self, process, uuid) -> OgcApiResponse:
+    def create_response(self, process: WPSProcess, uuid: UUID) -> OgcApiResponse:
         """ Create the response for execute request for
             handling OGC api Response
         """
@@ -64,10 +61,10 @@ class OgcApiRequest(WPSRequest):
     #
     # /processes
     #
-    def get_process_list(self, service: Service, accesspolicy: AccessPolicy) -> Json:
+    def get_process_list(self, service: Service, accesspolicy: AccessPolicy) -> JsonValue:
         """ Handle getcapbabilities request
         """
-        def make_links(js: Json) -> Json:
+        def make_links(js: JsonValue) -> JsonValue:
             js['links'] = [
                 {
                     'href': f"{self.host_url}processes/{js['id']}",
@@ -89,14 +86,14 @@ class OgcApiRequest(WPSRequest):
                     'rel': "self",
                     'type': "application/json",
                 },
-            ]
+            ],
         }
         return content
 
     #
     # /processes/{id}
     #
-    def get_process_description(self, ident: str, service: Service) -> Json:
+    def get_process_description(self, ident: str, service: Service) -> JsonValue:
 
         self.identifiers = [ident]
         process = service.get_processes(self.identifiers, map_uri=self.map_uri)[0]
@@ -113,7 +110,7 @@ class OgcApiRequest(WPSRequest):
                 'href': f"{self.host_url}processes/{ident}",
                 'rel': "self",
                 'type': "application/json",
-                'title': "Process description"
+                'title': "Process description",
             },
         ]
         return content
@@ -121,10 +118,10 @@ class OgcApiRequest(WPSRequest):
     #
     # /processes/{id}/execution
     #
-    async def execute(self, ident: str, job_id: UUID, doc: Json, service: Service,
+    async def execute(self, ident: str, job_id: UUID, doc: JsonValue, service: Service,
                       timeout: Optional[int] = None,
                       expire: Optional[int] = None,
-                      execute_async: bool = True) -> Json:
+                      execute_async: bool = True) -> JsonValue:
 
         # Raise if process is not found
         process = service.get_process(ident, map_uri=self.map_uri)
@@ -176,7 +173,7 @@ class OgcApiRequest(WPSRequest):
 
     # Jobs
 
-    def _create_job_document(self, store) -> Json:
+    def _create_job_document(self, store: Dict) -> object:
         """ Return job status
         """
         ident = store['uuid']
@@ -186,7 +183,7 @@ class OgcApiRequest(WPSRequest):
                 'href': f"{self.host_url}jobs/{ident}",
                 'rel': 'self',
                 'type': 'application/json',
-                'title': "This document"
+                'title': "This document",
             },
             {
                 'href': f"{self.host_url}jobs/{ident}.html",
@@ -241,14 +238,14 @@ class OgcApiRequest(WPSRequest):
                     'href': f"{self.host_url}jobs/{ident}/results",
                     'rel': "http://www.opengis.net/def/rel/ogc/1.0/results",
                     'type': 'application/json',
-                    'title': "Job results"
+                    'title': "Job results",
                 })
             elif conformance == OGC_CONFORMANCE_NS.OWS_WPS:
                 links.append({
                     'href': f"{self.host_url}ows/?service=WPS&request=GetResults&uuid={ident}",
                     'rel': "http://www.opengis.net/wps/1.0.0",
                     'type': 'text/xml',
-                    'title': "Job results"
+                    'title': "Job results",
                 })
         elif status == WPSResponse.STATUS.ERROR_STATUS:
             doc.update(status=JOBSTATUS.FAILED.value)
@@ -260,13 +257,13 @@ class OgcApiRequest(WPSRequest):
                     'href': f"{self.host_url}jobs",
                     'rel': "up",
                     'type': "application/json",
-                    'title': "Job list"
-                }]
+                    'title': "Job list",
+                }],
             )
 
         return doc
 
-    def get_ogcapi_job_status(self, ident: str, service: Service) -> Json:
+    def get_ogcapi_job_status(self, ident: str, service: Service) -> JsonValue:
         """ Return job status
         """
         store = service.get_status(ident)
@@ -279,7 +276,7 @@ class OgcApiRequest(WPSRequest):
 
         return self._create_job_document(store)
 
-    def get_ogcapi_job_list(self, service: Service) -> Json:
+    def get_ogcapi_job_list(self, service: Service) -> JsonValue:
         """ Return job list
         """
         jobs = service.get_status()
@@ -308,7 +305,7 @@ class OgcApiRequest(WPSRequest):
 
         return doc
 
-    def get_ogcapi_job_dismiss(self, ident: str, service: Service) -> Json:
+    def get_ogcapi_job_dismiss(self, ident: str, service: Service) -> JsonValue:
         """ Return job status
         """
         store = service.get_status(ident)
@@ -337,7 +334,7 @@ class OgcApiRequest(WPSRequest):
             'href': f"{self.host_url}jobs/",
             'rel': "up",
             'type': "application/json",
-            'title': "Job list"
+            'title': "Job list",
         }]
 
         # Return creation status
@@ -407,7 +404,7 @@ def get_inputs_from_document(doc, typeclasses):
                 yield ident, inpts
             except KeyError as err:
                 raise InvalidParameterValue(
-                    f"Missing property '{err}' for input '{ident}'"
+                    f"Missing property '{err}' for input '{ident}'",
                 ) from None
 
     return dict(_inputs())

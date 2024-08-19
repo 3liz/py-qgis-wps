@@ -12,28 +12,22 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-from io import StringIO, FileIO, BytesIO
-from enum import Enum
-
-import os
+import base64
 import logging
+import os
 
-from pyqgiswps.inout.literaltypes import (LITERAL_DATA_TYPES,
-                                          convert,
-                                          is_anyvalue,
-                                          to_json_serializable)
-from pyqgiswps.validator.mode import MODE
-from pyqgiswps.validator.base import emptyvalidator
-from pyqgiswps.validator import get_validator
-from pyqgiswps.validator.literalvalidator import (validate_anyvalue,
-                                                  validate_allowed_values)
+from enum import Enum
+from io import BytesIO, FileIO, StringIO
+from typing import List, Optional
+
 from pyqgiswps.exceptions import InvalidParameterValue
 from pyqgiswps.inout.formats import Format
+from pyqgiswps.inout.literaltypes import LITERAL_DATA_TYPES, convert, is_anyvalue, to_json_serializable
 from pyqgiswps.inout.uoms import UOM
-
-import base64
-
-from typing import List, Optional
+from pyqgiswps.validator import get_validator
+from pyqgiswps.validator.base import emptyvalidator
+from pyqgiswps.validator.literalvalidator import validate_allowed_values, validate_anyvalue
+from pyqgiswps.validator.mode import MODE
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -58,7 +52,7 @@ class BasicHandler:
         _valid = validate(self, self.valid_mode)
         if not _valid:
             raise InvalidParameterValue(
-                f"Input data not valid using mode '{self.valid_mode}'"
+                f"Input data not valid using mode '{self.valid_mode}'",
             )
 
     @property
@@ -235,7 +229,7 @@ class BasicLiteral:
             uom = self.get_supported_uom(uom)
             if uom is None:
                 raise InvalidParameterValue(
-                    f"Requested unit '{uom}' not supported"
+                    f"Requested unit '{uom}' not supported",
                 )
         self._uom = uom
 
@@ -250,8 +244,11 @@ class BasicComplex:
     """Basic complex input/output class
 
     """
-
-    def __init__(self, data_format=None, supported_formats: List[Format] = None):
+    def __init__(
+        self,
+        data_format: Optional[Format] = None,
+        supported_formats: Optional[List[Format]] = None,
+    ):
         self._data_format = None
         self._supported_formats = []
         if supported_formats:
@@ -306,12 +303,14 @@ class BasicComplex:
             if not data_format.validate or data_format.validate == emptyvalidator:
                 data_format.validate = get_validator(data_format.mime_type)
         else:
-            raise InvalidParameterValue("Requested format "
-                                        "%s, %s, %s not supported" %
-                                        (data_format.mime_type,
-                                         data_format.encoding,
-                                         data_format.schema),
-                                        'mimeType')
+            raise InvalidParameterValue(
+                "Requested format "
+                f"{data_format.mime_type},"
+                f"{data_format.encoding},"
+                f"{data_format.schema},"
+                "not supported",
+                'mimeType',
+            )
 
     def _is_supported(self, data_format):
         """ Always return True if
@@ -395,7 +394,7 @@ class LiteralInput(BasicIO, BasicLiteral, SimpleHandler):
             'uoms': [uom.json for uom in self._supported_uoms],
             'uom': self._uom.json if self._uom is not None else None,
             'mode': self.valid_mode,
-            'data': to_json_serializable(self.data)
+            'data': to_json_serializable(self.data),
         }
 
 
@@ -476,7 +475,7 @@ class ComplexInput(BasicIO, BasicComplex, IOHandler):
             'data_format': self.data_format.json if self.data_format else None,
             'supported_formats': [frmt.json for frmt in self.supported_formats],
             'file': self.file,
-            'mode': self.valid_mode
+            'mode': self.valid_mode,
         }
 
 
@@ -484,9 +483,15 @@ class ComplexOutput(BasicIO, BasicComplex, IOHandler):
     """Complex output abstract class
     """
 
-    def __init__(self, identifier, title=None, abstract=None,
-                 data_format=None, supported_formats=None,
-                 mode=MODE.NONE):
+    def __init__(
+        self,
+        identifier: str,
+        title: Optional[str] = None,
+        abstract: Optional[str] = None,
+        data_format: Optional[Format] = None,
+        supported_formats: Optional[List[Format]] = None,
+        mode: MODE = MODE.NONE,
+    ):
         BasicIO.__init__(self, identifier, title, abstract)
         IOHandler.__init__(self, mode=mode)
         BasicComplex.__init__(self, data_format, supported_formats)

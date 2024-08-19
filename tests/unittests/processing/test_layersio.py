@@ -1,43 +1,30 @@
 """
     Test Processing file io
 """
+from urllib.parse import parse_qs, urlencode, urlparse
+
 import pytest
 
-from urllib.parse import urlparse, parse_qs, urlencode
-
-from pyqgiswps.app import WPSProcess, Service
-from pyqgiswps.executors.processfactory import get_process_factory
-from pyqgiswps.tests import HTTPTestCase, assert_response_accepted, chconfig
-from time import sleep
-from test_common import async_test
-
-from qgis.core import (QgsProcessingContext,
-                       QgsProcessingParameterVectorLayer,
-                       QgsProcessingParameterVectorDestination,
-                       QgsProcessingParameterRasterDestination,
-                       QgsProcessingParameterMeshLayer,
-                       QgsProcessingOutputLayerDefinition,
-                       QgsProject,)
-
+from qgis.core import (
+    QgsProcessingContext,
+    QgsProcessingOutputLayerDefinition,
+    QgsProcessingParameterMeshLayer,
+    QgsProcessingParameterRasterDestination,
+    QgsProcessingParameterVectorDestination,
+    QgsProcessingParameterVectorLayer,
+    QgsProject,
+)
 
 from pyqgiswps.executors.io import layersio
-from pyqgiswps.executors.processingio import(
-            parse_input_definition,
-            parse_output_definition,
-        )
+from pyqgiswps.executors.processfactory import get_process_factory
+from pyqgiswps.executors.processingio import (
+    parse_input_definition,
+)
+from pyqgiswps.executors.processingprocess import MapContext, _find_algorithm
+from pyqgiswps.tests import HTTPTestCase, chconfig
 
-from pyqgiswps.executors.processingprocess import (
-            MapContext,
-            ProcessingContext,
-            _find_algorithm
-        )
 
-from pyqgiswps.exceptions import (NoApplicableCode,
-                                  InvalidParameterValue,
-                                  MissingParameterValue,
-                                  ProcessException)
-
-def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
+def get_metadata(inp, name, minOccurence=1, maxOccurence=None):
     if maxOccurence is None:
         maxOccurence = minOccurence
     assert minOccurence <= maxOccurence
@@ -45,7 +32,6 @@ def get_metadata( inp, name, minOccurence=1, maxOccurence=None ):
     assert len(m) >= minOccurence
     assert len(m) <= maxOccurence
     return m
-
 
 
 def test_layer_scheme():
@@ -58,7 +44,7 @@ def test_layer_scheme():
 
     context = QgsProcessingContext()
 
-    value = layersio.get_processing_value( param, [inp], context)
+    value = layersio.get_processing_value(param, [inp], context)
     assert value == "layername"
 
 
@@ -72,7 +58,7 @@ def test_arbitrary_layer_scheme():
 
     context = QgsProcessingContext()
 
-    value = layersio.get_processing_value( param, [inp], context)
+    value = layersio.get_processing_value(param, [inp], context)
     assert value == "foobar:layername"
 
 
@@ -81,32 +67,33 @@ def test_multilayer_with_selection():
     """
     alg = _find_algorithm('pyqgiswps_test:testinputmultilayer')
     context = MapContext('france_parts.qgs')
-    inputs  = { p.name(): [parse_input_definition(p,alg,context)] for p in  alg.parameterDefinitions() }
+    inputs = {p.name(): [parse_input_definition(p, alg, context)] for p in alg.parameterDefinitions()}
 
     inpt = inputs['INPUT'][0]
-    allowed_values = { value for value in inpt.allowed_values.values }
+    allowed_values = {value for value in inpt.allowed_values.values}
 
     assert 'france_parts' in allowed_values
-    data = 'layer:france_parts?'+urlencode((('select','OBJECTID=2662 OR OBJECTID=2664'),))
+    data = 'layer:france_parts?' + urlencode((('select', 'OBJECTID=2662 OR OBJECTID=2664'),))
 
     inpt.data = data
-    #self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE))
+    # self.assertTrue(validate_allowed_values(inpt, MODE.SIMPLE))
 
 
 def test_vector_default_fileext():
     """ Tests default vector file extension config
     """
     param = QgsProcessingParameterVectorDestination("LAYER", "")
-    with chconfig('processing','vector.fileext','csv'):
-        ext, defval = layersio.get_default_destination_values(param,None)
+    with chconfig('processing', 'vector.fileext', 'csv'):
+        ext, _defval = layersio.get_default_destination_values(param, None)
         assert ext == 'csv'
+
 
 def test_raster_default_fileext():
     """ Tests default vector file extension config
     """
     param = QgsProcessingParameterRasterDestination("LAYER", "")
-    with chconfig('processing','raster.fileext','foo'):
-        ext, defval = layersio.get_default_destination_values(param,None)
+    with chconfig('processing', 'raster.fileext', 'foo'):
+        ext, _defval = layersio.get_default_destination_values(param, None)
         assert ext == 'foo'
 
 
@@ -127,37 +114,37 @@ def test_layer_destination():
     context.destination_project = None
 
     inp.data = "bar"
-    value = layersio.get_processing_value( param, [inp], context)
+    value = layersio.get_processing_value(param, [inp], context)
     assert isinstance(value, QgsProcessingOutputLayerDefinition)
     assert value.destinationName == 'bar'
     assert value.sink.staticValue() == './LAYER.shp'
 
     # Check unsafe option
-    with chconfig('processing','unsafe.raw_destination_input_sink','yes'):
+    with chconfig('processing', 'unsafe.raw_destination_input_sink', 'yes'):
         inp.data = "/foobar.csv"
-        value = layersio.get_processing_value( param, [inp], context)
+        value = layersio.get_processing_value(param, [inp], context)
         assert value.destinationName == 'foobar'
         assert value.sink.staticValue() == 'foobar.csv'
 
     # Check unsafe option with default extension
-    with chconfig('processing','unsafe.raw_destination_input_sink','yes'):
+    with chconfig('processing', 'unsafe.raw_destination_input_sink', 'yes'):
         inp.data = "/foobar"
-        value = layersio.get_processing_value( param, [inp], context)
+        value = layersio.get_processing_value(param, [inp], context)
         assert value.destinationName == 'foobar'
         assert value.sink.staticValue() == 'foobar.shp'
 
     # Check unsafe option with layername
-    with chconfig('processing','unsafe.raw_destination_input_sink','yes'),\
-         chconfig('processing','destination_root_path','/unsafe'):
+    with chconfig('processing', 'unsafe.raw_destination_input_sink', 'yes'),\
+        chconfig('processing', 'destination_root_path', '/unsafe'):
         inp.data = "file:/path/to/foobar.csv|layername=foobaz"
-        value = layersio.get_processing_value( param, [inp], context)
+        value = layersio.get_processing_value(param, [inp], context)
         assert value.destinationName == 'foobaz'
         assert value.sink.staticValue() == '/unsafe/path/to/foobar.csv'
 
-     # Check unsafe option with url
-    with chconfig('processing','unsafe.raw_destination_input_sink','yes'):
+    # Check unsafe option with url
+    with chconfig('processing', 'unsafe.raw_destination_input_sink', 'yes'):
         inp.data = "postgres://service=foobar|layername=foobaz"
-        value = layersio.get_processing_value( param, [inp], context)
+        value = layersio.get_processing_value(param, [inp], context)
         assert value.destinationName == 'foobaz'
         assert value.sink.staticValue() == 'postgres://service=foobar'
 
@@ -172,7 +159,7 @@ def test_mesh_layer():
 
     context = QgsProcessingContext()
 
-    value = layersio.get_processing_value( param, [inp], context)
+    value = layersio.get_processing_value(param, [inp], context)
     assert value == "layername"
 
 
@@ -210,7 +197,7 @@ class TestsLayerIO(HTTPTestCase):
         uuid = q['uuid'][0]
 
         # Get the project
-        project_path = self.workdir/uuid/'pyqgiswps_test_testcopylayer.qgs'
+        project_path = self.workdir / uuid / 'pyqgiswps_test_testcopylayer.qgs'
         assert project_path.is_file()
 
         project = QgsProject()

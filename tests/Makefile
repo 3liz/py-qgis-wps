@@ -31,6 +31,7 @@ TESTS_MEMORY_LIMITS:=2g
 WORKERS:=1
 
 env:
+	mkdir -p .local .cache data
 	@echo "Creating environment file for docker-compose"
 	@cat <<-EOF > .env
 		BECOME_USER=$(BECOME_USER)

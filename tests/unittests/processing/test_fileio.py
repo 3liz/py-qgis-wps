@@ -1,32 +1,17 @@
 """
     Test Processing file io
 """
-import pytest
 from pathlib import Path
 
-from pyqgiswps.app import WPSProcess, Service
-from pyqgiswps.tests import HTTPTestCase, assert_response_accepted
+from qgis.core import QgsProcessingContext, QgsProcessingParameterFile, QgsProcessingParameterFileDestination
+
 from pyqgiswps.executors.io import filesio
 from pyqgiswps.executors.processfactory import get_process_factory
-
-from pyqgiswps.inout import (LiteralInput, 
-                             ComplexInput,
-                             LiteralOutput, 
-                             ComplexOutput)
-
-from time import sleep
-from test_common import async_test
-
-from qgis.core import (QgsProcessingContext,
-                       QgsProcessingParameterFile,
-                       QgsProcessingParameterFileDestination)
-
-
-from pyqgiswps.executors.io import filesio
-from pyqgiswps.executors.processingio import(
-            parse_input_definition,
-            parse_output_definition,
-        )
+from pyqgiswps.executors.processingio import (
+    parse_input_definition,
+)
+from pyqgiswps.inout import ComplexInput
+from pyqgiswps.tests import HTTPTestCase
 
 
 class TestsFileIO(HTTPTestCase):
@@ -42,14 +27,12 @@ class TestsFileIO(HTTPTestCase):
         rv = self.client.get(uri, path='')
         assert rv.status_code == 200
 
-
     def test_output_file_describeprocess(self):
         """ Test output file
         """
         uri = ('/ows/?service=WPS&request=DescribeProcess&Identifier=pyqgiswps_test:testoutputfile&Version=1.0.0')
         rv = self.client.get(uri, path='')
         assert rv.status_code == 200
-
 
     def test_output_file(self):
         """ Test output file
@@ -66,6 +49,7 @@ class TestsFileIO(HTTPTestCase):
         assert len(output) == 1
         assert output[0].get('mimeType') == "application/json"
 
+
 def test_file_destination_io():
     """
     """
@@ -77,32 +61,31 @@ def test_file_destination_io():
     inp.data = "foobar"
 
     context = QgsProcessingContext()
-    value = filesio.get_processing_value( param, [inp], context)
+    value = filesio.get_processing_value(param, [inp], context)
 
     assert value == 'foobar.csv'
 
 
-def test_file_input( outputdir ):
+def test_file_input(outputdir):
     """ Test file parameter
     """
     param = QgsProcessingParameterFile("FILE", extension=".txt")
 
     inp = parse_input_definition(param)
 
-    assert isinstance(inp,ComplexInput)
-    assert inp.as_reference == False
+    assert isinstance(inp, ComplexInput)
+    assert not inp.as_reference
 
     inp.data = "Hello world"
 
     context = QgsProcessingContext()
     context.workdir = str(outputdir)
 
-    value = filesio.get_processing_value( param, [inp], context)
+    value = filesio.get_processing_value(param, [inp], context)
 
-    outputpath = (Path(context.workdir)/param.name()).with_suffix(param.extension())
+    outputpath = (Path(context.workdir) / param.name()).with_suffix(param.extension())
     assert value == outputpath.name
     assert outputpath.exists()
-    
+
     with outputpath.open('r') as f:
         assert f.read() == inp.data
-

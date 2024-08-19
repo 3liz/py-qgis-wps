@@ -12,16 +12,23 @@
 """
 
 import asyncio
-import zmq
-import zmq.asyncio
 import logging
-import uuid
 import pickle
 import traceback
+import uuid
 
-from typing import Callable, Any
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Mapping,
+    Sequence,
+)
 
-from .utils import _get_ipc, WORKER_READY, WORKER_DONE
+import zmq
+import zmq.asyncio
+
+from .utils import WORKER_DONE, WORKER_READY, _get_ipc
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -49,7 +56,7 @@ class MaxRequestsExceeded(Exception):
 
 class _Client:
 
-    def __init__(self, bindaddr: str, maxqueue: int = 100) -> None:
+    def __init__(self, bindaddr: str, maxqueue: int = 100):
 
         context = zmq.asyncio.Context.instance()
 
@@ -69,13 +76,13 @@ class _Client:
         # Start polling
         self._polling = asyncio.ensure_future(self._poll())
 
-    def _put_worker(self, worker_id) -> None:
+    def _put_worker(self, worker_id):
         if worker_id not in self._worker_s:
             LOGGER.debug("WORKER READY %s", worker_id)
             self._worker_s.append(worker_id)
             self._worker_q.put_nowait(worker_id)
 
-    def _remove_worker(self, worker_id) -> None:
+    def _remove_worker(self, worker_id):
         if worker_id in self._worker_s:
             LOGGER.debug("WORKER GONE %s", worker_id)
             self._worker_s.remove(worker_id)
@@ -91,7 +98,7 @@ class _Client:
                 pass
         return worker_id
 
-    async def _poll(self) -> None:
+    async def _poll(self):
         """ Handle incoming messages
         """
         cancelled = False
@@ -135,12 +142,18 @@ class _Client:
             except Exception:
                 LOGGER.error("Polling error\n%s", traceback.format_exc())
 
-    def close(self) -> None:
+    def close(self):
         LOGGER.debug("Closing pool client")
         self._polling.cancel()
         self._socket.close()
 
-    def apply_async(self, target: Callable[[None], None], args=(), kwargs={}, timeout: int = 5) -> Any:
+    def apply_async(
+        self,
+        target: Callable[[None], None],
+        args: Sequence = (),
+        kwargs: Mapping = {},
+        timeout: int = 5,
+    ) -> Awaitable:
         """ Run job asynchronously
         """
         # Pickle data, if it fails, then error will be raised before

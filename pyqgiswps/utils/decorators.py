@@ -15,7 +15,7 @@
 
 _missing = object()
 
-__all__ = ['singleton', 'once', 'lazy_property']
+__all__ = ['lazy_property', 'once', 'singleton']
 
 
 class singleton:

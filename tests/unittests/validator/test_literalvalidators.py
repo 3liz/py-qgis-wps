@@ -7,15 +7,21 @@
 """Unit tests for literal validator
 """
 
-from pyqgiswps.validator.literalvalidator import *
 from pyqgiswps.inout.literaltypes import AllowedValues
+from pyqgiswps.validator.literalvalidator import (
+    ALLOWEDVALUETYPE,
+    MODE,
+    RANGECLOSURETYPE,
+    validate_allowed_values,
+    validate_anyvalue,
+)
 
-def get_input(allowed_values, data = 1):
+
+def get_input(allowed_values, data=1):
 
     class FakeInput:
         data = 1
         data_type = 'data'
-
 
     fake_input = FakeInput()
     fake_input.data = data
@@ -26,7 +32,7 @@ def get_input(allowed_values, data = 1):
 
 def test_anyvalue_validator():
     """ Test anyvalue validator"""
-    inpt = get_input(allowed_values = None)
+    inpt = get_input(allowed_values=None)
     assert validate_anyvalue(inpt, MODE.NONE)
 
 
@@ -107,7 +113,7 @@ def test_allowed_partial_range_validator():
 
     allowed_value.minval = None
     allowed_value.maxval = 11
- 
+
     inpt.data = -1
     assert validate_allowed_values(inpt, MODE.SIMPLE), 'Value too small'
 

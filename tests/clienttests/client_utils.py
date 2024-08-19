@@ -5,7 +5,7 @@ NAMESPACES = {
     'wps': "http://www.opengis.net/wps/1.0.0",
     'ows': "http://www.opengis.net/ows/1.1",
     'gml': "http://www.opengis.net/gml",
-    'xsi': "http://www.w3.org/2001/XMLSchema-instance"
+    'xsi': "http://www.w3.org/2001/XMLSchema-instance",
 }
 
 
@@ -13,7 +13,7 @@ class Response:
 
     def __init__(self, http_response):
         self.http_response = http_response
-        if self.headers.get('Content-Type','').find('text/xml')==0:
+        if self.headers.get('Content-Type', '').find('text/xml') == 0:
             self.xml = lxml.etree.fromstring(http_response.content)
 
     @property
@@ -69,4 +69,3 @@ def assert_qywps_version(resp, version):
     assert len(tokens) == 2
     assert tokens[0] == 'QyWPS'
     assert tokens[1] == version
-

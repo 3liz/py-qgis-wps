@@ -8,20 +8,21 @@
 #
 """ Base Request handler
 """
-import tornado.web
-import logging
 import json
-import lxml
+import logging
 import mimetypes
+
 from pathlib import Path
-from tornado.web import HTTPError  # noqa F401
+from typing import Any, Awaitable, Optional, Union
 
-from ..exceptions import NoApplicableCode
+import lxml
+import tornado.web
 
-from ..version import __version__
+from tornado.web import HTTPError
+
 from ..config import confservice
-
-from typing import Any, Union, Optional, Awaitable
+from ..exceptions import NoApplicableCode
+from ..version import __version__
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -30,33 +31,33 @@ class BaseHandler(tornado.web.RequestHandler):
     """ Base class for HTTP request hanlers
     """
 
-    def initialize(self) -> None:
+    def initialize(self):
         super().initialize()
         self.connection_closed = False
         self._cfg = confservice['server']
         self._cross_origin = self._cfg.getboolean('cross_origin')
 
-    def prepare(self) -> None:
+    def prepare(self):
         self.has_body_arguments = len(self.request.body_arguments) > 0
         # Replace query arguments to upper case:
         self.request.arguments = {k.upper(): v for (k, v) in self.request.arguments.items()}
 
-    def compute_etag(self) -> None:
+    def compute_etag(self):
         # Disable etag computation
         pass
 
-    def set_default_headers(self) -> None:
+    def set_default_headers(self):
         """ Override defaults HTTP headers
         """
         self.set_header("Server", "Py-Qgis-WPS %s" % __version__)
 
-    def on_connection_close(self) -> None:
+    def on_connection_close(self):
         """ Override, log and set 'connection_closed' to True
         """
         self.connection_closed = True
         LOGGER.warning(f"Connection closed by client: {self.request.uri}")
 
-    def set_option_headers(self, allow_header: Optional[str] = None) -> None:
+    def set_option_headers(self, allow_header: Optional[str] = None):
         """  Set correct headers for 'OPTION' method
         """
         if not allow_header:
@@ -82,7 +83,7 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             return False
 
-    def write_xml(self, doc) -> None:
+    def write_xml(self, doc):
         """ XML response serializer """
 
         LOGGER.debug('Serializing XML response')
@@ -101,7 +102,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(wps_version_comment)
         self.write(xml)
 
-    def write_json(self, chunk: Union[dict, str]) -> None:
+    def write_json(self, chunk: Union[dict, str]):
         """ Write body as json
 
             The method will also set CORS implicitely for any origin
@@ -132,7 +133,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.format_exception(exception)
         self.finish()
 
-    def format_exception(self, exc: NoApplicableCode) -> None:
+    def format_exception(self, exc: NoApplicableCode):
         """ Format exception
             Override this in handler
         """
@@ -143,7 +144,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 'locator': exc.locator,
                 'name': exc.name,
                 'description': exc.description,
-            }
+            },
         })
 
     def proxy_url(self) -> str:
@@ -166,24 +167,29 @@ class NotFoundHandler(BaseHandler):
     def prepare(self):  # for all methods
         raise HTTPError(
             status_code=404,
-            reason="Invalid resource path."
+            reason="Invalid resource path.",
         )
 
 
 class ErrorHandler(BaseHandler):
-    def initialize(self, status_code: int, reason: Optional[str] = None) -> None:
+    def initialize(self, status_code: int, reason: Optional[str] = None):
         super().initialize()
         self.set_status(status_code)
         self.reason = reason
 
-    def prepare(self) -> None:
+    def prepare(self):
         raise HTTPError(self._status_code, reason=self.reason)
 
 
 class DownloadMixIn:
 
-    async def download(self, path: Path, content_type=None, chunk_size=65536,
-                       cache_control=None) -> Awaitable[None]:
+    async def download(
+        self,
+        path: Path,
+        content_type: Optional[str] = None,
+        chunk_size: int = 65536,
+        cache_control: Optional[str] = None,
+    ) -> Awaitable[None]:
         """ Download file
         """
         if not path.is_file():

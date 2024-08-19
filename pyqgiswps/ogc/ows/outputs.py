@@ -12,11 +12,13 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-from .schema import E, OWS, WPS, NAMESPACES, XMLElement
+import lxml.etree as etree
+
+from pyqgiswps.protos import Context
+
 from ..ogc import OGCTYPE
 from ..traits import register_trait
-
-import lxml.etree as etree
+from .schema import NAMESPACES, OWS, WPS, E, XMLElement
 
 
 @register_trait
@@ -25,7 +27,7 @@ class BoundingBoxOutput:
     def describe_xml(self) -> XMLElement:
         doc = E.Output(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         if self.abstract:
@@ -49,10 +51,10 @@ class BoundingBoxOutput:
 
         return doc
 
-    def execute_xml(self, context) -> XMLElement:
+    def execute_xml(self, context: Context) -> XMLElement:
         doc = E.Output(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         if self.abstract:
@@ -82,7 +84,7 @@ class ComplexOutput:
 
         doc = E.Output(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         if self.abstract:
@@ -94,8 +96,8 @@ class ComplexOutput:
         doc.append(
             E.ComplexOutput(
                 E.Default(default_format_el),
-                E.Supported(*supported_format_elements)
-            )
+                E.Supported(*supported_format_elements),
+            ),
         )
 
         return doc
@@ -103,7 +105,7 @@ class ComplexOutput:
     def execute_xml_lineage(self) -> XMLElement:
         doc = WPS.Output(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         if self.abstract:
@@ -111,7 +113,7 @@ class ComplexOutput:
 
         return doc
 
-    def execute_xml(self, context) -> XMLElement:
+    def execute_xml(self, context: Context) -> XMLElement:
         """Render Execute response XML node
 
         :return: node
@@ -128,7 +130,7 @@ class ComplexOutput:
 
         doc = WPS.Output(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
         if self.abstract:
             doc.append(OWS.Abstract(self.abstract))
@@ -136,7 +138,7 @@ class ComplexOutput:
 
         return doc
 
-    def _execute_xml_reference(self, context) -> XMLElement:
+    def _execute_xml_reference(self, context: Context) -> XMLElement:
         """Return Reference node
         """
         if self.url is None:
@@ -188,7 +190,7 @@ class LiteralOutput:
     def describe_xml(self) -> XMLElement:
         doc = E.Output(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         if self.abstract:
@@ -211,8 +213,8 @@ class LiteralOutput:
             literal_data_doc.append(
                 E.UOMs(
                     E.Default(default_uom_element),
-                    E.Supported(*supported_uom_elements)
-                )
+                    E.Supported(*supported_uom_elements),
+                ),
             )
 
         doc.append(literal_data_doc)
@@ -222,7 +224,7 @@ class LiteralOutput:
     def execute_xml_lineage(self) -> XMLElement:
         doc = WPS.Output(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         if self.abstract:
@@ -230,10 +232,10 @@ class LiteralOutput:
 
         return doc
 
-    def execute_xml(self, context) -> XMLElement:
+    def execute_xml(self, context: Context) -> XMLElement:
         doc = WPS.Output(
             OWS.Identifier(self.identifier),
-            OWS.Title(self.title)
+            OWS.Title(self.title),
         )
 
         if self.abstract:

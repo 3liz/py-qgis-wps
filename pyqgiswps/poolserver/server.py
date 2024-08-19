@@ -10,22 +10,26 @@
 The fork serve will ensure that forking processes
 occurs from [almost] the same state.
 """
-import sys
-import os
-import zmq
-import zmq.asyncio
 import logging
+import os
 import signal
+import sys
 import time
 import traceback
 
 from multiprocessing import Process
 from multiprocessing.util import Finalize
+from typing import (
+    Callable,
+    Optional,
+    Sequence,
+)
 
-from typing import Callable
+import zmq
+import zmq.asyncio
 
-from .supervisor import Supervisor
 from .pool import Pool
+from .supervisor import Supervisor
 from .utils import _get_ipc
 
 LOGGER = logging.getLogger('SRVLOG')
@@ -33,7 +37,7 @@ LOGGER = logging.getLogger('SRVLOG')
 
 class _Server:
 
-    def __init__(self, broadcastaddr: str, pool: Process, timeout: int) -> None:
+    def __init__(self, broadcastaddr: str, pool: Process, timeout: int):
 
         ctx = zmq.asyncio.Context.instance()
         pub = ctx.socket(zmq.PUB)
@@ -53,7 +57,7 @@ class _Server:
         self._terminate = Finalize(
             self, self._terminate_pool,
             args=(self._pool,),
-            exitpriority=16
+            exitpriority=16,
         )
 
     def start_supervisor(self):
@@ -68,7 +72,7 @@ class _Server:
             self._supervisor.run()
 
     @classmethod
-    def _terminate_pool(cls, p: Process) -> None:
+    def _terminate_pool(cls, p: Process):
         if p and hasattr(p, 'terminate'):
             if p.exitcode is None:
                 p.terminate()
@@ -85,7 +89,7 @@ class _Server:
         LOGGER.info("Stopping worker pool")
         self._terminate()
 
-    def broadcast(self, command: bytes) -> None:
+    def broadcast(self, command: bytes):
         """ Broadcast notification to workers
         """
         try:
@@ -94,7 +98,7 @@ class _Server:
             if err.errno != zmq.EAGAIN:
                 LOGGER.error("Broadcast Error %s\n%s", err, traceback.format_exc())
 
-    def restart(self) -> None:
+    def restart(self):
         """ Send restart command
         """
         self.broadcast(b'RESTART')
@@ -108,9 +112,13 @@ class _Server:
             return False
 
 
-def create_poolserver(numworkers: int, maxcycles: int = None,
-                      initializer: Callable[[None], None] = None, initargs=(),
-                      timeout: int = 20) -> _Server:
+def create_poolserver(
+    numworkers: int,
+    maxcycles: Optional[int] = None,
+    initializer: Optional[Callable[[None], None]] = None,
+    initargs: Sequence = (),
+    timeout: int = 20,
+) -> _Server:
     """ Run workers pool in its own process
 
         This ensure that sub-processes all always forked from
@@ -127,9 +135,14 @@ def create_poolserver(numworkers: int, maxcycles: int = None,
     return _Server(broadcast, p, timeout)
 
 
-def run_worker_pool(router: str, broadcastaddr: str, numworkers: int,
-                    initializer: Callable[[None], None] = None, initargs=(),
-                    maxcycles: int = None) -> None:
+def run_worker_pool(
+    router: str,
+    broadcastaddr: str,
+    numworkers: int,
+    initializer: Optional[Callable[[None], None]] = None,
+    initargs: Sequence = (),
+    maxcycles: Optional[int] = None,
+):
     """ Run a qgis worker pool
 
         Ensure that child processes run in the main thread
@@ -149,7 +162,7 @@ def run_worker_pool(router: str, broadcastaddr: str, numworkers: int,
     # parent process
     def abrt_signal(signum, frames):
         if pool.critical_failure:
-            print("Server aborting prematurely !", file=sys.stderr)
+            print("Server aborting prematurely !", file=sys.stderr)  # noqa: T201
             os.kill(os.getppid(), signal.SIGABRT)
 
     signal.signal(signal.SIGTERM, term_signal)

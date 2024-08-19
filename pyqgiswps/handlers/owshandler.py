@@ -10,17 +10,14 @@
 import logging
 import uuid
 
+from typing import Optional
+
 from tornado.escape import xhtml_escape as escape
 
-from .basehandler import HTTPError, BaseHandler
-
-from pyqgiswps.exceptions import (NoApplicableCode,
-                                  InvalidParameterValue,
-                                  OperationNotSupported)
-
+from pyqgiswps.exceptions import InvalidParameterValue, NoApplicableCode, OperationNotSupported
 from pyqgiswps.ogc.ows.request import OWSRequest
 
-from typing import Optional
+from .basehandler import BaseHandler, HTTPError
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -44,7 +41,7 @@ class OWSHandler(BaseHandler):
             realm = uuid.uuid4().hex
         return realm
 
-    def check_service(self) -> None:
+    def check_service(self):
         # Require SERVICE argument
         service = self.get_argument('SERVICE')
         if service.upper() != 'WPS':
@@ -119,12 +116,12 @@ class OWSHandler(BaseHandler):
 
         self.write_xml(document)
 
-    def options(self, endpoint: Optional[str] = None) -> None:
+    def options(self, endpoint: Optional[str] = None):
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('GET, POST, OPTIONS')
 
-    def format_exception(self, exc: NoApplicableCode) -> None:
+    def format_exception(self, exc: NoApplicableCode):
         """ Override
             Format exception  as XML response
         """
@@ -146,7 +143,7 @@ class OWSHandler(BaseHandler):
             'code': exc.code,
             'locator': escape(exc.locator),
             'name': escape(exc.name),
-            'description': description
+            'description': description,
         }
 
         self.write_xml(body)

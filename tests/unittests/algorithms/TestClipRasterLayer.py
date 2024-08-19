@@ -1,16 +1,19 @@
 """ Test just returning simple value
 """
 
-from qgis.core import (QgsProcessingParameterRasterLayer,
-                       QgsProcessingParameterRasterDestination,
-                       QgsProcessingParameterExtent,
-                       QgsProcessingAlgorithm)
-
 import processing
+
+from qgis.core import (
+    QgsProcessingAlgorithm,
+    QgsProcessingParameterExtent,
+    QgsProcessingParameterRasterDestination,
+    QgsProcessingParameterRasterLayer,
+)
+
 
 class TestClipRasterLayer(QgsProcessingAlgorithm):
 
-    INPUT  = 'INPUT'
+    INPUT = 'INPUT'
     EXTENT = 'EXTENT'
     OUTPUT = 'OUTPUT'
 
@@ -30,7 +33,7 @@ class TestClipRasterLayer(QgsProcessingAlgorithm):
         """
         return self.__class__()
 
-    def initAlgorithm( self, config=None ):
+    def initAlgorithm(self, config=None):
         """ Virtual override
 
            see https://qgis.org/api/classQgsProcessingAlgorithm.html
@@ -41,17 +44,16 @@ class TestClipRasterLayer(QgsProcessingAlgorithm):
 
     def processAlgorithm(self, parameters, context, feedback):
 
-            output = self.parameterAsOutputLayer(parameters, 'OUTPUT', context)
+        output = self.parameterAsOutputLayer(parameters, 'OUTPUT', context)
 
-            # Run buffer
-            buffer_result = processing.run("gdal:cliprasterbyextent", {
-                'INPUT': parameters['INPUT'],
-                'PROJWIN': parameters['EXTENT'],
-                'NODATA': None,
-                'OPTIONS': '',
-                'DATA_TYPE': 0,
-                'OUTPUT': output
-            }, context=context, feedback=feedback)
+        # Run buffer
+        _buffer_result = processing.run("gdal:cliprasterbyextent", {
+            'INPUT': parameters['INPUT'],
+            'PROJWIN': parameters['EXTENT'],
+            'NODATA': None,
+            'OPTIONS': '',
+            'DATA_TYPE': 0,
+            'OUTPUT': output,
+        }, context=context, feedback=feedback)
 
-            return { self.OUTPUT: output }
-
+        return {self.OUTPUT: output}

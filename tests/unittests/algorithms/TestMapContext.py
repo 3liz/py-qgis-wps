@@ -3,11 +3,11 @@
 
 import traceback
 
-from qgis.core import (QgsProcessingParameterNumber,
-                       QgsProcessingParameterString,
-                       QgsProcessingOutputNumber,
-                       QgsProcessingOutputString,
-                       QgsProcessingAlgorithm)
+from qgis.core import (
+    QgsProcessingAlgorithm,
+    QgsProcessingOutputString,
+    QgsProcessingParameterString,
+)
 
 
 class TestMapContext(QgsProcessingAlgorithm):
@@ -25,32 +25,31 @@ class TestMapContext(QgsProcessingAlgorithm):
         return 'Test Context'
 
     def createInstance(self):
-        """ Virtual override 
+        """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         return self.__class__()
 
-    def initAlgorithm( self, config={} ):
+    def initAlgorithm(self, config={}):
         """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        # XXX Do not modify anything to 'self': we CANNOT presume that same 
+        # XXX Do not modify anything to 'self': we CANNOT presume that same
         # instance will be used for processAlgorithm().
-        project_name = config.get('project_uri') 
+        project_name = config.get('project_uri')
         try:
-            self.addParameter(QgsProcessingParameterString(self.INPUT, 'Input string', 
+            self.addParameter(QgsProcessingParameterString(self.INPUT, 'Input string',
                               defaultValue=project_name, optional=True))
         except Exception:
-            traceback.print_exc()    
+            traceback.print_exc()
 
-        self.addOutput(QgsProcessingOutputString(self.OUTPUT,"Output"))
+        self.addOutput(QgsProcessingOutputString(self.OUTPUT, "Output"))
 
     def processAlgorithm(self, parameters, context, feedback):
 
-        param  = self.parameterDefinition(self.INPUT)
-        outval = param.defaultValue() 
+        param = self.parameterDefinition(self.INPUT)
+        outval = param.defaultValue()
 
-        return {self.OUTPUT: "%s" %  outval}
-
+        return {self.OUTPUT: "%s" % outval}

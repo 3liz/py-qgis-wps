@@ -73,13 +73,13 @@ TAG_DEV=$(GIT_BRANCH)-dev
 endif
 
 tag:
-	{ set -e; source factory.manifest; \
+	{ set -e; source $(MANIFEST); \
 	docker tag $(BUILDIMAGE) $(REGISTRY_PREFIX)$(NAME):$${release_tag}-$(TAG_DEV); \
 	docker tag $(BUILDIMAGE) $(REGISTRY_PREFIX)$(NAME):$(FLAVOR)-$(TAG_DEV); \
 	}
 
 push:
-	{ set -e; source factory.manifest; \
+	{ set -e; source $(MANIFEST); \
 	docker push $(REGISTRY_URL)/$(NAME):$${release_tag}-$(TAG_DEV); \
 	docker push $(REGISTRY_URL)/$(NAME):$(FLAVOR)-$(TAG_DEV); \
 	}
@@ -87,7 +87,7 @@ push:
 else
 
 tag:
-	{ set -e; source factory.manifest; \
+	{ set -e; source $(MANIFEST); \
 	docker tag $(BUILDIMAGE) $(REGISTRY_PREFIX)$(NAME):$$version; \
 	docker tag $(BUILDIMAGE) $(REGISTRY_PREFIX)$(NAME):$$version_short; \
 	docker tag $(BUILDIMAGE) $(REGISTRY_PREFIX)$(NAME):$$release_tag; \
@@ -95,7 +95,7 @@ tag:
 	}
 
 push:
-	{ set -e; source factory.manifest; \
+	{ set -e; source $(MANIFEST); \
 	docker push $(REGISTRY_URL)/$(NAME):$$version; \
 	docker push $(REGISTRY_URL)/$(NAME):$$version_short; \
 	docker push $(REGISTRY_URL)/$(NAME):$$release_tag; \

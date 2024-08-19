@@ -11,17 +11,17 @@ import logging
 import traceback
 import uuid
 
-from .basehandler import HTTPError, BaseHandler
+from typing import NamedTuple, Optional
 
 from tornado.escape import json_decode
-from pyqgiswps.exceptions import (NoApplicableCode,
-                                  UnknownProcessError)
 
+from pyqgiswps.accesspolicy import AccessPolicy
+from pyqgiswps.app.request import WPSRequest
+from pyqgiswps.exceptions import NoApplicableCode, UnknownProcessError
 from pyqgiswps.ogc.api.request import OgcApiRequest
+from pyqgiswps.protos import JsonValue
 
-from typing import Optional, TypeVar, NamedTuple
-
-AccessPolicy = TypeVar('AccessPolicy')
+from .basehandler import BaseHandler, HTTPError
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -44,7 +44,7 @@ class ApiHandler(BaseHandler):
 
         self.accesspolicy = access_policy
 
-    def format_exception(self, exc: NoApplicableCode) -> None:
+    def format_exception(self, exc: NoApplicableCode):
         """ Override
             Format exception  based based on RFC 7807
         """
@@ -74,7 +74,7 @@ class ConformanceHandler(BaseHandler):
                 "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/json",
                 "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/job-list",
                 "http://www.opengis.net/spec/ogcapi-processes-1/1.0/conf/dismiss",
-            ]
+            ],
         }
         self.write_json(content)
 
@@ -100,7 +100,7 @@ class ProcessHandler(ApiHandler):
 
         self.write_json(response)
 
-    def options(self, endpoint: Optional[str] = None) -> None:
+    def options(self, endpoint: Optional[str] = None):
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('GET, OPTIONS')
@@ -111,7 +111,7 @@ class ExecutePrefs(NamedTuple):
     timeout: int = None
     expire: int = None
 
-    def _preference_applied(self, request) -> str:
+    def _preference_applied(self, request: WPSRequest) -> str:
         """ Return the list of applied prefs
         """
         execute_async = self.execute_async
@@ -163,7 +163,7 @@ class ExecuteHandler(ApiHandler):
 
         return ExecutePrefs(**kwargs)
 
-    def get_job_realm(self):
+    def get_job_realm(self) -> str:
         """ Get or create a job realm token
         """
         realm = self.request.headers.get('X-Job-Realm')
@@ -230,7 +230,7 @@ class ExecuteHandler(ApiHandler):
 
         self.write_json(content)
 
-    def options(self, endpoint: Optional[str] = None) -> None:
+    def options(self, endpoint: Optional[str] = None):
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('POST, OPTIONS')
@@ -256,7 +256,7 @@ class JobHandler(ApiHandler, RealmController):
     """ Handle /jobs
     """
 
-    def get_inputs(self, job_id: str):
+    def get_inputs(self, job_id: str) -> JsonValue:
         content = self.application.wpsservice.get_status(job_id, key='request')
         if content is not None:
             content = content.get('inputs', {})
@@ -292,7 +292,7 @@ class JobHandler(ApiHandler, RealmController):
 
         self.write_json(content)
 
-    def options(self, endpoint: Optional[str] = None) -> None:
+    def options(self, endpoint: Optional[str] = None):
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('GET, DELETE, OPTIONS')
@@ -312,7 +312,7 @@ class ResultHandler(ApiHandler):
         self.set_header("X-Job-Id", job_id)
         self.write_json(content)
 
-    def options(self, endpoint: Optional[str] = None) -> None:
+    def options(self, endpoint: Optional[str] = None):
         """ Implement OPTION for validating CORS
         """
         self.set_option_headers('GET, OPTIONS')

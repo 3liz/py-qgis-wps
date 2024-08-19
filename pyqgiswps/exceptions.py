@@ -21,9 +21,9 @@ Based on OGC OWS, WPS and
 http://lists.opengeospatial.org/pipermail/wps-dev/2013-October/000335.html
 """
 
-from tornado.web import HTTPError
-
 import logging
+
+from tornado.web import HTTPError
 
 HTTPException = HTTPError
 

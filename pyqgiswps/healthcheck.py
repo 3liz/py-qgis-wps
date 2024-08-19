@@ -9,10 +9,10 @@
 
 """ Healthcheck command
 """
-import sys
 import argparse
 import http.client as http
 import ssl
+import sys
 
 
 def main():
@@ -32,10 +32,10 @@ def main():
         h.request('HEAD', '/')
 
         rv = h.getresponse()
-        print("Response status:", rv.status)
+        print("Response status:", rv.status)  # noqa: T201
         if rv.status == 200:
             sys.exit(0)
     except Exception as e:
-        print("Connection error: %s" % e, file=sys.stderr)
+        print("Connection error: %s" % e, file=sys.stderr)  # noqa: T201
 
     sys.exit(1)

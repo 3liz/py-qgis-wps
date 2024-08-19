@@ -5,6 +5,6 @@
 ##################################################################
 
 
-from pyqgiswps.app.process import WPSProcess  # noqa: F401
-from pyqgiswps.app.service import Service  # noqa: F401
-from pyqgiswps.app.request import WPSRequest, WPSResponse  # noqa: F401
+from .process import WPSProcess  # noqa: F401
+from .request import WPSRequest, WPSResponse  # noqa: F401
+from .service import Service  # noqa: F401

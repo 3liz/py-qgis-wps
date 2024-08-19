@@ -13,19 +13,22 @@
 #
 
 # Schema
-from .schema import E, WPS, OWS, NAMESPACES, XMLElement  # noqa E402,F401
+from .inputs import (  # noqa: F401
+    UOM,
+    BoundingBoxInput,
+    ComplexInput,
+    Format,
+    LiteralInput,
+)
+from .outputs import (  # noqa: F401
+    BoundingBoxOutput,
+    ComplexOutput,
+    LiteralOutput,
+)
 
 # Traits
-from .process import Process       # noqa E402,F401
-from .inputs import (Format,        # noqa E402,F401
-                     UOM,           # noqa E402,F401
-                     BoundingBoxInput,   # noqa E402,F401
-                     ComplexInput,  # noqa E402,F401
-                     LiteralInput,)  # noqa E402,F401
-
-from .outputs import (BoundingBoxOutput,  # noqa E402,F401
-                      ComplexOutput,     # noqa E402,F401
-                      LiteralOutput,)    # noqa E402,F401
+from .process import Process  # noqa: F401
+from .schema import NAMESPACES, OWS, WPS, E, XMLElement  # noqa: F401
 
 # Import stub variable
 stub = None

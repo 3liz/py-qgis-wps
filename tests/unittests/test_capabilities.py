@@ -6,14 +6,15 @@
 
 from pyqgiswps.app import WPSProcess
 from pyqgiswps.app.common import Metadata
-from pyqgiswps.ogc.ows import WPS, OWS
+from pyqgiswps.ogc.ows import OWS, WPS
 from pyqgiswps.tests import HTTPTestCase, assert_pyqgiswps_version
+
 
 class BadRequestTest(HTTPTestCase):
 
     def test_bad_http_verb(self):
         resp = self.client.put('')
-        assert resp.status_code == 405 # method not allowed
+        assert resp.status_code == 405  # method not allowed
 
     def test_bad_request_type_with_get(self):
         resp = self.client.get('?Request=foo')
@@ -39,21 +40,21 @@ class CorsRequestTest(HTTPTestCase):
     def test_cors_options(self):
         """ Test CORS options
         """
-        resp = self.client.options( headers={ 'Origin': 'my.home' } )
+        resp = self.client.options(headers={'Origin': 'my.home'})
 
         assert resp.status_code == 200
         assert 'Allow' in resp.headers
         assert 'Access-Control-Allow-Methods' in resp.headers
-        assert 'Access-Control-Allow-Origin'  in resp.headers
+        assert 'Access-Control-Allow-Origin' in resp.headers
 
     def test_cors_request(self):
         """ Test getcapabilities hrefs
         """
-        resp = self.client.get( "?request=getcapabilities&service=wps",  headers={ 'Origin': 'my.home' })
+        resp = self.client.get("?request=getcapabilities&service=wps", headers={'Origin': 'my.home'})
 
         assert resp.status_code == 200
         assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
-        assert 'Access-Control-Allow-Origin'  in resp.headers
+        assert 'Access-Control-Allow-Origin' in resp.headers
 
 
 class CapabilitiesTest(HTTPTestCase):
@@ -62,11 +63,11 @@ class CapabilitiesTest(HTTPTestCase):
         def pr1(): pass
         def pr2(): pass
 
-        return [ WPSProcess(pr1, 'pr1', 'Process 1', metadata=[Metadata('pr1 metadata')]), 
+        return [WPSProcess(pr1, 'pr1', 'Process 1', metadata=[Metadata('pr1 metadata')]),
                  WPSProcess(pr2, 'pr2', 'Process 2', metadata=[Metadata('pr2 metadata')])]
 
     def check_capabilities_response(self, resp):
-        assert resp.status_code == 200, "200 != %s" %  resp.status_code
+        assert resp.status_code == 200, "200 != %s" % resp.status_code
         assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
         title = resp.xpath_text('/wps:Capabilities'
                                 '/ows:ServiceIdentification'
@@ -83,7 +84,6 @@ class CapabilitiesTest(HTTPTestCase):
                                '/wps:Process'
                                '/ows:Metadata')
         assert len(metadatas) == 2
-
 
     def test_get_request(self):
         resp = self.client.get('?Request=GetCapabilities&service=WpS')
@@ -119,4 +119,3 @@ class CapabilitiesTest(HTTPTestCase):
     def test_pyqgiswps_version(self):
         resp = self.client.get('?service=WPS&request=GetCapabilities')
         assert_pyqgiswps_version(resp)
-

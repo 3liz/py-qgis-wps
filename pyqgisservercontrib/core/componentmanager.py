@@ -15,11 +15,16 @@
     module behaviors without the need for these to do explicit imports
 """
 
-import sys
 import logging
 
 from collections import namedtuple
-from typing import Any, Callable, Optional
+from importlib import metadata
+from typing import (
+    Any,
+    Callable,
+    Optional,
+    Sequence,
+)
 
 
 class ComponentManagerError(Exception):
@@ -43,28 +48,15 @@ LOGGER = logging.getLogger('SRVLOG')
 FactoryEntry = namedtuple('FactoryEntry', ('create_instance', 'service'))
 
 
-def _entry_points(group: str, name: Optional[str] = None):
+def _entry_points(group: str, name: Optional[str] = None) -> Sequence[metadata.EntryPoint]:
     """ Return entry points
     """
-    ver = sys.version_info[:2]
-    if ver >= (3, 10):
-        from importlib import metadata
-        # See https://docs.python.org/3.10/library/importlib.metadata.html
-        return metadata.entry_points().select(group=group, name=name)
-    elif ver >= (3, 8):
-        from importlib import metadata
-        # Return a dict
-        # see https://docs.python.org/3.8/library/importlib.metadata.html
-        eps = metadata.entry_points().get(group, [])
-        if name:
-            eps = [ep for ep in eps if ep.name == name]
-        return eps
+    # See https://docs.python.org/3.10/library/importlib.metadata.html
+    entry_points = metadata.entry_points()
+    if name:
+        return entry_points.select(group=group, name=name)
     else:
-        from pkg_resources import iter_entry_points
-        eps = iter_entry_points(group)
-        if name:
-            eps = [ep for ep in eps if ep.name == name]
-        return eps
+        return entry_points.select(group=group)
 
 
 class ComponentManager:
@@ -74,7 +66,7 @@ class ComponentManager:
         """
         self._contractIDs = {}
 
-    def register_entrypoints(self, category, *args, **kwargs) -> None:
+    def register_entrypoints(self, category: str, *args, **kwargs) -> None:
         """ Load extension modules
 
             Loaded modules will do self-registration
@@ -159,15 +151,15 @@ def load_entrypoint(category: str, name: str) -> Any:
 #
 
 
-def register_service(contractID: str) -> Any:
-    def wrapper(obj: Any):
+def register_service(contractID: str) -> Callable:
+    def wrapper(obj):
         gComponentManager.register_service(contractID, obj)
         return obj
     return wrapper
 
 
-def register_factory(contractID: str) -> Any:
-    def wrapper(obj: Any):
+def register_factory(contractID: str) -> Callable:
+    def wrapper(obj):
         gComponentManager.register_factory(contractID, obj)
         return obj
     return wrapper

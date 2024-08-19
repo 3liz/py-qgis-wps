@@ -8,40 +8,37 @@
 #
 """ Wrap qgis processing algorithms in WPS process
 """
-import os
 import logging
 import mimetypes
+import os
 import re
 
-from os.path import normpath, basename
+from os.path import basename, normpath
 from pathlib import Path
+from typing import Any, Dict, Optional, Union
+
+from qgis.core import (
+    QgsProcessingAlgorithm,
+    QgsProcessingOutputDefinition,
+    QgsProcessingOutputFile,
+    QgsProcessingOutputHtml,
+    QgsProcessingParameterDefinition,
+    QgsProcessingParameterFile,
+    QgsProcessingParameterFileDestination,
+)
 
 from pyqgiswps.app.common import Metadata
-
-from pyqgiswps.inout.formats import Format
-from pyqgiswps.inout import (LiteralInput,
-                             ComplexInput,
-                             BoundingBoxInput,
-                             LiteralOutput,
-                             ComplexOutput,
-                             BoundingBoxOutput)
-
 from pyqgiswps.config import confservice
-
-from qgis.core import (QgsProcessingAlgorithm,
-                       QgsProcessingParameterDefinition,
-                       QgsProcessingOutputDefinition,
-                       QgsProcessingOutputHtml,
-                       QgsProcessingOutputFile,
-                       QgsProcessingParameterFileDestination,
-                       QgsProcessingParameterFile)
+from pyqgiswps.inout import (
+    ComplexInput,
+    ComplexOutput,
+    Format,
+    LiteralInput,
+    WPSInput,
+    WPSOutput,
+)
 
 from ..processingcontext import ProcessingContext
-
-from typing import Any, Union, Optional
-
-WPSInput = Union[LiteralInput, ComplexInput, BoundingBoxInput]
-WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -50,7 +47,10 @@ LOGGER = logging.getLogger('SRVLOG')
 # ------------------------------------
 
 
-def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs) -> Union[LiteralInput, ComplexInput]:
+def parse_input_definition(
+    param: QgsProcessingParameterDefinition,
+    kwargs: Dict[str, Any],
+) -> Union[LiteralInput, ComplexInput]:
     """ Convert processing input to File Input
     """
     typ = param.type()
@@ -112,8 +112,11 @@ def get_processing_value(param: QgsProcessingParameterDefinition, inp: WPSInput,
 # Processing output definition -> WPS output
 # -------------------------------------------
 
-def parse_output_definition(outdef: QgsProcessingOutputDefinition, kwargs,
-                            alg: QgsProcessingAlgorithm = None) -> ComplexOutput:
+def parse_output_definition(
+    outdef: QgsProcessingOutputDefinition,
+    kwargs: Dict[str, Any],
+    alg: Optional[QgsProcessingAlgorithm] = None,
+) -> ComplexOutput:
     """ Parse file output definition
 
         QgsProcessingOutputDefinition metadata will be checked to get

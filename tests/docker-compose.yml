@@ -18,10 +18,10 @@ services:
       PYTEST_ADDOPTS: ${PYTEST_ADDOPTS}
     user: "${BECOME_USER}:${BECOME_USER}"
     volumes:
-      - ${SRCDIR}:/src
-      - ${PWD}/.local:/.local
-      - ${PWD}/.cache:/.cache
-      - ${PWD}/__workdir__:/srv/data
+      - { type: bind, source: "${SRCDIR}", target: /src }
+      - { type: bind, source: "${PWD}/.local", target: /.local }
+      - { type: bind, source: "${PWD}/.cache", target: /.cache }
+      - { type: bind, source: "${PWD}/__workdir__", target: /srv/data }
     ports:
       - 127.0.0.1:8888:8080
     deploy:

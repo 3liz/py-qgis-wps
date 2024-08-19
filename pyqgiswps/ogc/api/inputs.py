@@ -6,16 +6,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from ..ogc import OGCTYPE_SCHEMA
-from ..traits import register_trait
+from enum import Enum
 
+from pyqgiswps.protos import JsonValue
 from pyqgiswps.validator.allowed_value import RANGECLOSURETYPE
 from pyqgiswps.validator.base import to_json_serializable
 
-from typing import TypeVar
-from enum import Enum
-
-Json = TypeVar('Json')
+from ..ogc import OGCTYPE_SCHEMA
+from ..traits import register_trait
 
 
 class TypeHint(str, Enum):
@@ -32,7 +30,7 @@ class TypeHint(str, Enum):
 
 class BasicInputDescription:
 
-    def ogcapi_description(self) -> Json:
+    def ogcapi_description(self) -> JsonValue:
         doc = {
             'title': self.title,
             'keywords': [],
@@ -50,7 +48,7 @@ class BasicInputDescription:
 @register_trait
 class Metadata:
 
-    def ogcapi_description(self) -> Json:
+    def ogcapi_description(self) -> JsonValue:
         return {
             'title': self.title,
             'href': self.href,
@@ -61,7 +59,7 @@ class Metadata:
 @register_trait
 class AllowedValues:
 
-    def ogcapi_schema(self) -> Json:
+    def ogcapi_schema(self) -> JsonValue:
         """Return describe OAPI json
         """
         doc = {}
@@ -87,7 +85,7 @@ class AllowedValues:
 @register_trait
 class LiteralInput(BasicInputDescription):
 
-    def ogcapi_input_description(self) -> Json:
+    def ogcapi_input_description(self) -> JsonValue:
         """ Return OAPI input description
         """
         doc = self.ogcapi_description()
@@ -113,7 +111,7 @@ class LiteralInput(BasicInputDescription):
 @register_trait
 class Format:
 
-    def ogcapi_description(self) -> Json:
+    def ogcapi_description(self) -> JsonValue:
         """ Return oapi format description
         """
         doc = {'contentMediaType': self.mime_type}
@@ -130,7 +128,7 @@ class Format:
 @register_trait
 class UOM:
 
-    def ogcapi_description(self) -> Json:
+    def ogcapi_description(self) -> JsonValue:
         """ Return ogc api uom description (unspecified)
         """
         return {
@@ -142,7 +140,7 @@ class UOM:
 @register_trait
 class BoundingBoxInput(BasicInputDescription):
 
-    def ogcapi_input_description(self) -> Json:
+    def ogcapi_input_description(self) -> JsonValue:
         """  Ogc api bbox input description
         """
         doc = self.ogcapi_description()
@@ -181,7 +179,7 @@ class BoundingBoxInput(BasicInputDescription):
 @register_trait
 class ComplexInput(BasicInputDescription):
 
-    def ogcapi_input_description(self) -> Json:
+    def ogcapi_input_description(self) -> JsonValue:
         """Return input json schema
         """
         doc = self.ogcapi_description()

@@ -9,16 +9,16 @@
 """ Processing utilities
 """
 
-import sys
-import logging
 import configparser
+import logging
+import sys
 import traceback
 
-from pathlib import Path
 from collections import namedtuple
-from .styles import load_styles
+from pathlib import Path
+from typing import Any, Dict, Generator, Iterable, List
 
-from typing import Generator, Iterable, List, Dict, Any
+from .styles import load_styles
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -26,7 +26,7 @@ _ProviderItem = namedtuple('_ProviderItem', ('provider', 'exposed'))
 
 
 def _register_provider(reg: 'QgsProcessingRegistry', provider_id: str,  # noqa: F821
-                       providers: List[_ProviderItem]) -> None:
+                       providers: List[_ProviderItem]):
     """ Register scripts provider for exposition
     """
     p = reg.providerById(provider_id)
@@ -40,13 +40,13 @@ def _register_provider(reg: 'QgsProcessingRegistry', provider_id: str,  # noqa: 
 
 class WPSServerInterfaceImpl:
 
-    def __init__(self, with_providers: List[str]) -> None:
+    def __init__(self, with_providers: List[str]):
         self._plugins = {}
         self._paths = []
         self._providers = None
         self._with_providers = with_providers
 
-    def initialize(self, path: str) -> None:
+    def initialize(self, path: str):
         """  Collect wps plugins
         """
         path = Path(path)
@@ -63,7 +63,7 @@ class WPSServerInterfaceImpl:
     def plugins(self) -> Dict[str, Any]:
         return self._plugins
 
-    def register_providers(self) -> None:
+    def register_providers(self):
         """ Register providers
         """
         if self._providers:
@@ -80,7 +80,7 @@ class WPSServerInterfaceImpl:
             _register_provider(reg, provider_id, providers)
 
         class _WPSServerInterface:
-            def registerProvider(self, provider: 'QgsAlgorithmProvider', expose: bool = True) -> None:   # noqa: F821
+            def registerProvider(self, provider: 'QgsAlgorithmProvider', expose: bool = True):   # noqa: F821
                 reg.addProvider(provider)
                 # IMPORTANT: the processingRegistry does not gain ownership and
                 # the caller must prevent garbage collection by keeping the ownership of

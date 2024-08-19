@@ -12,25 +12,34 @@
 import logging
 import urllib.parse
 
-from functools import partial
-from urllib.parse import urlparse, urlunparse, urljoin, parse_qs
-from typing import Tuple, NamedTuple, Optional
 from datetime import datetime
+from functools import partial
+from typing import (
+    Callable,
+    NamedTuple,
+    Optional,
+    Sequence,
+    Tuple,
+)
+from urllib.parse import parse_qs, urljoin, urlparse, urlunparse
 
-from ..utils.lru import lrucache
-from ..config import confservice
-
-from qgis.core import (Qgis,
-                       QgsApplication,
-                       QgsProjectBadLayerHandler,
-                       QgsProject)
-
+from qgis.core import (
+    Qgis,
+    QgsApplication,
+    QgsMapLayer,
+    QgsProject,
+    QgsProjectBadLayerHandler,
+    QgsProjectStorage,
+)
 from qgis.server import QgsServerProjectUtils
 
 from pyqgisservercontrib.core import componentmanager
 
+from ..config import confservice
+from ..utils.lru import lrucache
+
 # Import default handlers for auto-registration
-from .handlers import *  # noqa: F403,F401
+from .handlers import *  # noqa: F403
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -69,7 +78,7 @@ class QgisStorageHandler:
     def __init__(self):
         pass
 
-    def get_storage_metadata(self, uri: str):
+    def get_storage_metadata(self, uri: str) -> QgsProjectStorage.Metadata:
         # Check out for storage
         storage = QgsApplication.projectStorageRegistry().projectStorageFromUri(uri)
         if not storage:
@@ -87,9 +96,12 @@ class QgisStorageHandler:
         metadata = self.get_storage_metadata(urlunparse(url))
         return metadata.lastModified.toPyDateTime()
 
-    def get_project(self, url: urllib.parse.ParseResult,
-                    project: Optional[QgsProject] = None,
-                    timestamp: Optional[datetime] = None) -> Tuple[QgsProject, datetime]:
+    def get_project(
+        self,
+        url: urllib.parse.ParseResult,
+        project: Optional[QgsProject] = None,
+        timestamp: Optional[datetime] = None,
+    ) -> Tuple[QgsProject, datetime]:
         """ Create or return a project
         """
         uri = urlunparse(url)
@@ -110,7 +122,7 @@ class QgsCacheManager:
     """ Handle Qgis project cache
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         """ Initialize cache
 
             :param size: size of the lru cache
@@ -148,12 +160,12 @@ class QgsCacheManager:
     def trust_mode_on(self) -> bool:
         return self._trust_layer_metadata
 
-    def clear(self) -> None:
+    def clear(self):
         """ Clear the whole cache
         """
         self._cache.clear()
 
-    def remove_entry(self, key: str) -> None:
+    def remove_entry(self, key: str):
         """ Remove cache entry
         """
         del self._cache[key]
@@ -187,7 +199,7 @@ class QgsCacheManager:
 
         return url
 
-    def get_project_factory(self, key: str):
+    def get_project_factory(self, key: str) -> Callable:
         """ Return project store create function for the given key
         """
         url = self.resolve_alias(key)
@@ -249,16 +261,12 @@ class QgsCacheManager:
         LOGGER.debug("Reading Qgis project %s", path)
 
         # see https://github.com/qgis/QGIS/pull/49266
-        if Qgis.QGIS_VERSION_INT < 32601:
-            project = self._create_project()
-        else:
-            project = self._create_project(capabilities=Qgis.ProjectCapabilities())
-
-        readflags = QgsProject.ReadFlags()
+        project = self._create_project(capabilities=Qgis.ProjectCapabilities())
+        readflags = Qgis.ProjectReadFlags()
         if self._trust_layer_metadata:
-            readflags |= QgsProject.FlagTrustLayerMetadata
+            readflags |= Qgis.ProjectReadFlag.FlagTrustLayerMetadata
         if self._disable_getprint:
-            readflags |= QgsProject.FlagDontLoadLayouts
+            readflags |= Qgis.ProjectReadFlag.FlagDontLoadLayouts
 
         badlayerh = BadLayerHandler()
         project.setBadLayerHandler(badlayerh)
@@ -274,7 +282,7 @@ class BadLayerHandler(QgsProjectBadLayerHandler):
         super().__init__()
         self.badLayerNames = set()
 
-    def handleBadLayers(self, layers) -> None:
+    def handleBadLayers(self, layers: Sequence[QgsMapLayer]):
         """ See https://qgis.org/pyqgis/3.0/core/Project/QgsProjectBadLayerHandler.html
         """
         super().handleBadLayers(layers)

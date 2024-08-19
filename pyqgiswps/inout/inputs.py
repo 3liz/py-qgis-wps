@@ -15,25 +15,22 @@
 
 import os
 
+from copy import deepcopy
+
+from typing_extensions import Self
+
 import pyqgiswps.ogc as ogc
 
 from pyqgiswps.config import confservice, get_size_bytes
-from pyqgiswps.inout import basic
-from copy import deepcopy
-from pyqgiswps.validator.mode import MODE
-from pyqgiswps.inout.literaltypes import AnyValue
-from pyqgiswps.inout.httpclient import openurl
-
 from pyqgiswps.exceptions import InvalidParameterValue
-
-from typing import TypeVar
-
-Json = TypeVar('Json')
-Self = TypeVar('Self')
+from pyqgiswps.inout import basic
+from pyqgiswps.inout.httpclient import openurl
+from pyqgiswps.inout.literaltypes import AnyValue
+from pyqgiswps.protos import JsonValue
+from pyqgiswps.validator.mode import MODE
 
 
 class BoundingBoxInput(basic.BBoxInput, *ogc.exports.BoundingBoxInput):
-
     """
     :param string identifier: The name of this input.
     :param string title: Human readable title
@@ -63,7 +60,7 @@ class BoundingBoxInput(basic.BBoxInput, *ogc.exports.BoundingBoxInput):
         """
         return deepcopy(self)
 
-    def validate_input(self, inpt: Json) -> Self:
+    def validate_input(self, inpt: JsonValue) -> Self:
         """  Set parameter from json definition
         """
         self.data = inpt.get('data')
@@ -145,7 +142,7 @@ class ComplexInput(basic.ComplexInput, *ogc.exports.ComplexInput):
         """
         return deepcopy(self)
 
-    def validate_input(self, inpt: Json) -> Self:
+    def validate_input(self, inpt: JsonValue) -> Self:
         """  Set parameter from json definition
         """
         if self.supported_formats:
@@ -212,7 +209,7 @@ class LiteralInput(basic.LiteralInput, *ogc.exports.LiteralInput):
         """
         return deepcopy(self)
 
-    def validate_input(self, inpt: Json) -> Self:
+    def validate_input(self, inpt: JsonValue) -> Self:
         """  Set parameter from json definition
         """
         code = inpt.get('uom')

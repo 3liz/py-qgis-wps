@@ -38,14 +38,11 @@ clean:
 	rm -rf $(DIST) *.egg-info
 
 
-test:
+test: lint
 	make -C tests test PYTEST_ADDOPTS=$(PYTEST_ADDOPTS)
 
 install:
 	pip install -U --upgrade-strategy=eager -e .
-
-install-tests:
-	pip install -U --upgrade-strategy=eager -r tests/requirements.txt
 
 install-tests:
 	pip install -U --upgrade-strategy=eager -r tests/requirements.txt
@@ -56,7 +53,7 @@ install-doc:
 install-dev: install-tests install-doc
 
 lint:
-	@ruff check $(PYTHON_PKG) $(TESTDIR)
+	@ruff check --output-format=concise $(PYTHON_PKG) $(TESTDIR)
 
 lint-preview:
 	@ruff check --preview $(PYTHON_PKG) $(TESTDIR)

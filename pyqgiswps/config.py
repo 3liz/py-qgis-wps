@@ -17,16 +17,15 @@
 Reads the PyWPS configuration file
 """
 
-import sys
-import os
-import tempfile
-import functools
-
 import configparser
+import functools
+import os
+import sys
+import tempfile
 
 from typing import Any
-from pyqgisservercontrib.core import componentmanager
 
+from pyqgisservercontrib.core import componentmanager
 
 CONFIG = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
 CONFIG.optionxform = lambda opt: opt
@@ -35,7 +34,7 @@ getenv = os.getenv
 
 
 def _log(*args):
-    print(*args, file=sys.stderr, flush=True)
+    print(*args, file=sys.stderr, flush=True)  # noqa: T201
 
 
 def getenv2(env1, env2, default):
@@ -273,7 +272,7 @@ def load_configuration():
     CONFIG.add_section('wps.request')
 
 
-def warn_unsafe_options() -> None:
+def warn_unsafe_options():
     if CONFIG.getboolean('processing', 'unsafe.raw_destination_input_sink'):
         _log('********************************************')
         _log('* WARNING: !!! UNSAFE OPTION ACTIVATED !!! *')
@@ -300,7 +299,7 @@ def read_config_file(cfgfile):
     cfgfile = os.path.abspath(cfgfile)
     with open(cfgfile) as fp:
         CONFIG.read_file(fp)
-    _log('Configuration file <%s> loaded' % cfgfile)
+    _log(f'Configuration file <{cfgfile}> loaded')
 
 
 def config_to_dict():
@@ -402,7 +401,7 @@ class ConfigService:
     getboolean = functools.partialmethod(__get_impl, CONFIG.getboolean)
     getfloat = functools.partialmethod(__get_impl, CONFIG.getfloat)
 
-    def items(self, section: str):
+    def items(self, section):
         return CONFIG.items(section)
 
     def __getitem__(self, section):
@@ -411,10 +410,10 @@ class ConfigService:
     def __contains__(self, section):
         return section in CONFIG
 
-    def set(self, section: str, option: str, value: Any) -> None:
+    def set(self, section: str, option: str, value: Any):
         CONFIG.set(section, option, value)
 
-    def add_section(self, sectionname: str) -> None:
+    def add_section(self, sectionname: str):
         # We do not care if the section already exists
         try:
             CONFIG.add_section(sectionname)

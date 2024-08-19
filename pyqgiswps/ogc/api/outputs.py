@@ -12,21 +12,17 @@
 # Please consult PYWPS_LICENCE.txt for details
 #
 
-from ..ogc import OGCTYPE_SCHEMA
-from ..traits import register_trait
-
+from pyqgiswps.protos import Context, JsonValue
 from pyqgiswps.validator.base import to_json_serializable
 
-from typing import TypeVar
-
+from ..ogc import OGCTYPE_SCHEMA
+from ..traits import register_trait
 from .inputs import TypeHint
-
-Json = TypeVar('Json')
 
 
 class BasicOutputDescription:
 
-    def ogcapi_description(self) -> Json:
+    def ogcapi_description(self) -> JsonValue:
         doc = {
             'title': self.title,
             'keywords': [],
@@ -42,7 +38,7 @@ class BasicOutputDescription:
 @register_trait
 class LiteralOutput(BasicOutputDescription):
 
-    def ogcapi_output_description(self) -> Json:
+    def ogcapi_output_description(self) -> JsonValue:
         """ Ogc api output description
         """
         doc = self.ogcapi_description()
@@ -55,7 +51,7 @@ class LiteralOutput(BasicOutputDescription):
         doc.update(schema=schema, typeHint=TypeHint.LiteralData.value)
         return doc
 
-    def ogcapi_output_result(self, context) -> Json:
+    def ogcapi_output_result(self, context: Context) -> JsonValue:
         """ Return Json formated result
         """
         data = to_json_serializable(self.data)
@@ -71,7 +67,7 @@ class LiteralOutput(BasicOutputDescription):
 @register_trait
 class BoundingBoxOutput(BasicOutputDescription):
 
-    def ogcapi_output_description(self) -> Json:
+    def ogcapi_output_description(self) -> JsonValue:
 
         doc = self.ogcapi_description()
 
@@ -100,7 +96,7 @@ class BoundingBoxOutput(BasicOutputDescription):
         doc.update(schema=schema, typeHint=TypeHint.BoundingBoxData.value)
         return doc
 
-    def ogcapi_output_result(self, context) -> Json:
+    def ogcapi_output_result(self, context: Context) -> JsonValue:
         """ OGC api json result
         """
         bbox = self.data
@@ -122,7 +118,7 @@ class BoundingBoxOutput(BasicOutputDescription):
 @register_trait
 class ComplexOutput(BasicOutputDescription):
 
-    def ogcapi_output_description(self) -> Json:
+    def ogcapi_output_description(self) -> JsonValue:
 
         def _schema(fmt):
             schema = fmt.ogcapi_description()
@@ -144,7 +140,7 @@ class ComplexOutput(BasicOutputDescription):
         doc['transmissionMode'] = 'reference' if self.as_reference else 'value'
         return doc
 
-    def ogcapi_output_result(self, context) -> Json:
+    def ogcapi_output_result(self, context: Context) -> JsonValue:
         """ OGC api json result
         """
         if self.as_reference:

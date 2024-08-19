@@ -4,11 +4,8 @@
 import requests
 
 
-def test_root_request( host ):
+def test_root_request(host):
     """ Test response from root path
     """
-    rv = requests.get(host+"/")
+    rv = requests.get(host + "/")
     assert rv.status_code == 200
-
-
-

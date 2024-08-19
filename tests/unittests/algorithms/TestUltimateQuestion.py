@@ -1,11 +1,7 @@
 """ Test just returning simple value
 """
 
-from qgis.core import (QgsProcessingParameterNumber,
-                       QgsProcessingParameterString,
-                       QgsProcessingOutputNumber,
-                       QgsProcessingOutputString,
-                       QgsProcessingAlgorithm)
+from qgis.core import QgsProcessingAlgorithm, QgsProcessingOutputNumber
 
 
 class TestUltimateQuestion(QgsProcessingAlgorithm):
@@ -22,20 +18,19 @@ class TestUltimateQuestion(QgsProcessingAlgorithm):
         return 'Return answer to ultimate question'
 
     def createInstance(self, config={}):
-        """ Virtual override 
+        """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         return self.__class__()
 
-    def initAlgorithm( self, config=None ):
+    def initAlgorithm(self, config=None):
         """ Virtual override
 
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
-        self.addOutput(QgsProcessingOutputNumber(self.OUTPUT,"Output"))
+        self.addOutput(QgsProcessingOutputNumber(self.OUTPUT, "Output"))
 
     def processAlgorithm(self, parameters, context, feedback):
-        
+
         return {self.OUTPUT: 42}
-        

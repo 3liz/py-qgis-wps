@@ -5,22 +5,17 @@
 ##################################################################
 
 
-from collections import namedtuple
-
 from pyqgiswps.app import WPSProcess
-from pyqgiswps.inout.inputs import LiteralInput, ComplexInput, BoundingBoxInput
-from pyqgiswps.inout.outputs import LiteralOutput, ComplexOutput, BoundingBoxOutput
-from pyqgiswps.inout.literaltypes import LITERAL_DATA_TYPES
-from pyqgiswps.inout.formats import Format
-from pyqgiswps.inout.literaltypes import AllowedValues
-
 from pyqgiswps.app.common import Metadata
+from pyqgiswps.inout.formats import Format
+from pyqgiswps.inout.inputs import BoundingBoxInput, ComplexInput, LiteralInput
+from pyqgiswps.inout.literaltypes import AllowedValues
+from pyqgiswps.inout.outputs import BoundingBoxOutput, ComplexOutput, LiteralOutput
+from pyqgiswps.ogc import OGCUNIT
+from pyqgiswps.tests import HttpClient, HTTPTestCase
 from pyqgiswps.validator.allowed_value import ALLOWEDVALUETYPE, RANGECLOSURETYPE
 from pyqgiswps.validator.formats import FORMATS
 
-from pyqgiswps.tests import HTTPTestCase, HttpClient
-
-from pyqgiswps.ogc import OGCUNIT
 
 def assert_success(resp):
     assert resp.status_code == 200
@@ -45,7 +40,7 @@ class ProcessTest(ApiTestCase):
     def test_get_process_list(self):
         resp = self.client.get('/processes')
         resp = assert_success(resp)
-    
+
         processes = resp.get('processes')
         assert processes is not None
         assert len(processes) == 2
@@ -75,7 +70,7 @@ class ProcessInputTest(ApiTestCase):
                 'hello_string',
                 'Process Hello',
                 inputs=[LiteralInput('the_name', 'Input name', data_type='string')],
-                metadata=[Metadata('process metadata 1', 'http://example.org/1'), Metadata('process metadata 2', 'http://example.org/2')]
+                metadata=[Metadata('process metadata 1', 'http://example.org/1'), Metadata('process metadata 2', 'http://example.org/2')],
         )
 
         def hello(request): pass
@@ -124,8 +119,8 @@ def test_literal_integer_input_uom():
     doc = literal.ogcapi_input_description()
     assert doc['schema']['type'] == 'integer'
 
-    uom_schemas  = doc['schema']['uom']['oneOf']
-    
+    uom_schemas = doc['schema']['uom']['oneOf']
+
     assert len(uom_schemas) == 1
     assert uom_schemas[0]['reference'] == OGCUNIT['metre']
 
@@ -141,21 +136,21 @@ def test_allowed_values_schema():
                 allowed_type=ALLOWEDVALUETYPE.RANGE,
                 minval=30,
                 maxval=33,
-                range_closure=RANGECLOSURETYPE.CLOSEDOPEN)
+                range_closure=RANGECLOSURETYPE.CLOSEDOPEN),
     )
 
     doc = literal.ogcapi_input_description()
 
-    doc['schema']['minimum'] == 30
-    doc['schema']['maximum'] == 33
+    assert doc['schema']['minimum'] == 30
+    assert doc['schema']['maximum'] == 33
     # XXX Draf4
-    doc['schema']['exclusiveMaximum'] == True
+    assert doc['schema']['exclusiveMaximum']
 
 
 def test_complex_input_default_format():
     complex_in = ComplexInput('foo', 'Complex foo', supported_formats=[Format('bar/baz')])
     doc = complex_in.ogcapi_input_description()
-   
+
     schemas = doc['schema']
     assert schemas['type'] == 'string'
     assert schemas['contentMediaType'] == 'bar/baz'
@@ -167,8 +162,8 @@ def test_complex_input_multiple_supported_formats():
         'Complex foo',
         supported_formats=[
             Format('a/b'),
-            Format('c/d')
-        ]
+            Format('c/d'),
+        ],
     )
 
     doc = complex_in.ogcapi_input_description()
@@ -178,7 +173,7 @@ def test_complex_input_multiple_supported_formats():
     assert schemas[0]['type'] == 'string'
     assert schemas[0]['contentMediaType'] == 'a/b'
     assert schemas[1]['contentMediaType'] == 'c/d'
-    
+
 
 def test_bbox_input_crs():
     bbox = BoundingBoxInput('bbox', 'BBox foo',
@@ -194,7 +189,7 @@ def test_literal_output():
     doc = literal.ogcapi_output_description()
     assert doc['schema']['type'] == 'number'
 
-    uom_schemas  = doc['schema']['uom']['oneOf']
+    uom_schemas = doc['schema']['uom']['oneOf']
     assert len(uom_schemas) == 1
     assert uom_schemas[0]['reference'] == OGCUNIT['metre']
 
@@ -204,10 +199,10 @@ def test_complex_output():
     doc = cplx.ogcapi_output_description()
 
     schema = doc['schema']
-    
+
     assert schema['type'] == 'string'
     assert schema['contentMediaType'] == FORMATS.GML.mime_type
-    
+
 
 def test_complex_output_multiple_formats():
     cplx = ComplexOutput('complex', 'Complex foo', [Format('GML'), Format('GEOJSON')])

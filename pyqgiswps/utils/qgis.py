@@ -8,11 +8,11 @@
 #
 """ Start qgis application
 """
+import logging
 import os
 import sys
-import logging
 
-from typing import Dict
+from typing import Dict, Optional
 
 version_info = (0, 0, 0)
 
@@ -30,15 +30,15 @@ def setup_qgis_paths() -> str:
 qgis_application = None
 
 
-def start_qgis_application(enable_gui: bool = False, enable_processing: bool = False,
-                           verbose: bool = False,
-                           cleanup: bool = True,
-                           logger: logging.Logger = None,
-                           logprefix: str = 'Qgis:',
-                           settings: Dict = None) -> 'qgis.core.QgsApplication':   # noqa: F821
+def start_qgis_application(
+    enable_processing: bool = False,
+    verbose: bool = False,
+    cleanup: bool = True,
+    logger: Optional[logging.Logger] = None,
+    logprefix: str = 'Qgis:',
+    settings: Optional[Dict] = None) -> 'qgis.core.QgsApplication':   # noqa: F821
     """ Start qgis application
 
-        :param boolean enable_gui: Enable graphical interface, default to False
         :param boolean enable_processing: Enable processing, default to False
         :param boolean verbose: Output qgis settings, default to False
         :param boolean cleanup: Register atexit hook to close qgisapplication on exit().
@@ -51,8 +51,8 @@ def start_qgis_application(enable_gui: bool = False, enable_processing: bool = F
     logger = logger or logging.getLogger()
     qgisPrefixPath = setup_qgis_paths()
 
-    from qgis.PyQt.QtCore import QCoreApplication
     from qgis.core import Qgis, QgsApplication
+    from qgis.PyQt.QtCore import QCoreApplication
 
     logger.info("Starting QGIS application: %s", Qgis.QGIS_VERSION)
 
@@ -62,23 +62,22 @@ def start_qgis_application(enable_gui: bool = False, enable_processing: bool = F
     if QgsApplication.QGIS_APPLICATION_NAME != "QGIS3":
         raise RuntimeError("You need QGIS3 (found %s)" % QgsApplication.QGIS_APPLICATION_NAME)
 
-    if not enable_gui:
-        #  We MUST set the QT_QPA_PLATFORM to prevent
-        #  Qt trying to connect to display in containers
-        if os.environ.get('DISPLAY') is None:
-            logger.info("Setting offscreen mode")
-            os.environ['QT_QPA_PLATFORM'] = 'offscreen'
-
-    global qgis_application
-
-    qgis_application = QgsApplication([], enable_gui)
-    qgis_application.setPrefixPath(qgisPrefixPath, True)
+    #  We MUST set the QT_QPA_PLATFORM to prevent
+    #  Qt trying to connect to display in containers
+    if os.environ.get('DISPLAY') is None:
+        logger.info("Setting offscreen mode")
+        os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
     # From qgis server
     # Will enable us to read qgis setting file
     QCoreApplication.setOrganizationName(QgsApplication.QGIS_ORGANIZATION_NAME)
     QCoreApplication.setOrganizationDomain(QgsApplication.QGIS_ORGANIZATION_DOMAIN)
     QCoreApplication.setApplicationName(QgsApplication.QGIS_APPLICATION_NAME)
+
+    global qgis_application
+
+    qgis_application = QgsApplication([], False)
+    qgis_application.setPrefixPath(qgisPrefixPath, True)
 
     qgis_application.initQgis()
 
@@ -109,7 +108,7 @@ def start_qgis_application(enable_gui: bool = False, enable_processing: bool = F
             qgsettings.setValue(k, v)
 
     if verbose:
-        print(qgis_application.showSettings())
+        print(qgis_application.showSettings())  # noqa: T201
 
     # Install logger hook
     install_logger_hook(logger, logprefix, verbose=verbose)
@@ -123,10 +122,11 @@ def start_qgis_application(enable_gui: bool = False, enable_processing: bool = F
     return qgis_application
 
 
-def init_qgis_processing() -> None:
+def init_qgis_processing():
     """ Initialize processing
     """
     from processing.core.Processing import Processing
+
     from qgis.analysis import QgsNativeAlgorithms
     from qgis.core import QgsApplication
 
@@ -134,7 +134,7 @@ def init_qgis_processing() -> None:
     Processing.initialize()
 
 
-def install_logger_hook(logger: logging.Logger, logprefix: str, verbose: bool = False) -> None:
+def install_logger_hook(logger: logging.Logger, logprefix: str, verbose: bool = False):
     """ Install message log hook
     """
     from qgis.core import Qgis, QgsApplication
@@ -158,8 +158,8 @@ def install_logger_hook(logger: logging.Logger, logprefix: str, verbose: bool = 
 def load_qgis_settings(optpath, logger, verbose=False):
     """ Load qgis settings
     """
-    from qgis.PyQt.QtCore import QSettings
     from qgis.core import QgsSettings
+    from qgis.PyQt.QtCore import QSettings
 
     QSettings.setDefaultFormat(QSettings.IniFormat)
     QSettings.setPath(QSettings.IniFormat, QSettings.UserScope, optpath)

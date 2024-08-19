@@ -7,26 +7,26 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-from .basehandler import (  # noqa F401
-    NotFoundHandler,
+from .basehandler import (  # noqa: F401
     ErrorHandler,
-)
-from .roothandler import (  # noqa F401
-    ServerInfosHandler,
-    LandingPageHandler,
-)
-from .owshandler import OWSHandler    # noqa F401
-from .processeshandler import (  # noqa F401
-    ProcessHandler,
-    JobHandler,
-    ExecuteHandler,
-    ResultHandler,
-    ConformanceHandler,
-)
-from .statushandler import StatusHandler  # noqa F401
-from .storehandler import (  # noqa F401
-    StoreHandler,
-    DownloadHandler,
-    LogsHandler,
+    NotFoundHandler,
 )
 from .oapihandler import OpenApiHandler  # noqa F401
+from .owshandler import OWSHandler  # noqa: F401
+from .processeshandler import (  # noqa: F401
+    ConformanceHandler,
+    ExecuteHandler,
+    JobHandler,
+    ProcessHandler,
+    ResultHandler,
+)
+from .roothandler import (  # noqa: F401
+    LandingPageHandler,
+    ServerInfosHandler,
+)
+from .statushandler import StatusHandler  # noqa: F401
+from .storehandler import (  # noqa: F401
+    DownloadHandler,
+    LogsHandler,
+    StoreHandler,
+)

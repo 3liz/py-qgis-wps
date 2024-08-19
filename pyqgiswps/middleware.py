@@ -9,20 +9,19 @@
 import logging
 import traceback
 
+from typing import List, NamedTuple, Optional
+
 import tornado.web
 
-from tornado.web import HTTPError
+from tornado.httpserver import HTTPRequest
+from tornado.httputil import HTTPMessageDelegate
 from tornado.routing import Router
-
-from typing import TypeVar, List, NamedTuple
-
-from .handlers import ErrorHandler
-from .accesspolicy import new_access_policy
+from tornado.web import HTTPError
 
 from pyqgisservercontrib.core.filters import _FilterBase
 
-
-HandlerDelegate = TypeVar('HandlerDelegate')
+from .accesspolicy import new_access_policy
+from .handlers import ErrorHandler
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -52,7 +51,7 @@ def load_policies() -> List[_FilterBase]:
 
 class MiddleWareRouter(Router):
 
-    def __init__(self, app: tornado.web.Application, filters: List[_FilterBase] = None) -> None:
+    def __init__(self, app: tornado.web.Application, filters: Optional[List[_FilterBase]] = None):
         """ Initialize middleware filters
         """
         LOGGER.info("Initializing middleware filters")
@@ -65,7 +64,7 @@ class MiddleWareRouter(Router):
         # Sort filters
         self.policies.sort(key=lambda p: p.pri, reverse=True)
 
-    def find_handler(self, request, **kwargs) -> HandlerDelegate:
+    def find_handler(self, request: HTTPRequest, **kwargs) -> HTTPMessageDelegate:
         """ Define middleware prerocessing
         """
         wps_policy_defs = None

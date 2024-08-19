@@ -9,26 +9,27 @@
 """ Qgis process factory
 
 """
-import os
 import logging
-import traceback
+import os
 import queue
 import signal
+import traceback
 
 from glob import glob
 from itertools import chain
 from multiprocessing import Process, Queue
+from typing import (
+    List,
+    Optional,
+    Sequence,
+)
 
-from typing import List, Optional
-
-from pyqgiswps.utils.qgis import start_qgis_application, setup_qgis_paths
-from pyqgiswps.poolserver.server import create_poolserver
-from pyqgiswps.utils.plugins import WPSServerInterfaceImpl
-from pyqgiswps.app.process import WPSProcess
-from pyqgiswps.exceptions import ProcessException
-
-from pyqgiswps.config import confservice
-
+from ..app.process import WPSProcess
+from ..config import confservice
+from ..exceptions import ProcessException
+from ..poolserver.server import create_poolserver
+from ..utils.plugins import WPSServerInterfaceImpl
+from ..utils.qgis import setup_qgis_paths, start_qgis_application
 from .logstore import logstore
 
 LOGGER = logging.getLogger('SRVLOG')
@@ -180,9 +181,12 @@ class QgsProcessFactory:
             processlifecycle = None
 
         # Need to be initialized as soon as possible
-        self._poolserver = create_poolserver(maxparallel, maxcycles=processlifecycle,
-                                             initializer=self.worker_initializer,
-                                             timeout=response_timeout)
+        self._poolserver = create_poolserver(
+            maxparallel,
+            maxcycles=processlifecycle,
+            initializer=self.worker_initializer,
+            timeout=response_timeout,
+        )
         self._initialized = True
 
     def restart_pool(self):
@@ -191,13 +195,13 @@ class QgsProcessFactory:
         if self._initialized:
             self._poolserver.restart()
 
-    def _create_contextualized_processes(self, identifiers, map_uri) -> List[WPSProcess]:
+    def _create_contextualized_processes(self, identifiers: Sequence[str], map_uri: str) -> List[WPSProcess]:
         """ Create processes from context
         """
         from pyqgiswps.executors.processingprocess import QgsProcess
         return [QgsProcess.createInstance(ident, map_uri=map_uri) for ident in identifiers]
 
-    def create_contextualized_processes(self, identifiers, map_uri) -> List[WPSProcess]:
+    def create_contextualized_processes(self, identifiers: Sequence[str], map_uri: str) -> List[WPSProcess]:
         if self._delegate and self._delegate.is_alive():
             return self._delegate.create_contextualized_processes(identifiers, map_uri)
         else:
@@ -212,8 +216,9 @@ class QgsProcessFactory:
         self.start_qgis()
 
         # Install processes from processing providers
-        from pyqgiswps.executors.processingprocess import QgsProcess
         from qgis.core import QgsProcessingAlgorithm
+
+        from pyqgiswps.executors.processingprocess import QgsProcess
 
         processes = []
 
@@ -276,7 +281,7 @@ class QgsProcessFactory:
 
         settings = {
             "Processing/Configuration/PREFER_FILENAME_AS_LAYER_NAME": "false",  # Qgis < 3.30
-            "qgis/configuration/prefer-filename-as-layer-name": "false"         # Qgis >= 3.30
+            "qgis/configuration/prefer-filename-as-layer-name": "false",         # Qgis >= 3.30
         }
 
         def _folders_setting(setting, folders):
@@ -300,7 +305,7 @@ class QgsProcessFactory:
             enable_processing=True,
             verbose=confservice.get('logging', 'level') == 'DEBUG',
             logger=LOGGER, logprefix=logprefix,
-            settings=settings
+            settings=settings,
         )
 
         # Load plugins

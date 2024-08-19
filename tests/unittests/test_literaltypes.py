@@ -7,8 +7,18 @@
 ##################################################################
 
 import datetime
+
 import pytest
-from pyqgiswps.inout.literaltypes import *
+
+from pyqgiswps.inout.literaltypes import (
+    convert_boolean,
+    convert_date,
+    convert_datetime,
+    convert_float,
+    convert_integer,
+    convert_string,
+    convert_time,
+)
 
 
 def test_integer():
@@ -49,13 +59,13 @@ def test_boolean():
 def test_time():
     """Test time convertor"""
     assert convert_time("12:00:00") ==  datetime.time(12, 0, 0)
-    assert isinstance( convert_time(datetime.time(14)), datetime.time)
+    assert isinstance(convert_time(datetime.time(14)), datetime.time)
 
 
 def test_date():
     """Test date convertor"""
     assert convert_date("2011-07-21") == datetime.date(2011, 7, 21)
-    assert isinstance( convert_date(datetime.date(2012, 12, 31)), datetime.date)
+    assert isinstance(convert_date(datetime.date(2012, 12, 31)), datetime.date)
 
 
 def test_datetime():
@@ -64,4 +74,3 @@ def test_datetime():
     assert isinstance(convert_datetime("2016-09-22T12:00:00Z"), datetime.datetime)
     assert isinstance(convert_datetime("2016-09-22T12:00:00+01:00"), datetime.datetime)
     assert isinstance(convert_datetime(datetime.datetime(2016, 9, 22, 6)), datetime.datetime)
-

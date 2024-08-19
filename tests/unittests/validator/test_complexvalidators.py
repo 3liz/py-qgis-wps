@@ -7,19 +7,25 @@
 """Unit tests for complex validator
 """
 
-import sys
-from pyqgiswps.validator.complexvalidator import *
-from pyqgiswps.inout.formats import FORMATS
-import tempfile
 import os
-import pytest
+import tempfile
+
+from pyqgiswps.inout.formats import FORMATS
+from pyqgiswps.validator.complexvalidator import (
+    MODE,
+    validategeojson,
+    validategeotiff,
+    validategml,
+    validateshapefile,
+)
 
 try:
-    import osgeo
+    import osgeo  # noqa F401
 except ImportError:
     WITH_GDAL = False
 else:
     WITH_GDAL = True
+
 
 def get_input(name, schema, mime_type):
 
@@ -27,6 +33,7 @@ def get_input(name, schema, mime_type):
         mimetype = 'text/plain'
         schema = None
         units = None
+
         def validate(self, data):
             return True
 
@@ -51,6 +58,7 @@ def get_input(name, schema, mime_type):
 
     return fake_input
 
+
 def test_gml_validator():
     """Test GML validator
     """
@@ -61,7 +69,7 @@ def test_gml_validator():
         assert validategml(gml_input, MODE.STRICT), 'STRICT validation'
         # XXX Depends on external connection, may fail if not online
         # Prevent test to fail if site is down
-        #assert validategml(gml_input, MODE.VERYSTRICT), 'VERYSTRICT validation'
+        # assert validategml(gml_input, MODE.VERYSTRICT), 'VERYSTRICT validation'
     gml_input.stream.close()
 
 
@@ -106,4 +114,3 @@ def test_fail_validator():
     fake_input = get_input('point.xsd', 'point.xsd', FORMATS.SHP.mime_type)
     assert not validategml(fake_input, MODE.SIMPLE), 'SIMPLE validation invalid'
     fake_input.stream.close()
-

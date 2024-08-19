@@ -9,11 +9,12 @@ import uuid
 
 from datetime import datetime
 from enum import IntEnum
-from typing import Optional, Iterator
-
-from pyqgiswps.config import confservice
+from typing import Iterator, Optional
+from uuid import UUID
 
 import redis
+
+from pyqgiswps.config import confservice
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -157,7 +158,7 @@ class LogStore:
         else:
             raise FileNotFoundError("No status for %s" % uuid_str)
 
-    def write_response(self, request_uuid, content: bytes):
+    def write_response(self, request_uuid: str, content: bytes):
         """ Write response doc
         """
         uuid_str = str(request_uuid)
@@ -176,10 +177,10 @@ class LogStore:
         p.hdel(self._hstatus, uuid_str)
         p.execute()
 
-    def get_results(self, uuid) -> Optional[bytes]:
+    def get_results(self, uuid: str | UUID) -> Optional[bytes]:
         """ Return results status
         """
-        data = self._db.get(f"{self._prefix}:response:{str(uuid)}")
+        data = self._db.get(f"{self._prefix}:response:{uuid!s}")
         if data is not None:
             return data
 
@@ -192,7 +193,7 @@ class LogStore:
     def get_request(self, uuid):
         """ Return results status
         """
-        data = self._db.get(f"{self._prefix}:request:{str(uuid)}")
+        data = self._db.get(f"{self._prefix}:request:{uuid!s}")
         if data is not None:
             return json.loads(data.decode('utf-8'))
 

@@ -10,31 +10,35 @@
 """
 import logging
 
-from pyqgiswps.app.common import Metadata
-from pyqgiswps.exceptions import InvalidParameterValue
-from pyqgiswps.inout.literaltypes import AllowedValues
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    Tuple,
+)
 
-from pyqgiswps.inout import (LiteralInput,
-                             ComplexInput,
-                             BoundingBoxInput,
-                             LiteralOutput,
-                             ComplexOutput,
-                             BoundingBoxOutput)
-
+from qgis.core import (
+    QgsProcessingAlgorithm,
+    QgsProcessingOutputDefinition,
+    QgsProcessingParameterDefinition,
+    QgsProcessingParameterField,
+    QgsProcessingParameterNumber,
+    QgsUnitTypes,
+)
 from qgis.PyQt.QtCore import QVariant
 
-from qgis.core import (QgsProcessingAlgorithm,
-                       QgsProcessingParameterDefinition,
-                       QgsProcessingParameterNumber,
-                       QgsProcessingOutputDefinition,
-                       QgsProcessingParameterField,
-                       QgsUnitTypes)
+from pyqgiswps.app.common import Metadata
+from pyqgiswps.exceptions import InvalidParameterValue
+from pyqgiswps.inout import (
+    LiteralInput,
+    LiteralOutput,
+    WPSInput,
+    WPSOutput,
+)
+from pyqgiswps.inout.literaltypes import AllowedValues
 
+from .io import datetimeio, filesio, geometryio, layersio
 from .processingcontext import MapContext, ProcessingContext
-
-from typing import Any, Union, Tuple, Generator
-
-from .io import filesio, layersio, datetimeio, geometryio
 
 # Distance UOM conversion to normalized units
 DISTANCE_UOMS = {
@@ -48,9 +52,6 @@ DISTANCE_UOMS = {
     QgsUnitTypes.DistanceCentimeters: 'centimeter',
     QgsUnitTypes.DistanceMillimeters: 'millimeter',
 }
-
-WPSInput = Union[LiteralInput, ComplexInput, BoundingBoxInput]
-WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -86,7 +87,7 @@ def _number_data_type(param: QgsProcessingParameterNumber) -> str:
 # Inputs converters
 # ==================
 
-def parse_literal_input(param: QgsProcessingParameterDefinition, kwargs) -> LiteralInput:
+def parse_literal_input(param: QgsProcessingParameterDefinition, kwargs: Dict[str, Any]) -> LiteralInput:
     """ Convert processing input to Literal Input
     """
     typ = param.type()
@@ -159,7 +160,7 @@ def parse_literal_input(param: QgsProcessingParameterDefinition, kwargs) -> Lite
     return LiteralInput(**kwargs)
 
 
-def parse_metadata(param: QgsProcessingParameterDefinition, kwargs) -> None:
+def parse_metadata(param: QgsProcessingParameterDefinition, kwargs: Dict[str, Any]):
     """ Parse freeform metadata
     """
     kwargs['metadata'].extend(Metadata('processing:meta:%s' % k, str(v)) for k, v in param.metadata().items())
@@ -177,7 +178,7 @@ the description is used in QGIS UI as the title in WPS.
         'abstract': param.help(),
         'metadata': [
             Metadata('processing:type', param.type()),
-        ]
+        ],
     }
 
     # Handle defaultValue
@@ -225,7 +226,7 @@ def parse_input_definitions(alg: QgsProcessingAlgorithm, context: MapContext) ->
 # Output converters
 # ==================
 
-def parse_literal_output(outdef: QgsProcessingOutputDefinition, kwargs) -> LiteralOutput:
+def parse_literal_output(outdef: QgsProcessingOutputDefinition, kwargs: Dict[str, Any]) -> LiteralOutput:
     """
     """
     typ = outdef.type()
@@ -252,7 +253,7 @@ def parse_output_definition(outdef: QgsProcessingOutputDefinition, alg: QgsProce
     kwargs = {
         'identifier': outdef.name(),
         'title': outdef.description(),
-        'abstract': outdef.description()
+        'abstract': outdef.description(),
     }
 
     output = parse_literal_output(outdef, kwargs) \
@@ -305,8 +306,12 @@ def get_processing_value(param: QgsProcessingParameterDefinition, inp: WPSInput,
     return value
 
 
-def input_to_processing(identifier: str, inp: WPSInput, alg: QgsProcessingAlgorithm,
-                        context: ProcessingContext) -> Tuple[str, Any]:
+def input_to_processing(
+    identifier: str,
+    inp: WPSInput,
+    alg: QgsProcessingAlgorithm,
+    context: ProcessingContext,
+) -> Tuple[str, Any]:
     """ Convert wps input to processing param
 
         see https://qgis.org/api/classQgsProcessingOutputLayerDefinition.html

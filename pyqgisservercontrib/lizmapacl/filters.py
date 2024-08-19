@@ -26,19 +26,19 @@ include_policies:
     - lizmap_policies/*/wpspolicy.yml
 
 """
-import sys
 import logging
-import yaml
+import sys
 import traceback
 
-from itertools import chain
-
-from typing import TypeVar, List, Dict, Generator
-from pathlib import Path
 from collections import namedtuple
+from itertools import chain
+from pathlib import Path
+from typing import Dict, Generator, List, TypeVar
 
-from pyqgisservercontrib.core.watchfiles import watchfiles
+import yaml
+
 from pyqgisservercontrib.core.filters import policy_filter
+from pyqgisservercontrib.core.watchfiles import watchfiles
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -97,11 +97,11 @@ class PolicyManager:
             else:
                 raise
 
-    def __init__(self, configfile: Path) -> None:
+    def __init__(self, configfile: Path):
         self._autoreload = None
         self.load(configfile)
 
-    def parse_policy(self, rootd: Path, config: YAMLData) -> None:
+    def parse_policy(self, rootd: Path, config: YAMLData):
         """
         """
         # Load rule from main config policies
@@ -133,7 +133,7 @@ class PolicyManager:
         self._rules = rules
         LOGGER.debug("# Lizmap Policy RULES %s", rules)
 
-    def load(self, configfile: Path) -> None:
+    def load(self, configfile: Path):
         """ Load policy configuration
         """
         LOGGER.info("Policy: Reading Lizmap Policy configuration %s", configfile)
@@ -204,7 +204,7 @@ class PolicyManager:
         return policies
 
 
-def get_policies(policyfile: Path):
+def get_policies(policyfile: Path) -> policy_filter:
     mngr = PolicyManager.initialize(policyfile)
 
     @policy_filter()
@@ -214,7 +214,7 @@ def get_policies(policyfile: Path):
     return [_filter]
 
 
-def register_policy(policy_service, *args, **kwargs) -> None:
+def register_policy(policy_service, *args, **kwargs):
     """ Register filters
     """
     from pyqgisservercontrib.core import componentmanager

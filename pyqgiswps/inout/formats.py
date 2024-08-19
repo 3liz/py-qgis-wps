@@ -16,9 +16,9 @@ import mimetypes
 
 import pyqgiswps.ogc as ogc
 
-from pyqgiswps.validator.mode import MODE
-from pyqgiswps.validator.formats import FORMATS
 from pyqgiswps.validator.base import emptyvalidator
+from pyqgiswps.validator.formats import FORMATS
+from pyqgiswps.validator.mode import MODE
 
 
 def _get_mimetypes():
@@ -136,7 +136,7 @@ class Format(*ogc.exports.Format):
             'mime_type': self.mime_type,
             'encoding': self.encoding,
             'schema': self.schema,
-            'extension': self.extension
+            'extension': self.extension,
         }
 
 

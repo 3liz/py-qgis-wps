@@ -8,41 +8,44 @@
 #
 """ Handle geometry
 """
+import json
 import logging
 import re
-import json
+
+from typing import (
+    Any,
+    Dict,
+    Optional,
+    Union,
+)
 
 from osgeo import ogr
 
+from qgis.core import (
+    Qgis,
+    QgsCoordinateReferenceSystem,
+    QgsGeometry,
+    QgsProcessingParameterDefinition,
+    QgsProcessingParameterGeometry,
+    QgsProcessingParameterPoint,
+    QgsRectangle,
+    QgsReferencedGeometry,
+    QgsReferencedPointXY,
+    QgsReferencedRectangle,
+)
+
 from pyqgiswps.app.common import Metadata
-from pyqgiswps.inout.formats import Format, FORMATS
-from pyqgiswps.inout import (LiteralInput,
-                             ComplexInput,
-                             BoundingBoxInput,
-                             LiteralOutput,
-                             ComplexOutput,
-                             BoundingBoxOutput)
-
-from pyqgiswps.exceptions import (NoApplicableCode,
-                                  InvalidParameterValue)
-
-from qgis.core import (Qgis,
-                       QgsCoordinateReferenceSystem,
-                       QgsGeometry,
-                       QgsReferencedGeometry,
-                       QgsRectangle,
-                       QgsReferencedRectangle,
-                       QgsReferencedPointXY,
-                       QgsProcessingParameterDefinition,
-                       QgsProcessingParameterGeometry,
-                       QgsProcessingParameterPoint)
+from pyqgiswps.exceptions import InvalidParameterValue, NoApplicableCode
+from pyqgiswps.inout import (
+    FORMATS,
+    BoundingBoxInput,
+    ComplexInput,
+    Format,
+    LiteralInput,
+    WPSInput,
+)
 
 from ..processingcontext import MapContext, ProcessingContext
-
-from typing import Any, Union
-
-WPSInput = Union[LiteralInput, ComplexInput, BoundingBoxInput]
-WPSOutput = Union[LiteralOutput, ComplexOutput, BoundingBoxOutput]
 
 Geometry = Union[QgsGeometry, QgsReferencedGeometry]
 
@@ -72,8 +75,11 @@ else:
 # ------------------------------------
 
 
-def parse_extent_input(param: QgsProcessingParameterDefinition, kwargs,
-                       context: MapContext = None) -> BoundingBoxInput:
+def parse_extent_input(
+    param: QgsProcessingParameterDefinition,
+    kwargs: Dict[str, Any],
+    context: Optional[MapContext] = None,
+) -> BoundingBoxInput:
     """ Convert extent processing input to bounding box input"
     """
     crsid = None
@@ -95,8 +101,11 @@ def parse_extent_input(param: QgsProcessingParameterDefinition, kwargs,
     return BoundingBoxInput(**kwargs)
 
 
-def parse_input_definition(param: QgsProcessingParameterDefinition, kwargs,
-                           context: MapContext = None) -> WPSInput:
+def parse_input_definition(
+    param: QgsProcessingParameterDefinition,
+    kwargs: Dict[str, Any],
+    context: Optional[MapContext] = None,
+) -> WPSInput:
     """ Convert processing input to File Input
     """
     typ = param.type()
