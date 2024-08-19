@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   wps:
     image: ${QGIS_IMAGE}
@@ -31,5 +30,5 @@ services:
                 cpus: ${CPU_LIMITS}
                 memory: ${MEMORY_LIMITS}
   redis:
-     image: redis:6-alpine
+    image: redis:6-alpine
 

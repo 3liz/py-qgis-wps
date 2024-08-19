@@ -2,24 +2,18 @@
 # 
 # qypws makefile
 #
+DEPTH=.
 
-VERSION:=1.8.7
-
-ifndef CI_COMMIT_TAG
-VERSION_TAG=$(VERSION)rc0
-else
-VERSION_TAG=$(VERSION)
-endif
-
-BUILDID=$(shell date +"%Y%m%d%H%M")
-COMMITID=$(shell git rev-parse --short HEAD)
+include $(DEPTH)/config.mk
 
 BUILDDIR:=build
 DIST:=${BUILDDIR}/dist
 
 MANIFEST=pyqgiswps/build.manifest
 
-PYTHON:=python3
+PYTHON_PKG=pyqgiswps pyqgisservercontrib
+
+TESTDIR=tests/unittests
 
 dirs:
 	mkdir -p $(DIST)
@@ -33,14 +27,6 @@ manifest: version
     echo buildid=$(BUILDID)   >> $(MANIFEST) && \
     echo commitid=$(COMMITID) >> $(MANIFEST)
 
-# Build dependencies
-deps: dirs
-	pip wheel -w $(DIST) -r requirements.txt
-
-wheel: deps
-	mkdir -p $(DIST)
-	$(PYTHON) setup.py bdist_wheel --dist-dir=$(DIST)
-
 deliver:
 	twine upload -r storage $(DIST)/*
 
@@ -52,16 +38,39 @@ clean:
 	rm -rf $(DIST) *.egg-info
 
 
-FLAVOR:=release
+test:
+	make -C tests test PYTEST_ADDOPTS=$(PYTEST_ADDOPTS)
+
+install:
+	pip install -U --upgrade-strategy=eager -e .
+
+install-tests:
+	pip install -U --upgrade-strategy=eager -r tests/requirements.txt
+
+install-tests:
+	pip install -U --upgrade-strategy=eager -r tests/requirements.txt
+
+install-doc:
+	pip install -U --upgrade-strategy=eager -r doc/requirements.txt
+
+install-dev: install-tests install-doc
+
+lint:
+	@ruff check $(PYTHON_PKG) $(TESTDIR)
+
+lint-preview:
+	@ruff check --preview $(PYTHON_PKG) $(TESTDIR)
+
+lint-fix:
+	@ruff check --preview --fix $(PYTHON_PKG) $(TESTDIR)
+
+typing:
+	mypy --config=$(tosrcdir)/mypy.ini -p pyqgiswps
+
 
 # Run tests with docker-test
 test-%:
 	$(MAKE) -C tests $* FLAVOR=$(FLAVOR)
-
-lint:
-	@flake8 --ignore=I pyqgiswps pyqgisservercontrib
-
-test: lint manifest test-test
 
 run: manifest
 	$(MAKE) -C tests run FLAVOR=$(FLAVOR)

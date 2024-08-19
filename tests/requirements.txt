@@ -1,0 +1,11 @@
+pytest >= 5.3
+packaging >= 22.0
+ruff
+mypy
+mypy-extensions
+types-psutil
+types-PyYAML
+types-psycopg2
+pipdeptree
+lxml
+lxml-stubs

@@ -4,25 +4,21 @@ SHELL:=bash
 #
 #
 
-NAME=qgis-wps
+DEPTH=..
 
-BUILDID=$(shell date +"%Y%m%d%H%M")
-COMMITID=$(shell git rev-parse --short HEAD)
+include $(DEPTH)/config.mk
+
+NAME=qgis-wps
 
 FLAVOR:=release
 
 # Server version
-BUILD_VERSION:=$(shell cd .. && python3 setup.py --version)
-ifeq ($(BUILD_VERSION),)
-$(error failed to retrieve build version)
-endif
+BUILD_VERSION:=$(VERSION_TAG)
 
 ifdef PYPISERVER
 PYPISERVER_SCHEME ?= https
 PIP_OPTIONS="--extra-index-url=$(PYPISERVER_SCHEME)://$(PYPISERVER) --trusted-host=$(PYPISERVER)"
 BUILD_ARGS=--build-arg PIP_OPTIONS=$(PIP_OPTIONS)
-else
-BUILD_PACKAGE=build_package
 endif
 
 BUILD_ARGS += --build-arg BUILD_VERSION=$(BUILD_VERSION)
@@ -32,33 +28,31 @@ REGISTRY_URL ?= 3liz
 REGISTRY_PREFIX=$(REGISTRY_URL)/
 BUILD_ARGS += --build-arg REGISTRY_PREFIX=$(REGISTRY_PREFIX)
 
-export BUILDIMAGE:=$(NAME):$(FLAVOR)-$(COMMITID)
+BUILDIMAGE:=$(NAME):$(FLAVOR)-$(COMMITID)
 
-MANIFEST=factory.manifest
+MANIFEST=factory.$(FLAVOR).manifest
+
+# Use buildkit 
+export DOCKER_BUILDKIT=1
 
 all:
 	@echo "Usage: make [build|deliver|clean]"
 
-build: _build manifest
+#DOCKER_CACHE:=--force-rm --no-cache
 
-DOCKER_CACHE:=--force-rm --no-cache
-
-_build: $(BUILD_PACKAGE)
+build: manifest
 	docker build --rm $(DOCKER_CACHE) $(DOCKER_BUILD_ARGS) \
-		$(BUILD_ARGS) -t $(BUILDIMAGE) $(DOCKERFILE) .
+		$(BUILD_ARGS) -t $(BUILDIMAGE) -f Dockerfile ..
 
-build_package:
-	rm -rf dist && mkdir -p dist
-	$(MAKE) -C .. dist DIST=$$PWD/dist
+QGIS_IMAGE=$(REGISTRY_PREFIX)qgis-platform:$(FLAVOR)
 
 manifest:
 	{ \
 	set -e; \
-	version=`docker run --rm $(BUILDIMAGE) version`; \
-	version_short=`echo $$version | cut -d- -f1 |cut -d. -f1-2`-`echo $$version | cut -d- -f2 |cut -d. -f1-2`; \
+	version=`docker run --rm -v $$(pwd)/scripts:/scripts $(QGIS_IMAGE)  /scripts/qgis-version.sh`; \
 	echo name=$(NAME) > $(MANIFEST) && \
-    echo version=$$version >> $(MANIFEST) && \
-    echo version_short=$$version_short >> $(MANIFEST) && \
+    echo version=$$version-$(VERSION) >> $(MANIFEST) && \
+    echo version_short=$$version >> $(MANIFEST) && \
     echo release_tag=`echo $$version | cut -d- -f1 |cut -d. -f1-2` >> $(MANIFEST) && \
     echo buildid=$(BUILDID)   >> $(MANIFEST) && \
     echo commitid=$(COMMITID) >> $(MANIFEST); }

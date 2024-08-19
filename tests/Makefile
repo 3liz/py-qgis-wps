@@ -1,6 +1,11 @@
 SHELL:=bash
 .ONESHELL:
 .PHONY: env
+
+DEPTH=..
+
+include $(DEPTH)/config.mk
+
 #
 #  Makefile for running server in docker containers
 #
@@ -19,22 +24,13 @@ BECOME_USER:=$(shell id -u)
 
 SERVER_HTTP_PORT:=127.0.0.1:8888
 
-SRCDIR=$(shell realpath ..)
-
-local:
-	@rm -rf unittests/__outputdir__/*
-	@mkdir -p $$(pwd)/__workdir__
-	@mkdir -p  $$(pwd)/.local  $$(pwd)/.cache
-
-clean:
-	@rm -rf $$(pwd)/.local $$(pwd)/.cache
+SRCDIR=$(topsrcdir)
 
 TESTS_CPU_LIMITS:=2.0
 TESTS_MEMORY_LIMITS:=2g
-
 WORKERS:=1
 
-env: local
+env:
 	@echo "Creating environment file for docker-compose"
 	@cat <<-EOF > .env
 		BECOME_USER=$(BECOME_USER)
@@ -47,27 +43,25 @@ env: local
 		COMPOSE_PROJECT_NAME=test-pyqgiswps
 		EOF
 
-test: export RUN_COMMAND=/src/tests/run-tests.sh
-test: env up
+# see https://docs.python.org/3/library/faulthandler.html
+test: export PYTHONFAULTHANDLER=1
+test:
+	SRCDIR=$(SRCDIR) source tests.env \
+	&& export $$(cut -d= -f1 tests.env) \
+	&& cd unittests \
+	&& pytest -v $(PYTEST_ADDOPTS)
+
+#test: export RUN_COMMAND=/src/tests/run-tests.sh
+#test: up
 
 run: export RUN_COMMAND=/src/tests/run-server.sh
 run: up
 
-stop:
+stop: 
 	docker compose down -v --remove-orphans
 
-up:
+up: env
 	docker compose up -V --quiet-pull --remove-orphans \
 		--force-recreate --exit-code-from wps
 	docker compose down -v --remove-orphans
-
-test-pool: local
-	docker run --rm --name qgis-wps-test-pool-$(FLAVOR)-$(COMMITID) -w /src \
-    -u $(BECOME_USER) \
-    -v $(SRCDIR):/src \
-    -v $$(pwd)/.local:/.local \
-    -v $$(pwd)/.cache:/.cache \
-    -e PIP_CACHE_DIR=/.cache \
-    -e PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)" \
-    $(QGIS_IMAGE) /src/tests/run-pool-tests.sh
 

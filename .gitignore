@@ -50,5 +50,7 @@ qgis.db
 *.aux.xml
 
 VERSION
-
+.env
+.activate
+.bash_aliases
 .qgis-restart

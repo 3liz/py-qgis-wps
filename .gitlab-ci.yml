@@ -10,8 +10,15 @@ stages:
 #-----------------
 
 .tests:
+  image: ${REGISTRY_URL}/factory-ci-runner:qgis-${QGIS_FLAVOR}
+  services:
+    - name: ${REGISTRY_URL}/redis:7-alpine
+      alias: redis
   stage: test
   script:
+    - source ~/.bashrc
+    - make install install-tests
+    - pip list -l
     - make test FLAVOR=$QGIS_FLAVOR
   tags:
     - infrav3-dind
@@ -28,26 +35,13 @@ tests:release:
   variables:
     QGIS_FLAVOR: release
 
+tests:3.28:
+  extends: .tests
+  needs:
+    - "tests:release"
+  variables:
+    QGIS_FLAVOR: "3.28"
 
-#---------------
-# Build
-#---------------
-
-build:
-  stage: build
-  script:
-    - make dist deliver
-  environment:
-    name: snap
-  only:
-    refs:
-      - tags
-      - master
-  tags:
-    - infrav3
-  except:
-    - schedules
-    - triggers
 
 # Docker build 
 include: '/docker/.gitlab-ci.yml'

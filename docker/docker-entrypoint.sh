@@ -1,6 +1,18 @@
 #!/bin/bash
 set -e
 
+copy_qgis_configuration() {
+    QGIS_CUSTOM_CONFIG_PATH=${QGIS_CUSTOM_CONFIG_PATH:-$QGIS_OPTIONS_PATH}
+    if [[ -n $QGIS_CUSTOM_CONFIG_PATH ]]; then
+        echo "Copying Qgis configuration: $QGIS_CUSTOM_CONFIG_PATH"
+        mkdir -p $HOME/profiles/default
+        cp -RL $QGIS_CUSTOM_CONFIG_PATH/* $HOME/profiles/default
+    fi
+    export QGIS_CUSTOM_CONFIG_PATH=$HOME
+    export QGIS_OPTIONS_PATH=$HOME
+}
+
+
 if [[ "$1" == "version" ]]; then
     version=`/opt/local/pyqgiswps/bin/pip list | grep qgis-wps | tr -s [:blank:] | cut -d ' ' -f 2`
     qgis_version=`python3 -c "from qgis.core import Qgis; print(Qgis.QGIS_VERSION.split('-')[0])"`
@@ -11,18 +23,6 @@ if [[ "$1" == "version" ]]; then
     exit 0
 fi
 
-#-------------------------------------------------------
-# Set compatibility with legacy variable naming scheme
-#-------------------------------------------------------
-echo "Checking for legacy environment"
-OLDVARS=`echo ${!QYWPS_*}`
-for var in $OLDVARS; do
-  varname=QGSWPS_`echo ${var#"QYWPS_"}`
-  value=`echo ${!var}`
-  echo "$varname=$value"
-  export $varname=$value
-done
-#-------------------------------------------------------
 
 QGSWPS_USER=${QGSWPS_USER:-"9001:9001"}
 
@@ -39,6 +39,8 @@ if [ "$(id -u)" = '0' ]; then
    # Run as QGSWPS_USER
    exec gosu $QGSWPS_USER  "$BASH_SOURCE" $@
 fi
+
+copy_qgis_configuration
 
 # Run as QGSWPS_USER
 exec wpsserver $@ -p 8080

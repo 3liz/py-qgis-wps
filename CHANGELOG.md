@@ -3,6 +3,9 @@
 
 ## Unreleased
 
+* Remove support for Qgis < 3.28
+* Remove dependency on 3liz/qgis-platform images for tests
+
 ## 1.8.7 - 2024-07-15
 
 * Disable broken strict complex geojson validation
