@@ -133,16 +133,17 @@ class OWSRequest(WPSRequest):
 
         wpsrequest.operation = operation
 
-        if operation == 'getresults':
-            parse_get_getresults()
-        elif operation == 'getcapabilities':
-            parse_get_getcapabilities()
-        elif operation == 'describeprocess':
-            parse_get_describeprocess()
-        elif operation == 'execute':
-            parse_get_execute()
-        else:
-            raise OperationNotSupported('Unknown request %r' % operation, operation)
+        match operation:
+            case 'getresults':
+                parse_get_getresults()
+            case 'getcapabilities':
+                parse_get_getcapabilities()
+            case 'describeprocess':
+                parse_get_describeprocess()
+            case 'execute':
+                parse_get_execute()
+            case _:
+                raise OperationNotSupported('Unknown request %r' % operation, operation)
 
         # Return the created WPSRequest object
         return wpsrequest
@@ -232,7 +233,7 @@ class OWSRequest(WPSRequest):
             wpsrequest.operation = 'execute'
             parse_post_execute()
         else:
-            raise InvalidParameterValue('Unknown request %r' % tagname, 'request')
+            raise InvalidParameterValue(f'Unknown request {tagname!r}', 'request')
 
         # Return the created WPSRequest object
         return wpsrequest
@@ -256,7 +257,9 @@ class OWSRequest(WPSRequest):
             self.check_and_set_version(version)
         else:
             raise VersionNegotiationFailed(
-                'The requested version "%s" is not supported by this server' % acceptedversions, 'version')
+                f'The requested version "{acceptedversions}" is not supported by this server',
+                'version',
+            )
 
     def check_and_set_version(self, version):
         """set this.version
@@ -266,7 +269,9 @@ class OWSRequest(WPSRequest):
             raise MissingParameterValue('Missing version', 'version')
         elif not _check_version(version):
             raise VersionNegotiationFailed(
-                'The requested version "%s" is not supported by this server' % version, 'version')
+                f'The requested version "{version}" is not supported by this server',
+                'version',
+            )
         else:
             self.version = version
 
@@ -278,7 +283,9 @@ class OWSRequest(WPSRequest):
             language = 'None'
         elif language != 'en-US':
             raise InvalidParameterValue(
-                'The requested language "%s" is not supported by this server' % language, 'language')
+                f'The requested language "{language}" is not supported by this server',
+                'language',
+            )
         else:
             self.language = language
 
@@ -290,7 +297,10 @@ class OWSRequest(WPSRequest):
                     raise ValueError()
                 self.timeout = min(self.timeout, _timeout)
         except ValueError:
-            raise InvalidParameterValue('TIMEOUT param must be an integer > 0 value, not "%s"', timeout)
+            raise InvalidParameterValue(
+                f'TIMEOUT param must be an integer > 0 value, not "{timeout}"',
+                "timeout",
+            )
 
     def check_and_set_expiration(self, expire):
         try:
@@ -300,7 +310,10 @@ class OWSRequest(WPSRequest):
                     raise ValueError()
                 self.expiration = _expire
         except ValueError:
-            raise InvalidParameterValue('EXPIRE param must be an integer > 0 value, not "%s"', expire)
+            raise InvalidParameterValue(
+                f'EXPIRE param must be an integer > 0 value, not "{expire}"',
+                "expire",
+            )
 
     #
     # GetCapabilities
@@ -308,16 +321,20 @@ class OWSRequest(WPSRequest):
     def get_capabilities(self, service: Service, accesspolicy: AccessPolicy) -> XMLDocument:
         """ Handle getcapbabilities request
         """
-        process_elements = [p.capabilities_xml()
-                            for p in service.processes if accesspolicy.allow(p.identifier)]
+        process_elements = [
+            p.capabilities_xml()
+            for p in service.processes if accesspolicy.allow(p.identifier)
+        ]
 
         doc = WPS.Capabilities()
 
         doc.attrib['service'] = 'WPS'
         doc.attrib['version'] = '1.0.0'
         doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
-        doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
-            'http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsGetCapabilities_response.xsd'
+        doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = (
+            'http://www.opengis.net/wps/1.0.0 '
+            'http://schemas.opengis.net/wps/1.0.0/wpsGetCapabilities_response.xsd'
+        )
         # TODO: check Table 7 in OGC 05-007r7
         doc.attrib['updateSequence'] = '1'
 
@@ -491,8 +508,12 @@ class OWSRequest(WPSRequest):
             LOGGER.critical("Exception:\n%s", traceback.format_exc())
             raise NoApplicableCode(str(e), code=500) from None
 
-    async def execute(self, service: Service, uuid: UUID,
-                      map_uri: Optional[str] = None) -> bytes:
+    async def execute(
+        self,
+        service: Service,
+        uuid: UUID,
+        map_uri: Optional[str] = None,
+    ) -> bytes:
         try:
             process = service.get_process(self.identifier, map_uri=map_uri)
         except UnknownProcessError as exc:
@@ -516,12 +537,16 @@ class OWSRequest(WPSRequest):
             identifiers = [p.identifier for p in service.processes]
 
         identifier_elements = []
-        identifier_elements.extend(p.describe_xml()
-                                   for p in self.get_processes_for_request(service, identifiers, map_uri=map_uri))
+        identifier_elements.extend(
+            p.describe_xml()
+            for p in self.get_processes_for_request(service, identifiers, map_uri=map_uri)
+        )
 
         doc = WPS.ProcessDescriptions(*identifier_elements)
-        doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
-            'http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsDescribeProcess_response.xsd'
+        doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = (
+            'http://www.opengis.net/wps/1.0.0 '
+            'http://schemas.opengis.net/wps/1.0.0/wpsDescribeProcess_response.xsd'
+        )
         doc.attrib['service'] = 'WPS'
         doc.attrib['version'] = '1.0.0'
         doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'

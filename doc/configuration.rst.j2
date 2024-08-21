@@ -35,11 +35,10 @@ Common Configuration Options
 {% endif %}
 {%- if config['version_added'] -%}
 :Version Added: {{config['version_added']}}
-{{space}}
-{%- endif -%}
+{% endif %}
 :Section: {{config['section']}}
 :Key: {{config['key']}}
-{%- if config['deprecated'] -%}
+{%- if config['deprecated'] %}
 :Deprecated in: {{config['deprecated']['version']}}
 :Deprecated detail: {{config['deprecated']['why']}}
 :Deprecated alternatives: {{config['deprecated']['alternatives']}}

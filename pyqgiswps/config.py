@@ -76,9 +76,7 @@ def load_configuration():
     # Path to workdir where process are executed"
     CONFIG.set('server', 'workdir', getenv('QGSWPS_SERVER_WORKDIR', tempfile.gettempdir()))
     # Configure host if the server is behind a proxy
-    # XXX DEPRECATED -> Use 'proxy_url'
-    CONFIG.set('server', 'host_proxy', getenv('QGSWPS_SERVER_HOST_PROXY', ''))
-    CONFIG.set('server', 'proxy_url', getenv('QGSWPS_SERVER_PROXY_URL', '${host_proxy}'))
+    CONFIG.set('server', 'proxy_url', getenv('QGSWPS_SERVER_PROXY_URL', ''))
     # Allow proxyfication
     CONFIG.set('server', 'http_proxy', getenv('QGSWPS_SERVER_HTTP_PROXY', 'yes'))
     # Number of parallel processes that are allowed to run algorithms

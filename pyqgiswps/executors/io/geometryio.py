@@ -120,9 +120,11 @@ def parse_input_definition(
     elif typ == "extent":
         return parse_extent_input(param, kwargs, context)
     elif isinstance(param, GeometryParameterTypes):
-        kwargs['supported_formats'] = [Format.from_definition(FORMATS.GEOJSON),
-                                       Format.from_definition(FORMATS.GML),
-                                       Format.from_definition(FORMATS.WKT)]
+        kwargs['supported_formats'] = [
+            Format.from_definition(FORMATS.GEOJSON),
+            Format.from_definition(FORMATS.GML),
+            Format.from_definition(FORMATS.WKT),
+        ]
         if isinstance(param, QgsProcessingParameterGeometry):
             # Add metadata from requiered geometryTypes
             kwargs['metadata'].extend(
@@ -210,18 +212,16 @@ def gml_to_geometry(gml: str) -> Geometry:
 def input_to_geometry(inp: WPSInput) -> Geometry:
     """ Handle point from complex input
     """
-    data_format = inp.data_format
+    mime_type = inp.data_format.mime_type
+    match mime_type:
+        case FORMATS.WKT.mime_type:
+            return wkt_to_geometry(inp.data)
+        case FORMATS.GEOJSON.mime_type:
+            return json_to_geometry(inp.data)
+        case FORMATS.GML.mime_type:
+            return gml_to_geometry(inp.data)
 
-    if data_format.mime_type == FORMATS.WKT.mime_type:
-        return wkt_to_geometry(inp.data)
-
-    elif data_format.mime_type == FORMATS.GEOJSON.mime_type:
-        return json_to_geometry(inp.data)
-
-    elif data_format.mime_type == FORMATS.GML.mime_type:
-        return gml_to_geometry(inp.data)
-
-    raise NoApplicableCode("Unsupported data format: %s" % data_format)
+    raise NoApplicableCode(f"Unsupported data format: {inp.data_format}")
 
 
 def input_to_point(inp: WPSInput) -> Geometry:

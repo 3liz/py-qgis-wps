@@ -51,11 +51,11 @@ class Service():
 
     """
 
-    def __init__(self, processes: Iterable[WPSProcess] = []) -> None:
+    def __init__(self, processes: Iterable[WPSProcess] = []):
         # Get and start executor
         self.executor = ProcessingExecutor(processes)
 
-    def terminate(self) -> None:
+    def terminate(self):
         self.executor.terminate()
 
     @property

@@ -14,7 +14,11 @@ LOGGER = logging.getLogger('SRVLOG')
 UpdateFunc = Callable[[List[str]], None]
 
 
-def watchfiles(watched_files: List[str], updatefunc: UpdateFunc, check_time: int = 500) -> ioloop.PeriodicCallback:
+def watchfiles(
+    watched_files: List[str],
+    updatefunc: UpdateFunc,
+    check_time: int = 500,
+) -> ioloop.PeriodicCallback:
     """Begins watching source files for changes.
     """
     modify_times = {}
@@ -23,7 +27,11 @@ def watchfiles(watched_files: List[str], updatefunc: UpdateFunc, check_time: int
     return scheduler
 
 
-def _update_callback(updatefunc: UpdateFunc, watched_files: List[str], modify_times: Mapping[str, float]) -> None:
+def _update_callback(
+    updatefunc: UpdateFunc,
+    watched_files: List[str],
+    modify_times: Mapping[str, float],
+):
     """ Call update funcs when modified files
     """
     modified_files = [path for path in watched_files if _check_file(modify_times, path) is not None]

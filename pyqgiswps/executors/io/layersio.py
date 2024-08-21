@@ -159,21 +159,26 @@ def get_layers_from_context(
     project = context.project()
 
     def _is_allowed(lyr):
-        if lyr.type() == QgsMapLayer.VectorLayer:
-            geomtype = lyr.geometryType()
-            return (geomtype == QgsWkbTypes.PointGeometry and QgsProcessing.TypeVectorPoint in datatypes) \
-                or (geomtype == QgsWkbTypes.LineGeometry and QgsProcessing.TypeVectorLine in datatypes)  \
-                or (geomtype == QgsWkbTypes.PolygonGeometry and QgsProcessing.TypeVectorPolygon in datatypes) \
-                or QgsProcessing.TypeVectorAnyGeometry in datatypes \
-                or QgsProcessing.TypeVector in datatypes \
-                or QgsProcessing.TypeMapLayer in datatypes
-        elif lyr.type() == QgsMapLayer.RasterLayer:
-            return QgsProcessing.TypeRaster in datatypes \
-                or QgsProcessing.TypeMapLayer in datatypes
-        elif lyr.type() == QgsMapLayer.MeshLayer:
-            return QgsProcessing.TypeMesh in datatypes \
-                or QgsProcessing.TypeMapLayer in datatypes
-        return False
+        match lyr.type():
+            case QgsMapLayer.VectorLayer:
+                geomtype = lyr.geometryType()
+                return (geomtype == QgsWkbTypes.PointGeometry
+                    and QgsProcessing.TypeVectorPoint in datatypes) \
+                    or (geomtype == QgsWkbTypes.LineGeometry
+                    and QgsProcessing.TypeVectorLine in datatypes)  \
+                    or (geomtype == QgsWkbTypes.PolygonGeometry
+                    and QgsProcessing.TypeVectorPolygon in datatypes) \
+                    or QgsProcessing.TypeVectorAnyGeometry in datatypes \
+                    or QgsProcessing.TypeVector in datatypes \
+                    or QgsProcessing.TypeMapLayer in datatypes
+            case QgsMapLayer.RasterLayer:
+                return QgsProcessing.TypeRaster in datatypes \
+                    or QgsProcessing.TypeMapLayer in datatypes
+            case QgsMapLayer.MeshLayer:
+                return QgsProcessing.TypeMesh in datatypes \
+                    or QgsProcessing.TypeMapLayer in datatypes
+            case _:
+                return False
 
     allowed_layers = [lyr.name() for lyr in project.mapLayers().values() if _is_allowed(lyr)]
     kwargs['allowed_values'] = AllowedValues(values=allowed_layers, allowed_type=ALLOWEDVALUETYPE.LAYER)

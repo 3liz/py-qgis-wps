@@ -72,7 +72,7 @@ class _FactoryDelegate(Process):
         return self._queue.get()
 
     @staticmethod
-    def task(q: Queue, factory: 'QgsProcessFactory') -> None:
+    def task(q: Queue, factory: 'QgsProcessFactory'):
         """ Handle Qgis processes creation
             Run in detached process
         """

@@ -59,28 +59,30 @@ def parse_input_definition(
 ) -> Union[LiteralInput, ComplexInput, None]:
     """ Convert processing input to File Input
     """
-    typ = param.type()
-    if typ == 'file':
-        if param.behavior() == QgsProcessingParameterFile.Folder:
+    match param.type():
+        case 'file':
+            if param.behavior() == QgsProcessingParameterFile.Folder:
+                kwargs['data_type'] = 'string'
+                return LiteralInput(**kwargs)
+            ext = param.extension()
+            if ext:
+                mime = mimetypes.types_map.get(ext)
+                if mime is not None:
+                    kwargs['supported_formats'] = [Format(mime)]
+                kwargs['metadata'].append(Metadata('processing:extension', param.extension()))
+            return ComplexInput(**kwargs)
+        case 'fileDestination':
+            extension = '.' + param.defaultFileExtension()
+            kwargs['data_type'] = 'string'
+            kwargs['metadata'].append(
+                Metadata('processing:format', mimetypes.types_map.get(extension, '')),
+            )
+            return LiteralInput(**kwargs)
+        case 'folderDestination':
             kwargs['data_type'] = 'string'
             return LiteralInput(**kwargs)
-        ext = param.extension()
-        if ext:
-            mime = mimetypes.types_map.get(ext)
-            if mime is not None:
-                kwargs['supported_formats'] = [Format(mime)]
-            kwargs['metadata'].append(Metadata('processing:extension', param.extension()))
-        return ComplexInput(**kwargs)
-    elif typ == 'fileDestination':
-        extension = '.' + param.defaultFileExtension()
-        kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:format', mimetypes.types_map.get(extension, '')))
-        return LiteralInput(**kwargs)
-    elif typ == 'folderDestination':
-        kwargs['data_type'] = 'string'
-        return LiteralInput(**kwargs)
-
-    return None
+        case _:
+            return None
 
 # --------------------------------------
 # WPS inputs ->  processing inputs data
@@ -93,25 +95,31 @@ def get_processing_value(param: QgsProcessingParameterDefinition, inp: WPSInput,
 
         Processes other inputs than layers
     """
-    typ = param.type()
-
-    if typ in ('fileDestination', 'folderDestination'):
+    def _normalize_path() -> str:
         # Normalize path
-        value = basename(normpath(inp[0].data))
-        if value != inp[0].data:
-            LOGGER.warning("Value for file or folder destination '%s' has been truncated from '%s' to '%s'",
-                           param.name(), inp[0].data, value)
-        if typ == 'fileDestination':
-            value = Path(value).with_suffix('.' + param.defaultFileExtension()).as_posix()
+        val = basename(normpath(inp[0].data))
+        if val != inp[0].data:
+            LOGGER.warning(
+                "Value for file or folder destination '%s' has been truncated from '%s' to '%s'",
+                param.name(),
+                inp[0].data,
+                val,
+            )
+        return val
 
-    elif typ == 'file':
-        # Handle file reference
-        outputfile = (Path(context.workdir) / param.name()).with_suffix(param.extension())
-        LOGGER.debug("Saving input data as %s", outputfile.as_posix())
-        inp[0].download_ref(outputfile)
-        value = outputfile.name
-    else:
-        value = None
+    match param.type():
+        case 'folderDestination':
+            value = _normalize_path()
+        case 'fileDestination':
+            value = Path(_normalize_path()).with_suffix('.' + param.defaultFileExtension()).as_posix()
+        case 'file':
+            # Handle file reference
+            outputfile = (Path(context.workdir) / param.name()).with_suffix(param.extension())
+            LOGGER.debug("Saving input data as %s", outputfile.as_posix())
+            inp[0].download_ref(outputfile)
+            value = outputfile.name
+        case _:
+            value = None
 
     return value
 
@@ -186,8 +194,12 @@ def to_output_file(file_name: str, out: ComplexOutput, context: ProcessingContex
     return out
 
 
-def parse_response(value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOutput,
-                   context: ProcessingContext) -> Optional[WPSOutput]:
+def parse_response(
+    value: Any,
+    outdef: QgsProcessingOutputDefinition,
+    out: WPSOutput,
+    context: ProcessingContext,
+) -> Optional[WPSOutput]:
     """ Map processing output to WPS
     """
     if isinstance(outdef, QgsProcessingOutputHtml):

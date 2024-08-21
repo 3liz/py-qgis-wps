@@ -98,21 +98,23 @@ class IOHandler(BasicHandler):
 
     def get_stream(self):
         """Get source as stream object"""
-        if self.source_type == SOURCE_TYPE.FILE:
-            if self._stream and not self._stream.closed:
-                self._stream.close()
-            self._stream = FileIO(self.source, mode='r', closefd=True)
-            return self._stream
-        elif self.source_type == SOURCE_TYPE.STREAM:
-            return self.source
-        elif self.source_type == SOURCE_TYPE.DATA:
-            if isinstance(self.source, bytes):
-                return BytesIO(self.source)
-            elif isinstance(self.source, str):
-                return StringIO(self.source)
-            else:
-                LOGGER.warn("Converting %s to stream", type(self.source))
-                return StringIO(str(self.source))
+        match self.source_type:
+            case SOURCE_TYPE.FILE:
+                if self._stream and not self._stream.closed:
+                    self._stream.close()
+                self._stream = FileIO(self.source, mode='r', closefd=True)
+                return self._stream
+            case SOURCE_TYPE.STREAM:
+                return self.source
+            case SOURCE_TYPE.DATA:
+                match self.source:
+                    case bytes():
+                        return BytesIO(self.source)
+                    case str():
+                        return StringIO(self.source)
+                    case _:
+                        LOGGER.warn("Converting %s to stream", type(self.source))
+                        return StringIO(str(self.source))
 
     def set_data(self, data):
         """Set source as simple datatype e.g. string, number"""
@@ -128,14 +130,15 @@ class IOHandler(BasicHandler):
 
     def get_data(self):
         """Get source as simple data object"""
-        if self.source_type == SOURCE_TYPE.FILE:
-            with open(self.source) as fh:
-                content = fh.read()
-            return content
-        elif self.source_type == SOURCE_TYPE.STREAM:
-            return self.source.read()
-        elif self.source_type == SOURCE_TYPE.DATA:
-            return self.source
+        match self.source_type:
+            case SOURCE_TYPE.FILE:
+                with open(self.source) as fh:
+                    content = fh.read()
+                return content
+            case SOURCE_TYPE.STREAM:
+                return self.source.read()
+            case SOURCE_TYPE.DATA:
+                return self.source
 
     def get_base64(self):
         return base64.b64encode(self.data)

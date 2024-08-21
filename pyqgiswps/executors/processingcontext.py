@@ -49,7 +49,7 @@ class MapContext:
 
 class ProcessingContext(QgsProcessingContext):
 
-    def __init__(self, workdir: str, map_uri: Optional[str] = None) -> None:
+    def __init__(self, workdir: str, map_uri: Optional[str] = None):
         super().__init__()
         self.workdir = workdir
         self.rootdir = Path(confservice.get('projects.cache', 'rootdir'))

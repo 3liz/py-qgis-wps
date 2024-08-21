@@ -30,7 +30,7 @@ LOGGER = logging.getLogger('SRVLOG')
 
 class Client:
 
-    def __init__(self) -> None:
+    def __init__(self):
         """ Supervised client notifier
         """
         address = _get_ipc('supervisor')
@@ -42,34 +42,34 @@ class Client:
         self._pid = os.getpid()
         self._busy = False
 
-    def _send(self, data: bytes) -> None:
+    def _send(self, data: bytes):
         try:
             self._sock.send_multipart([str(self._pid).encode(), data], flags=zmq.DONTWAIT)
         except zmq.ZMQError as err:
             if err.errno != zmq.EAGAIN:
                 LOGGER.error("%s (%s)", zmq.strerror(err.errno), err.errno)
 
-    def notify_done(self) -> None:
+    def notify_done(self):
         """ Send 'ready' notification
         """
         if self._busy:
             self._busy = False
             self._send(b'DONE')
 
-    def notify_busy(self) -> None:
+    def notify_busy(self):
         """ send 'busy' notification
         """
         if not self._busy:
             self._busy = True
             self._send(b'BUSY')
 
-    def close(self) -> None:
+    def close(self):
         self._sock.close()
 
 
 class Supervisor:
 
-    def __init__(self, timeout: int, killfunc: Callable[[int], None]) -> None:
+    def __init__(self, timeout: int, killfunc: Callable[[int], None]):
         """ Run supervisor
 
             :param timeout: timeout delay in seconds
@@ -99,12 +99,12 @@ class Supervisor:
             self._killfunc(pid)
             return True
 
-    async def _run_async(self) -> None:
+    async def _run_async(self):
         """ Run supervisor
         """
         loop = asyncio.get_running_loop()
 
-        def kill(pid: int) -> None:
+        def kill(pid: int):
             LOGGER.critical("Killing stalled process %s", pid)
             del self._busy[pid]
             self._killfunc(pid)
@@ -130,7 +130,7 @@ class Supervisor:
             except Exception:
                 LOGGER.critical("%s", traceback.format_exc())
 
-    def stop(self) -> None:
+    def stop(self):
         """ Stop the supervisor
         """
         LOGGER.debug("Stopping supervisor")

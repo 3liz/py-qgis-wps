@@ -94,72 +94,75 @@ def parse_literal_input(
 ) -> LiteralInput | None:
     """ Convert processing input to Literal Input
     """
-    typ = param.type()
+    match param.type():
+        case 'string':
+            kwargs['data_type'] = 'string'
+        case 'boolean':
+            kwargs['data_type'] = 'boolean'
+        case 'enum':
+            options = param.options()
+            kwargs['data_type'] = 'string'
+            kwargs['allowed_values'] = AllowedValues(values=options)
+            kwargs['max_occurs'] = len(options) if param.allowMultiple() else 1
+            default_value = param.defaultValue()
+            if default_value is not None:
+                # XXX Values for processing enum are indices
+                if isinstance(default_value, list):
+                    default_value = default_value[0]
+                if not isinstance(default_value, int):
+                    raise InvalidParameterValue(
+                        f'Unsupported default value for parameter {param.name()}: {default_value}',
+                    )
+                if default_value < 0 or default_value >= len(options):
+                    LOGGER.error(
+                        "Out of range default value for enum parameter %s: %s",
+                        param.name(),
+                        default_value,
+                    )
+                    default_value = 0
+                kwargs['default'] = options[default_value]
 
-    if typ == 'string':
-        kwargs['data_type'] = 'string'
-    elif typ == 'boolean':
-        kwargs['data_type'] = 'boolean'
-    elif typ == 'enum':
-        options = param.options()
-        kwargs['data_type'] = 'string'
-        kwargs['allowed_values'] = AllowedValues(values=options)
-        kwargs['max_occurs'] = len(options) if param.allowMultiple() else 1
-        default_value = param.defaultValue()
-        if default_value is not None:
-            # XXX Values for processing enum are indices
-            if isinstance(default_value, list):
-                default_value = default_value[0]
-            if not isinstance(default_value, int):
-                raise InvalidParameterValue('Unsupported default value for parameter %s: %s' %
-                                            (param.name(), default_value))
-            if default_value < 0 or default_value >= len(options):
-                LOGGER.error("Out of range default value for enum parameter %s: %s", param.name(), default_value)
-                default_value = 0
+        case 'number':
+            kwargs['data_type'] = _number_data_type(param)
+            kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
+        case 'distance':
+            kwargs['data_type'] = 'length'
+            kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
 
-            kwargs['default'] = options[default_value]
+            kwargs['metadata'].extend((
+                Metadata('processing:parentParameterName', param.parentParameterName()),
+                Metadata('processing:defaultUnit', QgsUnitTypes.toString(param.defaultUnit())),
+            ))
+            uom = DISTANCE_UOMS.get(param.defaultUnit())
+            if uom is not None:
+                kwargs['uoms'] = [uom]
+        case 'scale':
+            kwargs['data_type'] = 'scale'
+            kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
 
-    elif typ == 'number':
-        kwargs['data_type'] = _number_data_type(param)
-        kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
-    elif typ == 'distance':
-        kwargs['data_type'] = 'length'
-        kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
+        case 'duration':
+            # XXX OGC duration is defined as time dataType
+            kwargs['data_type'] = 'time'
+            kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
 
-        kwargs['metadata'].extend((
-            Metadata('processing:parentParameterName', param.parentParameterName()),
-            Metadata('processing:defaultUnit', QgsUnitTypes.toString(param.defaultUnit())),
-        ))
-        uom = DISTANCE_UOMS.get(param.defaultUnit())
-        if uom is not None:
-            kwargs['uoms'] = [uom]
-    elif typ == 'scale':
-        kwargs['data_type'] = 'scale'
-        kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
-
-    elif typ == 'duration':
-        # XXX OGC duration is defined as time dataType
-        kwargs['data_type'] = 'time'
-        kwargs['allowed_values'] = AllowedValues.range(param.minimum(), param.maximum())
-
-        kwargs['metadata'].append(
-            Metadata('processing:defaultUnit', QgsUnitTypes.toString(param.defaultUnit())),
-        )
-    elif typ == 'field':
-        kwargs['data_type'] = 'string'
-        kwargs['metadata'].append(Metadata('processing:parentLayerParameterName',
-                                  param.parentLayerParameterName()))
-        kwargs['metadata'].append(Metadata('processing:dataType', {
-            QgsProcessingParameterField.Any: 'Any',
-            QgsProcessingParameterField.Numeric: 'Numeric',
-            QgsProcessingParameterField.String: 'String',
-            QgsProcessingParameterField.DateTime: 'DateTime',
-        }[param.dataType()]))
-    elif typ == 'band':
-        kwargs['data_type'] = 'integer'
-        kwargs['allowed_values'] = AllowedValues.nonNegativeValue()
-    else:
-        return None
+            kwargs['metadata'].append(
+                Metadata('processing:defaultUnit', QgsUnitTypes.toString(param.defaultUnit())),
+            )
+        case 'field':
+            kwargs['data_type'] = 'string'
+            kwargs['metadata'].append(Metadata('processing:parentLayerParameterName',
+                                      param.parentLayerParameterName()))
+            kwargs['metadata'].append(Metadata('processing:dataType', {
+                QgsProcessingParameterField.Any: 'Any',
+                QgsProcessingParameterField.Numeric: 'Numeric',
+                QgsProcessingParameterField.String: 'String',
+                QgsProcessingParameterField.DateTime: 'DateTime',
+            }[param.dataType()]))
+        case 'band':
+            kwargs['data_type'] = 'integer'
+            kwargs['allowed_values'] = AllowedValues.nonNegativeValue()
+        case _:
+            return None
 
     return LiteralInput(**kwargs)
 
@@ -239,15 +242,15 @@ def parse_literal_output(
 ) -> LiteralOutput | None:
     """
     """
-    typ = outdef.type()
-    if typ == 'outputString':
-        kwargs['data_type'] = 'string'
-    elif typ == 'outputNumber':
-        kwargs['data_type'] = 'float'
-    elif typ == 'outputBoolean':
-        kwargs['data_type'] = 'boolean'
-    else:
-        return None
+    match outdef.type():
+        case 'outputString':
+            kwargs['data_type'] = 'string'
+        case 'outputNumber':
+            kwargs['data_type'] = 'float'
+        case 'outputBoolean':
+            kwargs['data_type'] = 'boolean'
+        case _:
+            return None
 
     return LiteralOutput(**kwargs)
 
@@ -301,8 +304,7 @@ def get_processing_value(param: QgsProcessingParameterDefinition, inp: WPSInput,
 
         Processes other inputs than layers
     """
-    typ = param.type()
-    if typ == 'enum':
+    if param.type() == 'enum':
         # XXX Processing wants the index of the value in option list
         if param.allowMultiple() and len(inp) > 1:
             opts = param.options()

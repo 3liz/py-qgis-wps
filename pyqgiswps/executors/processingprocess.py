@@ -115,12 +115,13 @@ def _set_output_layer_style(
         if layer.type() == QgsMapLayer.RasterLayer:
             style = ProcessingConfig.getSetting(ProcessingConfig.RASTER_STYLE)
         else:
-            if layer.geometryType() == QgsWkbTypes.PointGeometry:
-                style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_POINT_STYLE)
-            elif layer.geometryType() == QgsWkbTypes.LineGeometry:
-                style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_LINE_STYLE)
-            else:
-                style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_POLYGON_STYLE)
+            match layer.geometryType():
+                case QgsWkbTypes.PointGeometry:
+                    style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_POINT_STYLE)
+                case QgsWkbTypes.LineGeometry:
+                    style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_LINE_STYLE)
+                case _:
+                    style = ProcessingConfig.getSetting(ProcessingConfig.VECTOR_POLYGON_STYLE)
     if style:
         LOGGER.debug("Adding style '%s' to layer %s (outputName %s)", style, details.name, outputName)
         layer.loadNamedStyle(style)
@@ -144,7 +145,12 @@ def handle_layer_outputs(
     for lyrname, details in context.layersToLoadOnCompletion().items():
         try:
             # Take as layer
-            layer = QgsProcessingUtils.mapLayerFromString(lyrname, context, typeHint=details.layerTypeHint)
+            layer = QgsProcessingUtils.mapLayerFromString(
+                lyrname,
+                context,
+                typeHint=details.layerTypeHint,
+            )
+
             if layer is not None:
                 # Fix layer name
                 # If details name is empty it well be set to the file name
@@ -152,7 +158,11 @@ def handle_layer_outputs(
                 # XXX Make sure that Processing/Configuration/PREFER_FILENAME_AS_LAYER_NAME
                 # setting is set to false (see processfactory.py:129)
                 details.setOutputLayerName(layer)
-                LOGGER.debug("Layer name set to %s <details name was: %s>", layer.name(), details.name)
+                LOGGER.debug(
+                    "Layer name set to %s <details name was: %s>",
+                    layer.name(),
+                    details.name,
+                )
                 # If project is not defined, set the default destination
                 # project
                 if not details.project and hasattr(context, 'destination_project'):
@@ -168,7 +178,11 @@ def handle_layer_outputs(
 
                 # Add layer to destination project
                 if details.project:
-                    LOGGER.debug("Adding Map layer '%s' (outputName %s) to Qgs Project", lyrname, details.outputName)
+                    LOGGER.debug(
+                        "Adding Map layer '%s' (outputName %s) to Qgs Project",
+                        lyrname,
+                        details.outputName,
+                    )
                     details.project.addMapLayer(context.temporaryLayerStore().takeMapLayer(layer))
 
                 # Handle post processing
@@ -183,7 +197,10 @@ def handle_layer_outputs(
     if wrongLayers:
         msg = "The following layers were not correctly generated:"
         msg += "\n".join("%s" % lay for lay in wrongLayers)
-        msg += "You can check the log messages to find more information about the execution of the algorithm"
+        msg += (
+            "You can check the log messages to find more information about "
+            "the execution of the algorithm"
+        )
         LOGGER.error(msg)
 
     return len(wrongLayers) == 0
@@ -407,11 +424,11 @@ class QgsProcess(WPSProcess):
             ) for ident, inp in request.inputs.items()
         )
 
-        # Build MAP output url
-        output_map_url = "{map_uri}{uuid}/{name}.qgs".format(
-            map_uri=confservice.get('server', 'wps_result_map_uri'),
-            uuid=response.uuid,
-            name=destination)
+        # Build MAP output url '{map_uri}{uuid}/{name}.qgs'
+        output_map_url = (
+            f"{confservice.get('server', 'wps_result_map_uri')}"
+            f"{response.uuid}/{destination}.qgs"
+        )
 
         # Build WMS output url
         output_url = confservice.get('server', 'wms_response_url').format(map_url=output_map_url)

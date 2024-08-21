@@ -147,15 +147,26 @@ config_options:
       key: response_expiration
       tags: [ wps, processes ]
 
-    - name: SERVER_WMS_SERVICE_URL
-      label: WWS service url
+    - name: SERVER_OWS_SERVICE_URL
+      label: OWS service url
       description: |
          The url for the service used to retrieve results as WMS/WFS references.
          Usually this will correspond to a QGIS server serving OWS services from results projects.
       default: 'Request host url'
       section: server
+      key: ows_service_url
+      tags: [ http, wps, processes ]
+
+    - name: SERVER_WMS_SERVICE_URL
+      label: WWS service url
+      description: Same as SERVER_OWS_SERVICE_URL
+      default: 'Request host url'
+      section: server
       key: wms_service_url
       tags: [ http, wps, processes ]
+      deprecated:
+          version: '1.9'
+          alternatives: "Replaced by SERVER_OWS_SERVICE_URL"
 
     - name: SERVER_RESULTS_MAP_URI
       label: Response MAP uri

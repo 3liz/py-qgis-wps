@@ -33,7 +33,7 @@ class StatusHandler(BaseHandler):
         # Add additional informations
         def repl(s):
             s['status_url'] = f"{proxy_url}{s['status_link']}"
-            s['store_url'] = f"{proxy_url}/store/{s['uuid']}/"
+            s['store_url'] = f"{proxy_url}/jobs/{s['uuid']}/files"
             s['request'] = f"{proxy_url}/status/{s['uuid']}?key=request"
             del s['status_link']
             return s

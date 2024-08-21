@@ -30,48 +30,20 @@ def _format_size(size):
             if size < 10.0:
                 return f"{size:.1f}{u}"
             else:
-                return f"{size:.f}{u}"
+                return f"{size:.0f}{u}"
         size /= 1024.0
-    return '%.fT' % size
+    return f'{size:.0f}T' % size
 
 
 class StoreShellMixIn(DownloadMixIn, RealmController):
     """ Store api implementation
     """
-
-    # XXX DEPRECATED - will be removed at version 1.9
-    def legacy_resource_list(self, workdir: Path, uuid: str):
-        # Only if admin
-        if self.realm_enabled():
-            raise HTTPError(401)
-        # Legacy json schema
-        store_url = f"{self.proxy_url()}store/{uuid}/"
-
-        def file_records(rootdir, dirs, files, rootfd):
-            root = Path(rootdir)
-            for file in files:
-                stat = os.stat(file, dir_fd=rootfd)
-                name = (root / file).relative_to(workdir).as_posix()
-                yield {
-                    'name': name,
-                    'content_length': stat.st_size,
-                    'store_url': f"{store_url}{name}",
-                    'display_size': _format_size(stat.st_size),
-                }
-        data = [f for args in os.fwalk(workdir) for f in file_records(*args)]
-        self.write_json({"files": data})
-
     async def ls(self, uuid: str):
         """ List all files in workdir
         """
         workdir = Path(self._workdir, uuid)
         if not workdir.is_dir():
             raise HTTPError(404, reason="The resource does not exists")
-
-        if self._legacy:
-            # XXX DEPRECATED - will be removed at version 1.9
-            self.legacy_resource_list(workdir)
-            return
 
         store_url = f"{self.proxy_url()}jobs/{uuid}/files"
 
@@ -171,13 +143,11 @@ class StoreHandlerBase(BaseHandler, StoreShellMixIn):
         self,
         workdir: str | Path,
         chunk_size: int = 65536,
-        legacy: bool = False,
         ttl: int = 30,
     ):
         super().initialize()
         self._chunk_size = chunk_size
         self._workdir = workdir
-        self._legacy = legacy
         self._ttl = ttl
 
 

@@ -45,14 +45,13 @@ def validate_allowed_values(data_input, mode):
         LOGGER.debug('validating allowed values: %s in %s', data, allowed_values.json)
         allowed_type = allowed_values.allowed_type
 
-        if allowed_type == ALLOWEDVALUETYPE.VALUE:
-            passed = _validate_value(allowed_values, data)
-
-        elif allowed_type == ALLOWEDVALUETYPE.LAYER:
-            passed = _validate_layer(allowed_values, data)
-
-        elif allowed_type == ALLOWEDVALUETYPE.RANGE:
-            passed = _validate_range(allowed_values, data)
+        match allowed_type:
+            case ALLOWEDVALUETYPE.VALUE:
+                passed = _validate_value(allowed_values, data)
+            case ALLOWEDVALUETYPE.LAYER:
+                passed = _validate_layer(allowed_values, data)
+            case ALLOWEDVALUETYPE.RANGE:
+                passed = _validate_range(allowed_values, data)
 
     LOGGER.debug('validation result: %r', passed)
     return passed
@@ -116,14 +115,15 @@ def _validate_range_minmax(interval, data):
             passed = True
 
         if passed:
-            if interval.range_closure == RANGECLOSURETYPE.CLOSED:
-                passed = (interval.minval <= data <= interval.maxval)
-            elif interval.range_closure == RANGECLOSURETYPE.OPEN:
-                passed = (interval.minval < data < interval.maxval)
-            elif interval.range_closure == RANGECLOSURETYPE.OPENCLOSED:
-                passed = (interval.minval < data <= interval.maxval)
-            elif interval.range_closure == RANGECLOSURETYPE.CLOSEDOPEN:
-                passed = (interval.minval <= data < interval.maxval)
+            match interval.range_closure:
+                case RANGECLOSURETYPE.CLOSED:
+                    passed = (interval.minval <= data <= interval.maxval)
+                case RANGECLOSURETYPE.OPEN:
+                    passed = (interval.minval < data < interval.maxval)
+                case RANGECLOSURETYPE.OPENCLOSED:
+                    passed = (interval.minval < data <= interval.maxval)
+                case RANGECLOSURETYPE.CLOSEDOPEN:
+                    passed = (interval.minval <= data < interval.maxval)
     else:
         passed = False
 

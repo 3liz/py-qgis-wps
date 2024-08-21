@@ -151,43 +151,43 @@ class AllowedValues(*ogc.exports.AllowedValues):
         )
 
 
-def convert(data_type: str, data: LiteralInputValue) -> Any:
+def convert(data_type: str, data: LiteralInputValue) -> LiteralInputValue:
     """function for decoration of convert
     """
     convert = None
-    if data_type in LITERAL_DATA_TYPES:
-
-        if data_type == 'string':
+    match data_type:
+        case 'string':
             convert = convert_string
-        elif data_type == 'integer':
+        case 'integer':
             convert = convert_integer
-        elif data_type == 'float':
+        case 'float':
             convert = convert_float
-        elif data_type == 'boolean':
+        case 'boolean':
             convert = convert_boolean
-        elif data_type == 'anyURI':
+        case 'anyURI':
             convert = convert_anyURI
-        elif data_type == 'time':
+        case 'time':
             convert = convert_time
-        elif data_type == 'date':
+        case 'date':
             convert = convert_date
-        elif data_type == 'dateTime':
+        case 'dateTime':
             convert = convert_datetime
-        elif data_type == 'scale':
+        case 'scale':
             convert = convert_scale
-        elif data_type == 'angle':
+        case 'angle':
             convert = convert_angle
-        elif data_type == 'length':
+        case 'length':
             convert = convert_float
-    else:
-        raise InvalidParameterValue(
-            f"Invalid data_type value of LiteralInput set to '{data_type}'")
+        case _:
+            raise InvalidParameterValue(
+                f"Invalid data_type value of LiteralInput set to '{data_type}'",
+            )
     try:
         return convert(data)
     except ValueError:
         raise InvalidParameterValue(
-            "Could not convert value '{}' to format '{}'".format(
-                data, data_type))
+            f"Could not convert value '{data}' to format '{data_type}'",
+        )
 
 
 def convert_boolean(inpt: LiteralInputValue) -> bool:

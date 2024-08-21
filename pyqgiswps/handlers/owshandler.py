@@ -64,36 +64,34 @@ class OWSHandler(BaseHandler):
         service = self.application.wpsservice
         LOGGER.debug('Request: %s', wpsrequest.operation)
 
-        if wpsrequest.operation == 'getresults':
-            response = service.get_results(wpsrequest.results_uuid)
+        match wpsrequest.operation:
+            case 'getresults':
+                response = service.get_results(wpsrequest.results_uuid)
+            case 'getcapabilities':
+                response = wpsrequest.get_capabilities(service, self.accesspolicy)
+            case 'describeprocess':
+                if any(not self.accesspolicy.allow(ident) for ident in wpsrequest.identifiers):
+                    raise HTTPError(403, reason="Unauthorized operation")
+                response = wpsrequest.describe(service, map_uri=wpsrequest.map_uri)
+            case 'execute':
+                if not self.accesspolicy.allow(wpsrequest.identifier):
+                    raise HTTPError(403, reason="Unauthorized operation")
 
-        elif wpsrequest.operation == 'getcapabilities':
-            response = wpsrequest.get_capabilities(service, self.accesspolicy)
+                job_id = uuid.uuid1()
 
-        elif wpsrequest.operation == 'describeprocess':
-            if any(not self.accesspolicy.allow(ident) for ident in wpsrequest.identifiers):
-                raise HTTPError(403, reason="Unauthorized operation")
-            response = wpsrequest.describe(service, map_uri=wpsrequest.map_uri)
+                # Assign job realm
+                wpsrequest.realm = self.get_job_realm()
+                wpsrequest.status_uuid = job_id
 
-        elif wpsrequest.operation == 'execute':
-            if not self.accesspolicy.allow(wpsrequest.identifier):
-                raise HTTPError(403, reason="Unauthorized operation")
+                # Canonical status link
+                wpsrequest.status_link = f"/ows/?service=WPS&request=GetResults&uuid={job_id}"
 
-            job_id = uuid.uuid1()
+                response = await wpsrequest.execute(service, job_id, map_uri=wpsrequest.map_uri)
 
-            # Assign job realm
-            wpsrequest.realm = self.get_job_realm()
-            wpsrequest.status_uuid = job_id
-
-            # Canonical status link
-            wpsrequest.status_link = f"/ows/?service=WPS&request=GetResults&uuid={job_id}"
-
-            response = await wpsrequest.execute(service, job_id, map_uri=wpsrequest.map_uri)
-
-            # Return job realm
-            self.set_header('X-Job-Realm', wpsrequest.realm)
-        else:
-            raise OperationNotSupported("Unknown operation %r" % wpsrequest.operation)
+                # Return job realm
+                self.set_header('X-Job-Realm', wpsrequest.realm)
+            case _:
+                raise OperationNotSupported("Unknown operation %r" % wpsrequest.operation)
 
         return response
 

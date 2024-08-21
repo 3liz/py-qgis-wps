@@ -25,7 +25,7 @@ LOGGER = logging.getLogger('SRVLOG')
 USER_AGENT = "QYWPS Server %s" % __version__
 
 
-def openurl(url: str, filename: os.PathLike, max_bytes: int = 0, **kwargs) -> None:
+def openurl(url: str, filename: os.PathLike, max_bytes: int = 0, **kwargs):
     """ Open url
     """
     LOGGER.info("Fetching URL %s", url)
@@ -35,7 +35,7 @@ def openurl(url: str, filename: os.PathLike, max_bytes: int = 0, **kwargs) -> No
     try:
         with open(filename, 'wb') as fh:
 
-            def _callback(chunk: bytes) -> None:
+            def _callback(chunk: bytes):
                 nonlocal num_bytes
                 num_bytes += len(chunk)
                 if num_bytes > max_bytes:

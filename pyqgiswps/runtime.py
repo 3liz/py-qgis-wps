@@ -7,15 +7,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 import asyncio
+import importlib.resources
 import logging
 import os
 import signal
 
-import pkg_resources
 import tornado.process
 import tornado.web
 
-from tornado.web import RedirectHandler, StaticFileHandler
+from tornado.web import StaticFileHandler
 
 from .accesspolicy import init_access_policy, new_access_policy
 from .config import confservice, get_size_bytes
@@ -43,8 +43,8 @@ LOGGER = logging.getLogger('SRVLOG')
 def configure_handlers():
     """ Set up request handlers
     """
-    staticpath = pkg_resources.resource_filename("pyqgiswps", "html")
-    openapipath = pkg_resources.resource_filename("pyqgiswps", "openapi")
+    staticpath = importlib.resources.files("pyqgiswps").joinpath("html").as_posix()
+    openapipath = importlib.resources.files("pyqgiswps").joinpath("openapi").as_posix()
 
     cfg = confservice['server']
 
@@ -132,14 +132,7 @@ def configure_handlers():
         handlers.append((r"/server/?", ServerInfosHandler))
 
     # XXX Deprecated apis
-    handlers.extend((
-        (r"/status/([^/]+)?", StatusHandler),
-        (r"/store/([^/]+)/(.*)?", StoreHandler, {'workdir': workdir, 'legacy': True}),
-
-        (r"/ui/", RedirectHandler, {'url': "/jobs.html"}),
-        (r"/ows/store/([^/]+)/(.*)?", RedirectHandler, {'url': "/store/{0}/{1}"}),
-        (r"/ows/status/([^/]+)?", RedirectHandler, {'url': "/status/{0}"}),
-    ))
+    handlers.append((r"/status/([^/]+)?", StatusHandler))
 
     return handlers
 

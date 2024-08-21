@@ -24,6 +24,7 @@ Port to listen to
 
 :Type: int
 :Default: 8080
+
 :Section: server
 :Key: port
 :Env: QGSWPS_SERVER_HTTP_PORT
@@ -40,6 +41,7 @@ Interfaces to listen to
 
 :Type: string
 :Default: 0.0.0.0
+
 :Section: server
 :Key: interfaces
 :Env: QGSWPS_SERVER_INTERFACES
@@ -55,6 +57,7 @@ Enable filters as python extension
 
 :Type: boolean
 :Default: yes
+
 :Section: server
 :Key: enable_filters
 :Env: QGSWPS_SERVER_ENABLE_FILTERS
@@ -73,6 +76,7 @@ or set a static proxy url with `QGIS_SERVER_<SERVICE>_URL`
 
 :Type: boolean
 :Default: no
+
 :Section: server
 :Key: http_proxy
 :Env: QGSWPS_SERVER_HTTP_PROXY
@@ -91,6 +95,7 @@ by `X-Qgis-<service>-Url` headers.
 
 
 :Type: string
+
 :Section: server
 :Key: proxy_url
 :Env: QGSWPS_SERVER_PROXY_URL
@@ -108,6 +113,7 @@ complex output.
 
 :Type: boolean
 :Default: no
+
 :Section: server
 :Key: outputfile_as_reference
 :Env: QGSWPS_SERVER_OUTPUTFILE_AS_REFERENCE
@@ -123,6 +129,7 @@ Max input file fetched as remote reference
 
 :Type: size
 :Default: 100m
+
 :Section: server
 :Key: maxinputsize
 :Env: QGSWPS_SERVER_MAXINPUTSIZE
@@ -138,6 +145,7 @@ Max request buffer size.
 
 :Type: size
 :Default: 1m
+
 :Section: server
 :Key: maxbuffersize
 :Env: QGSWPS_SERVER_MAXBUFFERSIZE
@@ -156,6 +164,7 @@ The default value use the `gettempdir()` function.
 
 :Type: path
 :Default: System defaults
+
 :Section: server
 :Key: workdir
 :Env: QGSWPS_SERVER_WORKDIR
@@ -172,6 +181,7 @@ The number of parallel processes running `execute` requests. Extra processes wil
 
 :Type: int
 :Default: 1
+
 :Section: server
 :Key: parallelprocesses
 :Env: QGSWPS_SERVER_PARALLELPROCESSES
@@ -189,6 +199,7 @@ the worker.
 
 :Type: int
 :Default: 1
+
 :Section: server
 :Key: processlifecycle
 :Env: QGSWPS_SERVER_PROCESSLIFECYCLE
@@ -205,6 +216,7 @@ Maximal number of waiting tasks - extra tasks will return a 509 in synchronous e
 
 :Type: int
 :Default: 100
+
 :Section: server
 :Key: maxqueuesize
 :Env: QGSWPS_SERVER_MAXQUEUESIZE
@@ -222,6 +234,7 @@ a timeout error is returned.
 
 :Type: int
 :Default: 1800
+
 :Section: server
 :Key: response_timeout
 :Env: QGSWPS_SERVER_RESPONSE_TIMEOUT
@@ -239,15 +252,16 @@ for that task will be deleted.
 
 :Type: int
 :Default: 86400
+
 :Section: server
 :Key: response_expiration
 :Env: QGSWPS_SERVER_RESPONSE_EXPIRATION
 
 
 
-.. _SERVER_WMS_SERVICE_URL:
+.. _SERVER_OWS_SERVICE_URL:
 
-SERVER_WMS_SERVICE_URL
+SERVER_OWS_SERVICE_URL
 ----------------------
 
 The url for the service used to retrieve results as WMS/WFS references.
@@ -257,8 +271,30 @@ Usually this will correspond to a QGIS server serving OWS services from results 
 
 :Type: string
 :Default: Request host url
+
+:Section: server
+:Key: ows_service_url
+:Env: QGSWPS_SERVER_OWS_SERVICE_URL
+
+
+
+.. _SERVER_WMS_SERVICE_URL:
+
+SERVER_WMS_SERVICE_URL
+----------------------
+
+Same as SERVER_OWS_SERVICE_URL
+
+
+:Type: string
+:Default: Request host url
+
 :Section: server
 :Key: wms_service_url
+:Deprecated in: 1.9
+:Deprecated detail: 
+:Deprecated alternatives: Replaced by SERVER_OWS_SERVICE_URL
+
 :Env: QGSWPS_SERVER_WMS_SERVICE_URL
 
 
@@ -276,6 +312,7 @@ corresponds to an 'alias in py-qgis-server <https://py-qgis-server.readthedocs.i
 
 :Type: string
 :Default: wps_result_map_uri
+
 :Section: server
 :Key: wms_service_url
 :Env: QGSWPS_SERVER_RESULTS_MAP_URI
@@ -292,6 +329,7 @@ header.
 
 
 :Type: boolean
+
 :Section: server
 :Key: cross_origin
 :Env: QGSWPS_SERVER_CROSS_ORIGIN
@@ -311,6 +349,7 @@ interrupting the service.
 
 
 :Type: path
+
 :Section: server
 :Key: restartmon
 :Env: QGSWPS_SERVER_RESTARTMON
@@ -327,6 +366,7 @@ Enable SSL endpoint
 :Type: boolean
 :Default: no
 :Version Added: 1.6.4
+
 :Section: server
 :Key: ssl
 :Env: QGSWPS_SERVER_SSL
@@ -342,6 +382,7 @@ Path to the SSL certificat file
 
 :Type: path
 :Version Added: 1.6.4
+
 :Section: server
 :Key: ssl_cert
 :Env: QGSWPS_SERVER_SSL_CERT
@@ -357,6 +398,7 @@ Path to the SSL key file
 
 :Type: path
 :Version Added: 1.6.4
+
 :Section: server
 :Key: ssl_key
 :Env: QGSWPS_SERVER_SSL_KEY
@@ -376,6 +418,7 @@ header to the token.
 :Type: boolean
 :Default: no
 :Version Added: 1.8
+
 :Section: server
 :Key: enable_job_realm
 :Env: QGSWPS_SERVER_ENABLE_JOB_REALM
@@ -393,6 +436,7 @@ It allows bearer to bypass any other token
 
 :Type: path
 :Version Added: 1.8
+
 :Section: server
 :Key: admin_realm
 :Env: QGSWPS_SERVER_ADMIN_REALM
@@ -408,6 +452,7 @@ Set the logging level
 
 :Type: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
 :Default: DEBUG
+
 :Section: logging
 :Key: level
 :Env: QGSWPS_LOGGING_LEVEL
@@ -424,6 +469,7 @@ Redis storage backend host
 
 :Type: string
 :Default: localhost
+
 :Section: logstorage:redis
 :Key: host
 :Env: QGSWPS_REDIS_HOST
@@ -440,6 +486,7 @@ Redis storage backend port
 
 :Type: string
 :Default: 6379
+
 :Section: logstorage:redis
 :Key: port
 :Env: QGSWPS_REDIS_PORT
@@ -455,6 +502,7 @@ Redis storage backend database index
 
 
 :Type: string
+
 :Section: logstorage:redis
 :Key: dbnum
 :Env: QGSWPS_REDIS_DBNUM
@@ -471,6 +519,7 @@ Redis storage backend key prefix.
 
 :Type: string
 :Default: pyqgiswps
+
 :Section: logstorage:redis
 :Key: prefix
 :Env: QGSWPS_REDIS_PREFIX
@@ -487,6 +536,7 @@ The maximal number of QGIS projects held in cache. The cache strategy is LRU.
 
 :Type: int
 :Default: 10
+
 :Section: projects.cache
 :Key: size
 :Env: QGSWPS_CACHE_SIZE
@@ -502,6 +552,7 @@ The directory location for QGIS project files.
 
 
 :Type: path
+
 :Section: projects.cache
 :Key: rootdir
 :Env: QGSWPS_CACHE_ROOTDIR
@@ -520,6 +571,7 @@ will be issued.
 
 :Type: boolean
 :Default: yes
+
 :Section: projects.cache
 :Key: strict_check
 :Env: QGSWPS_CACHE_STRICT_CHECK
@@ -534,6 +586,7 @@ PROCESSING_PROVIDERS_MODULE_PATH
 Path to QGIS processing providers modules
 
 :Type: path
+
 :Section: processing
 :Key: providers_module_path
 :Env: QGSWPS_PROCESSING_PROVIDERS_MODULE_PATH
@@ -552,6 +605,7 @@ model.
 
 :Type: list
 :Default: script,model
+
 :Section: processing
 :Key: exposed_providers
 :Env: QGSWPS_PROCESSING_EXPOSED_PROVIDERS
@@ -567,6 +621,7 @@ Path to the access policy configuration file
 
 :Type: path
 :Default: PROCESSING_PROVIDERS_MODULE_PATH/accesspolicy.yml
+
 :Section: processing
 :Key: accesspolicy
 :Env: QGSWPS_PROCESSING_ACCESSPOLICY
@@ -583,6 +638,7 @@ parameters. If not specified, then the QGIS default value is used.
 
 
 :Type: string
+
 :Section: processing
 :Key: vector.fileext
 :Env: QGSWPS_PROCESSING_VECTOR_FILEEXT
@@ -599,6 +655,7 @@ parameters. If not specified, then the QGIS default value is used.
 
 
 :Type: string
+
 :Section: processing
 :Key: raster.fileext
 :Env: QGSWPS_PROCESSING_RASTER_FILEEXT
@@ -625,6 +682,7 @@ the `PROCESSING_DESTINATION_ROOT_PATH`_ option. Otherwise, they will be stored i
 
 
 :Type: boolean
+
 :Section: processing
 :Key: unsafe.raw_destination_input_sink
 :Env: QGSWPS_PROCESSING_RAW_DESTINATION_INPUT_SINK
@@ -642,6 +700,7 @@ If not specified, file will be stored in the job folder.
 
 
 :Type: string
+
 :Section: processing
 :Key: destination_root_path
 :Env: QGSWPS_PROCESSING_DESTINATION_ROOT_PATH
@@ -658,6 +717,7 @@ if the src project has a valid CRS.
 
 
 :Type: boolean
+
 :Section: processing
 :Key: adjust_ellipsoid
 :Env: QGSWPS_PROCESSING_ADJUST_ELLIPSOID
@@ -675,6 +735,7 @@ For more details on supported formats see the GDAL method ``GRSpatialReference::
 
 :Type: string
 :Default: EPSG:4326
+
 :Section: processing
 :Key: default_crs
 :Env: QGSWPS_PROCESSING_DEFAULT_CRS

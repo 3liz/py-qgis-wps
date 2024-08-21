@@ -20,7 +20,7 @@ It is written in Python and was originally a fork of [PyWPS](https://pywps.org/)
 
 Requirements and limitations :
 
-- Python 3.7 minimum
+- Python 3.10 minimum
 - Windows is not officially supported
 - Redis server
 

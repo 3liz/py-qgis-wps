@@ -110,7 +110,7 @@ class ComplexInput(basic.ComplexInput, *ogc.exports.ComplexInput):
         self.method = ''
         self.max_size = int(0)
 
-    def download_ref(self, filename: os.PathLike) -> None:
+    def download_ref(self, filename: os.PathLike):
         """ Download reference/data as filename
         """
         if self.source_type is basic.SOURCE_TYPE.FILE:

@@ -15,36 +15,37 @@
 # http://opengeospatial.org/standards/wps
 
 
-from collections import namedtuple
+from typing import NamedTuple, Optional
 
-_FORMAT = namedtuple('FormatDefinition', 'mime_type,'
-                     'extension, schema')
-_FORMATS = namedtuple('FORMATS', 'WKT, GEOJSON, JSON, SHP, GML, GEOTIFF, WCS,'
-                                 'WCS100, WCS110, WCS20, WFS, WFS100,'
-                                 'WFS110, WFS20, WMS, WMS130, WMS110,'
-                                 'WMS100,'
-                                 'TEXT, NETCDF, ANY')
 
-FORMATS = _FORMATS(
-    WKT=_FORMAT('application/wkt', '.wkt', None),
-    GEOJSON=_FORMAT('application/vnd.geo+json', '.geojson', None),
-    JSON=_FORMAT('application/json', '.json', None),
-    SHP=_FORMAT('application/x-zipped-shp', '.zip', None),
-    GML=_FORMAT('application/gml+xml', '.gml', None),
-    GEOTIFF=_FORMAT('image/tiff; subtype=geotiff', '.tiff', None),
-    WCS=_FORMAT('application/xogc-wcs', '.xml', None),
-    WCS100=_FORMAT('application/x-ogc-wcs; version=1.0.0', '.xml', None),
-    WCS110=_FORMAT('application/x-ogc-wcs; version=1.1.0', '.xml', None),
-    WCS20=_FORMAT('application/x-ogc-wcs; version=2.0', '.xml', None),
-    WFS=_FORMAT('application/x-ogc-wfs', '.xml', None),
-    WFS100=_FORMAT('application/x-ogc-wfs; version=1.0.0', '.xml', None),
-    WFS110=_FORMAT('application/x-ogc-wfs; version=1.1.0', '.xml', None),
-    WFS20=_FORMAT('application/x-ogc-wfs; version=2.0', '.xml', None),
-    WMS=_FORMAT('application/x-ogc-wms', '.xml', None),
-    WMS130=_FORMAT('application/x-ogc-wms; version=1.3.0', '.xml', None),
-    WMS110=_FORMAT('application/x-ogc-wms; version=1.1.0', '.xml', None),
-    WMS100=_FORMAT('application/x-ogc-wms; version=1.0.0', '.xml', None),
-    TEXT=_FORMAT('text/plain', '.txt', None),
-    NETCDF=_FORMAT('application/x-netcdf', '.nc', None),
-    ANY=_FORMAT('application/octet-stream', '.nc', None),
-)
+class _FORMAT(NamedTuple):
+    mime_type: str
+    extension: str
+    schema: Optional[str] = None
+
+
+class _FORMATS(NamedTuple):
+    WKT: _FORMAT = _FORMAT('application/wkt', '.wkt')
+    GEOJSON: _FORMAT = _FORMAT('application/vnd.geo+json', '.geojson')
+    JSON: _FORMAT = _FORMAT('application/json', '.json')
+    SHP: _FORMAT = _FORMAT('application/x-zipped-shp', '.zip')
+    GML: _FORMAT = _FORMAT('application/gml+xml', '.gml')
+    GEOTIFF: _FORMAT = _FORMAT('image/tiff; subtype=geotiff', '.tiff')
+    WCS: _FORMAT = _FORMAT('application/xogc-wcs', '.xml')
+    WCS100: _FORMAT = _FORMAT('application/x-ogc-wcs; version=1.0.0', '.xml')
+    WCS110: _FORMAT = _FORMAT('application/x-ogc-wcs; version=1.1.0', '.xml')
+    WCS20: _FORMAT = _FORMAT('application/x-ogc-wcs; version=2.0', '.xml')
+    WFS: _FORMAT = _FORMAT('application/x-ogc-wfs', '.xml')
+    WFS100: _FORMAT = _FORMAT('application/x-ogc-wfs; version=1.0.0', '.xml')
+    WFS110: _FORMAT = _FORMAT('application/x-ogc-wfs; version=1.1.0', '.xml')
+    WFS20: _FORMAT = _FORMAT('application/x-ogc-wfs; version=2.0', '.xml')
+    WMS: _FORMAT = _FORMAT('application/x-ogc-wms', '.xml')
+    WMS130: _FORMAT = _FORMAT('application/x-ogc-wms; version=1.3.0', '.xml')
+    WMS110: _FORMAT = _FORMAT('application/x-ogc-wms; version=1.1.0', '.xml')
+    WMS100: _FORMAT = _FORMAT('application/x-ogc-wms; version=1.0.0', '.xml')
+    TEXT: _FORMAT = _FORMAT('text/plain', '.txt')
+    NETCDF: _FORMAT = _FORMAT('application/x-netcdf', '.nc')
+    ANY: _FORMAT = _FORMAT('application/octet-stream', '.nc')
+
+
+FORMATS = _FORMATS()

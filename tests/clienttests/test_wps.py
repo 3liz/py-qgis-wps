@@ -169,7 +169,7 @@ def test_executetimeout(host, data):
             "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"
         ),
     )
-    assert rv.status_code == 424
+    assert rv.status_code == 504
 
 
 def test_executedelete(host, data):
@@ -212,7 +212,7 @@ def test_proxy_status_url(host):
     assert "{0.scheme}://{0.netloc}/".format(status_url) == proxy_loc
 
 
-def test_handleprocesserror(host, data):
+def test_handleprocesserror_sync(host, data):
     """  Test execute error """
     rv = requests.get(
         host + (
@@ -223,7 +223,7 @@ def test_handleprocesserror(host, data):
             "&MAP=france_parts&DATAINPUTS=PARAM1=1&TIMEOUT=3"
         ),
     )
-    assert rv.status_code == 424
+    assert rv.status_code == 500
 
 
 def test_handleprocesserror_async(host, data):

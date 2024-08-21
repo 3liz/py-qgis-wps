@@ -54,23 +54,33 @@ CLIPRASTER_EXECUTE_POST = """<?xml version="1.0" encoding="UTF-8"?>
 
 # KVP is not supported for BoundingBox input
 def test_clipbyextent_get(host, data):
-    """  Test execute process """
+    """  Test execute process with KV arguments """
 
-    uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcliprasterlayer&Version=1.0.0'
-                           '&MAP=raster_layer&DATAINPUTS='
-                           'INPUT=raster_layer%3B'
-                           'EXTENT=-112,20,-87,45%3B'
-                           'OUTPUT=clipped_layer')
+    uri = (
+        '/ows/?service=WPS'
+        '&request=Execute'
+        '&Identifier=pyqgiswps_test:testcliprasterlayer'
+        '&Version=1.0.0'
+        '&MAP=raster_layer&DATAINPUTS='
+        'INPUT=raster_layer%3B'
+        'EXTENT=-112,20,-87,45%3B'
+        'OUTPUT=clipped_layer'
+    )
 
     rv = requests.get(host + uri)
-    assert rv.status_code == 400
+    assert rv.status_code == 200
 
 
 def test_clipbyextent_post(host, data):
     """ Test processing executor 'Execute' request
     """
     uri = ('/ows/?service=WPS&MAP=raster_layer')
-    body = CLIPRASTER_EXECUTE_POST.format(PROVIDER='pyqgiswps_test', INPUT='INPUT', EXTENT='EXTENT', OUTPUT='OUTPUT')
+    body = CLIPRASTER_EXECUTE_POST.format(
+        PROVIDER='pyqgiswps_test',
+        INPUT='INPUT',
+        EXTENT='EXTENT',
+        OUTPUT='OUTPUT',
+    )
 
     rv = requests.post(host + uri,
             data=body,

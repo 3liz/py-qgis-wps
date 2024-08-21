@@ -64,14 +64,6 @@ lint-fix:
 typing:
 	mypy --config=$(topsrcdir)/mypy.ini -p pyqgiswps
 
-
-# Run tests with docker-test
-test-%:
-	$(MAKE) -C tests $* FLAVOR=$(FLAVOR)
-
-run: manifest
-	$(MAKE) -C tests run FLAVOR=$(FLAVOR)
-
 client-test:
 	cd tests/clienttests && pytest -v $(PYTEST_ADDOPTS)
 

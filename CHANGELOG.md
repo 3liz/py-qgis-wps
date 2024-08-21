@@ -4,7 +4,11 @@
 ## Unreleased
 
 * Remove support for Qgis < 3.28
+* Requires python 3.10+
 * Remove dependency on 3liz/qgis-platform images for tests
+* Remove deprecated store apis:
+    - `/store/`
+    - `/ows/store/` 
 
 ## 1.8.7 - 2024-07-15
 
