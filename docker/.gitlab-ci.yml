@@ -76,6 +76,8 @@ deploy:snap:
       - tags
   tags:
     - factory-dind
+  variables:
+    FACTORY_MANIFEST: "docker/factory-${QGIS_FLAVOR}.manifest"
 
 release:release:
   extends: .release
