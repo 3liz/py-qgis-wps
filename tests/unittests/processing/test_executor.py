@@ -82,9 +82,16 @@ class TestsExecutor(HTTPTestCase):
     def test_mapcontext_execute(self):
         """ Test execute process with context
         """
-        rv = self.client.get(("/ows/?SERVICE=WPS&Request=Execute"
-                              "&Identifier=pyqgiswps_test:testmapcontext&Version=1.0.0"
-                              "&MAP=france_parts&DATAINPUTS=INPUT=hello_context"), path="")
+        rv = self.client.get(
+            (
+                "/ows/?SERVICE=WPS"
+                "&Request=Execute"
+                "&Identifier=pyqgiswps_test:testmapcontext"
+                "&Version=1.0.0"
+                "&MAP=france_parts&DATAINPUTS=INPUT=hello_context"
+            ),
+            path="",
+        )
         assert rv.status_code == 200
         assert rv.xpath_text('//wps:ProcessOutputs/wps:Output/wps:Data/wps:LiteralData') == 'france_parts'
 
@@ -110,8 +117,13 @@ class TestsExecutor(HTTPTestCase):
     def test_proxy_url(self):
         """ Test if proxy url is set
         """
-        uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0'
-                               '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
+        uri = (
+            '/ows/?service=WPS'
+            '&request=Execute'
+            '&Identifier=pyqgiswps_test:testcopylayer'
+            '&Version=1.0.0'
+            '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2'
+        )
         proxy_loc = 'http://test.proxy.loc:8080/anyhwere/'
 
         headers = {'X-Forwarded-Url': proxy_loc}
@@ -152,8 +164,13 @@ class TestsExecutor(HTTPTestCase):
     def test_service_url(self):
         """ Test service url header
         """
-        uri = ('/ows/?service=WPS&request=Execute&Identifier=pyqgiswps_test:testcopylayer&Version=1.0.0'
-                               '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2')
+        uri = (
+            '/ows/?service=WPS'
+            '&request=Execute'
+            '&Identifier=pyqgiswps_test:testcopylayer'
+            '&Version=1.0.0'
+            '&MAP=france_parts&DATAINPUTS=INPUT=france_parts%3BOUTPUT=france_parts_2'
+        )
         proxy_loc = 'http://test.proxy.loc:8080/anyhwere/'
 
         headers = {'X-Qgis-Service-Url': proxy_loc}

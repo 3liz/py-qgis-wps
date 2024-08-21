@@ -214,7 +214,8 @@ class WpsClient:
                 path,
                 method='PUT',
                 body=data,
-                raise_error=False, headers=headers,
+                raise_error=False,
+                headers=headers,
             ),
         )
 

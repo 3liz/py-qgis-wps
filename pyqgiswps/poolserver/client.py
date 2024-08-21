@@ -161,7 +161,7 @@ class _Client:
         request = pickle.dumps((target, args, kwargs))
         return self._apply_async(request, timeout)
 
-    async def _apply_async(self, request: bytes, timeout: int = 5) -> Any:
+    async def _apply_async(self, request: bytes, timeout: int) -> Any:
         """ Run job asynchronously
         """
         if len(self._handlers) > self._maxqueue:
