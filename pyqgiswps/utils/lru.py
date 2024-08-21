@@ -10,6 +10,8 @@
 """
 from collections import OrderedDict
 
+from .conditions import assert_precondition
+
 
 class lrucache():
 
@@ -104,7 +106,7 @@ class lrucache():
             :param int size: maximum number of elements in the cache
         """
         if size is not None:
-            assert size > 0
+            assert_precondition(size > 0)
             if size < self._capacity:
                 d = self._table
                 # Remove extra items

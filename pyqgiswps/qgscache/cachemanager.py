@@ -212,7 +212,7 @@ class QgsCacheManager:
 
         # Retrieve the protocol-handler
         try:
-            store = componentmanager.get_service('@3liz.org/cache/protocol-handler;1?scheme=%s' % scheme)
+            store = componentmanager.get_service(f'@3liz.org/cache/protocol-handler;1?scheme={scheme}')
         except componentmanager.FactoryNotFoundError:
             LOGGER.warning("No protocol handler found for %s: using Qgis storage handler", scheme)
             # Fallback to Qgis storage handler

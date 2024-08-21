@@ -6,7 +6,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+""" Qgis storage protocol handler
 
-from .file_handler import *  # noqa: F403
-
-__all__ = []
+    Register storage handlers as  protocol handler
+"""

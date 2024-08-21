@@ -49,6 +49,9 @@ RUN mkdir -p /opt/local/ \
 COPY docker/docker-entrypoint.sh /
 RUN chmod 0755 /docker-entrypoint.sh
 
+# Expose to all interfaces in container
+ENV QGSWPS_SERVER_INTERFACES=0.0.0.0
+
 EXPOSE 8080
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

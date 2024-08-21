@@ -22,8 +22,14 @@ from typing import List, Optional
 
 from pyqgiswps.exceptions import InvalidParameterValue
 from pyqgiswps.inout.formats import Format
-from pyqgiswps.inout.literaltypes import LITERAL_DATA_TYPES, convert, is_anyvalue, to_json_serializable
+from pyqgiswps.inout.literaltypes import (
+    LITERAL_DATA_TYPES,
+    convert,
+    is_anyvalue,
+    to_json_serializable,
+)
 from pyqgiswps.inout.uoms import UOM
+from pyqgiswps.utils.conditions import assert_precondition
 from pyqgiswps.validator import get_validator
 from pyqgiswps.validator.base import emptyvalidator
 from pyqgiswps.validator.literalvalidator import validate_allowed_values, validate_anyvalue
@@ -189,7 +195,7 @@ class BasicLiteral:
     """
 
     def __init__(self, data_type, uoms=None):
-        assert data_type in LITERAL_DATA_TYPES, f"data type {data_type} no supported"
+        assert_precondition(data_type in LITERAL_DATA_TYPES, f"data type {data_type} no supported")
         self.data_type = data_type
         # current uom
         self.supported_uoms = uoms

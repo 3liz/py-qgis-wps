@@ -66,7 +66,7 @@ def load_configuration():
     CONFIG.set('server', 'encoding', 'utf-8')
     CONFIG.set('server', 'language', 'en-US')
     CONFIG.set('server', 'port', getenv('QGSWPS_SERVER_HTTP_PORT', '8080'))
-    CONFIG.set('server', 'interfaces', getenv('QGSWPS_SERVER_INTERFACES', '0.0.0.0'))
+    CONFIG.set('server', 'interfaces', getenv('QGSWPS_SERVER_INTERFACES', '127.0.0.1'))
     # Select if output files are returned by reference or in response body
     CONFIG.set('server', 'outputfile_as_reference', getenv('QGSWPS_SERVER_OUTPUTFILE_AS_REFERENCE', 'yes'))
     # Max input file fetched as remote reference

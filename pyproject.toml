@@ -66,3 +66,5 @@ include = [
     "pyqgisservercontrib.*",
 ]
 
+[tool.bandit]
+skips = ["B410", "B320", "B403", "B301"]

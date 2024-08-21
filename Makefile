@@ -67,3 +67,6 @@ typing:
 client-test:
 	cd tests/clienttests && pytest -v $(PYTEST_ADDOPTS)
 
+scan:
+	@bandit -c pyproject.toml -r pyqgiswps
+

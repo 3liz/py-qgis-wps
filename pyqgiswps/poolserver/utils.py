@@ -11,11 +11,13 @@
 
 import os
 
+from tempfile import gettempdir
+
 _pid = os.getpid()
 
 
 def _get_ipc(name: str) -> str:
-    ipc_path = f'/tmp/qgswps/{name}_{_pid}'
+    ipc_path = f'{gettempdir()}/qgswps/{name}_{_pid}'
     os.makedirs(os.path.dirname(ipc_path), exist_ok=True)
     return f'ipc://{ipc_path}'
 

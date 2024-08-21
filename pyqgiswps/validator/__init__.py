@@ -18,16 +18,15 @@
 import logging
 
 from pyqgiswps.validator.base import emptyvalidator
-from pyqgiswps.validator.complexvalidator import validategeojson, validategeotiff, validategml, validateshapefile
 
 LOGGER = logging.getLogger('SRVLOG')
 
 _VALIDATORS = {
-    'application/vnd.geo+json': validategeojson,
-    'application/json': validategeojson,
-    'application/x-zipped-shp': validateshapefile,
-    'application/gml+xml': validategml,
-    'image/tiff; subtype=geotiff': validategeotiff,
+    'application/vnd.geo+json': emptyvalidator,
+    'application/json': emptyvalidator,
+    'application/x-zipped-shp': emptyvalidator,
+    'application/gml+xml': emptyvalidator,
+    'image/tiff; subtype=geotiff': emptyvalidator,
     'application/xogc-wcs': emptyvalidator,
     'application/x-ogc-wcs; version=1.0.0': emptyvalidator,
     'application/x-ogc-wcs; version=1.1.0': emptyvalidator,

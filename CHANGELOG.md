@@ -9,6 +9,7 @@
 * Remove deprecated store apis:
     - `/store/`
     - `/ows/store/` 
+* Remove postgres cache handler in favor of generic Qgis storage
 
 ## 1.8.7 - 2024-07-15
 

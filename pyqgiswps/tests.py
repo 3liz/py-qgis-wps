@@ -237,44 +237,44 @@ class WpsClient:
 
 
 def assert_response_accepted(resp):
-    assert resp.status_code == 200, "resp.status_code = %s" % resp.status_code
-    assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
+    assert resp.status_code == 200, f"resp.status_code = {resp.status_code}"  # nosec
+    assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'           # nosec
     success = resp.xpath_text(
         '/wps:ExecuteResponse'
         '/wps:Status'
         '/wps:ProcessAccepted',
     )
-    assert success is not None
+    assert success is not None  # nosec
     # TODO: assert status URL is present
 
 
 def assert_process_started(resp):
-    assert resp.status_code == 200, "resp.status_code = %s" % resp.status_code
-    assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
+    assert resp.status_code == 200, f"resp.status_code = {resp.status_code}"   # nosec
+    assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'            # nosec
     success = resp.xpath_text(
         '/wps:ExecuteResponse'
         '/wps:Status'
         'ProcessStarted',
     )
     # Is it still like this in PyWPS-4 ?
-    assert success.split[0] == "processstarted"
+    assert success.split[0] == "processstarted"  # nosec
 
 
 def assert_response_success(resp):
-    assert resp.status_code == 200, "resp.status_code = %s" % resp.status_code
-    assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'
+    assert resp.status_code == 200, f"resp.status_code = {resp.status_code}"  # nosec
+    assert resp.headers['Content-Type'] == 'text/xml;charset=utf-8'           # nosec
     success = resp.xpath('/wps:ExecuteResponse/wps:Status/wps:ProcessSucceeded')
-    assert len(success) == 1
+    assert len(success) == 1  # nosec
 
 
 def assert_pyqgiswps_version(resp):
     # get first child of root element
     root_firstchild = resp.xpath('/*')[0].getprevious()
-    assert isinstance(root_firstchild, lxml.etree._Comment)
+    assert isinstance(root_firstchild, lxml.etree._Comment)  # nosec
     tokens = root_firstchild.text.split()
-    assert len(tokens) == 2
-    assert tokens[0] == 'py-qgis-wps'
-    assert tokens[1] == __version__
+    assert len(tokens) == 2              # nosec
+    assert tokens[0] == 'py-qgis-wps'    # nosec
+    assert tokens[1] == __version__      # nosec
 
 
 #

@@ -15,6 +15,7 @@ services:
       QGSWPS_LOGLEVEL: DEBUG
       QGSWPS_REDIS_HOST: redis
       QGSWPS_EXPOSE_SERVER_INFOS: 'yes'
+      QGSWPS_SERVER_INTERFACES: '0.0.0.0'
       PYTEST_ADDOPTS: ${PYTEST_ADDOPTS}
     user: "${BECOME_USER}:${BECOME_USER}"
     volumes:

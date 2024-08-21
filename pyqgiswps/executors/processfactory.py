@@ -28,6 +28,7 @@ from ..app.process import WPSProcess
 from ..config import confservice
 from ..exceptions import ProcessException
 from ..poolserver.server import create_poolserver
+from ..utils.conditions import assert_precondition
 from ..utils.plugins import WPSServerInterfaceImpl
 from ..utils.qgis import setup_qgis_paths, start_qgis_application
 from .logstore import logstore
@@ -141,7 +142,7 @@ class QgsProcessFactory:
 
             Should be called once
         """
-        assert not self._initialized
+        assert_precondition(not self._initialized)
 
         self._config = confservice['processing']
 
