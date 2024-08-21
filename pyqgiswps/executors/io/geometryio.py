@@ -47,7 +47,11 @@ from pyqgiswps.inout import (
 
 from ..processingcontext import MapContext, ProcessingContext
 
-Geometry = Union[QgsGeometry, QgsReferencedGeometry]
+Geometry = Union[
+    QgsGeometry,
+    QgsReferencedGeometry,
+    QgsReferencedPointXY,
+]
 
 LOGGER = logging.getLogger('SRVLOG')
 
@@ -105,7 +109,7 @@ def parse_input_definition(
     param: QgsProcessingParameterDefinition,
     kwargs: Dict[str, Any],
     context: Optional[MapContext] = None,
-) -> WPSInput:
+) -> WPSInput | None:
     """ Convert processing input to File Input
     """
     typ = param.type()
@@ -159,11 +163,11 @@ def wkt_to_geometry(wkt: str) -> Geometry:
     raise InvalidParameterValue("Invalid wkt format")
 
 
-def json_to_geometry(data: str) -> Geometry:
+def json_to_geometry(input_data: str) -> Geometry:
     """ Handle json to qgis geometry
     """
     try:
-        data = json.loads(data)
+        data: Dict = json.loads(input_data)
         crs = data.get('crs')
         if crs:
             crs = QgsCoordinateReferenceSystem(crs['properties']['name'])
@@ -220,7 +224,7 @@ def input_to_geometry(inp: WPSInput) -> Geometry:
     raise NoApplicableCode("Unsupported data format: %s" % data_format)
 
 
-def input_to_point(inp: WPSInput) -> Any:
+def input_to_point(inp: WPSInput) -> Geometry:
     """ Convert input to point
     """
     g = input_to_geometry(inp)
@@ -229,7 +233,7 @@ def input_to_point(inp: WPSInput) -> Any:
     return g
 
 
-def input_to_extent(inp: WPSInput) -> Any:
+def input_to_extent(inp: WPSInput) -> Geometry:
     """ Convert to extent
     """
     r = inp.data
@@ -238,13 +242,18 @@ def input_to_extent(inp: WPSInput) -> Any:
     return QgsReferencedRectangle(rect, ref)
 
 
-def get_processing_value(param: QgsProcessingParameterDefinition, inp: WPSInput,
-                         context: ProcessingContext) -> Any:
+def get_processing_value(
+    param: QgsProcessingParameterDefinition,
+    inp: WPSInput,
+    context: ProcessingContext,
+) -> Geometry:
     """ Return processing value from wps inputs
 
         Processes other inputs than layers
     """
     typ = param.type()
+
+    value: Geometry
 
     if isinstance(param, QgsProcessingParameterGeometry):
         value = input_to_geometry(inp[0])

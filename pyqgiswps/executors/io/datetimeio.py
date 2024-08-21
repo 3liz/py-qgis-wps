@@ -31,7 +31,7 @@ LOGGER = logging.getLogger('SRVLOG')
 def parse_input_definition(
     param: QgsProcessingParameterDefinition,
     kwargs: Dict[str, Any],
-) -> LiteralInput:
+) -> LiteralInput | None:
     """ Convert processing input to File Input
     """
     typ = param.type()

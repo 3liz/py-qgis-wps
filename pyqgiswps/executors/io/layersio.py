@@ -12,7 +12,14 @@ import logging
 import traceback
 
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import (
+    Any,
+    Dict,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+)
 from urllib.parse import parse_qs, quote, urlencode, urlparse
 
 from qgis.core import (
@@ -83,7 +90,7 @@ INPUT_OTHER_LAYER_TYPES = (QgsProcessingParameterMapLayer, QgsProcessingParamete
 INPUT_LAYER_TYPES = INPUT_VECTOR_LAYER_TYPES + INPUT_RASTER_LAYER_TYPES + INPUT_OTHER_LAYER_TYPES
 
 
-ProcessingSourceType = QgsProcessing.SourceType
+ProcessingSourceType: Type = QgsProcessing.SourceType
 
 # Map processing source types to string
 SourceTypes = {
@@ -115,7 +122,7 @@ VECTOR_INPUT_FORMATS = (Format.from_definition(FORMATS.GEOJSON),
 def get_layers_type(
     param: QgsProcessingParameterDefinition,
     kwargs: Dict[str, Any],
-) -> ProcessingSourceType:
+    ) -> ProcessingSourceType:  # type: ignore [valid-type]
     """ Set datatype as metadata
     """
     datatypes = []
@@ -255,8 +262,8 @@ def parse_root_destination_path(param: QgsProcessingDestinationParameter,
 def parse_input_definition(
     param: QgsProcessingParameterDefinition,
     kwargs: Dict[str, Any],
-    context: MapContext = None,
-) -> LiteralInput:
+    context: Optional[MapContext] = None,
+) -> LiteralInput | None:
     """ Layers input may be passed in various forms:
 
         - For input layers and if a context is given: it will be a list of  available layers from
@@ -287,7 +294,7 @@ def parse_input_definition(
             get_layers_from_context(kwargs, context, datatypes)
             # Set max occurs accordingly
             if typ == 'multilayer':
-                kwargs['max_occurs'] = len(kwargs['allowed_values'].values or 0)
+                kwargs['max_occurs'] = len(kwargs['allowed_values'].values or ())
         return LiteralInput(**kwargs)
 
     elif isinstance(param, DESTINATION_LAYER_TYPES):
@@ -418,7 +425,10 @@ def get_processing_value(param: QgsProcessingParameterDefinition, inp: WPSInput,
 # -------------------------------------------
 
 
-def parse_output_definition(outdef: QgsProcessingOutputDefinition, kwargs: Dict[str, Any]) -> ComplexOutput:
+def parse_output_definition(
+    outdef: QgsProcessingOutputDefinition,
+    kwargs: Dict[str, Any],
+) -> ComplexOutput | None:
     """ Parse layer output
 
         A layer output is merged to a qgis project, we return
@@ -438,9 +448,14 @@ def parse_output_definition(outdef: QgsProcessingOutputDefinition, kwargs: Dict[
         return ComplexOutput(supported_formats=[Format("application/x-ogc-wms")],
                              as_reference=True, **kwargs)
 
+    return None
 
-def add_layer_to_load_on_completion(value: str, outdef: QgsProcessingOutputDefinition,
-                                    context: ProcessingContext) -> Tuple[str, ...]:
+
+def add_layer_to_load_on_completion(
+    value: str,
+    outdef: QgsProcessingOutputDefinition,
+    context: ProcessingContext,
+) -> Sequence[str]:
     """ Add layer to load on completion
 
         The layer will be added to the destination project
@@ -510,13 +525,19 @@ def add_layer_to_load_on_completion(value: str, outdef: QgsProcessingOutputDefin
         if name:
             return (name,)
 
+    return ()
 
-def parse_response(value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOutput,
-                   context: QgsProcessingContext) -> Optional[WPSOutput]:
+
+def parse_response(
+    value: Any,
+    outdef: QgsProcessingOutputDefinition,
+    out: WPSOutput,
+    context: QgsProcessingContext,
+) -> Optional[WPSOutput]:
     """ Process processing response to WPS output
     """
     if not isinstance(outdef, OUTPUT_LAYER_TYPES):
-        return
+        return None
 
     out.data_format = Format("application/x-ogc-wms")
 

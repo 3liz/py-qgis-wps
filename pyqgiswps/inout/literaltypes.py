@@ -81,9 +81,9 @@ class AllowedValues(*ogc.exports.AllowedValues):
     def __init__(
         self,
         allowed_type: ALLOWEDVALUETYPE = ALLOWEDVALUETYPE.VALUE,
-        values: Optional[List[Any]] = None,
-        minval: Optional[LiteralNumeric] = None,
-        maxval: Optional[LiteralNumeric] = None,
+        values: Optional[List[LiteralInputValue]] = None,
+        minval: Optional[LiteralInputValue] = None,
+        maxval: Optional[LiteralInputValue] = None,
         spacing: Optional[LiteralNumeric] = None,
         range_closure: RANGECLOSURETYPE = RANGECLOSURETYPE.CLOSED,
     ):
@@ -136,8 +136,8 @@ class AllowedValues(*ogc.exports.AllowedValues):
 
     @staticmethod
     def range(
-        minval: LiteralNumeric,
-        maxval: LiteralNumeric,
+        minval: LiteralInputValue,
+        maxval: LiteralInputValue,
         spacing: Optional[LiteralNumeric] = None,
         range_closure: RANGECLOSURETYPE = RANGECLOSURETYPE.CLOSED,
     ) -> Self:

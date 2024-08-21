@@ -14,6 +14,7 @@ from typing import (
     Any,
     Dict,
     Generator,
+    Optional,
     Tuple,
 )
 
@@ -87,7 +88,10 @@ def _number_data_type(param: QgsProcessingParameterNumber) -> str:
 # Inputs converters
 # ==================
 
-def parse_literal_input(param: QgsProcessingParameterDefinition, kwargs: Dict[str, Any]) -> LiteralInput:
+def parse_literal_input(
+    param: QgsProcessingParameterDefinition,
+    kwargs: Dict[str, Any],
+) -> LiteralInput | None:
     """ Convert processing input to Literal Input
     """
     typ = param.type()
@@ -166,8 +170,11 @@ def parse_metadata(param: QgsProcessingParameterDefinition, kwargs: Dict[str, An
     kwargs['metadata'].extend(Metadata('processing:meta:%s' % k, str(v)) for k, v in param.metadata().items())
 
 
-def parse_input_definition(param: QgsProcessingParameterDefinition, alg: QgsProcessingAlgorithm = None,
-                           context: MapContext = None) -> WPSInput:
+def parse_input_definition(
+    param: QgsProcessingParameterDefinition,
+    alg: Optional[QgsProcessingAlgorithm] = None,
+    context: Optional[MapContext] = None,
+) -> WPSInput:
     """ Create WPS input from QgsProcessingParamDefinition
 the description is used in QGIS UI as the title in WPS.
         see https://qgis.org/api/qgsprocessingparameters_8h_source.html#l01312
@@ -226,7 +233,10 @@ def parse_input_definitions(alg: QgsProcessingAlgorithm, context: MapContext) ->
 # Output converters
 # ==================
 
-def parse_literal_output(outdef: QgsProcessingOutputDefinition, kwargs: Dict[str, Any]) -> LiteralOutput:
+def parse_literal_output(
+    outdef: QgsProcessingOutputDefinition,
+    kwargs: Dict[str, Any],
+) -> LiteralOutput | None:
     """
     """
     typ = outdef.type()
@@ -242,8 +252,10 @@ def parse_literal_output(outdef: QgsProcessingOutputDefinition, kwargs: Dict[str
     return LiteralOutput(**kwargs)
 
 
-def parse_output_definition(outdef: QgsProcessingOutputDefinition, alg: QgsProcessingAlgorithm = None,
-                            context: MapContext = None) -> WPSOutput:
+def parse_output_definition(
+    outdef: QgsProcessingOutputDefinition,
+    alg: Optional[QgsProcessingAlgorithm] = None,
+    context: Optional[MapContext] = None) -> WPSOutput:
     """ Create WPS output
 
         XXX Create more QgsProcessingOutputDefinition for handling:
@@ -265,7 +277,10 @@ def parse_output_definition(outdef: QgsProcessingOutputDefinition, alg: QgsProce
     return output
 
 
-def parse_output_definitions(alg: QgsProcessingAlgorithm, context: MapContext) -> Generator[WPSOutput, None, None]:
+def parse_output_definitions(
+    alg: QgsProcessingAlgorithm,
+    context: Optional[MapContext],
+) -> Generator[WPSOutput, None, None]:
     """ Parse algorithm inputs definitions
     """
     for param in alg.outputDefinitions():

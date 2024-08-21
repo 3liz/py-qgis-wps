@@ -46,12 +46,20 @@ class TestCopyLayer(QgsProcessingAlgorithm):
             see https://qgis.org/api/classQgsProcessingAlgorithm.html
         """
         layer = self.parameterAsVectorLayer(parameters, self.INPUT, context)
-        outfile = self.parameterAsOutputLayer(parameters, self.OUTPUT, context)
+        outlayer = self.parameterAsOutputLayer(parameters, self.OUTPUT, context)
+
+        options = QgsVectorFileWriter.SaveVectorOptions()
+        options.driverName = QgsVectorFileWriter.driverForExtension('.shp')
 
         # Save a copy of our layer
-        err = QgsVectorFileWriter.writeAsVectorFormat(layer, outfile, "utf-8", driverName="ESRI Shapefile")
+        (err, msg, outfile, _layer_name) = QgsVectorFileWriter.writeAsVectorFormatV3(
+            layer,
+            outlayer,
+            context.transformContext(),
+            options,
+        )
 
-        if err[0] != QgsVectorFileWriter.NoError:
-            feedback.reportError(f"Error writing vector layer {outfile}: {err}")
+        if err != QgsVectorFileWriter.NoError:
+            feedback.reportError(f"Error writing vector layer {outlayer}: {msg}")
 
         return {self.OUTPUT: outfile}

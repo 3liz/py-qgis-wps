@@ -62,7 +62,7 @@ lint-fix:
 	@ruff check --preview --fix $(PYTHON_PKG) $(TESTDIR)
 
 typing:
-	mypy --config=$(tosrcdir)/mypy.ini -p pyqgiswps
+	mypy --config=$(topsrcdir)/mypy.ini -p pyqgiswps
 
 
 # Run tests with docker-test

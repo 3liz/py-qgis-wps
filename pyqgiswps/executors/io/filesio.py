@@ -15,7 +15,13 @@ import re
 
 from os.path import basename, normpath
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Union,
+)
 
 from qgis.core import (
     QgsProcessingAlgorithm,
@@ -50,7 +56,7 @@ LOGGER = logging.getLogger('SRVLOG')
 def parse_input_definition(
     param: QgsProcessingParameterDefinition,
     kwargs: Dict[str, Any],
-) -> Union[LiteralInput, ComplexInput]:
+) -> Union[LiteralInput, ComplexInput, None]:
     """ Convert processing input to File Input
     """
     typ = param.type()
@@ -74,10 +80,12 @@ def parse_input_definition(
         kwargs['data_type'] = 'string'
         return LiteralInput(**kwargs)
 
+    return None
 
 # --------------------------------------
 # WPS inputs ->  processing inputs data
 # --------------------------------------
+
 
 def get_processing_value(param: QgsProcessingParameterDefinition, inp: WPSInput,
                          context: ProcessingContext) -> Any:
@@ -116,7 +124,7 @@ def parse_output_definition(
     outdef: QgsProcessingOutputDefinition,
     kwargs: Dict[str, Any],
     alg: Optional[QgsProcessingAlgorithm] = None,
-) -> ComplexOutput:
+) -> ComplexOutput | None:
     """ Parse file output definition
 
         QgsProcessingOutputDefinition metadata will be checked to get
@@ -132,7 +140,7 @@ def parse_output_definition(
     elif isinstance(outdef, QgsProcessingOutputFile):
         # Try to get a corresponding inputFileDefinition
         # See https://qgis.org/pyqgis/master/core/QgsProcessingParameterFileDestination.html
-        supported_formats = []
+        supported_formats: List[Format] = []
         if alg:
             inputdef = alg.parameterDefinition(outdef.name())
             if isinstance(inputdef, QgsProcessingParameterFileDestination):
@@ -163,6 +171,8 @@ def parse_output_definition(
         kwargs['supported_formats'] = supported_formats
         return ComplexOutput(as_reference=as_reference, **kwargs)
 
+    return None
+
 
 def to_output_file(file_name: str, out: ComplexOutput, context: ProcessingContext) -> ComplexOutput:
     """ Output file
@@ -191,3 +201,5 @@ def parse_response(value: Any, outdef: QgsProcessingOutputDefinition, out: WPSOu
             mime = "application/octet-stream"
         out.data_format = Format(mime)
         return to_output_file(value, out, context)
+
+    return None

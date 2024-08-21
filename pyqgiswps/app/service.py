@@ -16,7 +16,14 @@ import copy
 import logging
 import os
 
-from typing import Any, Iterable, Iterator, Optional, Union
+from typing import (
+    Any,
+    Iterable,
+    Iterator,
+    Optional,
+    Sequence,
+    Union,
+)
 
 from ..config import confservice
 from ..exceptions import (
@@ -58,7 +65,7 @@ class Service():
     def get_process(self, ident: str, map_uri: Optional[str] = None) -> WPSProcess:
         return self.get_processes((ident,), map_uri=map_uri)[0]
 
-    def get_processes(self, idents: Iterable[str], map_uri: Optional[str] = None) -> Iterable[WPSProcess]:
+    def get_processes(self, idents: Iterable[str], map_uri: Optional[str] = None) -> Sequence[WPSProcess]:
         return self.executor.get_processes(idents, map_uri=map_uri)
 
     def get_results(self, uuid: str) -> Any:

@@ -20,7 +20,6 @@ from typing import (
     Any,
     Iterable,
     Iterator,
-    List,
     Optional,
     Sequence,
 )
@@ -195,9 +194,9 @@ class ProcessingExecutor:
 
     def get_processes(
         self,
-        identifiers: Sequence[str],
+        identifiers: Iterable[str],
         map_uri: Optional[str] = None,
-    ) -> List[WPSProcess]:
+    ) -> Sequence[WPSProcess]:
         """ Override executors.get_process
         """
         try:

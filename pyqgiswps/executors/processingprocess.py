@@ -232,7 +232,7 @@ def run_processing_algorithm(
     parameters: Mapping[str, QgsProcessingParameterDefinition],
     feedback: QgsProcessingFeedback,
     context: QgsProcessingContext,
-    create_context: dict,
+    create_context: Mapping,
 ) -> Mapping[str, Any]:
     """ Re-implemente `Processing.runAlgorithm`
 
@@ -281,7 +281,7 @@ def run_algorithm(
     context: QgsProcessingContext,
     uuid: str,
     outputs: Mapping[str, WPSOutput],
-    create_context: dict = {},
+    create_context: Mapping = {},
 ) -> Mapping[str, Any]:
     # XXX Fix destination names for models
     # Collect destination names for destination parameters for restoring
@@ -373,7 +373,7 @@ class QgsProcess(WPSProcess):
     def _handler(
         request: WPSRequest,
         response: WPSResponse,
-        create_context: Mapping[str, Any],
+        create_context: Mapping,
     ) -> WPSResponse:
         """  WPS process handler
         """

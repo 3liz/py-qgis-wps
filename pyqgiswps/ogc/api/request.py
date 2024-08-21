@@ -118,10 +118,16 @@ class OgcApiRequest(WPSRequest):
     #
     # /processes/{id}/execution
     #
-    async def execute(self, ident: str, job_id: UUID, doc: JsonValue, service: Service,
-                      timeout: Optional[int] = None,
-                      expire: Optional[int] = None,
-                      execute_async: bool = True) -> JsonValue:
+    async def execute(
+        self,
+        ident: str,
+        job_id: UUID,
+        doc: JsonValue,
+        service: Service,
+        timeout: Optional[int] = None,
+        expire: Optional[int] = None,
+        execute_async: bool = True,
+    ) -> JsonValue:
 
         # Raise if process is not found
         process = service.get_process(ident, map_uri=self.map_uri)

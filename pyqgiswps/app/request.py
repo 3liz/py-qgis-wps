@@ -14,11 +14,17 @@
 import json
 import logging
 
-from typing import Optional
 from urllib.parse import (
     urljoin,
     urlparse,
     urlunparse,
+)
+
+from typing_extensions import (
+    Any,
+    Dict,
+    Optional,
+    Sequence,
 )
 
 from ..config import confservice
@@ -32,22 +38,22 @@ class WPSRequest:
 
     def __init__(self):
 
-        self.operation = None
-        self.version = None
-        self.language = None
-        self.identifiers = None
-        self.identifier = None
+        self.operation: Optional[str] = None
+        self.version: Optional[str] = None
+        self.language: Optional[str] = None
+        self.identifiers: Sequence[str] = ()
+        self.identifier: Optional[str] = None
         self.execute_async = False
-        self.inputs = None
-        self.outputs = None
-        self.map_uri = None
-        self.host_url = None
+        self.inputs: Dict[str, Any] = {}
+        self.outputs: Dict[str, Any] = {}
+        self.map_uri: Optional[str] = None
+        self.host_url: Optional[str] = None
 
-        self.realm = None
+        self.realm: Optional[str] = None
 
         # The url path + query used
         # for retrieving the job status
-        self.status_link = None
+        self.status_link: Optional[str] = None
 
         cfg = confservice['server']
 
