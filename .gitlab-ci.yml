@@ -17,7 +17,7 @@ stages:
   stage: test
   script:
     - source ~/.bashrc
-    - make install install-tests
+    - make install install-dev
     - pip list -l
     - make test FLAVOR=$QGIS_FLAVOR
   tags:

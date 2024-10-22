@@ -33,7 +33,7 @@ RUN mkdir -p /opt/local/ \
 
 COPY pyqgiswps py-qgis-wps/pyqgiswps
 COPY pyqgisservercontrib py-qgis-wps/pyqgisservercontrib
-COPY setup.py pyproject.toml VERSION py-qgis-wps/
+COPY pyproject.toml VERSION py-qgis-wps/
 
 # Create virtualenv for installing server
 RUN mkdir -p /opt/local/ \

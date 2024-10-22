@@ -6,8 +6,7 @@ DEPTH=.
 
 include $(DEPTH)/config.mk
 
-BUILDDIR:=build
-DIST:=${BUILDDIR}/dist
+DIST:=dist
 
 MANIFEST=pyqgiswps/build.manifest
 
@@ -31,8 +30,8 @@ deliver:
 	twine upload -r storage $(DIST)/*
 
 dist: dirs manifest
-	rm -rf *.egg-info
-	$(PYTHON) setup.py sdist --dist-dir=$(DIST)
+	rm -rf *.egg-info 
+	$(PYTHON) -m build --no-isolation --sdist --outdir=$(DIST)
 
 clean:
 	rm -rf $(DIST) *.egg-info
@@ -44,13 +43,11 @@ test: lint
 install:
 	pip install -U --upgrade-strategy=eager -e .
 
-install-tests:
-	pip install -U --upgrade-strategy=eager -r tests/requirements.txt
+install-dev:
+	pip install -U --upgrade-strategy=eager -r requirements.dev
 
 install-doc:
 	pip install -U --upgrade-strategy=eager -r doc/requirements.txt
-
-install-dev: install-tests install-doc
 
 lint:
 	@ruff check --output-format=concise $(PYTHON_PKG) $(TESTDIR)
@@ -60,6 +57,8 @@ lint-preview:
 
 lint-fix:
 	@ruff check --preview --fix $(PYTHON_PKG) $(TESTDIR)
+
+autopep8: lint-fix
 
 typing:
 	mypy --config=$(topsrcdir)/mypy.ini -p pyqgiswps
