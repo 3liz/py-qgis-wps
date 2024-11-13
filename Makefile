@@ -14,6 +14,8 @@ PYTHON_PKG=pyqgiswps pyqgisservercontrib
 
 TESTDIR=tests/unittests
 
+PYPISERVER:=storage
+
 dirs:
 	mkdir -p $(DIST)
 
@@ -27,7 +29,7 @@ manifest: version
     echo commitid=$(COMMITID) >> $(MANIFEST)
 
 deliver:
-	twine upload -r storage $(DIST)/*
+	twine upload $(TWINE_OPTIONS) -r $(PYPISERVER) $(DIST)/*
 
 dist: dirs manifest
 	rm -rf *.egg-info 

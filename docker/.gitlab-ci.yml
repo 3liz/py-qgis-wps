@@ -66,11 +66,12 @@ deploy:snap:
   image: ${REGISTRY_URL}/factory-ci-runner:build-package
   stage: release
   script:
-    - $FACTORY_SCRIPTS/release-image.sh qgis-wps-server-$QGIS_FLAVOR
-    - $FACTORY_SCRIPTS/push-to-docker-hub.sh --clean
+    - release-image qgis-wps-server-$QGIS_FLAVOR
+    - push-to-docker-hub --clean
   environment:
     name: production
   when: manual
+  allow_failure: false
   only:
     refs:
       - tags
