@@ -50,7 +50,7 @@ deploy:snap:
   image: ${REGISTRY_URL}/factory-ci-runner:build-package
   stage: deploy
   script:
-    - $FACTORY_SCRIPTS/update-service wps
+    - update-service wps
   environment:
     name: snap
   only:
