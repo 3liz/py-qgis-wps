@@ -12,7 +12,7 @@ variables:
 #-------------
 
 .build-docker:
-  image: ${REGISTRY_URL}/factory-ci-runner:build-package
+  image: ${REGISTRY_URL}/factory-ci-runner:factory-ci
   stage: docker
   script:
     - make version
@@ -42,12 +42,17 @@ build-docker:3.28:
   variables:
     QGIS_FLAVOR: "3.28"
 
+build-docker:3.34:
+  extends: .build-docker
+  variables:
+    QGIS_FLAVOR: "3.34"
+
 #-------------
 # deploy
 #-------------
 
 deploy:snap:
-  image: ${REGISTRY_URL}/factory-ci-runner:build-package
+  image: ${REGISTRY_URL}/factory-ci-runner:factory-ci
   stage: deploy
   script:
     - update-service wps
@@ -63,7 +68,7 @@ deploy:snap:
 #-------------
 
 .release:
-  image: ${REGISTRY_URL}/factory-ci-runner:build-package
+  image: ${REGISTRY_URL}/factory-ci-runner:factory-ci
   stage: release
   script:
     - release-image qgis-wps-server-$QGIS_FLAVOR
@@ -100,4 +105,11 @@ release:3.28:
     QGIS_FLAVOR: "3.28"
   dependencies:
     - build-docker:3.28
+
+release:3.34:
+  extends: .release
+  variables:
+    QGIS_FLAVOR: "3.34"
+  dependencies:
+    - build-docker:3.34
 

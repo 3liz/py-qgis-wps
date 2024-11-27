@@ -30,14 +30,14 @@ tests:
   resource_group: py_qgis_wps_tests
   parallel:
     matrix:
-    - QGIS_FLAVOR: ['ltr', 'release', '3.28']
+    - QGIS_FLAVOR: ['ltr', 'release', '3.28', '3.34']
 
 # --------
 # Build
 # -------
 
 build: 
-  image: ${REGISTRY_URL}/factory-ci-runner:python
+  image: ${REGISTRY_URL}/factory-ci-runner:factory-ci
   stage: build
   script:
     - source ~/.bashrc
