@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+* Enforce python 3.10 requirement
+
 ## 1.9.0 - 2024-11-13
 
 * Remove support for Qgis < 3.28
