@@ -3,6 +3,8 @@
 
 ## Unreleased
 
+## 1.9.1 - 2024-12-16
+
 * Enforce python 3.10 requirement
 
 ## 1.9.0 - 2024-11-13
