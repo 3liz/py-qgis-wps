@@ -23,8 +23,8 @@ version:
 	echo $(VERSION_TAG) > VERSION
 
 manifest: version
-	echo name=$(shell $(PYTHON) setup.py --name) > $(MANIFEST) && \
-	echo version=$(shell $(PYTHON) setup.py --version) >> $(MANIFEST) && \
+	echo name=$(PROJECT_NAME) > $(MANIFEST) && \
+	echo version=$(VERSION_TAG) >> $(MANIFEST) && \
 	echo buildid=$(BUILDID)   >> $(MANIFEST) && \
 	echo commitid=$(COMMITID) >> $(MANIFEST)
 
