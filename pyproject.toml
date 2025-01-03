@@ -22,7 +22,7 @@ classifiers=[
 ]
 dependencies = [
     "tornado >= 6",
-    "pyzmq >= 17", 
+    "pyzmq >= 17",
     "PyYAML",
     "OWSLib",
     "psutil",
