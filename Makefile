@@ -24,9 +24,9 @@ version:
 
 manifest: version
 	echo name=$(shell $(PYTHON) setup.py --name) > $(MANIFEST) && \
-    echo version=$(shell $(PYTHON) setup.py --version) >> $(MANIFEST) && \
-    echo buildid=$(BUILDID)   >> $(MANIFEST) && \
-    echo commitid=$(COMMITID) >> $(MANIFEST)
+	echo version=$(shell $(PYTHON) setup.py --version) >> $(MANIFEST) && \
+	echo buildid=$(BUILDID)   >> $(MANIFEST) && \
+	echo commitid=$(COMMITID) >> $(MANIFEST)
 
 deliver:
 	twine upload $(TWINE_OPTIONS) -r $(PYPISERVER) $(DIST)/*
