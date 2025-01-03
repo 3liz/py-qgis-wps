@@ -1,5 +1,5 @@
 .PHONY: test
-# 
+#
 # qypws makefile
 #
 DEPTH=.
@@ -32,7 +32,7 @@ deliver:
 	twine upload $(TWINE_OPTIONS) -r $(PYPISERVER) $(DIST)/*
 
 dist: dirs manifest
-	rm -rf *.egg-info 
+	rm -rf *.egg-info
 	$(PYTHON) -m build --no-isolation --sdist --outdir=$(DIST)
 
 clean:
@@ -70,4 +70,3 @@ client-test:
 
 scan:
 	@bandit -c pyproject.toml -r pyqgiswps
-
