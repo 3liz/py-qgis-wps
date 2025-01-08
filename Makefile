@@ -1,5 +1,5 @@
 .PHONY: test
-# 
+#
 # qypws makefile
 #
 DEPTH=.
@@ -23,16 +23,16 @@ version:
 	echo $(VERSION_TAG) > VERSION
 
 manifest: version
-	echo name=$(shell $(PYTHON) setup.py --name) > $(MANIFEST) && \
-    echo version=$(shell $(PYTHON) setup.py --version) >> $(MANIFEST) && \
-    echo buildid=$(BUILDID)   >> $(MANIFEST) && \
-    echo commitid=$(COMMITID) >> $(MANIFEST)
+	echo name=$(PROJECT_NAME) > $(MANIFEST) && \
+	echo version=$(VERSION_TAG) >> $(MANIFEST) && \
+	echo buildid=$(BUILDID)   >> $(MANIFEST) && \
+	echo commitid=$(COMMITID) >> $(MANIFEST)
 
 deliver:
 	twine upload $(TWINE_OPTIONS) -r $(PYPISERVER) $(DIST)/*
 
 dist: dirs manifest
-	rm -rf *.egg-info 
+	rm -rf *.egg-info
 	$(PYTHON) -m build --no-isolation --sdist --outdir=$(DIST)
 
 clean:
@@ -70,4 +70,3 @@ client-test:
 
 scan:
 	@bandit -c pyproject.toml -r pyqgiswps
-

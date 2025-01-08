@@ -1,3 +1,5 @@
+# Name to be set in the manifest
+PROJECT_NAME:=py-qgis-wps
 
 VERSION:=1.9.0
 
