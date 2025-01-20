@@ -14,7 +14,7 @@ import time
 import traceback
 
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from glob import glob
 from typing import (
     Any,
@@ -372,7 +372,7 @@ class ProcessingExecutor:
         # The response expiration in seconds
         expire_default = cfg.getint('response_expiration')
 
-        now_ts = datetime.utcnow().timestamp()
+        now_ts = datetime.now(timezone.utc).replace(tzinfo=None).timestamp()
 
         for _, rec in list(logstore.records):
             timestamp = rec.get('timestamp')
