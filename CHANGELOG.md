@@ -6,6 +6,8 @@
 ## 1.9.1 - 2024-12-16
 
 * Enforce python 3.10 requirement
+* Do not use deprecated datetime.utcnow
+    - From https://github.com/3liz/py-qgis-wps/pull/65
 
 ## 1.9.0 - 2024-11-13
 
