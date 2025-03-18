@@ -122,15 +122,13 @@ env:
 		echo "RUNDIR=${RUNDIR}" >> .env;\
 	}
 
-
 run: stop env
 	@echo "NOTE: Pour redémarrer un service, considérez plutôt:"
 	@echo "  > docker compose restart <service>"
-	docker compose up
+	BUILDIMAGE=$(BUILDIMAGE) docker compose up
 
 stop:
-	docker compose stop  || true
-	docker compose rm -f || true
+	BUILDIMAGE=$(BUILDIMAGE) docker compose down -v
 
 # Client tests, run the service first
 test:

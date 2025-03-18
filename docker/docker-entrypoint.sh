@@ -37,7 +37,9 @@ if [ "$(id -u)" = '0' ]; then
    chown -R $QGSWPS_USER $QGSWPS_SERVER_WORKDIR
 
    # Run as QGSWPS_USER
-   exec gosu $QGSWPS_USER  "$BASH_SOURCE" $@
+    REUID=`echo $QGSWPS_USER|cut -d: -f1`
+    REGID=`echo $QGSWPS_USER|cut -d: -f2`
+    exec setpriv --clear-groups --reuid=$REUID --regid=$REGID "$BASH_SOURCE" "$@"
 fi
 
 copy_qgis_configuration

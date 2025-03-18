@@ -15,22 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends gosu \
      && apt-get clean  && rm -rf /var/lib/apt/lists/* \
      && rm -rf /usr/share/man 
 
-# Create virtualenv for installing server
-RUN mkdir -p /opt/local/ \
-    && python3 -m venv --system-site-packages /opt/local/pyqgiswps \
-    && cd /usr/local/bin \
-    && /opt/local/pyqgiswps/bin/pip install -U --upgrade-strategy=eager \
-       --no-cache-dir pip setuptools wheel packaging>=22.0 \
-    && /opt/local/pyqgiswps/bin/pip install -U --upgrade-strategy=eager \
-        --no-cache-dir \
-        plotly \
-        simplejson \
-        geojson \
-        scipy  \
-        pandas \
-        Jinja2 \
-    ${NULL}
-
 COPY pyqgiswps py-qgis-wps/pyqgiswps
 COPY pyqgisservercontrib py-qgis-wps/pyqgisservercontrib
 COPY pyproject.toml VERSION py-qgis-wps/
