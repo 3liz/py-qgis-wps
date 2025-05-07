@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+## 1.9.2 - 2024-12-16
+
+* release update
+
 ## 1.9.1 - 2024-12-16
 
 * Enforce python 3.10 requirement
