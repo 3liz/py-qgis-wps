@@ -44,32 +44,69 @@ Exposing processing algorithms
 The processing provider modules are searched in the path given by the :ref:`PROCESSING_PROVIDERS_MODULE_PATH`
 config variable.
 
-Processing providers following the same rules as QGIS regular plugin with a special factory entrypoint: ``WPSClassFactory(iface)`` in the ``__init__.py`` file.
-
-
-The ``metadata.txt`` file
--------------------------
-
-As regular QGIS plugin, a metadata.txt file must be present with a special entry ``wps=True`` indicating that
-the plugin is available as a WPS service provider.
 
 Registering providers
 ---------------------
 
-The ``iface``  parameter is a instance of ``WPSServerInterface`` which provide a
-``registerProvider( provider: QgsAlgorithmProvider, expose: bool = True) -> Any`` method.
+There is nothing special to do for using a Qgis plugin with |ProjectName|. 
 
-Exposed providers as WPS services must be registered using the ``registerProvider`` method.
+As for Qgis desktop, |ProjectName| expect the a pluging to follow
+the same rules as for any other plugins `implementing processing 
+providers <https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/processing.html>`_`. 
+
+As regular QGIS plugin, a metadata.txt file must be present with the variable
+``hasProcessingProvider=yes`` indicating that the plugin is available as a processing 
+service provider factory.
+
+The object returned by the ``classFactory`` function must implement the ``initProcessing``
+method.
+
+.. note::
+
+   The ``initProcessing`` method will be the one and only one method called by
+   |ProjectName|.       
+
+|ProjectName| use the same entrypoint a Qgis desktop plugin except that
+not ``QgsInterface`` is provided.
+
+
+.. warning::
+
+    | The ``iface: QgsInterface`` parameter is used for initializing Gui component 
+      of the plugin in Qgis desktop.  This parameter will be set to ``None`` when
+      loaded from |ProjectName|.
+    | Implementors should take care to check the value of the ``iface`` parameter
+      and drop all gui initialization if not set.
+    | The only thing to do is to register the providers the same way as for 
+      using in Qgis Desktop.   
+
 
 Example::
 
-    def WPSClassFactory(iface: WPSServerInterface) -> Any:
+    from qgis.core import QgsApplication
 
-        from TestAlgorithmProvider1 import  AlgorithmProvider1
-        from TestAlgorithmProvider2 import  AlgorithmProvider2
+    from .provider import TestAlgorithmProvider
 
-        iface.registerProvider( AlgorithmProvider1() )
-        iface.registerProvider( AlgorithmProvider2() )
+
+    class Test:
+        def __init__(self):
+            pass
+
+        def initProcessing(self):
+            reg = QgsApplication.processingRegistry()
+
+            # XXX we *MUST* keep instance of provider
+            self._provider = TestAlgorithmProvider()
+            reg.addProvider(self._provider)
+
+
+    def classFactory(iface: QgsInterface|None) -> Test:
+        if iface is not None:
+            # Initialize GUI
+            ... 
+
+        return Test()
+
 
 
 Using scripts and models

@@ -59,3 +59,13 @@ html_static_path = ['_static']
 # Fix for read the doc
 # See https://github.com/readthedocs/readthedocs.org/issues/2569
 master_doc = 'index'
+
+ProjectName = "Py-Qgis-WPS"
+
+rst_epilog = f"""
+.. |ProjectName| replace:: {ProjectName}
+"""
+
+
+
+

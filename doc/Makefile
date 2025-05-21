@@ -27,3 +27,6 @@ configuration.rst: ../pyqgiswps/config.yml configuration.rst.j2
 clean:
 	rm -r ${BUILDDIR}
 
+serve:
+	python3 -m http.server -d ./build/html
+
