@@ -1,7 +1,7 @@
 # Name to be set in the manifest
 PROJECT_NAME:=py-qgis-wps
 
-VERSION:=1.9.3
+VERSION:=1.10.0
 
 ifndef CI_COMMIT_TAG
 VERSION_TAG=$(VERSION)rc0
