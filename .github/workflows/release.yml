@@ -7,47 +7,47 @@ on:
 
 jobs:
   release:
-    name: Create Release
+    name: "🚀 Release"
     runs-on: ubuntu-latest
     steps:
-
       - name: Set env
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-
-      - uses: actions/checkout@v4
-
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5.4.0
-        with:
-          python-version: '3.10'
-
-      - name: Install Python requirements
-        run: pip3 install --upgrade setuptools qgis-plugin-ci build
-
-      - name : Get current changelog
-        run: qgis-plugin-ci changelog ${{ env.RELEASE_VERSION }} >> release.md
-
-      - name: Set env
-        # CI_COMMIT_TAG is used in Makefile to not have the "RC" flag
         run: echo "CI_COMMIT_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Get source code
+        uses: actions/checkout@v4
+
+      - name: Changelog
+        id: changelog
+        uses: 3liz/changelog-release@0.4.0
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5.6.0
+        with:
+          python-version: '3.13'
 
       - name: Setup
         run: |
           make manifest
 
+      - name: Install Python requirements
+        run: pip3 install --upgrade setuptools qgis-plugin-ci build
+
+      - name : Get current changelog
+        run: qgis-plugin-ci changelog ${{ env.CI_COMMIT_TAG }} >> release.md
+
       - name: Build package
         run: |
-          python -m build --no-isolation --sdist
+          make dist
 
       - name: Create release on GitHub
-        uses: ncipollo/release-action@v1.9.0
+        uses: ncipollo/release-action@v1.16.0
         with:
-          bodyFile: release.md
+          body: ${{ steps.changelog.outputs.markdown }}
           token: ${{ secrets.BOT_HUB_TOKEN }}
           allowUpdates: true
           artifacts: "dist/*.tar.gz"
 
-      - name: Deploy to PyP
+      - name: Deploy to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
