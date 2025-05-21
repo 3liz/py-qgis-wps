@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
@@ -5,19 +7,15 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Running QGIS processing &mdash; py-qgis-wps 1.5 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=aaadad1f"></script>
-        <script src="_static/doctools.js?v=9a2dae69"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=aaadad1f"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -57,7 +55,6 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#exposing-processing-algorithms">Exposing processing algorithms</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#the-metadata-txt-file">The <code class="docutils literal notranslate"><span class="pre">metadata.txt</span></code> file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#registering-providers">Registering providers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-scripts-and-models">Using scripts and models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#controlling-what-is-exposed">Controlling what is exposed</a></li>
@@ -119,25 +116,60 @@ may connect whatever data source supported by qgis and use them as input data in
 <span id="exposing-algorithms"></span><h1>Exposing processing algorithms<a class="headerlink" href="#exposing-processing-algorithms" title="Link to this heading"></a></h1>
 <p>The processing provider modules are searched in the path given by the <a class="reference internal" href="configuration.html#processing-providers-module-path"><span class="std std-ref">PROCESSING_PROVIDERS_MODULE_PATH</span></a>
 config variable.</p>
-<p>Processing providers following the same rules as QGIS regular plugin with a special factory entrypoint: <code class="docutils literal notranslate"><span class="pre">WPSClassFactory(iface)</span></code> in the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file.</p>
-<section id="the-metadata-txt-file">
-<h2>The <code class="docutils literal notranslate"><span class="pre">metadata.txt</span></code> file<a class="headerlink" href="#the-metadata-txt-file" title="Link to this heading"></a></h2>
-<p>As regular QGIS plugin, a metadata.txt file must be present with a special entry <code class="docutils literal notranslate"><span class="pre">wps=True</span></code> indicating that
-the plugin is available as a WPS service provider.</p>
-</section>
 <section id="registering-providers">
 <h2>Registering providers<a class="headerlink" href="#registering-providers" title="Link to this heading"></a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">iface</span></code>  parameter is a instance of <code class="docutils literal notranslate"><span class="pre">WPSServerInterface</span></code> which provide a
-<code class="docutils literal notranslate"><span class="pre">registerProvider(</span> <span class="pre">provider:</span> <span class="pre">QgsAlgorithmProvider,</span> <span class="pre">expose:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True)</span> <span class="pre">-&gt;</span> <span class="pre">Any</span></code> method.</p>
-<p>Exposed providers as WPS services must be registered using the <code class="docutils literal notranslate"><span class="pre">registerProvider</span></code> method.</p>
+<p>There is nothing special to do for using a Qgis plugin with Py-Qgis-WPS.</p>
+<p>As for Qgis desktop, Py-Qgis-WPS expect the a pluging to follow
+the same rules as for any other plugins <cite>implementing processing
+providers &lt;https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/processing.html&gt;`_</cite>.</p>
+<p>As regular QGIS plugin, a metadata.txt file must be present with the variable
+<code class="docutils literal notranslate"><span class="pre">hasProcessingProvider=yes</span></code> indicating that the plugin is available as a processing
+service provider factory.</p>
+<p>The object returned by the <code class="docutils literal notranslate"><span class="pre">classFactory</span></code> function must implement the <code class="docutils literal notranslate"><span class="pre">initProcessing</span></code>
+method.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">initProcessing</span></code> method will be the one and only one method called by
+Py-Qgis-WPS.</p>
+</div>
+<p>Py-Qgis-WPS use the same entrypoint a Qgis desktop plugin except that
+not <code class="docutils literal notranslate"><span class="pre">QgsInterface</span></code> is provided.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<div class="line-block">
+<div class="line">The <code class="docutils literal notranslate"><span class="pre">iface:</span> <span class="pre">QgsInterface</span></code> parameter is used for initializing Gui component
+of the plugin in Qgis desktop.  This parameter will be set to <code class="docutils literal notranslate"><span class="pre">None</span></code> when
+loaded from Py-Qgis-WPS.</div>
+<div class="line">Implementors should take care to check the value of the <code class="docutils literal notranslate"><span class="pre">iface</span></code> parameter
+and drop all gui initialization if not set.</div>
+<div class="line">The only thing to do is to register the providers the same way as for
+using in Qgis Desktop.</div>
+</div>
+</div>
 <p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">WPSClassFactory</span><span class="p">(</span><span class="n">iface</span><span class="p">:</span> <span class="n">WPSServerInterface</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qgis.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">QgsApplication</span>
 
-    <span class="kn">from</span> <span class="nn">TestAlgorithmProvider1</span> <span class="kn">import</span>  <span class="n">AlgorithmProvider1</span>
-    <span class="kn">from</span> <span class="nn">TestAlgorithmProvider2</span> <span class="kn">import</span>  <span class="n">AlgorithmProvider2</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.provider</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestAlgorithmProvider</span>
 
-    <span class="n">iface</span><span class="o">.</span><span class="n">registerProvider</span><span class="p">(</span> <span class="n">AlgorithmProvider1</span><span class="p">()</span> <span class="p">)</span>
-    <span class="n">iface</span><span class="o">.</span><span class="n">registerProvider</span><span class="p">(</span> <span class="n">AlgorithmProvider2</span><span class="p">()</span> <span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Test</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initProcessing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">reg</span> <span class="o">=</span> <span class="n">QgsApplication</span><span class="o">.</span><span class="n">processingRegistry</span><span class="p">()</span>
+
+        <span class="c1"># XXX we *MUST* keep instance of provider</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span> <span class="o">=</span> <span class="n">TestAlgorithmProvider</span><span class="p">()</span>
+        <span class="n">reg</span><span class="o">.</span><span class="n">addProvider</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">classFactory</span><span class="p">(</span><span class="n">iface</span><span class="p">:</span> <span class="n">QgsInterface</span><span class="o">|</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Test</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">iface</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Initialize GUI</span>
+        <span class="o">...</span>
+
+    <span class="k">return</span> <span class="n">Test</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
