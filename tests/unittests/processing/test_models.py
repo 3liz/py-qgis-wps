@@ -7,6 +7,7 @@ from typing import Tuple
 from urllib.parse import parse_qs, urlparse
 
 from qgis.core import (
+    Qgis,
     QgsProcessingContext,
     QgsProcessingFeedback,
     QgsProcessingOutputLayerDefinition,
@@ -99,5 +100,10 @@ def test_centroides_algorithms(outputdir, data):
 
     host_url = confservice.get('wps.request', 'host_url').rstrip("/")
     expected_data_url = f"{host_url}/jobs/{uuid}/files/native_centroids_1_OUTPUT.gpkg"
-    assert layers[0].dataUrl() == expected_data_url
-    assert layers[0].dataUrlFormat() == "text/plain"
+    if Qgis.QGIS_VERSION_INT >= 33800:
+        server_properties = layers[0].serverProperties()
+        assert server_properties.dataUrl() == expected_data_url
+        assert server_properties.dataUrlFormat() == "text/plain"
+    else:
+        assert layers[0].dataUrl() == expected_data_url
+        assert layers[0].dataUrlFormat() == "text/plain"

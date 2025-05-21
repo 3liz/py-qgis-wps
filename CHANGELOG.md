@@ -4,6 +4,7 @@
 ## Unreleased
 
 * Deprecate `WPSClassFactory` in favor of `initProcessing`
+* Fix deprecation warnings
 
 ## 1.9.2 - 2024-12-16
 

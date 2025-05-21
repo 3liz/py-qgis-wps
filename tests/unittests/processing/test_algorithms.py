@@ -6,6 +6,7 @@ from os import PathLike
 from urllib.parse import parse_qs, urlencode, urlparse
 
 from qgis.core import (
+    Qgis,
     QgsApplication,
     QgsProcessingContext,
     QgsProcessingFeedback,
@@ -258,8 +259,13 @@ def test_buffer_algorithm(outputdir, data):
     assert output_layer.featureCount() == srclayer.featureCount()
 
     # check data url
-    assert output_layer.dataUrl() == get_expected_data_url(uuid, "OUTPUT_VECTOR.gpkg")
-    assert output_layer.dataUrlFormat() == "text/plain"
+    if Qgis.QGIS_VERSION_INT >=33800:
+        server_properties = output_layer.serverProperties()
+        assert server_properties.dataUrl() == get_expected_data_url(uuid, "OUTPUT_VECTOR.gpkg")
+        assert server_properties.dataUrlFormat() == "text/plain"
+    else:
+        assert output_layer.dataUrl() == get_expected_data_url(uuid, "OUTPUT_VECTOR.gpkg")
+        assert output_layer.dataUrlFormat() == "text/plain"
 
 
 def test_output_vector_algorithm(outputdir, data):
@@ -319,8 +325,13 @@ def test_output_vector_algorithm(outputdir, data):
     assert output_layer.featureCount() == srclayer.featureCount()
 
     # check data url
-    assert output_layer.dataUrl() == get_expected_data_url(uuid, f"{output_name}.shp")
-    assert output_layer.dataUrlFormat() == "text/plain"
+    if Qgis.QGIS_VERSION_INT >=33800:
+        server_properties = output_layer.serverProperties()
+        assert server_properties.dataUrl() == get_expected_data_url(uuid, f"{output_name}.shp")
+        assert server_properties.dataUrlFormat() == "text/plain"
+    else:
+        assert output_layer.dataUrl() == get_expected_data_url(uuid, f"{output_name}.shp")
+        assert output_layer.dataUrlFormat() == "text/plain"
 
 
 def test_selectfeatures_algorithm(outputdir, data):
@@ -378,5 +389,10 @@ def test_selectfeatures_algorithm(outputdir, data):
     assert output_layer.featureCount() == 2
 
     # check data url
-    assert output_layer.dataUrl() == get_expected_data_url(uuid, "OUTPUT_VECTOR.gpkg")
-    assert output_layer.dataUrlFormat() == "text/plain"
+    if Qgis.QGIS_VERSION_INT >=33800:
+        server_properties = output_layer.serverProperties()
+        assert server_properties.dataUrl() == get_expected_data_url(uuid, "OUTPUT_VECTOR.gpkg")
+        assert server_properties.dataUrlFormat() == "text/plain"
+    else:
+        assert output_layer.dataUrl() == get_expected_data_url(uuid, "OUTPUT_VECTOR.gpkg")
+        assert output_layer.dataUrlFormat() == "text/plain"

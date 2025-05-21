@@ -14,7 +14,7 @@
 
 import logging
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TypeVar
 
 from lxml import etree
@@ -29,7 +29,7 @@ LOGGER = logging.getLogger('SRVLOG')
 
 
 def utcnow_iso():
-    return datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat() + 'Z'
 
 
 class OWSResponse(WPSResponse):

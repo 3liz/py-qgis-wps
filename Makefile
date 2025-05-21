@@ -40,7 +40,7 @@ clean:
 
 
 test: lint
-	make -C tests test PYTEST_ADDOPTS=$(PYTEST_ADDOPTS)
+	make -C tests test PYTEST_ADDOPTS="$(PYTEST_ADDOPTS)"
 
 install:
 	pip install -U --upgrade-strategy=eager -e .

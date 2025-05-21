@@ -6,6 +6,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import pytest
 
 from qgis.core import (
+    Qgis,
     QgsProcessingContext,
     QgsProcessingOutputLayerDefinition,
     QgsProcessingParameterMeshLayer,
@@ -197,7 +198,7 @@ class TestsLayerIO(HTTPTestCase):
         uuid = q['uuid'][0]
 
         # Get the project
-        project_path = self.workdir / uuid / 'pyqgiswps_test_testcopylayer.qgs'
+        project_path = self.workdir / uuid / "pyqgiswps_test_testcopylayer.qgs"
         assert project_path.is_file()
 
         project = QgsProject()
@@ -206,6 +207,11 @@ class TestsLayerIO(HTTPTestCase):
         # check dataUrl
         layers = [layer for _, layer in project.mapLayers().items()]
         assert len(layers) == 1
-        expected_data_url = f'{parsed_url.scheme}://{parsed_url.netloc}/jobs/{uuid}/files/OUTPUT.shp'
-        assert layers[0].dataUrl() == expected_data_url
-        assert layers[0].dataUrlFormat() == 'text/plain'
+        expected_data_url = f"{parsed_url.scheme}://{parsed_url.netloc}/jobs/{uuid}/files/OUTPUT.shp"
+        if Qgis.QGIS_VERSION_INT >= 33800:
+            server_properties = layers[0].serverProperties()
+            assert server_properties.dataUrl() == expected_data_url
+            assert server_properties.dataUrlFormat() == "text/plain"
+        else:
+            assert layers[0].dataUrl() == expected_data_url
+            assert layers[0].dataUrlFormat() == "text/plain"

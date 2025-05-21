@@ -9,7 +9,7 @@
 import json
 import logging
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 from pyqgiswps.app.request import WPSResponse
@@ -27,7 +27,7 @@ class JOBSTATUS(str, Enum):
 
 
 def utcnow_iso():
-    return datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat() + 'Z'
 
 
 class OgcApiResponse(WPSResponse):

@@ -7,7 +7,7 @@ import logging
 import os
 import uuid
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import IntEnum
 from typing import Iterator, Optional
 from uuid import UUID
@@ -20,7 +20,7 @@ LOGGER = logging.getLogger('SRVLOG')
 
 
 def utcnow():
-    return datetime.utcnow().replace(microsecond=0)
+    return datetime.now(timezone.utc).replace(microsecond=0)
 
 
 class STATUS(IntEnum):

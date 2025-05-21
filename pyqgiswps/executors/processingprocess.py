@@ -24,6 +24,7 @@ from typing import (
 from processing.core.Processing import ProcessingConfig, RenderingStyles
 
 from qgis.core import (
+    Qgis,
     QgsApplication,
     QgsFeatureRequest,
     QgsMapLayer,
@@ -173,8 +174,13 @@ def handle_layer_outputs(
 
                 # Advertise the associated file of the layer with as DataUrl
                 data_url = "/".join([host_url, "jobs", uuid, "files", str(Path(lyrname))])
-                layer.setDataUrl(data_url)
-                layer.setDataUrlFormat("text/plain")
+                if Qgis.QGIS_VERSION_INT >= 33800:
+                    server_properties = layer.serverProperties()
+                    server_properties.setDataUrl(data_url)
+                    server_properties.setDataUrlFormat("text/plain")
+                else:
+                    layer.setDataUrl(data_url)
+                    layer.setDataUrlFormat("text/plain")
 
                 # Add layer to destination project
                 if details.project:
