@@ -13,6 +13,7 @@ import configparser
 import logging
 import sys
 import traceback
+import warnings
 
 from collections import namedtuple
 from pathlib import Path
@@ -80,7 +81,14 @@ class WPSServerInterfaceImpl:
             _register_provider(reg, provider_id, providers)
 
         class _WPSServerInterface:
-            def registerProvider(self, provider: 'QgsAlgorithmProvider', expose: bool = True):   # noqa: F821
+            def registerProvider(self,
+                provider: 'QgsAlgorithmProvider',  # noqa: F821
+                expose: bool = True,
+            ):
+                warnings.warn(
+                    "WPSClassFactory is deprecated, use initProcessing()",
+                    DeprecationWarning,
+                )
                 reg.addProvider(provider)
                 # IMPORTANT: the processingRegistry does not gain ownership and
                 # the caller must prevent garbage collection by keeping the ownership of
@@ -91,6 +99,14 @@ class WPSServerInterfaceImpl:
 
         sys.path.extend(self._paths)
 
+        auto_register = False
+
+        def _registerProvider(ident: str):
+            if auto_register:
+                _register_provider(reg, ident, providers)
+
+        reg.providerAdded.connect(_registerProvider)
+
         for plugin in self._plugins:
             try:
                 __import__(plugin)
@@ -98,13 +114,25 @@ class WPSServerInterfaceImpl:
 
                 # Initialize the plugin
                 LOGGER.info("Loaded plugin '%s'", plugin)
-                self._plugins[plugin] = package.WPSClassFactory(wpsIface)
 
-                # Load style from plugin packeges directory
+                # Check old style WPS/Qgis plugin
+                if hasattr(package, 'WPSClassFactory'):
+                    auto_register = False
+                    self._plugins[plugin] = package.WPSClassFactory(wpsIface)
+                else:
+                    auto_register = True
+                    init = package.classFactory(None)
+                    init.initProcessing()
+                    self._plugins[plugin] = init
+
+                # Load style from plugin package directory
                 load_styles(Path(package.__file__).parent)
             except Exception:
                 LOGGER.error("Failed to initialize plugin: %s", plugin)
                 traceback.print_exc()
+
+        # Disconnect from QT slot
+        reg.providerAdded.disconnect(_registerProvider)
 
     @property
     def providers(self, exposed: bool = True) -> Iterable['QgsAlgorithmProvider']:  # noqa: F821
@@ -161,8 +189,10 @@ def find_plugins(path: Path) -> Generator[str, None, None]:
             with metadatafile.open(mode='rt') as f:
                 cp.read_file(f)
 
-            if not cp['general'].getboolean('wps'):
-                LOGGER.warning("%s is not a wps plugin", plugin)
+            general = cp['general']
+
+            if not (general.getboolean('wps') or general.getboolean("hasProcessingProvider")):
+                LOGGER.warning("%s is not a processing plugin", plugin)
                 continue
 
             minver = cp['general'].get('qgisMinimumVersion')

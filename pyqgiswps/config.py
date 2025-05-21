@@ -341,7 +341,7 @@ def get_size_bytes(size):
 
     import re
 
-    units = re.compile("[gmkb].*")
+    units = re.compile(r"[gmkb].*")
     newsize = float(re.sub(units, '', size))
 
     if size.find("g") > -1:

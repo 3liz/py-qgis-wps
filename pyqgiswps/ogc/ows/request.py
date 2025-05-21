@@ -81,55 +81,55 @@ class OWSRequest(WPSRequest):
 
         wpsrequest = OWSRequest()
 
-        _get_query_param = handler.get_argument
+        get_query_param = handler.get_argument
 
         def parse_get_getresults():
             """ Parse GET GetResults
             """
-            wpsrequest.results_uuid = _get_query_param('UUID')
+            wpsrequest.results_uuid = get_query_param('UUID')
 
         def parse_get_getcapabilities():
             """Parse GET GetCapabilities request
             """
-            acceptedversions = _get_query_param('ACCEPTVERSIONS', None)
+            acceptedversions = get_query_param('ACCEPTVERSIONS', None)
             wpsrequest.check_accepted_versions(acceptedversions)
 
         def parse_get_describeprocess():
             """Parse GET DescribeProcess request
             """
-            version = _get_query_param('VERSION', None)
+            version = get_query_param('VERSION', None)
             wpsrequest.check_and_set_version(version)
 
-            language = _get_query_param('LANGUAGE', None)
+            language = get_query_param('LANGUAGE', None)
             wpsrequest.check_and_set_language(language)
 
-            wpsrequest.identifiers = _get_query_param('IDENTIFIER').split(',')
+            wpsrequest.identifiers = get_query_param('IDENTIFIER').split(',')
 
         def parse_get_execute():
             """Parse GET Execute request
             """
-            version = _get_query_param('VERSION', None)
+            version = get_query_param('VERSION', None)
             wpsrequest.check_and_set_version(version)
 
-            language = _get_query_param('LANGUAGE', None)
+            language = get_query_param('LANGUAGE', None)
             wpsrequest.check_and_set_language(language)
 
-            wpsrequest.identifier = _get_query_param('IDENTIFIER')
+            wpsrequest.identifier = get_query_param('IDENTIFIER')
 
-            timeout = _get_query_param('TIMEOUT', None)
+            timeout = get_query_param('TIMEOUT', None)
             wpsrequest.check_and_set_timeout(timeout)
 
-            expire = _get_query_param('EXPIRE', None)
+            expire = get_query_param('EXPIRE', None)
             wpsrequest.check_and_set_expiration(expire)
 
             # Trigger async response
-            wpsrequest.execute_async = _get_query_param('STOREEXECUTERESPONSE', 'false').lower() == 'true'
-            wpsrequest.lineage = _get_query_param('LINEAGE', 'false').lower() == 'true'
+            wpsrequest.execute_async = get_query_param('STOREEXECUTERESPONSE', 'false').lower() == 'true'
+            wpsrequest.lineage = get_query_param('LINEAGE', 'false').lower() == 'true'
 
-            wpsrequest.inputs = get_data_from_kvp(_get_query_param('DATAINPUTS', None), 'DataInputs')
+            wpsrequest.inputs = get_data_from_kvp(get_query_param('DATAINPUTS', None), 'DataInputs')
 
             # take responseDocument preferably
-            wpsrequest.outputs = get_data_from_kvp(_get_query_param('RESPONSEDOCUMENT', None))
+            wpsrequest.outputs = get_data_from_kvp(get_query_param('RESPONSEDOCUMENT', None))
 
         wpsrequest.operation = operation
 
@@ -275,7 +275,7 @@ class OWSRequest(WPSRequest):
         else:
             self.version = version
 
-    def check_and_set_language(self, language):
+    def check_and_set_language(self, language: str | None):
         """set this.language
         """
 
@@ -289,26 +289,26 @@ class OWSRequest(WPSRequest):
         else:
             self.language = language
 
-    def check_and_set_timeout(self, timeout):
+    def check_and_set_timeout(self, param: str | None):
         try:
-            if timeout is not None:
-                _timeout = int(timeout)
-                if _timeout <= 0:
+            if param is not None:
+                timeout = int(param)
+                if timeout <= 0:
                     raise ValueError()
-                self.timeout = min(self.timeout, _timeout)
+                self.timeout = min(self.timeout, timeout)
         except ValueError:
             raise InvalidParameterValue(
                 f'TIMEOUT param must be an integer > 0 value, not "{timeout}"',
                 "timeout",
             )
 
-    def check_and_set_expiration(self, expire):
+    def check_and_set_expiration(self, param: str | None):
         try:
-            if expire is not None:
-                _expire = int(expire)
-                if _expire <= 0:
+            if param is not None:
+                expire = int(param)
+                if expire <= 0:
                     raise ValueError()
-                self.expiration = _expire
+                self.expiration = expire
         except ValueError:
             raise InvalidParameterValue(
                 f'EXPIRE param must be an integer > 0 value, not "{expire}"',

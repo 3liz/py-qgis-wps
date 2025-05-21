@@ -6,6 +6,4 @@ description=Test plugin
 version=1.0.0
 author=
 email=
-; if True it's a wps plugin
-wps=True
-
+hasProcessingProvider=yes

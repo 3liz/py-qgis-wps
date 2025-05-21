@@ -1,3 +1,6 @@
+
+from qgis.core import QgsApplication
+
 from .TestAlgorithmProvider import TestAlgorithmProvider
 
 
@@ -5,8 +8,12 @@ class Test:
     def __init__(self):
         pass
 
+    def initProcessing(self):
+        self._provider = TestAlgorithmProvider()
 
-def WPSClassFactory(iface):
+        reg = QgsApplication.processingRegistry()
+        reg.addProvider(self._provider)
 
-    iface.registerProvider(TestAlgorithmProvider())
+
+def classFactory(iface: None) -> Test:
     return Test()

@@ -73,19 +73,19 @@ class OpenApiHandler(BaseHandler, DownloadMixIn):
         return {'openapi': self._metadata['openapi']}
 
     def oapi_info(self):
-        _m = self._metadata.get
+        md = self._metadata.get
         doc = {
-            'title': _m('title'),
-            'description': _m('description'),
-            'termsOfService': _m('terms_of_service'),
+            'title': md('title'),
+            'description': md('description'),
+            'termsOfService': md('terms_of_service'),
             'contact': {
-                'name': _m('contact_name'),
-                'url': _m('contact_url'),
-                'email': _m('contact_email'),
+                'name': md('contact_name'),
+                'url': md('contact_url'),
+                'email': md('contact_email'),
             },
             'licence': {
-                'name': _m('licence_name'),
-                'url': _m('licence_url'),
+                'name': md('licence_name'),
+                'url': md('licence_url'),
             },
             'version': __version__,
         }

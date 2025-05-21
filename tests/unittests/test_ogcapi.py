@@ -124,7 +124,7 @@ class ExecuteTest(ApiTestCase):
         request_doc = {}
         resp = self.client.post_json('/processes/ultimate_question/execution', data=request_doc)
         doc = assert_response_success(resp)
-        assert doc['outvalue'] ==  42
+        assert doc['outvalue'] == 42
 
     def test_post_with_string_input(self):
         request_doc = {
@@ -134,7 +134,7 @@ class ExecuteTest(ApiTestCase):
         }
         resp = self.client.post_json("/processes/greeter/execution", request_doc)
         doc = assert_response_success(resp)
-        assert doc['message'] ==  "Hello foo!"
+        assert doc['message'] == "Hello foo!"
 
     def test_bbox_input_no_crs(self):
         request_doc = {

@@ -65,7 +65,7 @@ def test_time_input():
     assert isinstance(inp.default, datetime.time)
 
     defval = param.defaultValue()
-    assert inp.default.hour   == defval.hour()
+    assert inp.default.hour == defval.hour()
     assert inp.default.minute == defval.minute()
     assert inp.default.second == defval.second()
 

@@ -55,8 +55,8 @@ class BasicHandler:
         """Validate this input usig given validator
         """
         validate = self.validator
-        _valid = validate(self, self.valid_mode)
-        if not _valid:
+        valid = validate(self, self.valid_mode)
+        if not valid:
             raise InvalidParameterValue(
                 f"Input data not valid using mode '{self.valid_mode}'",
             )

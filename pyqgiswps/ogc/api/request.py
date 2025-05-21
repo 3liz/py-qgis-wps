@@ -149,29 +149,29 @@ class OgcApiRequest(WPSRequest):
 
     # Validation
 
-    def check_and_set_timeout(self, timeout: Optional[int]):
+    def check_and_set_timeout(self, param: Optional[int]):
         """ Validate timeout parameter
         """
         try:
-            if timeout is not None:
-                _timeout = int(timeout)
-                if _timeout <= 0:
+            if param is not None:
+                timeout = int(param)
+                if timeout <= 0:
                     raise ValueError()
-                self.timeout = min(self.timeout, _timeout)
+                self.timeout = min(self.timeout, timeout)
         except ValueError:
             raise InvalidParameterValue(
                 'TIMEOUT param must be an integer > 0 value, not "%s"',
                 timeout) from None
 
-    def check_and_set_expiration(self, expire: Optional[int]):
+    def check_and_set_expiration(self, param: Optional[int]):
         """ Validate expiration parameter
         """
         try:
-            if expire is not None:
-                _expire = int(expire)
-                if _expire <= 0:
+            if param is not None:
+                expire = int(param)
+                if expire <= 0:
                     raise ValueError()
-                self.expiration = _expire
+                self.expiration = expire
         except ValueError:
             raise InvalidParameterValue(
                 'EXPIRE param must be an integer > 0 value, not "%s"',

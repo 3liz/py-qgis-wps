@@ -58,7 +58,7 @@ def test_boolean():
 
 def test_time():
     """Test time convertor"""
-    assert convert_time("12:00:00") ==  datetime.time(12, 0, 0)
+    assert convert_time("12:00:00") == datetime.time(12, 0, 0)
     assert isinstance(convert_time(datetime.time(14)), datetime.time)
 
 

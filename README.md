@@ -245,35 +245,66 @@ be retourned as WMS urls. This configuration variable sets the base url for acce
 
 # Exposing algorithms as WPS services
 
-Note that since 1.1, the `__algorithms__.py` method for declaring providers is no longer supported.
+Processing providers follows the same rules as for any  QGIS regular processing plugin: [implementing processing providers ](https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/processing.html).
 
-Processing providers following the same rules as QGIS regular plugin with a special factory entrypoint:
-`WPSClassFactory(iface)` in the `__init__.py` file.
+
+**Deprecation notices**:
+
+* Since 1.1, the `__algorithms__.py` method for declaring providers is no longer supported.
+* since 1.9.3 the the   special factory entrypoint: `WPSClassFactory(iface)` in the `__init__.py` file. and the `wps` flag in the `metadata.txt` are deprecated in favor of `hasProcessingProvider=yes` anthe call of `initProcessing()`. 
+
 
 ### The `metadata.txt` file
 
-As regular QGIS plugin, a metadata.txt file must be present with a special entry `wps=True` indicating that
-the plugin is available as a WPS service provider.
+As regular QGIS plugin, a metadata.txt file must be present with a special entry `hasProcessingProvider=yes` indicating that the plugin is available as processing service provider.
 
 ### Registering providers
 
-The `iface`  parameter is a instance of `WPSServerInterface` which provide a 
-`registerProvider( provider: QgsAlgorithmProvider, expose: bool = True) -> Any` method.
+At plugin initialization, Py-Qgis-WPS will call the `initProcessingMethod()` of the object returned
+by the `classFactory` function.
 
-Exposed providers as WPS services must be registered using the `registerProvider` method
+[!NOTE]
+The `initProcessing` method will be the one and only one method called by
+
+[!IMPORTANT]
+The `iface: QgsInterface` parameter is used for initializing Gui component 
+of the plugin in Qgis desktop.  This parameter will be set to `None` when
+loaded from py-qgis-wps.
+Implementors should take care to check the value of the `iface` parameter
+and drop all gui initialization if not set.
+The only thing to do is to register the providers the same way as for 
+using in Qgis Desktop.   
+
 
 Example:
 
 ```python
-def WPSClassFactory(iface: WPSServerInterface) -> Any:
+from qgis.core import QgsApplication
 
-    from TestAlgorithmProvider1 import  AlgorithmProvider1
-    from TestAlgorithmProvider2 import  AlgorithmProvider2
+from .provider import TestAlgorithmProvider
 
-    iface.registerProvider( AlgorithmProvider1() )
-    iface.registerProvider( AlgorithmProvider2() )
 
-``` 
+class Test:
+    def __init__(self):
+        pass
+
+    def initProcessing(self):
+        reg = QgsApplication.processingRegistry()
+
+        # XXX we *MUST* keep instance of provider
+        self._provider = TestAlgorithmProvider()
+        reg.addProvider(self._provider)
+
+
+def classFactory(iface: QgsInterface|None) -> Test:
+    if iface is not None:
+        # Initialize GUI
+        ... 
+
+    return Test()
+```
+
+
 
 ## Controlling what is exposed:
 

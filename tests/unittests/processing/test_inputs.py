@@ -318,5 +318,5 @@ def test_parameter_abstract():
 
     assert isinstance(inp, LiteralInput)
     assert inp.identifier == "TEST"
-    assert inp.title      == title
-    assert inp.abstract   == helpstr
+    assert inp.title == title
+    assert inp.abstract == helpstr
