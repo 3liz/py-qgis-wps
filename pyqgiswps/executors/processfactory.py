@@ -115,7 +115,7 @@ class _FactoryDelegate(Process):
                 p.start()
                 p.join()
                 # Test non-zero exitcode
-                # This happends on Qgs provider registration failure because PyQgis exception are not
+                # This happens on Qgs provider registration failure because PyQgis exception are not
                 # propagated to python
                 if p.exitcode != 0:
                     LOGGER.critical("Sub process exited with code %s", p.exitcode)
@@ -249,7 +249,7 @@ class QgsProcessFactory:
         self.qgis_enabled = True
         # Re-create the sub-processes
         if _is_android:
-            LOGGER.warn("Android platform detected: restarting processes may not behave as expected")
+            LOGGER.warning("Android platform detected: restarting processes may not behave as expected")
             processes = self._create_qgis_processes()
         else:
             if not self._delegate:
@@ -274,7 +274,7 @@ class QgsProcessFactory:
     def start_qgis(self):
         """ Set up qgis
         """
-        # Do not intialize twice
+        # Do not initialize twice
         if self.qgisapp is not None:
             return
 

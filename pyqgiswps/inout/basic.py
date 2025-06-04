@@ -52,7 +52,7 @@ class BasicHandler:
         self.valid_mode = mode
 
     def check_valid(self):
-        """Validate this input usig given validator
+        """Validate this input using given validator
         """
         validate = self.validator
         valid = validate(self, self.valid_mode)
@@ -119,7 +119,7 @@ class IOHandler(BasicHandler):
                     case str():
                         return StringIO(self.source)
                     case _:
-                        LOGGER.warn("Converting %s to stream", type(self.source))
+                        LOGGER.warning("Converting %s to stream", type(self.source))
                         return StringIO(str(self.source))
 
     def set_data(self, data):
