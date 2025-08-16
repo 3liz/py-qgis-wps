@@ -51,6 +51,7 @@ deploy:snap:
   stage: deploy
   script:
     - update-service wps
+  allow_failure: true
   environment:
     name: snap
   only:
