@@ -1,5 +1,9 @@
 # Py-QGIS-WPS 
 
+> [!WARNING]
+> This project is considered EOL and will no receive further update. If your are searching
+> for an alternative with QGIS 4 support you may consider the [QJazz processing suite](https://github.com/3liz/qjazz).
+
 [![PyPi version badge](https://badgen.net/pypi/v/py-qgis-wps)](https://pypi.org/project/py-qgis-wps/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/py-qgis-wps)](https://pypi.org/project/py-qgis-wps/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/py-qgis-wps)](https://pypi.org/project/py-qgis-wps/)
